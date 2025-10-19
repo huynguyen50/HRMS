@@ -1,8 +1,6 @@
 package com.hrm.dao;
 
 import com.hrm.model.entity.Leave; // hoặc tên class model thực tế trong project (Leave/LeaveApplication)
-import com.hrm.util.DbConnection;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,7 +18,7 @@ public class LeaveDAO {
         String sql = "INSERT INTO leave_applications (employee_id, start_date, end_date, reason, status, created_at) "
                    + "VALUES (?, ?, ?, ?, ?, NOW())";
 
-        try (Connection con = DbConnection.getConnection();
+        try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, leave.getEmployeeId());
@@ -55,7 +53,7 @@ public class LeaveDAO {
         String sql = "SELECT id, employee_id, start_date, end_date, reason, status FROM leave_applications "
                    + "WHERE employee_id = ? ORDER BY created_at DESC";
 
-        try (Connection con = DbConnection.getConnection();
+        try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, employeeId);
@@ -85,7 +83,7 @@ public class LeaveDAO {
     public boolean updateLeaveStatus(int leaveId, String status) {
         String sql = "UPDATE leave_applications SET status = ? WHERE id = ?";
 
-        try (Connection con = DbConnection.getConnection();
+        try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, status);
@@ -105,7 +103,7 @@ public class LeaveDAO {
     public Leave getLeaveById(int id) {
         String sql = "SELECT id, employee_id, start_date, end_date, reason, status FROM leave_applications WHERE id = ?";
 
-        try (Connection con = DbConnection.getConnection();
+        try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, id);
