@@ -99,6 +99,76 @@ public class EmployeeDAO {
         return 0;
     }
 
+    public List<Employee> searchEmployeesPaged(String keyword, int offset, int limit) {
+        List<Employee> list = new ArrayList<>();
+        String sql = """
+            SELECT e.*, d.DeptName, COALESCE(c.BaseSalary, 0) as BaseSalary
+            FROM Employee e
+            LEFT JOIN Department d ON e.DepartmentID = d.DepartmentID
+            LEFT JOIN Contract c ON e.EmployeeID = c.EmployeeID AND c.ContractID = (
+                SELECT ContractID FROM Contract
+                WHERE EmployeeID = e.EmployeeID
+                ORDER BY StartDate DESC
+                LIMIT 1
+            )
+            WHERE e.FullName LIKE ? OR e.Email LIKE ? OR e.Position LIKE ?
+            ORDER BY e.EmployeeID
+            LIMIT ?, ?
+        """;
+
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            String searchPattern = "%" + keyword + "%";
+            ps.setString(1, searchPattern);
+            ps.setString(2, searchPattern);
+            ps.setString(3, searchPattern);
+            ps.setInt(4, offset);
+            ps.setInt(5, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Employee e = new Employee();
+                    e.setEmployeeId(rs.getInt("EmployeeID"));
+                    e.setFullName(rs.getString("FullName"));
+                    e.setGender(rs.getString("Gender"));
+                    e.setDob(rs.getDate("DOB") != null ? rs.getDate("DOB").toLocalDate() : null);
+                    e.setAddress(rs.getString("Address"));
+                    e.setPhone(rs.getString("Phone"));
+                    e.setEmail(rs.getString("Email"));
+                    e.setDepartmentId(rs.getInt("DepartmentID"));
+                    e.setDepartmentName(rs.getString("DeptName"));
+                    e.setPosition(rs.getString("Position"));
+                    e.setEmploymentPeriod(rs.getString("EmploymentPeriod"));
+                    e.setActive("Active".equalsIgnoreCase(rs.getString("Status")));
+                    e.setSalary(rs.getDouble("BaseSalary"));
+                    e.setStatus(rs.getString("Status"));
+                    list.add(e);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("[v0] Error in searchEmployeesPaged: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public int searchEmployeesCount(String keyword) {
+        String sql = "SELECT COUNT(*) as total FROM Employee WHERE FullName LIKE ? OR Email LIKE ? OR Position LIKE ?";
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            String searchPattern = "%" + keyword + "%";
+            ps.setString(1, searchPattern);
+            ps.setString(2, searchPattern);
+            ps.setString(3, searchPattern);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("[v0] Error in searchEmployeesCount: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     public Employee getById(int employeeId) {
         String sql = """
         SELECT e.*, d.DeptName, COALESCE(c.BaseSalary, 0) as BaseSalary
@@ -142,13 +212,14 @@ public class EmployeeDAO {
         return null;
     }
 
-    public boolean insert(Employee employee) {
+ public boolean insert(Employee employee) {
         String sql = """
             INSERT INTO Employee (FullName, Gender, DOB, Address, Phone, Email, EmploymentPeriod, DepartmentID, Status, Position)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
-        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+        try (Connection con = DBConnection.getConnection(); 
+             PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, employee.getFullName());
             ps.setString(2, employee.getGender());
             ps.setDate(3, employee.getDob() != null ? java.sql.Date.valueOf(employee.getDob()) : null);
@@ -157,9 +228,9 @@ public class EmployeeDAO {
             ps.setString(6, employee.getEmail());
             ps.setString(7, employee.getEmploymentPeriod());
             ps.setInt(8, employee.getDepartmentId());
-            ps.setString(9, employee.isActive() ? "Active" : "Inactive");
+            ps.setString(9, employee.getStatus() != null ? employee.getStatus() : "Active");
             ps.setString(10, employee.getPosition());
-
+            
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("[v0] Error in insert: " + e.getMessage());
@@ -176,7 +247,8 @@ public class EmployeeDAO {
             WHERE EmployeeID = ?
         """;
 
-        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+        try (Connection con = DBConnection.getConnection(); 
+             PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, employee.getFullName());
             ps.setString(2, employee.getGender());
             ps.setDate(3, employee.getDob() != null ? java.sql.Date.valueOf(employee.getDob()) : null);
@@ -185,10 +257,10 @@ public class EmployeeDAO {
             ps.setString(6, employee.getEmail());
             ps.setString(7, employee.getEmploymentPeriod());
             ps.setInt(8, employee.getDepartmentId());
-            ps.setString(9, employee.isActive() ? "Active" : "Inactive");
+            ps.setString(9, employee.getStatus() != null ? employee.getStatus() : "Active");
             ps.setString(10, employee.getPosition());
             ps.setInt(11, employee.getEmployeeId());
-
+            
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("[v0] Error in update: " + e.getMessage());
@@ -337,4 +409,54 @@ public class EmployeeDAO {
         }
         return 0;
     }
+    public List<Employee> searchEmployees(String keyword) {
+        List<Employee> list = new ArrayList<>();
+        String sql = """
+            SELECT e.*, d.DeptName, COALESCE(c.BaseSalary, 0) as BaseSalary
+            FROM Employee e
+            LEFT JOIN Department d ON e.DepartmentID = d.DepartmentID
+            LEFT JOIN Contract c ON e.EmployeeID = c.EmployeeID AND c.ContractID = (
+                SELECT ContractID FROM Contract
+                WHERE EmployeeID = e.EmployeeID
+                ORDER BY StartDate DESC
+                LIMIT 1
+            )
+            WHERE e.FullName LIKE ? OR e.Email LIKE ? OR e.Position LIKE ? OR d.DeptName LIKE ?
+            ORDER BY e.EmployeeID
+        """;
+
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            String searchPattern = "%" + keyword + "%";
+            ps.setString(1, searchPattern);
+            ps.setString(2, searchPattern);
+            ps.setString(3, searchPattern);
+            ps.setString(4, searchPattern);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Employee e = new Employee();
+                    e.setEmployeeId(rs.getInt("EmployeeID"));
+                    e.setFullName(rs.getString("FullName"));
+                    e.setGender(rs.getString("Gender"));
+                    e.setDob(rs.getDate("DOB") != null ? rs.getDate("DOB").toLocalDate() : null);
+                    e.setAddress(rs.getString("Address"));
+                    e.setPhone(rs.getString("Phone"));
+                    e.setEmail(rs.getString("Email"));
+                    e.setDepartmentId(rs.getInt("DepartmentID"));
+                    e.setDepartmentName(rs.getString("DeptName"));
+                    e.setPosition(rs.getString("Position"));
+                    e.setEmploymentPeriod(rs.getString("EmploymentPeriod"));
+                    e.setActive("Active".equalsIgnoreCase(rs.getString("Status")));
+                    e.setSalary(rs.getDouble("BaseSalary"));
+                    e.setStatus(rs.getString("Status"));
+                    list.add(e);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("[v0] Error in searchEmployees: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return list;
+    }
+
 }

@@ -7,243 +7,96 @@
         <link rel="stylesheet" href="Admin/css/Admin_home.css">
         <link rel="stylesheet" href="Admin/css/employees.css">
         <style>
-            .page-header {
+            /* Add pagination styling */
+            .pagination-bar {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 20px;
-            }
-            .btn-add {
-                background-color: #4CAF50;
-                color: white;
-                padding: 10px 20px;
-                border: none;
+                margin-top: 20px;
+                padding: 15px;
+                background-color: #f8f9fa;
                 border-radius: 4px;
-                cursor: pointer;
+            }
+
+            .pagination-info {
                 font-size: 14px;
+                color: #666;
             }
-            .btn-add:hover {
-                background-color: #45a049;
-            }
-            .filter-section {
+
+            .pagination-controls {
                 display: flex;
-                gap: 15px;
-                margin-bottom: 20px;
-                flex-wrap: wrap;
+                gap: 5px;
             }
-            .filter-section select, .filter-section input {
+
+            .pagination-controls a,
+            .pagination-controls span {
                 padding: 8px 12px;
                 border: 1px solid #ddd;
                 border-radius: 4px;
+                text-decoration: none;
+                color: #5b6ef5;
+                cursor: pointer;
                 font-size: 14px;
             }
-            .employee-table {
-                width: 100%;
-                border-collapse: collapse;
-                background-color: white;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+            .pagination-controls a:hover {
+                background-color: #f0f0f0;
             }
-            .employee-table thead {
-                background-color: #f5f5f5;
-                border-bottom: 2px solid #ddd;
-            }
-            .employee-table th {
-                padding: 12px;
-                text-align: left;
-                font-weight: 600;
-                color: #333;
-            }
-            .employee-table td {
-                padding: 12px;
-                border-bottom: 1px solid #eee;
-            }
-            .employee-table tbody tr:hover {
-                background-color: #f9f9f9;
-            }
-            .status-badge {
-                padding: 4px 12px;
-                border-radius: 20px;
-                font-size: 12px;
-                font-weight: 600;
-            }
-            .status-badge.active {
-                background-color: #d4edda;
-                color: #155724;
-            }
-            .status-badge.inactive {
-                background-color: #f8d7da;
-                color: #721c24;
-            }
-            .action-buttons {
-                display: flex;
-                gap: 8px;
-            }
-            .btn-edit, .btn-delete, .btn-view {
-                padding: 6px 12px;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 12px;
-            }
-            .btn-edit {
-                background-color: #2196F3;
+
+            .pagination-controls span.active {
+                background-color: #5b6ef5;
                 color: white;
+                border-color: #5b6ef5;
             }
-            .btn-edit:hover {
-                background-color: #0b7dda;
+
+            .pagination-controls a.disabled {
+                color: #ccc;
+                cursor: not-allowed;
+                pointer-events: none;
             }
-            .btn-delete {
-                background-color: #f44336;
-                color: white;
-            }
-            .btn-delete:hover {
-                background-color: #da190b;
-            }
-            .btn-view {
-                background-color: #FF9800;
-                color: white;
-            }
-            .btn-view:hover {
-                background-color: #e68900;
-            }
-            /* Modal Styles */
-            .modal {
-                display: none;
-                position: fixed;
-                z-index: 1000;
-                left: 0;
-                top: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0,0,0,0.4);
-            }
-            .modal.show {
-                display: block;
-            }
-            .modal-content {
-                background-color: #fefefe;
-                margin: 5% auto;
-                padding: 20px;
-                border: 1px solid #888;
-                border-radius: 8px;
-                width: 90%;
-                max-width: 600px;
-                max-height: 80vh;
-                overflow-y: auto;
-            }
-            .modal-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 20px;
-                border-bottom: 1px solid #eee;
-                padding-bottom: 10px;
-            }
-            .modal-header h2 {
-                margin: 0;
-                font-size: 20px;
-            }
-            .close-btn {
-                font-size: 28px;
-                font-weight: bold;
-                color: #aaa;
-                cursor: pointer;
-            }
-            .close-btn:hover {
-                color: #000;
-            }
-            .form-group {
-                margin-bottom: 15px;
-            }
-            .form-group label {
-                display: block;
-                margin-bottom: 5px;
-                font-weight: 600;
-                color: #333;
-            }
-            .form-group input, .form-group select {
-                width: 100%;
-                padding: 8px 12px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                font-size: 14px;
-                box-sizing: border-box;
-            }
-            .form-group input:focus, .form-group select:focus {
-                outline: none;
-                border-color: #2196F3;
-                box-shadow: 0 0 5px rgba(33, 150, 243, 0.3);
-            }
-            .form-actions {
+
+            .search-form {
                 display: flex;
                 gap: 10px;
-                justify-content: flex-end;
-                margin-top: 20px;
+                align-items: center;
+                margin-bottom: 20px;
             }
-            .btn-submit {
-                background-color: #4CAF50;
-                color: white;
-                padding: 10px 20px;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 14px;
-            }
-            .btn-submit:hover {
-                background-color: #45a049;
-            }
-            .btn-cancel {
-                background-color: #999;
-                color: white;
-                padding: 10px 20px;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 14px;
-            }
-            .btn-cancel:hover {
-                background-color: #888;
-            }
-            .pagination {
-                display: flex;
-                justify-content: center;
-                gap: 5px;
-                margin-top: 20px;
-            }
-            .pagination a, .pagination span {
+
+            .search-form input {
+                flex: 1;
+                max-width: 400px;
                 padding: 8px 12px;
                 border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 14px;
+            }
+
+            .search-form button,
+            .search-form a {
+                padding: 8px 16px;
+                background-color: #5b6ef5;
+                color: white;
+                border: none;
                 border-radius: 4px;
                 cursor: pointer;
                 text-decoration: none;
-                color: #333;
+                display: inline-block;
+                font-size: 14px;
             }
-            .pagination a:hover {
-                background-color: #f0f0f0;
+
+            .search-form button:hover {
+                background-color: #4a5dd8;
             }
-            .pagination .active {
-                background-color: #2196F3;
-                color: white;
-                border-color: #2196F3;
+
+            .search-form a {
+                background-color: #6c757d;
             }
-            .alert {
-                padding: 12px;
-                margin-bottom: 20px;
-                border-radius: 4px;
-            }
-            .alert-success {
-                background-color: #d4edda;
-                color: #155724;
-                border: 1px solid #c3e6cb;
-            }
-            .alert-error {
-                background-color: #f8d7da;
-                color: #721c24;
-                border: 1px solid #f5c6cb;
+
+            .search-form a:hover {
+                background-color: #5a6268;
             }
         </style>
     </head>
-
     <body>
         <div class="dashboard-container">
             <!-- Sidebar -->
@@ -254,38 +107,46 @@
                         <span>Admin Panel</span>
                     </div>
                 </div>
-
                 <div class="sidebar-nav">
                     <a href="${pageContext.request.contextPath}/admin?action=dashboard"
                        class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">🏠 Dashboard</a>
-
                     <a href="${pageContext.request.contextPath}/admin?action=employees"
                        class="nav-item ${activePage == 'employees' ? 'active' : ''}">👥 Employees</a>
-
                     <a href="${pageContext.request.contextPath}/admin?action=departments"
                        class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
-
                     <a href="${pageContext.request.contextPath}/admin?action=users"
                        class="nav-item ${activePage == 'users' ? 'active' : ''}">👤 Users</a>
-
                     <a href="${pageContext.request.contextPath}/admin?action=roles"
                        class="nav-item ${activePage == 'roles' ? 'active' : ''}">🔐 Roles</a>
-
                     <a href="${pageContext.request.contextPath}/admin?action=audit-log"
                        class="nav-item ${activePage == 'audit-log' ? 'active' : ''}">📜 Audit Log</a>
-
                     <a href="${pageContext.request.contextPath}/admin?action=profile"
                        class="nav-item ${activePage == 'profile' ? 'active' : ''}">⚙️ Profile</a>
                 </div>
             </aside>
 
-            <div class="main-content">
+            <main class="main-content">
+                <!-- Top Bar -->
                 <header class="top-bar">
-                    <div class="search-box">
-                        <span class="search-icon"> </span>
-                        <input type="text" id="searchInput" placeholder="Search employees...">
-                    </div>
+                    <!-- Add search form for employees -->
+                    <form method="GET" action="${pageContext.request.contextPath}/admin" class="search-form">
+                        <input type="hidden" name="action" value="employees">
+                        <input type="text" name="search" placeholder="Search employees by name, email, position..." value="${searchKeyword != null ? searchKeyword : ''}">
+                        <button type="submit">Search</button>
+                        <% if (request.getAttribute("searchKeyword") != null && !((String)request.getAttribute("searchKeyword")).isEmpty()) { %>
+                            <a href="${pageContext.request.contextPath}/admin?action=employees">Clear</a>
+                        <% } %>
+                    </form>
                     <div class="top-bar-actions">
+                        <select class="env-selector">
+                            <option>Production</option>
+                            <option>Staging</option>
+                        </select>
+                        <select class="time-selector">
+                            <option>Today</option>
+                            <option>This Week</option>
+                            <option>This Month</option>
+                        </select>
                         <button class="notification-btn" >
                             🔔
                             <span class="badge">3</span>
@@ -310,7 +171,7 @@
 
                     <div class="page-header">
                         <h1 class="page-title">Employee Management</h1>
-                        <button class="btn-add" onclick="openAddModal()">+ Add Employee</button>
+                        <button class="btn-primary" onclick="openAddModal()">+ Add Employee</button>
                     </div>
 
                     <div class="filter-section">
@@ -330,7 +191,9 @@
                         <select id="statusFilter" onchange="filterTable()">
                             <option value="">All Status</option>
                             <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
+                            <option value="resigned">Resigned</option>
+                            <option value="probation">Probation</option>
+                            <option value="intern">Intern</option>
                         </select>
                     </div>
 
@@ -357,7 +220,7 @@
                                         for (Employee emp : employees) {
                                 %>
                                 <tr class="employee-row" data-department="<%= emp.getDepartmentName() != null ? emp.getDepartmentName() : "" %>" 
-                                    data-status="<%= emp.isActive() ? "active" : "inactive" %>">
+                                    data-status="<%= emp.getStatus() != null ? emp.getStatus().toLowerCase() : "active" %>">
                                     <td><%= emp.getEmployeeId() %></td>
                                     <td><%= emp.getFullName() %></td>
                                     <td><%= emp.getGender() %></td>
@@ -367,14 +230,13 @@
                                     <td><%= emp.getEmploymentPeriod() != null ? emp.getEmploymentPeriod() : "N/A" %></td>
                                     <td><%= String.format("%.2f", emp.getSalary()) %></td>
                                     <td>
-                                        <span class="status-badge <%= emp.isActive() ? "active" : "inactive" %>">
-                                            <%= emp.isActive() ? "Active" : "Inactive" %>
+                                        <span class="status-badge <%= emp.getStatus() != null ? emp.getStatus().toLowerCase() : "active" %>">
+                                            <%= emp.getStatus() != null ? emp.getStatus() : "Active" %>
                                         </span>
                                     </td>
                                     <td>
                                         <div class="action-buttons">
-                                            <button class="btn-view" onclick="viewEmployee(<%= emp.getEmployeeId() %>)">View</button>
-                                            <button class="btn-edit" onclick="editEmployee(<%= emp.getEmployeeId() %>)">Edit</button>
+                                            <a href="${pageContext.request.contextPath}/admin?action=employee-view&id=<%= emp.getEmployeeId() %>" class="btn-view">View/Edit</a>
                                             <button class="btn-delete" onclick="deleteEmployee(<%= emp.getEmployeeId() %>)">Delete</button>
                                         </div>
                                     </td>
@@ -387,36 +249,52 @@
                         </table>
                     </div>
 
-                    <div class="pagination">
-                        <%
-                            int currentPage = (Integer) request.getAttribute("page");
-                            int totalPages = (Integer) request.getAttribute("totalPages");
+                    <!-- Add pagination bar with "Showing X - Y of Z" display -->
+                    <div class="pagination-bar">
+                        <div class="pagination-info">
+                            <%
+                                int currentPage = (Integer) request.getAttribute("page");
+                                int pageSize = (Integer) request.getAttribute("pageSize");
+                                int total = (Integer) request.getAttribute("total");
+                                int start = (currentPage - 1) * pageSize + 1;
+                                int end = Math.min(currentPage * pageSize, total);
+                            %>
+                            Showing <%= start %> - <%= end %> of <%= total %>
+                        </div>
+                        <div class="pagination-controls">
+                            <%
+                                int totalPages = (Integer) request.getAttribute("totalPages");
+                                String searchParam = request.getAttribute("searchKeyword") != null ? "&search=" + java.net.URLEncoder.encode((String)request.getAttribute("searchKeyword"), "UTF-8") : "";
+                                
+                                if (currentPage > 1) {
+                            %>
+                                <a href="${pageContext.request.contextPath}/admin?action=employees&page=<%= currentPage - 1 %><%= searchParam %>">Prev</a>
+                            <% } else { %>
+                                <span class="disabled">Prev</span>
+                            <% } %>
                             
-                            if (currentPage > 1) {
-                        %>
-                            <a href="${pageContext.request.contextPath}/admin?action=employees&page=<%= currentPage - 1 %>">&laquo; Previous</a>
-                        <% } %>
-                        
-                        <%
-                            for (int i = 1; i <= totalPages; i++) {
-                                if (i == currentPage) {
-                        %>
-                            <span class="active"><%= i %></span>
-                        <% } else { %>
-                            <a href="${pageContext.request.contextPath}/admin?action=employees&page=<%= i %>"><%= i %></a>
-                        <% } } %>
-                        
-                        <%
-                            if (currentPage < totalPages) {
-                        %>
-                            <a href="${pageContext.request.contextPath}/admin?action=employees&page=<%= currentPage + 1 %>">Next &raquo;</a>
-                        <% } %>
+                            <%
+                                for (int i = 1; i <= totalPages; i++) {
+                                    if (i == currentPage) {
+                            %>
+                                <span class="active"><%= i %></span>
+                            <% } else { %>
+                                <a href="${pageContext.request.contextPath}/admin?action=employees&page=<%= i %><%= searchParam %>"><%= i %></a>
+                            <% } } %>
+                            
+                            <%
+                                if (currentPage < totalPages) {
+                            %>
+                                <a href="${pageContext.request.contextPath}/admin?action=employees&page=<%= currentPage + 1 %><%= searchParam %>">Next</a>
+                            <% } else { %>
+                                <span class="disabled">Next</span>
+                            <% } %>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </main>
         </div>
 
-        <!-- Removed hireDate and salary inputs from form since they're not editable in Employee table -->
         <div id="employeeModal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -483,10 +361,18 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="active">Status</label>
-                        <select id="active" name="active">
-                            <option value="true">Active</option>
-                            <option value="false">Inactive</option>
+                        <label for="employmentPeriod">Employment Period</label>
+                        <input type="text" id="employmentPeriod" name="employmentPeriod" placeholder="e.g., 2 years">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status">Status *</label>
+                        <select id="status" name="status" required>
+                            <option value="">Select Status</option>
+                            <option value="Active">Active</option>
+                            <option value="Resigned">Resigned</option>
+                            <option value="Probation">Probation</option>
+                            <option value="Intern">Intern</option>
                         </select>
                     </div>
 
@@ -508,40 +394,6 @@
 
             function closeModal() {
                 document.getElementById('employeeModal').classList.remove('show');
-            }
-
-            function editEmployee(id) {
-                document.getElementById('modalTitle').textContent = 'Edit Employee';
-                
-                fetch('${pageContext.request.contextPath}/admin?action=employee-get-data&id=' + id)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.error) {
-                            alert('Error: ' + data.error);
-                            return;
-                        }
-                        
-                        document.getElementById('employeeId').value = data.id;
-                        document.getElementById('fullName').value = data.fullName;
-                        document.getElementById('gender').value = data.gender;
-                        document.getElementById('email').value = data.email;
-                        document.getElementById('phone').value = data.phone;
-                        document.getElementById('address').value = data.address;
-                        document.getElementById('dob').value = data.dob;
-                        document.getElementById('departmentId').value = data.departmentId;
-                        document.getElementById('position').value = data.position;
-                        document.getElementById('active').value = data.active ? 'true' : 'false';
-                        
-                        document.getElementById('employeeModal').classList.add('show');
-                    })
-                    .catch(error => {
-                        console.error('Error fetching employee data:', error);
-                        alert('Error loading employee data');
-                    });
-            }
-
-            function viewEmployee(id) {
-                window.location.href = '${pageContext.request.contextPath}/admin?action=employee-view&id=' + id;
             }
 
             function deleteEmployee(id) {
@@ -572,16 +424,6 @@
                     modal.classList.remove('show');
                 }
             }
-
-            document.getElementById('searchInput').addEventListener('keyup', function() {
-                const searchTerm = this.value.toLowerCase();
-                const rows = document.querySelectorAll('.employee-row');
-
-                rows.forEach(row => {
-                    const text = row.textContent.toLowerCase();
-                    row.style.display = text.includes(searchTerm) ? '' : 'none';
-                });
-            });
         </script>
     </body>
 </html>
