@@ -90,5 +90,36 @@ public class DepartmentDAO {
         } catch (SQLException e) { e.printStackTrace(); }
         return false;
     }
+        public int getTotalDepartments() {
+        String sql = "SELECT COUNT(*) as total FROM Department";
+        try (Connection conn = DBConnection.getConnection();
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+            
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public int getEmployeeCountByDepartment(int deptId) {
+        String sql = "SELECT COUNT(*) as total FROM Employee WHERE DepartmentID = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pst = conn.prepareStatement(sql)) {
+            
+            pst.setInt(1, deptId);
+            ResultSet rs = pst.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }
 
