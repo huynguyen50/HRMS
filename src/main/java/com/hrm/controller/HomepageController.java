@@ -8,8 +8,10 @@ package com.hrm.controller;
 import com.hrm.dao.DBConnection;
 import com.hrm.dao.SystemUserDAO;
 import com.hrm.dao.SystemLogDAO;
+import com.hrm.dao.RoleDAO;
 import com.hrm.model.entity.SystemUser;
 import com.hrm.model.entity.SystemLog;
+import com.hrm.model.entity.Role;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -36,6 +38,8 @@ public class HomepageController extends HttpServlet {
     
     private static final Logger logger = Logger.getLogger(HomepageController.class.getName());
     private final SystemLogDAO systemLogDAO = new SystemLogDAO();
+    private final SystemUserDAO systemUserDAO = new SystemUserDAO();
+    private final RoleDAO roleDAO = new RoleDAO();
    
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -67,8 +71,32 @@ public class HomepageController extends HttpServlet {
             if (currentUser != null) {
                 request.setAttribute("currentUser", currentUser);
                 request.setAttribute("isLoggedIn", true);
+                
+                // Get user role and permissions
+                Role userRole = getUserRole(currentUser.getRoleId());
+                request.setAttribute("userRole", userRole);
+                DashboardAccess dashboardAccess = getDashboardAccess(userRole);
+                request.setAttribute("dashboardAccess", dashboardAccess);
+                
+                // Redirect to appropriate dashboard based on role
+                String roleName = userRole.getRoleName().toLowerCase();
+                switch (roleName) {
+                    case "admin":
+                        response.sendRedirect(request.getContextPath() + "/Admin/AdminHome.jsp");
+                        return;
+                    case "hr":
+                        response.sendRedirect(request.getContextPath() + "/ProfileManagementController");
+                        return;
+                    case "employee":
+                        response.sendRedirect(request.getContextPath() + "/Views/Employee/EmployeeHome.jsp");
+                        return;
+                    default:
+                        // Stay on homepage for other roles
+                        break;
+                }
             } else {
                 request.setAttribute("isLoggedIn", false);
+                request.setAttribute("dashboardAccess", getGuestDashboardAccess());
             }
             
             // Forward to homepage JSP
@@ -160,6 +188,121 @@ public class HomepageController extends HttpServlet {
         }
         
         return newsList;
+    }
+    
+    /**
+     * Get user role by role ID
+     */
+    private Role getUserRole(int roleId) {
+        try {
+            return roleDAO.getRoleById(roleId);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error getting user role", e);
+            return null;
+        }
+    }
+    
+    /**
+     * Get dashboard access permissions based on user role
+     */
+    private DashboardAccess getDashboardAccess(Role userRole) {
+        DashboardAccess access = new DashboardAccess();
+        
+        if (userRole == null) {
+            return getGuestDashboardAccess();
+        }
+        
+        // Normalize DB role names (e.g., "HR Manager", "HR Staff") to internal groups
+        String roleName = roleDAO.normalizeRoleName(userRole.getRoleName());
+        
+        switch (roleName) {
+            case "admin":
+                access.setCanAccessAdmin(true);
+                access.setCanAccessHR(true);
+                access.setCanAccessEmployee(true);
+                access.setCanAccessGuest(true);
+                access.setAdminUrl("/Admin/AdminHome.jsp");
+                access.setHrUrl("/ProfileManagementController");
+                access.setEmployeeUrl("/Views/Employee/EmployeeHome.jsp");
+                access.setGuestUrl("/Views/Homepage.jsp");
+                break;
+                
+            case "hr":
+                access.setCanAccessAdmin(false);
+                access.setCanAccessHR(true);
+                access.setCanAccessEmployee(true);
+                access.setCanAccessGuest(true);
+                access.setHrUrl("/ProfileManagementController");
+                access.setEmployeeUrl("/Views/Employee/EmployeeHome.jsp");
+                access.setGuestUrl("/Views/Homepage.jsp");
+                break;
+                
+            case "employee":
+                access.setCanAccessAdmin(false);
+                access.setCanAccessHR(false);
+                access.setCanAccessEmployee(true);
+                access.setCanAccessGuest(true);
+                access.setEmployeeUrl("/Views/Employee/EmployeeHome.jsp");
+                access.setGuestUrl("/Views/Homepage.jsp");
+                break;
+                
+            default:
+                return getGuestDashboardAccess();
+        }
+        
+        return access;
+    }
+    
+    /**
+     * Get guest dashboard access (limited permissions)
+     */
+    private DashboardAccess getGuestDashboardAccess() {
+        DashboardAccess access = new DashboardAccess();
+        access.setCanAccessAdmin(false);
+        access.setCanAccessHR(false);
+        access.setCanAccessEmployee(false);
+        access.setCanAccessGuest(true);
+        access.setGuestUrl("/Views/Homepage.jsp");
+        return access;
+    }
+    
+    /**
+     * Inner class for dashboard access permissions
+     */
+    public static class DashboardAccess {
+        private boolean canAccessAdmin = false;
+        private boolean canAccessHR = false;
+        private boolean canAccessEmployee = false;
+        private boolean canAccessGuest = false;
+        private String adminUrl;
+        private String hrUrl;
+        private String employeeUrl;
+        private String guestUrl;
+        
+        // Getters and setters
+        public boolean isCanAccessAdmin() { return canAccessAdmin; }
+        public void setCanAccessAdmin(boolean canAccessAdmin) { this.canAccessAdmin = canAccessAdmin; }
+        
+        public boolean isCanAccessHR() { return canAccessHR; }
+        public void setCanAccessHR(boolean canAccessHR) { this.canAccessHR = canAccessHR; }
+        
+        public boolean isCanAccessEmployee() { return canAccessEmployee; }
+        public void setCanAccessEmployee(boolean canAccessEmployee) { this.canAccessEmployee = canAccessEmployee; }
+        
+        public boolean isCanAccessGuest() { return canAccessGuest; }
+        public void setCanAccessGuest(boolean canAccessGuest) { this.canAccessGuest = canAccessGuest; }
+        
+        public String getAdminUrl() { return adminUrl; }
+        public void setAdminUrl(String adminUrl) { this.adminUrl = adminUrl; }
+        
+        public String getHrUrl() { return hrUrl; }
+        public void setHrUrl(String hrUrl) { this.hrUrl = hrUrl; }
+        
+        public String getEmployeeUrl() { return employeeUrl; }
+        public void setEmployeeUrl(String employeeUrl) { this.employeeUrl = employeeUrl; }
+        
+        public String getGuestUrl() { return guestUrl; }
+        public void setGuestUrl(String guestUrl) { this.guestUrl = guestUrl; }
     }
     
     /**

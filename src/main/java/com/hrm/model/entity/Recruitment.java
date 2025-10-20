@@ -12,24 +12,22 @@ public class Recruitment implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private int recruitmentId;
-    private String jobTitle;
-    private String jobDescription;
-    private LocalDate postDate;
-    private String status;       // Open, Closed
-    private Integer postedBy;    // userId of the HR or Admin who posted
+    private String Title;
+    private String Description;
+    private String Requirement;
+    private String Locate;   
+    private Double Salary;   
     private LocalDateTime postedDate;
 
     public Recruitment() {}
 
-    public Recruitment(int recruitmentId, String jobTitle, String jobDescription, 
-                       LocalDate postDate, String status, Integer postedBy, 
-                       LocalDateTime postedDate) {
+    public Recruitment(int recruitmentId, String Title, String Description, String Requirement, String Locate, Double Salary, LocalDateTime postedDate) {
         this.recruitmentId = recruitmentId;
-        this.jobTitle = jobTitle;
-        this.jobDescription = jobDescription;
-        this.postDate = postDate;
-        this.status = status;
-        this.postedBy = postedBy;
+        this.Title = Title;
+        this.Description = Description;
+        this.Requirement = Requirement;
+        this.Locate = Locate;
+        this.Salary = Salary;
         this.postedDate = postedDate;
     }
 
@@ -41,44 +39,44 @@ public class Recruitment implements Serializable {
         this.recruitmentId = recruitmentId;
     }
 
-    public String getJobTitle() {
-        return jobTitle;
+    public String getTitle() {
+        return Title;
     }
 
-    public void setJobTitle(String jobTitle) {
-        this.jobTitle = jobTitle;
+    public void setTitle(String Title) {
+        this.Title = Title;
     }
 
-    public String getJobDescription() {
-        return jobDescription;
+    public String getDescription() {
+        return Description;
     }
 
-    public void setJobDescription(String jobDescription) {
-        this.jobDescription = jobDescription;
+    public void setDescription(String Description) {
+        this.Description = Description;
     }
 
-    public LocalDate getPostDate() {
-        return postDate;
+    public String getRequirement() {
+        return Requirement;
     }
 
-    public void setPostDate(LocalDate postDate) {
-        this.postDate = postDate;
+    public void setRequirement(String Requirement) {
+        this.Requirement = Requirement;
     }
 
-    public String getStatus() {
-        return status;
+    public String getLocate() {
+        return Locate;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setLocate(String Locate) {
+        this.Locate = Locate;
     }
 
-    public Integer getPostedBy() {
-        return postedBy;
+    public Double getSalary() {
+        return Salary;
     }
 
-    public void setPostedBy(Integer postedBy) {
-        this.postedBy = postedBy;
+    public void setSalary(Double Salary) {
+        this.Salary = Salary;
     }
 
     public LocalDateTime getPostedDate() {
@@ -91,14 +89,9 @@ public class Recruitment implements Serializable {
 
     @Override
     public String toString() {
-        return "Recruitment{" +
-                "recruitmentId=" + recruitmentId +
-                ", jobTitle='" + jobTitle + '\'' +
-                ", jobDescription='" + jobDescription + '\'' +
-                ", postDate=" + postDate +
-                ", status='" + status + '\'' +
-                ", postedBy=" + postedBy +
-                ", postedDate=" + postedDate +
-                '}';
+        return "Recruitment{" + "recruitmentId=" + recruitmentId + ", Title=" + Title + ", Description=" + Description + ", Requirement=" + Requirement + ", Locate=" + Locate + ", Salary=" + Salary + ", postedDate=" + postedDate + '}';
     }
+    
+    
+    
 }

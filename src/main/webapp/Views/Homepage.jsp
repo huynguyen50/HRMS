@@ -210,6 +210,136 @@
             transform: scale(1.1);
         }
         
+        /* Dashboard Dropdown Styles */
+        .dashboard-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .dashboard-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            width: 100%; /* match Dashboard trigger width */
+            min-width: unset;
+            max-width: 240px; /* smaller */
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 0.25rem; /* more compact */
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .dashboard-dropdown-menu.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .dashboard-dropdown-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 10px;
+            color: #111827; /* darker for readability */
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border: 1px solid #e5e7eb; /* card style */
+            border-radius: 8px;
+            position: relative;
+            background: #ffffff;
+            height: 40px; /* smaller, consistent height */
+        }
+        
+        .dashboard-dropdown-item:last-child { }
+        
+        .dashboard-dropdown-item:hover {
+            background: #f8fafc;
+            color: #111827;
+            text-decoration: none;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+        }
+        
+        .dashboard-dropdown-item i {
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        
+        .dashboard-dropdown-item span {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #111827; /* primary label darker */
+        }
+        
+        .dashboard-dropdown-item small {
+            display: block;
+            color: #4b5563; /* slightly darker subtitle */
+            font-size: 0.8rem;
+            margin-top: 2px;
+        }
+
+        /* No special responsive needed; keep single column */
+        
+        /* Role-specific colors */
+        .dashboard-dropdown-item.admin {
+            border-left: 4px solid #dc2626;
+        }
+        
+        .dashboard-dropdown-item.admin:hover {
+            background: #fef2f2;
+        }
+        
+        .dashboard-dropdown-item.admin i {
+            color: #dc2626;
+        }
+        
+        .dashboard-dropdown-item.hr {
+            border-left: 4px solid #2563eb;
+        }
+        
+        .dashboard-dropdown-item.hr:hover {
+            background: #eff6ff;
+        }
+        
+        .dashboard-dropdown-item.hr i {
+            color: #2563eb;
+        }
+        
+        .dashboard-dropdown-item.employee {
+            border-left: 4px solid #059669;
+        }
+        
+        .dashboard-dropdown-item.employee:hover {
+            background: #ecfdf5;
+        }
+        
+        .dashboard-dropdown-item.employee i {
+            color: #059669;
+        }
+        
+        .dashboard-dropdown-item.guest {
+            border-left: 4px solid #6b7280;
+        }
+        
+        .dashboard-dropdown-item.guest:hover {
+            background: #f9fafb;
+        }
+        
+        .dashboard-dropdown-item.guest i {
+            color: #6b7280;
+        }
+        
         /* Profile Dropdown Styles */
         .profile-dropdown {
             position: relative;
@@ -456,6 +586,47 @@
             color: white;
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        
+        /* User Role Information */
+        .user-role-info {
+            margin: 1.5rem 0;
+        }
+        
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 0.75rem 1.25rem;
+            border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .role-badge:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .role-badge i {
+            font-size: 1.2rem;
+            color: #fbbf24;
+        }
+        
+        .role-badge span {
+            font-size: 1rem;
+        }
+        
+        .role-badge small {
+            display: block;
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 2px;
         }
         
         /* Image Carousel */
@@ -986,7 +1157,23 @@
                  min-width: 180px;
                  right: -10px;
              }
-        }
+             
+             .dashboard-dropdown-menu {
+                 min-width: 250px;
+                 left: -50px;
+             }
+             
+             .dashboard-dropdown-item {
+                 padding: 10px 12px;
+             }
+             
+             .dashboard-dropdown-item span {
+                 font-size: 0.9rem;
+             }
+             
+             .dashboard-dropdown-item small {
+                 font-size: 0.75rem;
+             }
     </style>
 </head>
 <body>
@@ -1006,10 +1193,39 @@
                         <span>News</span>
                     </a>
                     <c:if test="${not empty sessionScope.systemUser}">
-                        <a href="${pageContext.request.contextPath}/Admin/AdminHome.jsp" aria-label="Go to Dashboard">
-                            <i class="fas fa-tachometer-alt" aria-hidden="true"></i>
-                            <span>Dashboard</span>
-                        </a>
+                        <div class="dashboard-dropdown">
+                            <a href="#" onclick="toggleDashboardDropdown()" aria-label="Dashboard Menu">
+                                <i class="fas fa-tachometer-alt" aria-hidden="true"></i>
+                                <span>Dashboard</span>
+                                <i class="fas fa-chevron-down" aria-hidden="true"></i>
+                            </a>
+                            <div class="dashboard-dropdown-menu" id="dashboardDropdown">
+                                <c:if test="${dashboardAccess.canAccessAdmin}">
+                                    <a href="${pageContext.request.contextPath}${dashboardAccess.adminUrl}" class="dashboard-dropdown-item admin">
+                                        <i class="fas fa-crown"></i>
+                                        <span>Admin Dashboard</span>
+                                    </a>
+                                </c:if>
+                                <c:if test="${dashboardAccess.canAccessHR}">
+                                    <a href="${pageContext.request.contextPath}${dashboardAccess.hrUrl}" class="dashboard-dropdown-item hr">
+                                        <i class="fas fa-users-cog"></i>
+                                        <span>HR Dashboard</span>
+                                    </a>
+                                </c:if>
+                                <c:if test="${dashboardAccess.canAccessEmployee}">
+                                    <a href="${pageContext.request.contextPath}${dashboardAccess.employeeUrl}" class="dashboard-dropdown-item employee">
+                                        <i class="fas fa-user"></i>
+                                        <span>Employee Dashboard</span>
+                                    </a>
+                                </c:if>
+                                <c:if test="${dashboardAccess.canAccessGuest}">
+                                    <a href="${pageContext.request.contextPath}${dashboardAccess.guestUrl}" class="dashboard-dropdown-item guest">
+                                        <i class="fas fa-home"></i>
+                                        <span>Guest View</span>
+                                    </a>
+                                </c:if>
+                            </div>
+                        </div>
                     </c:if>
                 </nav>
             
@@ -1132,6 +1348,20 @@
                     <div class="hero-content">
                         <h1 class="hero-title">Welcome to Our Company</h1>
                         <p class="hero-subtitle">We are a professional company with years of experience in technology and services. We are committed to providing the best solutions for our customers.</p>
+                        
+                        <!-- User Role Information -->
+                        <c:if test="${not empty sessionScope.systemUser}">
+                            <div class="user-role-info">
+                                <div class="role-badge">
+                                    <i class="fas fa-user-circle"></i>
+                                    <span>Welcome, ${currentUser.username}</span>
+                                    <c:if test="${not empty userRole}">
+                                        <small>Role: ${userRole.roleName}</small>
+                                    </c:if>
+                                </div>
+                            </div>
+                        </c:if>
+                        
                         <div class="hero-buttons">
                             <a href="#contact" class="btn-hero">
                                 <i class="fas fa-phone me-2"></i>Contact Us
@@ -1963,6 +2193,14 @@
              }
          });
          
+         // Dashboard dropdown functionality
+         function toggleDashboardDropdown() {
+             const dropdown = document.getElementById('dashboardDropdown');
+             if (dropdown) {
+                 dropdown.classList.toggle('show');
+             }
+         }
+         
          // Profile dropdown functionality
          function toggleProfileDropdown() {
              const dropdown = document.getElementById('profileDropdown');
@@ -1973,11 +2211,19 @@
          
          // Close dropdown when clicking outside
          document.addEventListener('click', function(event) {
-             const dropdown = document.getElementById('profileDropdown');
-             const avatar = document.querySelector('.profile-avatar');
+             const profileDropdown = document.getElementById('profileDropdown');
+             const profileAvatar = document.querySelector('.profile-avatar');
+             const dashboardDropdown = document.getElementById('dashboardDropdown');
+             const dashboardTrigger = document.querySelector('.dashboard-dropdown > a');
              
-             if (dropdown && avatar && !avatar.contains(event.target) && !dropdown.contains(event.target)) {
-                 dropdown.classList.remove('show');
+             // Close profile dropdown
+             if (profileDropdown && profileAvatar && !profileAvatar.contains(event.target) && !profileDropdown.contains(event.target)) {
+                 profileDropdown.classList.remove('show');
+             }
+             
+             // Close dashboard dropdown
+             if (dashboardDropdown && dashboardTrigger && !dashboardTrigger.contains(event.target) && !dashboardDropdown.contains(event.target)) {
+                 dashboardDropdown.classList.remove('show');
              }
          });
          
@@ -1989,11 +2235,11 @@
          }
          
          // Handle logout
-         function handleLogout() {
-             if (confirm('Are you sure you want to logout?')) {
-                 window.location.href = '${pageContext.request.contextPath}/LogoutController';
-             }
-         }
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '${pageContext.request.contextPath}/logout';
+            }
+        }
          
          // Show login required message
          function showLoginRequired() {

@@ -15,15 +15,16 @@ public class EmployeeDAO {
     public List<Employee> getAll() {
         List<Employee> list = new ArrayList<>();
         String sql = """
-            SELECT e.*, d.DeptName 
+            SELECT e.*, d.DeptName, su.UserID, su.Username, su.LastLogin, r.RoleName
             FROM Employee e 
             LEFT JOIN Department d ON e.DepartmentID = d.DepartmentID
+            LEFT JOIN SystemUser su ON e.EmployeeID = su.EmployeeID
+            LEFT JOIN Role r ON su.RoleID = r.RoleID
         """;
 
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-
 
             while (rs.next()) {
                 Employee e = new Employee();
@@ -37,6 +38,26 @@ public class EmployeeDAO {
                 e.setDepartmentId(rs.getInt("DepartmentID"));
                 e.setDepartmentName(rs.getString("DeptName"));
                 e.setPosition(rs.getString("Position"));
+                e.setStatus(rs.getString("Status"));
+                e.setEmploymentPeriod(rs.getString("EmploymentPeriod"));
+                
+                // Set SystemUser information if exists
+                if (rs.getInt("UserID") != 0) {
+                    SystemUser systemUser = new SystemUser();
+                    systemUser.setUserId(rs.getInt("UserID"));
+                    systemUser.setUsername(rs.getString("Username"));
+                    
+                    Timestamp lastLoginTimestamp = rs.getTimestamp("LastLogin");
+                    if (lastLoginTimestamp != null) {
+                        systemUser.setLastLogin(lastLoginTimestamp.toLocalDateTime());
+                    }
+                    
+                    Role role = new Role();
+                    role.setRoleName(rs.getString("RoleName"));
+                    systemUser.setRole(role);
+                    
+                    e.setSystemUser(systemUser);
+                }
               
                 list.add(e);
             }
@@ -48,13 +69,10 @@ public class EmployeeDAO {
 
     
 
-    
-
     public Employee getById(int id) {
         String sql = "SELECT * FROM Employee WHERE EmployeeID=?";
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
 
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
@@ -89,7 +107,6 @@ public class EmployeeDAO {
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
-
             ps.setString(1, e.getFullName());
             ps.setString(2, e.getGender());
             ps.setDate(3, e.getDob() != null ? Date.valueOf(e.getDob()) : null);
@@ -118,7 +135,6 @@ public class EmployeeDAO {
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
-
             ps.setString(1, e.getFullName());
             ps.setString(2, e.getGender());
             ps.setDate(3, e.getDob() != null ? Date.valueOf(e.getDob()) : null);
@@ -143,8 +159,22 @@ public class EmployeeDAO {
         String sql = "DELETE FROM Employee WHERE EmployeeID=?";
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean updateEmployeeStatus(int employeeId, String status) {
+        String sql = "UPDATE Employee SET Status = ? WHERE EmployeeID = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, status);
+            ps.setInt(2, employeeId);
+            
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -161,7 +191,6 @@ public class EmployeeDAO {
                      "WHERE su.UserID = ?";
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
-
             ps.setInt(1, systemUserId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -178,7 +207,7 @@ public class EmployeeDAO {
                     employee.setHireDate(rs.getDate("HireDate") != null ? rs.getDate("HireDate").toLocalDate() : null);
                     employee.setSalary(rs.getDouble("Salary"));
                     employee.setActive(rs.getBoolean("Active"));
-
+                    
                     // Assuming 'Status' and 'EmploymentPeriod' are columns in the Employee table
                     employee.setStatus(rs.getString("Status"));
                     employee.setEmploymentPeriod(rs.getString("EmploymentPeriod"));
@@ -198,11 +227,11 @@ public class EmployeeDAO {
                     if (lastLoginTimestamp != null) {
                         systemUser.setLastLogin(lastLoginTimestamp.toLocalDateTime());
                     }
-
+                    
                     Role role = new Role();
                     role.setRoleName(rs.getString("RoleName"));
                     systemUser.setRole(role);
-
+                    
                     employee.setSystemUser(systemUser);
 
                     return employee;
@@ -214,31 +243,5 @@ public class EmployeeDAO {
         }
         System.out.println("EmployeeDAO: No employee found for systemUserId: " + systemUserId);
         return null;
-    }
-
-    public int getTotalEmployees() {
-        String sql = "SELECT COUNT(*) as total FROM Employee";
-        try (Connection conn = DBConnection.getConnection(); Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
-
-            if (rs.next()) {
-                return rs.getInt("total");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    public int getActiveEmployees() {
-        String sql = "SELECT COUNT(*) as total FROM Employee WHERE Active = true";
-        try (Connection conn = DBConnection.getConnection(); Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
-
-            if (rs.next()) {
-                return rs.getInt("total");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return 0;
     }
 }
