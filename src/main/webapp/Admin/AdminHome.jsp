@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <title>Admin Dashboard</title>
-        <link rel="stylesheet" href="Admin/Admin_home.css">
+        <link rel="stylesheet" href="Admin/css/Admin_home.css">
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     </head>
     <body>
@@ -28,11 +28,18 @@
                     <a href="${pageContext.request.contextPath}/admin?action=departments"
                        class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
 
+                    <a href="${pageContext.request.contextPath}/admin?action=users"
+                       class="nav-item ${activePage == 'users' ? 'active' : ''}">👤 Users</a>
+
+                    <a href="${pageContext.request.contextPath}/admin?action=roles"
+                       class="nav-item ${activePage == 'roles' ? 'active' : ''}">🔐 Roles</a>
+
+                    <a href="${pageContext.request.contextPath}/admin?action=audit-log"
+                       class="nav-item ${activePage == 'audit-log' ? 'active' : ''}">📜 Audit Log</a>
+
                     <a href="${pageContext.request.contextPath}/admin?action=profile"
-                       class="nav-item ${activePage == 'profile' ? 'active' : ''}">👤 Profile</a>
-
+                       class="nav-item ${activePage == 'profile' ? 'active' : ''}">⚙️ Profile</a>
                 </div>
-
             </aside>
 
             <!-- Main Content -->
@@ -69,32 +76,64 @@
                     <h1 class="page-title">Dashboard Overview</h1>
 
                     <!-- Stats Grid -->
-                    <div id="statsGrid" class="stats-grid"></div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">👥</div>
+                            <div class="stat-info">
+                                <h3>Total Employees</h3>
+                                <p class="stat-value">${empty totalEmployees ? 0 : totalEmployees}</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon">✅</div>
+                            <div class="stat-info">
+                                <h3>Active Employees</h3>
+                                <p class="stat-value">${empty activeEmployees ? 0 : activeEmployees}</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon">🏢</div>
+                            <div class="stat-info">
+                                <h3>Departments</h3>
+                                <p class="stat-value">${empty totalDepartments ? 0 : totalDepartments}</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon">👤</div>
+                            <div class="stat-info">
+                                <h3>System Users</h3>
+                                <p class="stat-value">${empty totalUsers ? 0 : totalUsers}</p>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Charts Section -->
                     <div class="charts-section">
                         <div class="chart-card">
                             <div class="chart-header">
-                                <h3>Edge Requests</h3>
-                                <div class="chart-info">Requests handled by edge servers</div>
+                                <h3>Employee Distribution</h3>
+                                <div class="chart-info">By Department</div>
                             </div>
-                            <canvas id="edgeRequestsChart" height="180"></canvas>
+                            <canvas id="employeeChart" height="180"></canvas>
                         </div>
 
                         <div class="chart-card">
                             <div class="chart-header">
-                                <h3>Data Transfer</h3>
-                                <div class="chart-info">Weekly GB transferred</div>
+                                <h3>Employee Status</h3>
+                                <div class="chart-info">Active vs Inactive</div>
                             </div>
-                            <canvas id="dataTransferChart" height="180"></canvas>
+                            <canvas id="statusChart" height="180"></canvas>
                         </div>
 
                         <div class="chart-card">
                             <div class="chart-header">
-                                <h3>Devices</h3>
-                                <div class="chart-info">User devices distribution</div>
+                                <h3>System Activity</h3>
+                                <div class="chart-info">Last 7 days</div>
                             </div>
-                            <canvas id="deviceChart" height="200"></canvas>
+                            <canvas id="activityChart" height="200"></canvas>
                         </div>
                     </div>
 
@@ -102,28 +141,41 @@
                     <div class="activity-section">
                         <div class="activity-card">
                             <h3>Recent Activity</h3>
-                            <div id="activityList" class="activity-list"></div>
+                            <div class="activity-list">
+                                <div class="activity-item">
+                                    <span class="activity-time">2 hours ago</span>
+                                    <span class="activity-text">New employee added: John Doe</span>
+                                </div>
+                                <div class="activity-item">
+                                    <span class="activity-time">5 hours ago</span>
+                                    <span class="activity-text">Department updated: IT</span>
+                                </div>
+                                <div class="activity-item">
+                                    <span class="activity-time">1 day ago</span>
+                                    <span class="activity-text">User role changed: Admin</span>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="referrals-card">
-                            <h3>Top Referrals</h3>
+                            <h3>Quick Actions</h3>
                             <div class="referrals-list">
-                                <div class="referral-item">
-                                    <span class="referral-name">Google</span>
-                                    <span class="referral-count">1,204</span>
-                                </div>
-                                <div class="referral-item">
-                                    <span class="referral-name">Facebook</span>
-                                    <span class="referral-count">865</span>
-                                </div>
-                                <div class="referral-item">
-                                    <span class="referral-name">Twitter</span>
-                                    <span class="referral-count">432</span>
-                                </div>
-                                <div class="referral-item">
-                                    <span class="referral-name">LinkedIn</span>
-                                    <span class="referral-count">312</span>
-                                </div>
+                                <a href="${pageContext.request.contextPath}/admin?action=employees" class="referral-item">
+                                    <span class="referral-name">Manage Employees</span>
+                                    <span class="referral-count">→</span>
+                                </a>
+                                <a href="${pageContext.request.contextPath}/admin?action=departments" class="referral-item">
+                                    <span class="referral-name">Manage Departments</span>
+                                    <span class="referral-count">→</span>
+                                </a>
+                                <a href="${pageContext.request.contextPath}/admin?action=users" class="referral-item">
+                                    <span class="referral-name">Manage Users</span>
+                                    <span class="referral-count">→</span>
+                                </a>
+                                <a href="${pageContext.request.contextPath}/admin?action=audit-log" class="referral-item">
+                                    <span class="referral-name">View Audit Log</span>
+                                    <span class="referral-count">→</span>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -131,15 +183,6 @@
             </main>
         </div>
 
-        <script src="dashboard.js"></script>
+        <script src="Admin/js/dashboard.js"></script>
     </body>
-    <script>
-        const currentPage = window.location.pathname.split("/").pop();
-        document.querySelectorAll('.nav-item').forEach(link => {
-            if (link.getAttribute('href') === currentPage) {
-                link.classList.add('active');
-            }
-        });
-    </script>
-
 </html>

@@ -18,10 +18,7 @@ public class EmployeeDAO {
             LEFT JOIN Department d ON e.DepartmentID = d.DepartmentID
         """;
 
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 Employee e = new Employee();
@@ -35,7 +32,7 @@ public class EmployeeDAO {
                 e.setDepartmentId(rs.getInt("DepartmentID"));
                 e.setDepartmentName(rs.getString("DeptName"));
                 e.setPosition(rs.getString("Position"));
-              
+
                 list.add(e);
             }
         } catch (SQLException e) {
@@ -44,122 +41,183 @@ public class EmployeeDAO {
         return list;
     }
 
-    
+    public List<Employee> getPaged(int offset, int limit) {
+        List<Employee> list = new ArrayList<>();
+        String sql = """
+        SELECT e.*, d.DeptName, COALESCE(c.BaseSalary, 0) as BaseSalary
+        FROM Employee e
+        LEFT JOIN Department d ON e.DepartmentID = d.DepartmentID
+        LEFT JOIN Contract c ON e.EmployeeID = c.EmployeeID AND c.ContractID = (
+            SELECT ContractID FROM Contract
+            WHERE EmployeeID = e.EmployeeID
+            ORDER BY StartDate DESC
+            LIMIT 1
+        )
+        ORDER BY e.EmployeeID
+        LIMIT ?, ?
+    """;
 
-    
-
-    public Employee getById(int id) {
-        String sql = "SELECT * FROM Employee WHERE EmployeeID=?";
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-
-            ps.setInt(1, id);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                Employee e = new Employee();
-                e.setEmployeeId(rs.getInt("EmployeeID"));
-                e.setFullName(rs.getString("FullName"));
-                e.setGender(rs.getString("Gender"));
-                e.setDob(rs.getDate("DOB") != null ? rs.getDate("DOB").toLocalDate() : null);
-                e.setAddress(rs.getString("Address"));
-                e.setPhone(rs.getString("Phone"));
-                e.setEmail(rs.getString("Email"));
-                e.setDepartmentId(rs.getInt("DepartmentID"));
-                e.setPosition(rs.getString("Position"));
-                e.setHireDate(rs.getDate("HireDate") != null ? rs.getDate("HireDate").toLocalDate() : null);
-                e.setSalary(rs.getDouble("Salary"));
-                e.setActive(rs.getBoolean("Active"));
-                return e;
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, offset);
+            ps.setInt(2, limit);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Employee e = new Employee();
+                    e.setEmployeeId(rs.getInt("EmployeeID"));
+                    e.setFullName(rs.getString("FullName"));
+                    e.setGender(rs.getString("Gender"));
+                    e.setDob(rs.getDate("DOB") != null ? rs.getDate("DOB").toLocalDate() : null);
+                    e.setAddress(rs.getString("Address"));
+                    e.setPhone(rs.getString("Phone"));
+                    e.setEmail(rs.getString("Email"));
+                    e.setDepartmentId(rs.getInt("DepartmentID"));
+                    e.setDepartmentName(rs.getString("DeptName"));
+                    e.setPosition(rs.getString("Position"));
+                    e.setEmploymentPeriod(rs.getString("EmploymentPeriod"));
+                    e.setActive("Active".equalsIgnoreCase(rs.getString("Status")));
+                    e.setSalary(rs.getDouble("BaseSalary"));
+                    e.setStatus(rs.getString("Status"));
+                    list.add(e);
+                }
             }
         } catch (SQLException e) {
+            System.err.println("[v0] Error in getPaged: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public int getTotalEmployeesCount() {
+        String sql = "SELECT COUNT(*) as total FROM Employee";
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public Employee getById(int employeeId) {
+        String sql = """
+        SELECT e.*, d.DeptName, COALESCE(c.BaseSalary, 0) as BaseSalary
+        FROM Employee e
+        LEFT JOIN Department d ON e.DepartmentID = d.DepartmentID
+        LEFT JOIN Contract c ON e.EmployeeID = c.EmployeeID AND c.ContractID = (
+            SELECT ContractID FROM Contract
+            WHERE EmployeeID = e.EmployeeID
+            ORDER BY StartDate DESC
+            LIMIT 1
+        )
+        WHERE e.EmployeeID = ?
+    """;
+
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, employeeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Employee e = new Employee();
+                    e.setEmployeeId(rs.getInt("EmployeeID"));
+                    e.setFullName(rs.getString("FullName"));
+                    e.setGender(rs.getString("Gender"));
+                    e.setDob(rs.getDate("DOB") != null ? rs.getDate("DOB").toLocalDate() : null);
+                    e.setAddress(rs.getString("Address"));
+                    e.setPhone(rs.getString("Phone"));
+                    e.setEmail(rs.getString("Email"));
+                    e.setDepartmentId(rs.getInt("DepartmentID"));
+                    e.setDepartmentName(rs.getString("DeptName"));
+                    e.setPosition(rs.getString("Position"));
+                    e.setEmploymentPeriod(rs.getString("EmploymentPeriod"));
+                    e.setActive("Active".equalsIgnoreCase(rs.getString("Status")));
+                    e.setSalary(rs.getDouble("BaseSalary"));
+                    e.setStatus(rs.getString("Status"));
+                    return e;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("[v0] Error in getById: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
     }
 
-    public boolean insert(Employee e) {
+    public boolean insert(Employee employee) {
         String sql = """
-            INSERT INTO Employee (FullName, Gender, DOB, Address, Phone, Email, 
-                                  DepartmentID, Position, HireDate, Salary, Active)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """;
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-
-            ps.setString(1, e.getFullName());
-            ps.setString(2, e.getGender());
-            ps.setDate(3, e.getDob() != null ? Date.valueOf(e.getDob()) : null);
-            ps.setString(4, e.getAddress());
-            ps.setString(5, e.getPhone());
-            ps.setString(6, e.getEmail());
-            ps.setObject(7, e.getDepartmentId(), Types.INTEGER);
-            ps.setString(8, e.getPosition());
-            ps.setDate(9, e.getHireDate() != null ? Date.valueOf(e.getHireDate()) : null);
-            ps.setDouble(10, e.getSalary());
-            ps.setBoolean(11, e.isActive());
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        return false;
-    }
-
-    public boolean update(Employee e) {
-        String sql = """
-            UPDATE Employee SET FullName=?, Gender=?, DOB=?, Address=?, Phone=?, Email=?, 
-                                DepartmentID=?, Position=?, HireDate=?, Salary=?, Active=? 
-            WHERE EmployeeID=?
+            INSERT INTO Employee (FullName, Gender, DOB, Address, Phone, Email, EmploymentPeriod, DepartmentID, Status, Position)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, employee.getFullName());
+            ps.setString(2, employee.getGender());
+            ps.setDate(3, employee.getDob() != null ? java.sql.Date.valueOf(employee.getDob()) : null);
+            ps.setString(4, employee.getAddress());
+            ps.setString(5, employee.getPhone());
+            ps.setString(6, employee.getEmail());
+            ps.setString(7, employee.getEmploymentPeriod());
+            ps.setInt(8, employee.getDepartmentId());
+            ps.setString(9, employee.isActive() ? "Active" : "Inactive");
+            ps.setString(10, employee.getPosition());
 
-
-            ps.setString(1, e.getFullName());
-            ps.setString(2, e.getGender());
-            ps.setDate(3, e.getDob() != null ? Date.valueOf(e.getDob()) : null);
-            ps.setString(4, e.getAddress());
-            ps.setString(5, e.getPhone());
-            ps.setString(6, e.getEmail());
-            ps.setObject(7, e.getDepartmentId(), Types.INTEGER);
-            ps.setString(8, e.getPosition());
-            ps.setDate(9, e.getHireDate() != null ? Date.valueOf(e.getHireDate()) : null);
-            ps.setDouble(10, e.getSalary());
-            ps.setBoolean(11, e.isActive());
-            ps.setInt(12, e.getEmployeeId());
-
-            return ps.executeUpdate() > 0;
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        return false;
-    }
-
-    public boolean delete(int id) {
-        String sql = "DELETE FROM Employee WHERE EmployeeID=?";
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-
-            ps.setInt(1, id);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
+            System.err.println("[v0] Error in insert: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean update(Employee employee) {
+        String sql = """
+            UPDATE Employee 
+            SET FullName = ?, Gender = ?, DOB = ?, Address = ?, Phone = ?, Email = ?, 
+                EmploymentPeriod = ?, DepartmentID = ?, Status = ?, Position = ?
+            WHERE EmployeeID = ?
+        """;
+
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, employee.getFullName());
+            ps.setString(2, employee.getGender());
+            ps.setDate(3, employee.getDob() != null ? java.sql.Date.valueOf(employee.getDob()) : null);
+            ps.setString(4, employee.getAddress());
+            ps.setString(5, employee.getPhone());
+            ps.setString(6, employee.getEmail());
+            ps.setString(7, employee.getEmploymentPeriod());
+            ps.setInt(8, employee.getDepartmentId());
+            ps.setString(9, employee.isActive() ? "Active" : "Inactive");
+            ps.setString(10, employee.getPosition());
+            ps.setInt(11, employee.getEmployeeId());
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("[v0] Error in update: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean delete(int employeeId) {
+        String sql = "DELETE FROM Employee WHERE EmployeeID = ?";
+
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, employeeId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("[v0] Error in delete: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
     }
 
     public Employee getEmployeeBySystemUserId(int systemUserId) {
-        String sql = "SELECT e.*, e.Status, e.EmploymentPeriod, d.DeptName, su.Username, su.LastLogin, r.RoleName " +
-                     "FROM Employee e " +
-                     "LEFT JOIN Department d ON e.DepartmentID = d.DepartmentID " +
-                     "JOIN SystemUser su ON e.EmployeeID = su.EmployeeID " +
-                     "LEFT JOIN Role r ON su.RoleID = r.RoleID " +
-                     "WHERE su.UserID = ?";
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        String sql = "SELECT e.*, e.Status, e.EmploymentPeriod, d.DeptName, su.Username, su.LastLogin, r.RoleName "
+                  + "FROM Employee e "
+                  + "LEFT JOIN Department d ON e.DepartmentID = d.DepartmentID "
+                  + "JOIN SystemUser su ON e.EmployeeID = su.EmployeeID "
+                  + "LEFT JOIN Role r ON su.RoleID = r.RoleID "
+                  + "WHERE su.UserID = ?";
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, systemUserId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -229,13 +287,52 @@ public class EmployeeDAO {
     }
 
     public int getActiveEmployees() {
-        String sql = "SELECT COUNT(*) as total FROM Employee WHERE Active = true";
+        String sql = "SELECT COUNT(*) as total FROM Employee WHERE Active = 1";
         try (Connection conn = DBConnection.getConnection(); Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
 
             if (rs.next()) {
                 return rs.getInt("total");
             }
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public List<Employee> getManagerList() {
+        List<Employee> managers = new ArrayList<>();
+        String sql = "SELECT DISTINCT e.EmployeeID, e.FullName, e.Email, e.DepartmentID "
+                  + "FROM Employee e "
+                  + "WHERE e.EmployeeID IN (SELECT DeptManagerID FROM Department WHERE DeptManagerID IS NOT NULL) "
+                  + "ORDER BY e.FullName";
+
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Employee emp = new Employee();
+                emp.setEmployeeId(rs.getInt("EmployeeID"));
+                emp.setFullName(rs.getString("FullName"));
+                emp.setEmail(rs.getString("Email"));
+                emp.setDepartmentId(rs.getInt("DepartmentID"));
+                managers.add(emp);
+            }
+        } catch (SQLException e) {
+            System.err.println("[v0] Error in getManagerList: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return managers;
+    }
+
+    public int getEmployeeCountByDepartment(int departmentId) {
+        String sql = "SELECT COUNT(*) as count FROM Employee WHERE DepartmentID = ?";
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, departmentId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("count");
+            }
+        } catch (SQLException e) {
             e.printStackTrace();
         }
         return 0;
