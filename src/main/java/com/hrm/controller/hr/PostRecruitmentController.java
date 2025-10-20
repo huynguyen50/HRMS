@@ -3,8 +3,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
 
-package com.hrm.controller;
+package com.hrm.controller.hr;
 
+import com.hrm.dao.DAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -12,32 +13,35 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
-@WebServlet(name="RecoveryController", urlPatterns={"/Recovery"})
-public class RecoveryController extends HttpServlet {
+/**
+ *
+ * @author DELL
+ */
+@WebServlet(name="PostRecruitmentController", urlPatterns={"/PostRecruitmentController"})
+public class PostRecruitmentController extends HttpServlet {
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         
     } 
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        HttpSession ses = request.getSession();
-        String inputPin=request.getParameter("pin");
-        String sessionPin = (String) ses.getAttribute("pinCode");
+        String Title = request.getParameter("title");
+        String Description = request.getParameter("description");
+        String Requirement = request.getParameter("requirement");
+        String Location = request.getParameter("location");
+        String Salary = request.getParameter("salary");
         
-        if(sessionPin != null && inputPin.equals(sessionPin)){
-            response.sendRedirect("/Views/ChangePassword.jsp");
-        }else{
-            request.setAttribute("mess", "Invalid PIN code!");
-            request.getRequestDispatcher("/Views/Recovery.jsp").forward(request, response);
-        }
+        DAO.getInstance().setRecruitment(Title, Description, Title, Location, Salary);
     }
+
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
+    }
 
 }

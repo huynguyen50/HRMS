@@ -19,7 +19,7 @@
         <div class="container">
             <!--left-->
             <div class="recruitmentContent">
-                <a href="Home.jsp"><button type="button" class="btn btn-primary">Back to home</button></a>
+                <a href="Homepage.jsp"><button type="button" class="btn btn-primary">Back to home</button></a>
                 <h1>Welcome to our company</h1>
                 <div class="info-box">Recruitment information</div>
                 <a href="#">Recruit now</a>

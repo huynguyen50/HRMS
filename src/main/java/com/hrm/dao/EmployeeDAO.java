@@ -4,7 +4,7 @@ import com.hrm.model.entity.Department;
 import com.hrm.model.entity.Employee;
 import com.hrm.model.entity.Role;
 import com.hrm.model.entity.SystemUser;
-import com.hrm.util.DbConnection;
+import com.hrm.dao.DBConnection;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ public class EmployeeDAO {
             LEFT JOIN Department d ON e.DepartmentID = d.DepartmentID
         """;
 
-        try (Connection con = DbConnection.getConnection();
+        try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
@@ -49,7 +49,7 @@ public class EmployeeDAO {
 
     public Employee getById(int id) {
         String sql = "SELECT * FROM Employee WHERE EmployeeID=?";
-        try (Connection con = DbConnection.getConnection();
+        try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, id);
@@ -82,7 +82,7 @@ public class EmployeeDAO {
                                   DepartmentID, Position, HireDate, Salary, Active)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
-        try (Connection con = DbConnection.getConnection();
+        try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, e.getFullName());
@@ -110,7 +110,7 @@ public class EmployeeDAO {
                                 DepartmentID=?, Position=?, HireDate=?, Salary=?, Active=? 
             WHERE EmployeeID=?
         """;
-        try (Connection con = DbConnection.getConnection();
+        try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, e.getFullName());
@@ -135,7 +135,7 @@ public class EmployeeDAO {
 
     public boolean delete(int id) {
         String sql = "DELETE FROM Employee WHERE EmployeeID=?";
-        try (Connection con = DbConnection.getConnection();
+        try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
@@ -152,7 +152,7 @@ public class EmployeeDAO {
                      "JOIN SystemUser su ON e.EmployeeID = su.EmployeeID " +
                      "LEFT JOIN Role r ON su.RoleID = r.RoleID " +
                      "WHERE su.UserID = ?";
-        try (Connection con = DbConnection.getConnection();
+        try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, systemUserId);
             try (ResultSet rs = ps.executeQuery()) {

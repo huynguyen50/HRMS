@@ -5,7 +5,7 @@
 package com.hrm.dao;
 
 import com.hrm.model.entity.Department;
-import com.hrm.util.DbConnection;
+import com.hrm.dao.DBConnection;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +20,7 @@ public class DepartmentDAO {
     public List<Department> getAll() {
         List<Department> list = new ArrayList<>();
         String sql = "SELECT * FROM Department";
-        try (Connection con = DbConnection.getConnection();
+        try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
 
@@ -39,7 +39,7 @@ public class DepartmentDAO {
 
     public Department getById(int id) {
         String sql = "SELECT * FROM Department WHERE DepartmentID=?";
-        try (Connection con = DbConnection.getConnection();
+        try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
@@ -56,7 +56,7 @@ public class DepartmentDAO {
 
     public boolean insert(Department d) {
         String sql = "INSERT INTO Department (DeptName, DeptManagerID) VALUES (?, ?)";
-        try (Connection con = DbConnection.getConnection();
+        try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, d.getDeptName());
             if (d.getDeptManagerId() != null)
@@ -69,7 +69,7 @@ public class DepartmentDAO {
 
     public boolean update(Department d) {
         String sql = "UPDATE Department SET DeptName=?, DeptManagerID=? WHERE DepartmentID=?";
-        try (Connection con = DbConnection.getConnection();
+        try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, d.getDeptName());
             if (d.getDeptManagerId() != null)
@@ -83,7 +83,7 @@ public class DepartmentDAO {
 
     public boolean delete(int id) {
         String sql = "DELETE FROM Department WHERE DepartmentID=?";
-        try (Connection con = DbConnection.getConnection();
+        try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
