@@ -4,6 +4,8 @@ import com.hrm.model.entity.Department;
 import com.hrm.model.entity.Employee;
 import com.hrm.model.entity.Role;
 import com.hrm.model.entity.SystemUser;
+import com.hrm.dao.DBConnection;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -113,7 +115,6 @@ public class EmployeeDAO {
                                 DepartmentID=?, Position=?, HireDate=?, Salary=?, Active=? 
             WHERE EmployeeID=?
         """;
-
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
 

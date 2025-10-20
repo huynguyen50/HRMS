@@ -8,4 +8,22 @@
             30
         </session-timeout>
     </session-config>
+    
+    <!-- Welcome file -->
+    <welcome-file-list>
+        <welcome-file>homepage</welcome-file>
+        <welcome-file>index.html</welcome-file>
+        <welcome-file>Views/Homepage.jsp</welcome-file>
+    </welcome-file-list>
+    
+    <!-- Error pages -->
+    <error-page>
+        <error-code>404</error-code>
+        <location>/Views/Homepage.jsp</location>
+    </error-page>
+    
+    <error-page>
+        <error-code>500</error-code>
+        <location>/Views/Homepage.jsp</location>
+    </error-page>
 </web-app>
