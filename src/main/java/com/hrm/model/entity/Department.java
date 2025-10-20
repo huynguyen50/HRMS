@@ -18,6 +18,7 @@ public class Department implements Serializable {
     private int departmentId;
     private String deptName;
     private Integer deptManagerId;
+    private int employeeCount;
 
     public Department() {
     }
@@ -50,6 +51,14 @@ public class Department implements Serializable {
 
     public void setDeptManagerId(Integer deptManagerId) {
         this.deptManagerId = deptManagerId;
+    }
+
+    public int getEmployeeCount() {
+        return employeeCount;
+    }
+
+    public void setEmployeeCount(int employeeCount) {
+        this.employeeCount = employeeCount;
     }
 
     @Override
