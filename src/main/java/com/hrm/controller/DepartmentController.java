@@ -62,7 +62,7 @@ public class DepartmentController extends HttpServlet {
         }
     }
 
-    private void listDepartments(HttpServletRequest request, HttpServletResponse response)
+private void listDepartments(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setAttribute("activePage", "departments");
 
@@ -95,10 +95,20 @@ public class DepartmentController extends HttpServlet {
 
         try {
             if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
-                departmentList = departmentDAO.searchDepartments(searchKeyword);
+                int total = departmentDAO.searchDepartmentsCount(searchKeyword);
+                int totalPages = (int) Math.ceil(total / (double) pageSize);
+                if (totalPages == 0) totalPages = 1;
+                if (page > totalPages) page = totalPages;
+                int offset = (page - 1) * pageSize;
+                departmentList = departmentDAO.searchDepartmentsPaged(searchKeyword, offset, pageSize);
+                request.setAttribute("total", total);
+                request.setAttribute("totalPages", totalPages);
             } else {
                 int total = departmentDAO.getTotalDepartmentsCount();
                 int totalPages = (int) Math.ceil(total / (double) pageSize);
+                if (page < 1) page = 1;
+                if (totalPages == 0) totalPages = 1;
+                if (page > totalPages) page = totalPages;
                 int offset = (page - 1) * pageSize;
                 departmentList = departmentDAO.getPaged(offset, pageSize);
                 request.setAttribute("total", total);
@@ -126,6 +136,7 @@ public class DepartmentController extends HttpServlet {
         request.getRequestDispatcher("Admin/Departments.jsp").forward(request, response);
     }
 
+
     private void saveDepartment(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String deptId = request.getParameter("deptId");
@@ -149,19 +160,19 @@ public class DepartmentController extends HttpServlet {
         try {
             if (deptId == null || deptId.isEmpty()) {
                 success = departmentDAO.insert(dept);
-                message = success ? "✅ Phòng ban '" + deptName.trim() + "' đã được thêm thành công!" 
-                                  : "❌ Không thể thêm phòng ban '" + deptName.trim() + "'. Vui lòng thử lại.";
+                message = success ? "Phòng ban '" + deptName.trim() + "' đã được thêm thành công!" 
+                                  : "Không thể thêm phòng ban '" + deptName.trim() + "'. Vui lòng thử lại.";
             } else {
                 dept.setDepartmentId(Integer.parseInt(deptId));
                 success = departmentDAO.update(dept);
-                message = success ? "✅ Phòng ban '" + deptName.trim() + "' đã được cập nhật thành công!" 
-                                  : "❌ Không thể cập nhật phòng ban '" + deptName.trim() + "'. Vui lòng thử lại.";
+                message = success ? "Phòng ban '" + deptName.trim() + "' đã được cập nhật thành công!" 
+                                  : "Không thể cập nhật phòng ban '" + deptName.trim() + "'. Vui lòng thử lại.";
             }
         } catch (NumberFormatException e) {
-            message = "❌ Lỗi: ID phòng ban không hợp lệ.";
+            message = "Lỗi: ID phòng ban không hợp lệ.";
             e.printStackTrace();
         } catch (Exception e) {
-            message = "❌ Lỗi: " + e.getMessage();
+            message = "Lỗi: " + e.getMessage();
             e.printStackTrace();
         }
 
@@ -185,17 +196,17 @@ public class DepartmentController extends HttpServlet {
             
             int employeeCount = employeeDAO.getEmployeeCountByDepartment(id);
             if (employeeCount > 0) {
-                message = "❌ Không thể xóa phòng ban '" + deptName + "' vì nó có " + employeeCount + " nhân viên. Vui lòng chuyển nhân viên sang phòng ban khác trước.";
+                message = "Không thể xóa phòng ban '" + deptName + "' vì nó có " + employeeCount + " nhân viên. Vui lòng chuyển nhân viên sang phòng ban khác trước.";
             } else {
                 success = departmentDAO.delete(id);
-                message = success ? "✅ Phòng ban '" + deptName + "' đã được xóa thành công!" 
-                                  : "❌ Không thể xóa phòng ban '" + deptName + "'. Vui lòng thử lại.";
+                message = success ? "Phòng ban '" + deptName + "' đã được xóa thành công!" 
+                                  : "Không thể xóa phòng ban '" + deptName + "'. Vui lòng thử lại.";
             }
         } catch (NumberFormatException e) {
-            message = "❌ Lỗi: ID phòng ban không hợp lệ.";
+            message = "Lỗi: ID phòng ban không hợp lệ.";
             e.printStackTrace();
         } catch (Exception e) {
-            message = "❌ Lỗi: " + e.getMessage();
+            message = "Lỗi: " + e.getMessage();
             e.printStackTrace();
         }
 

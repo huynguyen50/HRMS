@@ -10,7 +10,6 @@
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/department.css">
     </head>
     <style>
-        /* === Toast notification CSS === */
         #toast-container {
             position: fixed;
             top: 20px;
@@ -62,6 +61,117 @@
                 transform: translateX(100%);
             }
         }
+
+        /* Search form styling for top-bar */
+        .top-bar .search-form {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex: 1;
+            max-width: 500px;
+            margin-right: 20px;
+        }
+
+        .top-bar .search-form input {
+            flex: 1;
+            min-width: 200px;
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            height: 32px;
+        }
+
+        .top-bar .search-form button,
+        .top-bar .search-form a {
+            padding: 6px 12px;
+            background-color: #5b6ef5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 13px;
+            height: 32px;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .top-bar .search-form button:hover {
+            background-color: #4a5dd8;
+        }
+
+        .top-bar .search-form a {
+            background-color: #6c757d;
+        }
+
+        .top-bar .search-form a:hover {
+            background-color: #5a6268;
+        }
+
+        /* Ensure top-bar doesn't break with search form */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            min-height: 60px;
+        }
+
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* Pagination styling - matching employee page */
+        .pagination-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .pagination-info {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        .pagination-controls a,
+        .pagination-controls span {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #5b6ef5;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .pagination-controls a:hover {
+            background-color: #f0f0f0;
+        }
+
+        .pagination-controls span.active {
+            background-color: #5b6ef5;
+            color: white;
+            border-color: #5b6ef5;
+        }
+
+        .pagination-controls a.disabled {
+            color: #ccc;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
     </style>
     <body>
         <div class="dashboard-container">
@@ -95,9 +205,16 @@
             <div class="main-content">
                 <!-- Top Bar -->
                 <header class="top-bar">
-                    <div class="search-box">
-                        <span class="search-icon"> </span>
-                        <input type="text" placeholder="Search departments...">
+                    <div class="search-form">
+                        <form method="GET" action="${pageContext.request.contextPath}/department">
+                            <input type="hidden" name="action" value="departments">
+                            <input type="text" name="search" placeholder="Search departments..." 
+                                   value="${not empty searchKeyword ? searchKeyword : ''}" />
+                            <button type="submit">Search</button>
+                            <c:if test="${not empty searchKeyword}">
+                                <a href="${pageContext.request.contextPath}/department?action=departments">Clear</a>
+                            </c:if>
+                        </form>
                     </div>
                     <div class="top-bar-actions">
                         <select class="env-selector">
@@ -128,7 +245,7 @@
                             <p class="page-subtitle">Manage departments, assign managers, and configure permissions</p>
                         </div>
                         <button class="btn-primary" onclick="openAddDepartmentModal()">
-                            ➕ Add New Department
+                            + Add New Department
                         </button>
                     </div>
                     <!-- Toast container -->
@@ -153,6 +270,7 @@
                         showToast("✗ ${errorMessage}", "error");
                         </c:if>
                     </script>
+
                     <!-- Departments Table -->
                     <div class="table-section">
                         <c:choose>
@@ -216,6 +334,39 @@
                             </c:otherwise>
                         </c:choose>
                     </div>
+
+                     <!-- Pagination -->
+                     <c:if test="${not empty totalPages && totalPages > 1}">
+                         <div class="pagination-bar">
+                             <div class="pagination-info">
+                                 <c:set var="start" value="${(page - 1) * pageSize + 1}"/>
+                                 <c:set var="end" value="${page * pageSize > total ? total : page * pageSize}"/>
+                                 Showing ${start} - ${end} of ${total}
+                             </div>
+                             <div class="pagination-controls">
+                                 <c:set var="prevPage" value="${page > 1 ? page - 1 : 1}"/>
+                                 <c:set var="nextPage" value="${page < totalPages ? page + 1 : totalPages}"/>
+                                 <c:set var="searchParam" value="${not empty searchKeyword ? '&search=' : ''}${searchKeyword}"/>
+
+                                 <a class="${page == 1 ? 'disabled' : ''}"
+                                    href="?action=departments&page=${prevPage}&pageSize=${pageSize}${searchParam}">Prev</a>
+
+                                 <c:forEach var="i" begin="1" end="${totalPages}">
+                                     <c:choose>
+                                         <c:when test="${i == page}">
+                                             <span class="active">${i}</span>
+                                         </c:when>
+                                         <c:otherwise>
+                                             <a href="?action=departments&page=${i}&pageSize=${pageSize}${searchParam}">${i}</a>
+                                         </c:otherwise>
+                                     </c:choose>
+                                 </c:forEach>
+
+                                 <a class="${page == totalPages ? 'disabled' : ''}"
+                                    href="?action=departments&page=${nextPage}&pageSize=${pageSize}${searchParam}">Next</a>
+                             </div>
+                         </div>
+                     </c:if>
                 </div>
             </div>
         </div>
