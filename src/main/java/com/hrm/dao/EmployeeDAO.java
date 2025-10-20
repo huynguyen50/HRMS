@@ -15,9 +15,11 @@ public class EmployeeDAO {
     public List<Employee> getAll() {
         List<Employee> list = new ArrayList<>();
         String sql = """
-            SELECT e.*, d.DeptName 
+            SELECT e.*, d.DeptName, su.UserID, su.Username, su.LastLogin, r.RoleName
             FROM Employee e 
             LEFT JOIN Department d ON e.DepartmentID = d.DepartmentID
+            LEFT JOIN SystemUser su ON e.EmployeeID = su.EmployeeID
+            LEFT JOIN Role r ON su.RoleID = r.RoleID
         """;
 
         try (Connection con = DBConnection.getConnection();
@@ -36,6 +38,26 @@ public class EmployeeDAO {
                 e.setDepartmentId(rs.getInt("DepartmentID"));
                 e.setDepartmentName(rs.getString("DeptName"));
                 e.setPosition(rs.getString("Position"));
+                e.setStatus(rs.getString("Status"));
+                e.setEmploymentPeriod(rs.getString("EmploymentPeriod"));
+                
+                // Set SystemUser information if exists
+                if (rs.getInt("UserID") != 0) {
+                    SystemUser systemUser = new SystemUser();
+                    systemUser.setUserId(rs.getInt("UserID"));
+                    systemUser.setUsername(rs.getString("Username"));
+                    
+                    Timestamp lastLoginTimestamp = rs.getTimestamp("LastLogin");
+                    if (lastLoginTimestamp != null) {
+                        systemUser.setLastLogin(lastLoginTimestamp.toLocalDateTime());
+                    }
+                    
+                    Role role = new Role();
+                    role.setRoleName(rs.getString("RoleName"));
+                    systemUser.setRole(role);
+                    
+                    e.setSystemUser(systemUser);
+                }
               
                 list.add(e);
             }
@@ -138,6 +160,21 @@ public class EmployeeDAO {
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean updateEmployeeStatus(int employeeId, String status) {
+        String sql = "UPDATE Employee SET Status = ? WHERE EmployeeID = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, status);
+            ps.setInt(2, employeeId);
+            
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();

@@ -23,16 +23,20 @@ public class LogoutController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        response.sendRedirect(request.getContextPath() + "/homepage");
     } 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        if(request.getParameter("logout")!=null){
-            HttpSession session = request.getSession();
-            session.removeAttribute("systemUser");
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
         }
-        response.sendRedirect("Views/Home.jsp");
+        response.sendRedirect(request.getContextPath() + "/homepage");
     }
     @Override
     public String getServletInfo() {
