@@ -1,6 +1,8 @@
 package com.hrm.dao;
 
 import com.hrm.model.entity.Leave; // hoặc tên class model thực tế trong project (Leave/LeaveApplication)
+import com.hrm.dao.DBConnection;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

@@ -1,6 +1,7 @@
 package com.hrm.dao;
 
 import com.hrm.model.entity.Department;
+import com.hrm.dao.DBConnection;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
