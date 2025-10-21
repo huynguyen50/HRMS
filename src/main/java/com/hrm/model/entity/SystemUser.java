@@ -75,14 +75,21 @@ public class SystemUser implements Serializable {
 
     public void setLastLogin(LocalDateTime lastLogin) {
         this.lastLogin = lastLogin;
-    }
-
-    public boolean isIsActive() {
+    }    public boolean isIsActive() {
         return isActive;
     }
 
     public void setIsActive(boolean isActive) {
         this.isActive = isActive;
+    }
+    
+    // Additional getter/setter for boolean field compatibility
+    public boolean isActive() {
+        return isActive;
+    }
+    
+    public void setActive(boolean active) {
+        this.isActive = active;
     }
 
     public LocalDateTime getCreatedDate() {

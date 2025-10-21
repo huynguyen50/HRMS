@@ -77,6 +77,29 @@ public class SystemLogDAO {
     }
     
     /**
+     * Insert a new system log entry - simplified method
+     */
+    public boolean insertLog(int userId, String action, String objectType, String oldValue, String newValue) {
+        String query = "INSERT INTO SystemLog (UserID, Action, ObjectType, OldValue, NewValue, Timestamp) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
+        
+        try (Connection con = DBConnection.getJDBCConnection();
+             PreparedStatement ps = con.prepareStatement(query)) {
+            
+            ps.setInt(1, userId);
+            ps.setString(2, action);
+            ps.setString(3, objectType);
+            ps.setString(4, oldValue);
+            ps.setString(5, newValue);
+            
+            return ps.executeUpdate() > 0;
+            
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error inserting system log", e);
+            return false;
+        }
+    }
+    
+    /**
      * Get system logs by user ID
      */
     public List<SystemLog> getSystemLogsByUserID(int userID) {

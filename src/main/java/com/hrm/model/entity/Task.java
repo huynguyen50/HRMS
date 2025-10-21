@@ -19,6 +19,13 @@ public class Task implements Serializable {
     private LocalDate startDate;
     private LocalDate dueDate;
     private String status;
+    private String progress;
+    private String note;
+    private String progressReport;
+    private String attachments;
+    private String approverComment;
+    private Integer approvedBy;
+    private LocalDate approvedDate;
 
     public Task() {
     }
@@ -99,8 +106,64 @@ public class Task implements Serializable {
         this.status = status;
     }
 
+    public String getProgress() {
+        return progress;
+    }
+
+    public void setProgress(String progress) {
+        this.progress = progress;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
+    public String getProgressReport() {
+        return progressReport;
+    }
+
+    public void setProgressReport(String progressReport) {
+        this.progressReport = progressReport;
+    }
+
+    public String getAttachments() {
+        return attachments;
+    }
+
+    public void setAttachments(String attachments) {
+        this.attachments = attachments;
+    }
+
+    public String getApproverComment() {
+        return approverComment;
+    }
+
+    public void setApproverComment(String approverComment) {
+        this.approverComment = approverComment;
+    }
+
+    public Integer getApprovedBy() {
+        return approvedBy;
+    }
+
+    public void setApprovedBy(Integer approvedBy) {
+        this.approvedBy = approvedBy;
+    }
+
+    public LocalDate getApprovedDate() {
+        return approvedDate;
+    }
+
+    public void setApprovedDate(LocalDate approvedDate) {
+        this.approvedDate = approvedDate;
+    }
+
     @Override
     public String toString() {
-        return "Task{" + "taskId=" + taskId + ", title=" + title + ", description=" + description + ", assignedBy=" + assignedBy + ", assignTo=" + assignTo + ", startDate=" + startDate + ", dueDate=" + dueDate + ", status=" + status + '}';
+        return "Task{" + "taskId=" + taskId + ", title=" + title + ", description=" + description + ", assignedBy=" + assignedBy + ", assignTo=" + assignTo + ", startDate=" + startDate + ", dueDate=" + dueDate + ", status=" + status + ", progress=" + progress + ", note=" + note + ", progressReport=" + progressReport + ", attachments=" + attachments + ", approverComment=" + approverComment + ", approvedBy=" + approvedBy + ", approvedDate=" + approvedDate + '}';
     }
 }

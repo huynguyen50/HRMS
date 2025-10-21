@@ -67,30 +67,22 @@ public class EmployeeDAO {
         return list;
     }
 
-    
-
     public Employee getById(int id) {
-        String sql = "SELECT * FROM Employee WHERE EmployeeID=?";
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        String sql = """
+            SELECT e.*, d.DeptName 
+            FROM Employee e 
+            LEFT JOIN Department d ON e.DepartmentID = d.DepartmentID
+            WHERE e.EmployeeID = ?
+        """;
 
+        try (Connection con = DBConnection.getJDBCConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
+
             if (rs.next()) {
-                Employee e = new Employee();
-                e.setEmployeeId(rs.getInt("EmployeeID"));
-                e.setFullName(rs.getString("FullName"));
-                e.setGender(rs.getString("Gender"));
-                e.setDob(rs.getDate("DOB") != null ? rs.getDate("DOB").toLocalDate() : null);
-                e.setAddress(rs.getString("Address"));
-                e.setPhone(rs.getString("Phone"));
-                e.setEmail(rs.getString("Email"));
-                e.setDepartmentId(rs.getInt("DepartmentID"));
-                e.setPosition(rs.getString("Position"));
-                e.setHireDate(rs.getDate("HireDate") != null ? rs.getDate("HireDate").toLocalDate() : null);
-                e.setSalary(rs.getDouble("Salary"));
-                e.setActive(rs.getBoolean("Active"));
-                return e;
+                return mapResultSetToEmployee(rs);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -243,5 +235,109 @@ public class EmployeeDAO {
         }
         System.out.println("EmployeeDAO: No employee found for systemUserId: " + systemUserId);
         return null;
+    }
+
+    /**
+     * Lấy danh sách nhân viên đang active
+     */
+    public List<Employee> getActiveEmployees() {
+        List<Employee> list = new ArrayList<>();
+        String sql = """
+            SELECT e.*, d.DeptName 
+            FROM Employee e 
+            LEFT JOIN Department d ON e.DepartmentID = d.DepartmentID
+            WHERE e.Status = 'Active'
+            ORDER BY e.FullName
+        """;
+
+        try (Connection con = DBConnection.getJDBCConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(mapResultSetToEmployee(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    
+    /**
+     * Lấy danh sách nhân viên theo phòng ban
+     */
+    public List<Employee> getByDepartment(int departmentId) {
+        List<Employee> list = new ArrayList<>();
+        String sql = """
+            SELECT e.*, d.DeptName 
+            FROM Employee e 
+            LEFT JOIN Department d ON e.DepartmentID = d.DepartmentID
+            WHERE e.DepartmentID = ?
+            ORDER BY e.FullName
+        """;
+
+        try (Connection con = DBConnection.getJDBCConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, departmentId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                list.add(mapResultSetToEmployee(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    
+    /**
+     * Lấy danh sách nhân viên theo manager (for task assignment)
+     */
+    public List<Employee> getEmployeesByManager(int managerId) {
+        List<Employee> list = new ArrayList<>();
+        String sql = """
+            SELECT e.*, d.DeptName 
+            FROM Employee e 
+            JOIN Department d ON e.DepartmentID = d.DepartmentID
+            WHERE d.DeptManagerID = ? AND e.EmployeeID != ? AND e.Status = 'Active'
+            ORDER BY e.FullName
+        """;
+
+        try (Connection con = DBConnection.getJDBCConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, managerId);
+            ps.setInt(2, managerId); // Exclude manager from the list
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                list.add(mapResultSetToEmployee(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    
+    /**
+     * Map ResultSet to Employee object
+     */
+    private Employee mapResultSetToEmployee(ResultSet rs) throws SQLException {
+        Employee e = new Employee();
+        e.setEmployeeId(rs.getInt("EmployeeID"));
+        e.setFullName(rs.getString("FullName"));
+        e.setGender(rs.getString("Gender"));
+        e.setDob(rs.getDate("DOB") != null ? rs.getDate("DOB").toLocalDate() : null);
+        e.setAddress(rs.getString("Address"));
+        e.setPhone(rs.getString("Phone"));
+        e.setEmail(rs.getString("Email"));
+        e.setDepartmentId(rs.getInt("DepartmentID"));
+        e.setDepartmentName(rs.getString("DeptName"));
+        e.setPosition(rs.getString("Position"));
+        e.setStatus(rs.getString("Status"));
+        e.setEmploymentPeriod(rs.getString("EmploymentPeriod"));
+        
+        return e;
     }
 }

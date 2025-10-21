@@ -29,14 +29,24 @@ public class PostRecruitmentController extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
-        String Title = request.getParameter("title");
+    throws ServletException, IOException {        String Title = request.getParameter("title");
         String Description = request.getParameter("description");
         String Requirement = request.getParameter("requirement");
         String Location = request.getParameter("location");
         String Salary = request.getParameter("salary");
         
-        DAO.getInstance().setRecruitment(Title, Description, Title, Location, Salary);
+        // Convert salary string to Double
+        Double salaryValue = null;
+        try {
+            if (Salary != null && !Salary.trim().isEmpty()) {
+                salaryValue = Double.parseDouble(Salary);
+            }
+        } catch (NumberFormatException e) {
+            // Handle invalid salary format
+            salaryValue = 0.0;
+        }
+        
+        DAO.getInstance().setRecruitment(Title, Description, Requirement, Location, salaryValue);
     }
 
     @Override

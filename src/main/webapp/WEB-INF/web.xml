@@ -21,9 +21,82 @@
         <error-code>404</error-code>
         <location>/Views/Homepage.jsp</location>
     </error-page>
-    
-    <error-page>
+      <error-page>
         <error-code>500</error-code>
         <location>/Views/Homepage.jsp</location>
     </error-page>
+    
+    <!-- New Feature Servlets -->
+    <servlet>
+        <servlet-name>MailRequestSubmitController</servlet-name>
+        <servlet-class>com.hrm.controller.MailRequestSubmitController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>MailRequestSubmitController</servlet-name>
+        <url-pattern>/mail-request-submit</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>MailRequestApprovalController</servlet-name>
+        <servlet-class>com.hrm.controller.MailRequestApprovalController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>MailRequestApprovalController</servlet-name>
+        <url-pattern>/mail-request-approval</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>PayrollController</servlet-name>
+        <servlet-class>com.hrm.controller.PayrollController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>PayrollController</servlet-name>
+        <url-pattern>/payroll</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>UpdateTaskStatusController</servlet-name>
+        <servlet-class>com.hrm.controller.UpdateTaskStatusController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UpdateTaskStatusController</servlet-name>
+        <url-pattern>/update-task-status</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>AssignTaskController</servlet-name>
+        <servlet-class>com.hrm.controller.AssignTaskController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AssignTaskController</servlet-name>
+        <url-pattern>/assign-task</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>ApproveTaskResultController</servlet-name>
+        <servlet-class>com.hrm.controller.ApproveTaskResultController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ApproveTaskResultController</servlet-name>
+        <url-pattern>/approve-task-result</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>ApprovePayrollController</servlet-name>
+        <servlet-class>com.hrm.controller.ApprovePayrollController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ApprovePayrollController</servlet-name>
+        <url-pattern>/approve-payroll</url-pattern>
+    </servlet-mapping>
+    
+    <servlet>
+        <servlet-name>ViewPayslipController</servlet-name>
+        <servlet-class>com.hrm.controller.ViewPayslipController</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ViewPayslipController</servlet-name>
+        <url-pattern>/view-payslip</url-pattern>
+    </servlet-mapping>
+    
 </web-app>

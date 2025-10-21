@@ -35,6 +35,19 @@ Thumbs.db
 *.ear
 *.zip
 *.tar.gz
-
-# Local DB configs
-src/main/resources/db.properties
+build_and_run.bat
+deploy.bat
+DEPLOYMENT_GUIDE.md
+.gitignore
+setup_database.bat
+.gitignore
+.gitignore
+.gitignore
+TESTING_GUIDE.md
+.gitignore
+.gitignore
+.gitignore
+test_features.bat
+QUICK_START.md
+PROJECT_SUMMARY.md
+src/test/java/com/hrm/test/HRMSFunctionalityTest.java

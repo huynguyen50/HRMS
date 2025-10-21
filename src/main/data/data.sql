@@ -97,13 +97,10 @@ CREATE TABLE Recruitment (
     RecruitmentID INT AUTO_INCREMENT PRIMARY KEY,
     JobTitle VARCHAR(200) NOT NULL,
     JobDescription TEXT,
-    PostDate DATE DEFAULT (CURRENT_DATE),
-    Status ENUM('Open','Closed') DEFAULT 'Open',
-    PostedBy INT NULL,
-    PostedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_recruitment_postedby FOREIGN KEY (PostedBy)
-        REFERENCES Employee(EmployeeID)
-        ON DELETE SET NULL
+    Requirement varchar(200) Not null,
+    Location varchar(200) Not null,
+    Salary double not null,
+    PostedDate DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 8. GUEST (Ứng viên)
@@ -113,7 +110,7 @@ CREATE TABLE Guest (
     Email VARCHAR(150),
     Phone VARCHAR(50),
     CV TEXT,
-    Status ENUM('Applied','Interview','Rejected','Hired') DEFAULT 'Applied',
+    Status ENUM('Rejected','Hired','Processing') DEFAULT 'Processing',
     RecruitmentID INT NULL,
     AppliedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_guest_recruitment FOREIGN KEY (RecruitmentID)
@@ -188,14 +185,8 @@ CREATE TABLE Attendance (
     UNIQUE KEY uq_attendance_employee_date (EmployeeID, Date)
 );
 
--- Indexes
-CREATE INDEX idx_employee_email ON Employee(Email);
-CREATE INDEX idx_systemuser_username ON SystemUser(Username);
-CREATE INDEX idx_recruitment_postdate ON Recruitment(PostDate);
-CREATE INDEX idx_payroll_payperiod ON Payroll(PayPeriod);
 
-COMMIT;
-USE hrm_db;
+
 
 -- ===== ROLE =====
 INSERT INTO Role (RoleName) VALUES
@@ -216,9 +207,9 @@ INSERT INTO Department (DeptName) VALUES
 -- ===== EMPLOYEE =====
 INSERT INTO Employee (FullName, Gender, DOB, Address, Phone, Email, EmploymentPeriod, DepartmentID, Status, Position)
 VALUES
-('Nguyen Van A', 'Male', '1990-05-12', 'Hanoi', '0901111111', 'a@company.com', '2015-2025', 1, 'Active', 'HR Manager'),
-('Tran Thi B', 'Female', '1992-07-23', 'Hanoi', '0902222222', 'b@company.com', '2018-2025', 1, 'Active', 'HR Staff'),
-('Le Van C', 'Male', '1988-03-05', 'HCM City', '0903333333', 'c@company.com', '2014-2025', 2, 'Active', 'Finance Manager'),
+('Tran Duy Hien', 'Male', '2005-10-02', 'Hanoi', '0964796942', 'hiendev2005@gmail.com', '2015-2025', 1, 'Active', 'HR Manager'),
+('Tran Duy Thanh', 'Male', '1992-07-23', 'Hanoi', '0902222222', 'zzzzzzhienne@gmail.com', '2018-2025', 1, 'Active', 'HR Staff'),
+('Nguyen Tat Dang Huy', 'Male', '1988-03-05', 'HCM City', '0903333333', 'huyntdhe190142@gmail.com', '2014-2025', 2, 'Active', 'Finance Manager'),
 ('Pham Thi D', 'Female', '1995-09-10', 'HCM City', '0904444444', 'd@company.com', '2020-2025', 2, 'Active', 'Accountant'),
 ('Do Van E', 'Male', '1993-01-02', 'Da Nang', '0905555555', 'e@company.com', '2019-2025', 3, 'Active', 'IT Manager'),
 ('Bui Thi F', 'Female', '1997-12-15', 'Da Nang', '0906666666', 'f@company.com', '2021-2025', 3, 'Active', 'Developer'),
@@ -276,19 +267,23 @@ VALUES
 (8, 'Resignation', NULL, NULL, 'Switching company', 'Pending', 7);
 
 -- ===== RECRUITMENT =====
-INSERT INTO Recruitment (JobTitle, JobDescription, Status, PostedBy)
-VALUES
-('Frontend Developer', 'Responsible for UI design and frontend code', 'Open', 5),
-('Accountant', 'Manage financial reports', 'Closed', 3),
-('Designer', 'Create marketing materials', 'Open', 7);
+INSERT INTO Recruitment (JobTitle, JobDescription, Requirement, Location, Salary)
+VALUES (
+    'title',
+    'des',
+    're',
+    'lo',
+    15000000
+);
+
 
 -- ===== GUEST =====
 INSERT INTO Guest (FullName, Email, Phone, CV, Status, RecruitmentID)
 VALUES
-('Nguyen Tien K', 'k@example.com', '0981111111', 'link_cv_k.pdf', 'Applied', 1),
-('Le Thi L', 'l@example.com', '0982222222', 'link_cv_l.pdf', 'Interview', 1),
-('Pham Van M', 'm@example.com', '0983333333', 'link_cv_m.pdf', 'Rejected', 2),
-('Do Thi N', 'n@example.com', '0984444444', 'link_cv_n.pdf', 'Hired', 3);
+('Nguyen Tien K', 'k@example.com', '0981111111', 'link_cv_k.pdf', 'Processing', 1),
+('Le Thi L', 'l@example.com', '0982222222', 'link_cv_l.pdf', 'Processing', 1),
+('Pham Van M', 'm@example.com', '0983333333', 'link_cv_m.pdf', 'Processing', 1),
+('Do Thi N', 'n@example.com', '0984444444', 'link_cv_n.pdf', 'Processing', 1);
 
 -- ===== PAYROLL =====
 INSERT INTO Payroll (EmployeeID, PayPeriod, BaseSalary, Allowance, Bonus, Deduction, NetSalary, ApprovedBy, ApprovedDate)
