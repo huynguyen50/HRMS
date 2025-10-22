@@ -4,7 +4,7 @@
 <html>
     <head>
         <title>Employee Detail - HRMS</title>
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/Admin_home.css">
+        <link rel="stylesheet" href="Admin/css/Admin_home.css">
         <style>
             .detail-container {
                 max-width: 900px;
@@ -194,6 +194,7 @@
 
                         <%
                             Employee employee = (Employee) request.getAttribute("employee");
+                            System.out.println("EmployeeDetail.jsp: Employee object: " + (employee != null ? employee.getFullName() : "null"));
                             if (employee != null) {
                         %>
 

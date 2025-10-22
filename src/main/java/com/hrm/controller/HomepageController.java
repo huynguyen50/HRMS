@@ -221,7 +221,7 @@ public class HomepageController extends HttpServlet {
                 access.setCanAccessHR(true);
                 access.setCanAccessEmployee(true);
                 access.setCanAccessGuest(true);
-                access.setAdminUrl("/admin?action=dashboard");
+                access.setAdminUrl("/admin");
                 access.setHrUrl("/ProfileManagementController");
                 access.setEmployeeUrl("/Views/Employee/EmployeeHome.jsp");
                 access.setGuestUrl("/Views/Homepage.jsp");

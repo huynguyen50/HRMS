@@ -20,81 +20,68 @@ public class AdminController extends HttpServlet {
     private SystemUserDAO userDAO = new SystemUserDAO();
     private RoleDAO roleDAO = new RoleDAO();
 
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-              throws ServletException, IOException {
-        String action = request.getParameter("action");
-        if (action == null) {
-            action = "dashboard";
-        }
-
-        switch (action) {
-            case "dashboard":
-                loadDashboard(request, response);
-                break;
-
-            case "employees":
-                loadEmployees(request, response);
-                break;
-
-            case "employee-view":
-                viewEmployee(request, response);
-                break;
-
-            case "employee-edit":
-                editEmployee(request, response);
-                break;
-
-            case "employee-delete":
-                deleteEmployee(request, response);
-                break;
-
-            case "employee-get-data":
-                getEmployeeData(request, response);
-                break;
-
-            case "departments":
-                loadDepartments(request, response);
-                break;
-
-            case "department-add":
-                loadDepartmentForm(request, response, null);
-                break;
-
-            case "department-edit":
-                loadDepartmentEdit(request, response);
-                break;
-
-            case "department-delete":
-                deleteDepartment(request, response);
-                break;
-
-            case "department-permissions":
-                loadDepartmentPermissions(request, response);
-                break;
-
-            case "users":
-                loadUsers(request, response);
-                break;
-
-            case "roles":
-                loadRoles(request, response);
-                break;
-
-            case "audit-log":
-                loadAuditLog(request, response);
-                break;
-
-            case "profile":
-                request.setAttribute("activePage", "profile");
-                request.getRequestDispatcher("Admin/Profile.jsp").forward(request, response);
-                break;
-
-            default:
-                response.sendRedirect("Admin/Login.jsp");
-        }
+@Override
+protected void doGet(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+    String action = request.getParameter("action");
+    if (action == null) {
+        action = "dashboard";
     }
 
+    switch (action) {
+        case "dashboard":
+            loadDashboard(request, response);
+            break;
+
+        case "employees":
+            loadEmployees(request, response);
+            break;
+
+        case "employee-view":
+            viewEmployee(request, response);
+            break;
+
+        case "employee-edit":
+            editEmployee(request, response);
+            break;
+
+        case "employee-delete":
+            deleteEmployee(request, response);
+            break;
+
+        case "employee-get-data":
+            getEmployeeData(request, response);
+            break;
+
+        case "departments":
+        case "department-add":
+        case "department-edit":
+        case "department-delete":
+        case "department-permissions":
+            response.sendRedirect(request.getContextPath() + "/departments");
+            break;
+
+        case "users":
+            loadUsers(request, response);
+            break;
+
+        case "roles":
+            loadRoles(request, response);
+            break;
+
+        case "audit-log":
+            loadAuditLog(request, response);
+            break;
+
+        case "profile":
+            request.setAttribute("activePage", "profile");
+            request.getRequestDispatcher("Admin/Profile.jsp").forward(request, response);
+            break;
+
+        default:
+            response.sendRedirect("Admin/Login.jsp");
+    }
+}
     private void loadDashboard(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
         request.setAttribute("activePage", "dashboard");
@@ -102,19 +89,17 @@ public class AdminController extends HttpServlet {
         int totalEmployees = employeeDAO.getTotalEmployees();
         int activeEmployees = employeeDAO.getActiveEmployees();
         int totalDepartments = departmentDAO.getTotalDepartments();
-       
 
         request.setAttribute("totalEmployees", totalEmployees);
         request.setAttribute("activeEmployees", activeEmployees);
         request.setAttribute("totalDepartments", totalDepartments);
-       
 
         System.out.println("Dashboard counts -> total=" + totalEmployees + ", active=" + activeEmployees + ", depts=" + totalDepartments);
 
         request.getRequestDispatcher("Admin/AdminHome.jsp").forward(request, response);
     }
 
- private void loadEmployees(HttpServletRequest request, HttpServletResponse response)
+    private void loadEmployees(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
         request.setAttribute("activePage", "employees");
 
@@ -143,11 +128,11 @@ public class AdminController extends HttpServlet {
                 request.setAttribute("total", totalEmployees);
                 request.setAttribute("totalPages", totalPages);
             } else {
-                int total = employeeDAO.getTotalEmployeesCount();
+                int total = employeeDAO.getNonInternEmployeesCount();
                 int totalPages = (int) Math.ceil(total / (double) pageSize);
                 int offset = (page - 1) * pageSize;
 
-                employeeList = employeeDAO.getPaged(offset, pageSize);
+                employeeList = employeeDAO.getNonInternEmployees(offset, pageSize);
                 request.setAttribute("total", total);
                 request.setAttribute("totalPages", totalPages);
             }
@@ -157,9 +142,11 @@ public class AdminController extends HttpServlet {
         }
 
         List<Department> departments = departmentDAO.getAll();
+        List<Employee> internEmployees = employeeDAO.getInternEmployees();
 
         request.setAttribute("employeeList", employeeList);
         request.setAttribute("departments", departments);
+        request.setAttribute("internEmployees", internEmployees);
         request.setAttribute("searchKeyword", searchKeyword);
         request.setAttribute("page", page);
         request.setAttribute("pageSize", pageSize);
@@ -167,14 +154,17 @@ public class AdminController extends HttpServlet {
         request.getRequestDispatcher("Admin/Employees.jsp").forward(request, response);
     }
 
-
     private void viewEmployee(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
         try {
             String empIdStr = request.getParameter("id");
+            System.out.println("AdminController: viewEmployee called with ID: " + empIdStr);
+            
             if (empIdStr != null && !empIdStr.isEmpty()) {
                 int empId = Integer.parseInt(empIdStr);
                 Employee employee = employeeDAO.getById(empId);
+                
+                System.out.println("AdminController: Retrieved employee: " + (employee != null ? employee.getFullName() : "null"));
                 
                 if (employee != null) {
                     jakarta.servlet.http.HttpSession session = request.getSession(false);
@@ -194,13 +184,20 @@ public class AdminController extends HttpServlet {
                     request.setAttribute("employee", employee);
                     request.setAttribute("departments", departments);
                     request.setAttribute("mode", "view");
+                    System.out.println("AdminController: Forwarding to EmployeeDetail.jsp");
                     request.getRequestDispatcher("Admin/EmployeeDetail.jsp").forward(request, response);
                 } else {
+                    System.out.println("AdminController: Employee not found with ID: " + empId);
                     request.setAttribute("errorMessage", "Employee not found");
                     loadEmployees(request, response);
                 }
+            } else {
+                System.out.println("AdminController: No employee ID provided");
+                request.setAttribute("errorMessage", "Employee ID is required");
+                loadEmployees(request, response);
             }
         } catch (NumberFormatException e) {
+            System.out.println("AdminController: Invalid employee ID format: " + e.getMessage());
             request.setAttribute("errorMessage", "Invalid employee ID");
             loadEmployees(request, response);
         }
@@ -251,36 +248,52 @@ public class AdminController extends HttpServlet {
         loadEmployees(request, response);
     }
 
-    private void getEmployeeData(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void getEmployeeData(HttpServletRequest request, HttpServletResponse response)
+              throws IOException {
         response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        
         try {
-            String empIdStr = request.getParameter("id");
-            if (empIdStr != null && !empIdStr.isEmpty()) {
-                int empId = Integer.parseInt(empIdStr);
-                Employee employee = employeeDAO.getById(empId);
-                
-                if (employee != null) {
-                    String json = String.format(
-                        "{\"id\":%d,\"fullName\":\"%s\",\"gender\":\"%s\",\"email\":\"%s\",\"phone\":\"%s\",\"address\":\"%s\",\"dob\":\"%s\",\"departmentId\":%d,\"position\":\"%s\",\"employmentPeriod\":\"%s\",\"status\":\"%s\"}",
-                        employee.getEmployeeId(),
-                        escapeJson(employee.getFullName()),
-                        employee.getGender() != null ? employee.getGender() : "",
-                        escapeJson(employee.getEmail()),
-                        employee.getPhone() != null ? escapeJson(employee.getPhone()) : "",
-                        employee.getAddress() != null ? escapeJson(employee.getAddress()) : "",
-                        employee.getDob() != null ? employee.getDob().toString() : "",
-                        employee.getDepartmentId(),
-                        escapeJson(employee.getPosition()),
-                        employee.getEmploymentPeriod() != null ? escapeJson(employee.getEmploymentPeriod()) : "",
-                        employee.getStatus() != null ? employee.getStatus() : "Active"
-                    );
-                    response.getWriter().write(json);
-                } else {
-                    response.getWriter().write("{\"error\":\"Employee not found\"}");
-                }
+            String idStr = request.getParameter("id");
+            if (idStr == null || idStr.isEmpty()) {
+                response.getWriter().write("{\"error\": \"Employee ID is required\"}");
+                return;
             }
+            
+            int employeeId = Integer.parseInt(idStr);
+            Employee employee = employeeDAO.getById(employeeId);
+            
+            System.out.println("[v0] getEmployeeData - Employee ID: " + employeeId);
+            if (employee != null) {
+                System.out.println("[v0] getEmployeeData - Employee: " + employee.getFullName());
+                System.out.println("[v0] getEmployeeData - DepartmentID: " + employee.getDepartmentId());
+                System.out.println("[v0] getEmployeeData - DepartmentName: " + employee.getDepartmentName());
+                System.out.println("[v0] getEmployeeData - Email: " + employee.getEmail());
+                System.out.println("[v0] getEmployeeData - Position: " + employee.getPosition());
+            } else {
+                System.out.println("[v0] getEmployeeData - Employee not found");
+            }
+            
+            if (employee == null) {
+                response.getWriter().write("{\"error\": \"Employee not found\"}");
+                return;
+            }
+            
+            String email = escapeJson(employee.getEmail() != null ? employee.getEmail() : "");
+            String position = escapeJson(employee.getPosition() != null ? employee.getPosition() : "");
+            String departmentName = escapeJson(employee.getDepartmentName() != null ? employee.getDepartmentName() : "N/A");
+            
+            String json = String.format(
+                "{\"email\": \"%s\", \"position\": \"%s\", \"departmentName\": \"%s\"}",
+                email, position, departmentName
+            );
+            
+            System.out.println("[v0] getEmployeeData - JSON Response: " + json);
+            response.getWriter().write(json);
         } catch (NumberFormatException e) {
-            response.getWriter().write("{\"error\":\"Invalid employee ID\"}");
+            response.getWriter().write("{\"error\": \"Invalid employee ID\"}");
+        } catch (Exception e) {
+            response.getWriter().write("{\"error\": \"" + e.getMessage() + "\"}");
         }
     }
 
@@ -346,7 +359,7 @@ public class AdminController extends HttpServlet {
         request.getRequestDispatcher("Admin/Departments.jsp").forward(request, response);
     }
 
-    private void loadDepartmentForm(HttpServletRequest request, HttpServletResponse response, DepartmentController dept)
+    private void loadDepartmentForm(HttpServletRequest request, HttpServletResponse response, Object dept)
               throws ServletException, IOException {
         request.setAttribute("activePage", "departments");
         
@@ -433,21 +446,18 @@ public class AdminController extends HttpServlet {
     private void loadUsers(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
         request.setAttribute("activePage", "users");
-
         request.getRequestDispatcher("Admin/Users.jsp").forward(request, response);
     }
 
     private void loadRoles(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
         request.setAttribute("activePage", "roles");
-
         request.getRequestDispatcher("Admin/Roles.jsp").forward(request, response);
     }
 
     private void loadAuditLog(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
         request.setAttribute("activePage", "audit-log");
-
         request.getRequestDispatcher("Admin/AuditLog.jsp").forward(request, response);
     }
 
@@ -458,13 +468,52 @@ public class AdminController extends HttpServlet {
         
         if ("save-employee".equals(action)) {
             saveEmployee(request, response);
+        } else if ("accept-intern".equals(action)) {
+            acceptInternAsEmployee(request, response);
         } else {
             doGet(request, response);
         }
     }
 
-private void saveEmployee(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    private void acceptInternAsEmployee(HttpServletRequest request, HttpServletResponse response)
+              throws ServletException, IOException {
+        jakarta.servlet.http.HttpSession session = request.getSession();
+        
+        try {
+            String internIdStr = request.getParameter("internId");
+            String newStatus = request.getParameter("newStatus");
+            
+            System.out.println("[v0] Accepting intern with ID: " + internIdStr + " to status: " + newStatus);
+            
+            if (internIdStr != null && !internIdStr.isEmpty() && newStatus != null && !newStatus.isEmpty()) {
+                int internId = Integer.parseInt(internIdStr);
+                
+                boolean updateResult = employeeDAO.updateEmployeeStatus(internId, newStatus);
+                
+                if (updateResult) {
+                    session.setAttribute("successMessage", "Intern accepted successfully and status changed to " + newStatus);
+                    System.out.println("[v0] Intern accepted successfully");
+                } else {
+                    session.setAttribute("errorMessage", "Failed to accept intern");
+                    System.err.println("[v0] Failed to update intern status");
+                }
+            } else {
+                session.setAttribute("errorMessage", "Intern ID and new status are required");
+            }
+        } catch (NumberFormatException e) {
+            session.setAttribute("errorMessage", "Invalid intern ID");
+            System.err.println("[v0] NumberFormatException: " + e.getMessage());
+        } catch (Exception e) {
+            session.setAttribute("errorMessage", "Unexpected error: " + e.getMessage());
+            System.err.println("[v0] Unexpected error in acceptInternAsEmployee: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        response.sendRedirect(request.getContextPath() + "/admin?action=employees");
+    }
+
+    private void saveEmployee(HttpServletRequest request, HttpServletResponse response)
+              throws ServletException, IOException {
         jakarta.servlet.http.HttpSession session = request.getSession();
         
         try {
@@ -478,7 +527,6 @@ private void saveEmployee(HttpServletRequest request, HttpServletResponse respon
                 if (employee != null) {
                     System.out.println("Found employee: " + employee.getFullName());
                     
-                    // Update employee information
                     employee.setFullName(request.getParameter("fullName"));
                     employee.setGender(request.getParameter("gender"));
                     
@@ -501,7 +549,6 @@ private void saveEmployee(HttpServletRequest request, HttpServletResponse respon
                     employee.setEmploymentPeriod(request.getParameter("employmentPeriod"));
                     employee.setStatus(request.getParameter("status"));
                     
-                    // Update department assignment
                     String deptIdStr = request.getParameter("departmentId");
                     if (deptIdStr != null && !deptIdStr.isEmpty()) {
                         employee.setDepartmentId(Integer.parseInt(deptIdStr));
@@ -519,7 +566,6 @@ private void saveEmployee(HttpServletRequest request, HttpServletResponse respon
                         System.err.println("Failed to update employee in database");
                     }
                     
-                    // Redirect-after-POST to avoid double submit and blank responses
                     response.sendRedirect(request.getContextPath() + "/admin?action=employees");
                 } else {
                     session.setAttribute("errorMessage", "Employee not found with ID: " + empId);

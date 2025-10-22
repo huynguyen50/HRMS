@@ -22,9 +22,7 @@ public class EmployeeDAO {
             LEFT JOIN Role r ON su.RoleID = r.RoleID
         """;
 
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 Employee e = new Employee();
@@ -40,25 +38,25 @@ public class EmployeeDAO {
                 e.setPosition(rs.getString("Position"));
                 e.setStatus(rs.getString("Status"));
                 e.setEmploymentPeriod(rs.getString("EmploymentPeriod"));
-                
+
                 // Set SystemUser information if exists
                 if (rs.getInt("UserID") != 0) {
                     SystemUser systemUser = new SystemUser();
                     systemUser.setUserId(rs.getInt("UserID"));
                     systemUser.setUsername(rs.getString("Username"));
-                    
+
                     Timestamp lastLoginTimestamp = rs.getTimestamp("LastLogin");
                     if (lastLoginTimestamp != null) {
                         systemUser.setLastLogin(lastLoginTimestamp.toLocalDateTime());
                     }
-                    
+
                     Role role = new Role();
                     role.setRoleName(rs.getString("RoleName"));
                     systemUser.setRole(role);
-                    
+
                     e.setSystemUser(systemUser);
                 }
-              
+
                 list.add(e);
             }
         } catch (SQLException e) {
@@ -67,16 +65,22 @@ public class EmployeeDAO {
         return list;
     }
 
-    
-
     public Employee getById(int id) {
-        String sql = "SELECT * FROM Employee WHERE EmployeeID=?";
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        String sql = """
+        SELECT e.*, d.DeptName
+        FROM Employee e
+        LEFT JOIN Department d ON e.DepartmentID = d.DepartmentID
+        WHERE e.EmployeeID = ?
+    """;
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, id);
+            System.out.println("[v0] EmployeeDAO.getById() - Querying employee with ID: " + id);
+
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
+                System.out.println("[v0] EmployeeDAO.getById() - Found employee: " + rs.getString("FullName"));
+
                 Employee e = new Employee();
                 e.setEmployeeId(rs.getInt("EmployeeID"));
                 e.setFullName(rs.getString("FullName"));
@@ -86,13 +90,33 @@ public class EmployeeDAO {
                 e.setPhone(rs.getString("Phone"));
                 e.setEmail(rs.getString("Email"));
                 e.setDepartmentId(rs.getInt("DepartmentID"));
+                e.setDepartmentName(rs.getString("DeptName"));
                 e.setPosition(rs.getString("Position"));
-                e.setHireDate(rs.getDate("HireDate") != null ? rs.getDate("HireDate").toLocalDate() : null);
-                e.setSalary(rs.getDouble("Salary"));
-                e.setActive(rs.getBoolean("Active"));
+                e.setEmploymentPeriod(rs.getString("EmploymentPeriod"));
+                e.setStatus(rs.getString("Status"));
+
+                String contractSql = """
+                SELECT BaseSalary FROM Contract
+                WHERE EmployeeID = ?
+                ORDER BY StartDate DESC
+                LIMIT 1
+            """;
+                try (PreparedStatement contractPs = con.prepareStatement(contractSql)) {
+                    contractPs.setInt(1, id);
+                    ResultSet contractRs = contractPs.executeQuery();
+                    if (contractRs.next()) {
+                        e.setSalary(contractRs.getDouble("BaseSalary"));
+                    } else {
+                        e.setSalary(0.0);
+                    }
+                }
+
                 return e;
+            } else {
+                System.out.println("[v0] EmployeeDAO.getById() - No employee found with ID: " + id);
             }
         } catch (SQLException e) {
+            System.err.println("[v0] EmployeeDAO.getById() - SQL Exception: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
@@ -100,12 +124,11 @@ public class EmployeeDAO {
 
     public boolean insert(Employee e) {
         String sql = """
-            INSERT INTO Employee (FullName, Gender, DOB, Address, Phone, Email, 
-                                  DepartmentID, Position, HireDate, Salary, Active)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """;
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        INSERT INTO Employee (FullName, Gender, DOB, Address, Phone, Email, 
+                              DepartmentID, Position, EmploymentPeriod, Status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """;
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, e.getFullName());
             ps.setString(2, e.getGender());
@@ -115,9 +138,8 @@ public class EmployeeDAO {
             ps.setString(6, e.getEmail());
             ps.setObject(7, e.getDepartmentId(), Types.INTEGER);
             ps.setString(8, e.getPosition());
-            ps.setDate(9, e.getHireDate() != null ? Date.valueOf(e.getHireDate()) : null);
-            ps.setDouble(10, e.getSalary());
-            ps.setBoolean(11, e.isActive());
+            ps.setString(9, e.getEmploymentPeriod());
+            ps.setString(10, e.getStatus());
 
             return ps.executeUpdate() > 0;
         } catch (SQLException ex) {
@@ -128,12 +150,11 @@ public class EmployeeDAO {
 
     public boolean update(Employee e) {
         String sql = """
-            UPDATE Employee SET FullName=?, Gender=?, DOB=?, Address=?, Phone=?, Email=?, 
-                                DepartmentID=?, Position=?, HireDate=?, Salary=?, Active=? 
-            WHERE EmployeeID=?
-        """;
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        UPDATE Employee SET FullName=?, Gender=?, DOB=?, Address=?, Phone=?, Email=?, 
+                        DepartmentID=?, Position=?, EmploymentPeriod=?, Status=? 
+        WHERE EmployeeID=?
+    """;
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, e.getFullName());
             ps.setString(2, e.getGender());
@@ -143,10 +164,9 @@ public class EmployeeDAO {
             ps.setString(6, e.getEmail());
             ps.setObject(7, e.getDepartmentId(), Types.INTEGER);
             ps.setString(8, e.getPosition());
-            ps.setDate(9, e.getHireDate() != null ? Date.valueOf(e.getHireDate()) : null);
-            ps.setDouble(10, e.getSalary());
-            ps.setBoolean(11, e.isActive());
-            ps.setInt(12, e.getEmployeeId());
+            ps.setString(9, e.getEmploymentPeriod());
+            ps.setString(10, e.getStatus());
+            ps.setInt(11, e.getEmployeeId());
 
             return ps.executeUpdate() > 0;
         } catch (SQLException ex) {
@@ -157,8 +177,7 @@ public class EmployeeDAO {
 
     public boolean delete(int id) {
         String sql = "DELETE FROM Employee WHERE EmployeeID=?";
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -173,8 +192,7 @@ public class EmployeeDAO {
                                 DepartmentID=?, Position=?, EmploymentPeriod=?, Status=?
             WHERE EmployeeID=?
         """;
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, e.getFullName());
             ps.setString(2, e.getGender());
@@ -197,12 +215,11 @@ public class EmployeeDAO {
 
     public boolean updateEmployeeStatus(int employeeId, String status) {
         String sql = "UPDATE Employee SET Status = ? WHERE EmployeeID = ?";
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+
             ps.setString(1, status);
             ps.setInt(2, employeeId);
-            
+
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -211,14 +228,13 @@ public class EmployeeDAO {
     }
 
     public Employee getEmployeeBySystemUserId(int systemUserId) {
-        String sql = "SELECT e.*, e.Status, e.EmploymentPeriod, d.DeptName, su.Username, su.LastLogin, r.RoleName " +
-                     "FROM Employee e " +
-                     "LEFT JOIN Department d ON e.DepartmentID = d.DepartmentID " +
-                     "JOIN SystemUser su ON e.EmployeeID = su.EmployeeID " +
-                     "LEFT JOIN Role r ON su.RoleID = r.RoleID " +
-                     "WHERE su.UserID = ?";
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
+        String sql = "SELECT e.*, e.Status, e.EmploymentPeriod, d.DeptName, su.Username, su.LastLogin, r.RoleName "
+                  + "FROM Employee e "
+                  + "LEFT JOIN Department d ON e.DepartmentID = d.DepartmentID "
+                  + "JOIN SystemUser su ON e.EmployeeID = su.EmployeeID "
+                  + "LEFT JOIN Role r ON su.RoleID = r.RoleID "
+                  + "WHERE su.UserID = ?";
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, systemUserId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -232,18 +248,13 @@ public class EmployeeDAO {
                     employee.setPhone(rs.getString("Phone"));
                     employee.setEmail(rs.getString("Email"));
                     employee.setPosition(rs.getString("Position"));
-                    employee.setHireDate(rs.getDate("HireDate") != null ? rs.getDate("HireDate").toLocalDate() : null);
-                    employee.setSalary(rs.getDouble("Salary"));
-                    employee.setActive(rs.getBoolean("Active"));
-                    
-                    // Assuming 'Status' and 'EmploymentPeriod' are columns in the Employee table
                     employee.setStatus(rs.getString("Status"));
                     employee.setEmploymentPeriod(rs.getString("EmploymentPeriod"));
 
                     // Populate Department
                     if (rs.getInt("DepartmentID") != 0) {
                         Department department = new Department();
-                        department.setDepartmentId(rs.getInt("DepartmentID")); // Sửa lỗi gán sai ID
+                        department.setDepartmentId(rs.getInt("DepartmentID"));
                         department.setDeptName(rs.getString("DeptName"));
                         employee.setDepartment(department);
                     }
@@ -255,11 +266,11 @@ public class EmployeeDAO {
                     if (lastLoginTimestamp != null) {
                         systemUser.setLastLogin(lastLoginTimestamp.toLocalDateTime());
                     }
-                    
+
                     Role role = new Role();
                     role.setRoleName(rs.getString("RoleName"));
                     systemUser.setRole(role);
-                    
+
                     employee.setSystemUser(systemUser);
 
                     return employee;
@@ -401,7 +412,6 @@ public class EmployeeDAO {
         return 0;
     }
 
-
     public int getTotalEmployees() {
         String sql = "SELECT COUNT(*) as total FROM Employee";
         try (Connection conn = DBConnection.getConnection(); Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
@@ -416,7 +426,7 @@ public class EmployeeDAO {
     }
 
     public int getActiveEmployees() {
-        String sql = "SELECT COUNT(*) as total FROM Employee WHERE Active = 1";
+        String sql = "SELECT COUNT(*) as total FROM Employee WHERE Status = 'Active'";
         try (Connection conn = DBConnection.getConnection(); Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
 
             if (rs.next()) {
@@ -466,6 +476,7 @@ public class EmployeeDAO {
         }
         return 0;
     }
+
     public List<Employee> searchEmployees(String keyword) {
         List<Employee> list = new ArrayList<>();
         String sql = """
@@ -488,7 +499,7 @@ public class EmployeeDAO {
             ps.setString(2, searchPattern);
             ps.setString(3, searchPattern);
             ps.setString(4, searchPattern);
-            
+
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Employee e = new Employee();
@@ -516,4 +527,93 @@ public class EmployeeDAO {
         return list;
     }
 
+    public List<Employee> getInternEmployees() {
+        List<Employee> interns = new ArrayList<>();
+        String sql = """
+        SELECT e.EmployeeID, e.FullName, e.Email, e.Position, e.DepartmentID, d.DeptName
+        FROM Employee e
+        LEFT JOIN Department d ON e.DepartmentID = d.DepartmentID
+        WHERE e.Status = 'Intern'
+        ORDER BY e.FullName
+    """;
+
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Employee emp = new Employee();
+                emp.setEmployeeId(rs.getInt("EmployeeID"));
+                emp.setFullName(rs.getString("FullName"));
+                emp.setEmail(rs.getString("Email"));
+                emp.setPosition(rs.getString("Position"));
+                emp.setDepartmentId(rs.getInt("DepartmentID"));
+                emp.setDepartmentName(rs.getString("DeptName"));
+                interns.add(emp);
+            }
+        } catch (SQLException e) {
+            System.err.println("[v0] Error in getInternEmployees: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return interns;
+    }
+
+    public List<Employee> getNonInternEmployees(int offset, int pageSize) {
+        List<Employee> employees = new ArrayList<>();
+        String sql = """
+        SELECT e.*, d.DeptName, COALESCE(c.BaseSalary, 0) as BaseSalary
+        FROM Employee e
+        LEFT JOIN Department d ON e.DepartmentID = d.DepartmentID
+        LEFT JOIN Contract c ON e.EmployeeID = c.EmployeeID AND c.ContractID = (
+            SELECT ContractID FROM Contract
+            WHERE EmployeeID = e.EmployeeID
+            ORDER BY StartDate DESC
+            LIMIT 1
+        )
+        WHERE e.Status != 'Intern'
+        ORDER BY e.FullName
+        LIMIT ? OFFSET ?
+    """;
+
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, pageSize);
+            ps.setInt(2, offset);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Employee emp = new Employee();
+                emp.setEmployeeId(rs.getInt("EmployeeID"));
+                emp.setFullName(rs.getString("FullName"));
+                emp.setGender(rs.getString("Gender"));
+                emp.setDob(rs.getDate("DOB") != null ? rs.getDate("DOB").toLocalDate() : null);
+                emp.setAddress(rs.getString("Address"));
+                emp.setPhone(rs.getString("Phone"));
+                emp.setEmail(rs.getString("Email"));
+                emp.setDepartmentId(rs.getInt("DepartmentID"));
+                emp.setDepartmentName(rs.getString("DeptName"));
+                emp.setPosition(rs.getString("Position"));
+                emp.setEmploymentPeriod(rs.getString("EmploymentPeriod"));
+                emp.setStatus(rs.getString("Status"));
+                emp.setSalary(rs.getDouble("BaseSalary"));
+                employees.add(emp);
+            }
+        } catch (SQLException e) {
+            System.err.println("[v0] Error in getNonInternEmployees: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return employees;
+    }
+
+    public int getNonInternEmployeesCount() {
+        String sql = "SELECT COUNT(*) as total FROM Employee WHERE Status != 'Intern'";
+        try (Connection conn = DBConnection.getConnection(); Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
+
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+        } catch (Exception e) {
+            System.err.println("[v0] Error in getNonInternEmployeesCount: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
+    }
 }

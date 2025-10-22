@@ -179,7 +179,7 @@ private void listDepartments(HttpServletRequest request, HttpServletResponse res
         jakarta.servlet.http.HttpSession session = request.getSession();
         session.setAttribute(success ? "successMessage" : "errorMessage", message);
         
-        response.sendRedirect(request.getContextPath() + "/department?action=departments");
+        response.sendRedirect(request.getContextPath() + "/departments");
     }
 
     private void deleteDepartment(HttpServletRequest request, HttpServletResponse response)
@@ -213,7 +213,7 @@ private void listDepartments(HttpServletRequest request, HttpServletResponse res
         jakarta.servlet.http.HttpSession session = request.getSession();
         session.setAttribute(success ? "successMessage" : "errorMessage", message);
         
-        response.sendRedirect(request.getContextPath() + "/department?action=departments");
+        response.sendRedirect(request.getContextPath() + "/departments");
     }
 
     private void editDepartment(HttpServletRequest request, HttpServletResponse response)
@@ -261,7 +261,7 @@ private void listDepartments(HttpServletRequest request, HttpServletResponse res
             e.printStackTrace();
         }
 
-        response.sendRedirect(request.getContextPath() + "/department?action=departments");
+        response.sendRedirect(request.getContextPath() + "/departments");
     }
 
     @Override
