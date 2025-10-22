@@ -20,68 +20,81 @@ public class AdminController extends HttpServlet {
     private SystemUserDAO userDAO = new SystemUserDAO();
     private RoleDAO roleDAO = new RoleDAO();
 
-@Override
-protected void doGet(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
-    String action = request.getParameter("action");
-    if (action == null) {
-        action = "dashboard";
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+              throws ServletException, IOException {
+        String action = request.getParameter("action");
+        if (action == null) {
+            action = "dashboard";
+        }
+
+        switch (action) {
+            case "dashboard":
+                loadDashboard(request, response);
+                break;
+
+            case "employees":
+                loadEmployees(request, response);
+                break;
+
+            case "employee-view":
+                viewEmployee(request, response);
+                break;
+
+            case "employee-edit":
+                editEmployee(request, response);
+                break;
+
+            case "employee-delete":
+                deleteEmployee(request, response);
+                break;
+
+            case "employee-get-data":
+                getEmployeeData(request, response);
+                break;
+
+            case "departments":
+                loadDepartments(request, response);
+                break;
+
+            case "department-add":
+                loadDepartmentForm(request, response, null);
+                break;
+
+            case "department-edit":
+                loadDepartmentEdit(request, response);
+                break;
+
+            case "department-delete":
+                deleteDepartment(request, response);
+                break;
+
+            case "department-permissions":
+                loadDepartmentPermissions(request, response);
+                break;
+
+            case "users":
+                loadUsers(request, response);
+                break;
+
+            case "roles":
+                loadRoles(request, response);
+                break;
+
+            case "audit-log":
+                loadAuditLog(request, response);
+                break;
+
+            case "profile":
+                request.setAttribute("activePage", "profile");
+                request.getRequestDispatcher("Admin/Profile.jsp").forward(request, response);
+                break;
+
+            default:
+                response.sendRedirect("Admin/Login.jsp");
+        }
     }
 
-    switch (action) {
-        case "dashboard":
-            loadDashboard(request, response);
-            break;
-
-        case "employees":
-            loadEmployees(request, response);
-            break;
-
-        case "employee-view":
-            viewEmployee(request, response);
-            break;
-
-        case "employee-edit":
-            editEmployee(request, response);
-            break;
-
-        case "employee-delete":
-            deleteEmployee(request, response);
-            break;
-
-        case "employee-get-data":
-            getEmployeeData(request, response);
-            break;
-
-        case "departments":
-        case "department-add":
-        case "department-edit":
-        case "department-delete":
-        case "department-permissions":
-            response.sendRedirect(request.getContextPath() + "/departments");
-            break;
-
-        case "users":
-            loadUsers(request, response);
-            break;
-
-        case "roles":
-            loadRoles(request, response);
-            break;
-
-        case "audit-log":
-            loadAuditLog(request, response);
-            break;
-
-        case "profile":
-            request.setAttribute("activePage", "profile");
-            request.getRequestDispatcher("Admin/Profile.jsp").forward(request, response);
-            break;
-
-        default:
-            response.sendRedirect("Admin/Login.jsp");
-    }
-}
     private void loadDashboard(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
         request.setAttribute("activePage", "dashboard");

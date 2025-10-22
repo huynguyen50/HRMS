@@ -11,7 +11,7 @@ public class DBConnection {
     // --- Thông tin kết nối Database ---
     private static final String URL = "jdbc:mysql://localhost:3306/hrm_db";
     private static final String USER = "root";
-    private static final String PASSWORD = "12345";
+    private static final String PASSWORD = "123";
 
     /**
      * Phương thức chính để lấy kết nối JDBC.
