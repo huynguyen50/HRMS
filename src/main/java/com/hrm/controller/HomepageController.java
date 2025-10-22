@@ -82,7 +82,7 @@ public class HomepageController extends HttpServlet {
                 String roleName = userRole.getRoleName().toLowerCase();
                 switch (roleName) {
                     case "admin":
-                        response.sendRedirect(request.getContextPath() + "/Admin/AdminHome.jsp");
+                        response.sendRedirect(request.getContextPath() + "/admin?action=dashboard");
                         return;
                     case "hr":
                         response.sendRedirect(request.getContextPath() + "/ProfileManagementController");
@@ -221,7 +221,7 @@ public class HomepageController extends HttpServlet {
                 access.setCanAccessHR(true);
                 access.setCanAccessEmployee(true);
                 access.setCanAccessGuest(true);
-                access.setAdminUrl("/Admin/AdminHome.jsp");
+                access.setAdminUrl("/admin?action=dashboard");
                 access.setHrUrl("/ProfileManagementController");
                 access.setEmployeeUrl("/Views/Employee/EmployeeHome.jsp");
                 access.setGuestUrl("/Views/Homepage.jsp");

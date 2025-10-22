@@ -18,7 +18,7 @@ public class Department implements Serializable {
     private int departmentId;
     private String deptName;
     private Integer deptManagerId;
-
+    private Integer employeeCount;
     public Department() {
     }
 
@@ -52,6 +52,13 @@ public class Department implements Serializable {
         this.deptManagerId = deptManagerId;
     }
 
+    public Integer getDEmployeeCount() {
+        return employeeCount;
+    }
+
+    public void setEmployeeCount(Integer employeeCount) {
+        this.employeeCount = employeeCount;
+    }
     @Override
     public String toString() {
         return "Department{" + "departmentId=" + departmentId + ", deptName=" + deptName + ", deptManagerId=" + deptManagerId + '}';

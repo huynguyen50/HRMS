@@ -90,5 +90,142 @@ public class DepartmentDAO {
         } catch (SQLException e) { e.printStackTrace(); }
         return false;
     }
+
+    public List<Department> getPaged(int offset, int limit) {
+        List<Department> list = new ArrayList<>();
+        String sql = "SELECT * FROM Department ORDER BY DeptName LIMIT ? OFFSET ?";
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, limit);
+            ps.setInt(2, offset);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Department dept = new Department(
+                        rs.getInt("DepartmentID"),
+                        rs.getString("DeptName"),
+                        rs.getObject("DeptManagerID") != null ? rs.getInt("DeptManagerID") : null
+                    );
+                    list.add(dept);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public int getTotalDepartmentsCount() {
+        String sql = "SELECT COUNT(*) AS total FROM Department";
+        try (Connection conn = DBConnection.getConnection(); Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    
+    public int getTotalDepartments() {
+        String sql = "SELECT COUNT(*) as total FROM Department";
+        try (Connection conn = DBConnection.getConnection();
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+            
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+public List<Department> searchDepartments(String keyword) throws SQLException {
+        List<Department> departments = new ArrayList<>();
+        String query = "SELECT * FROM Department WHERE DeptName LIKE ? ORDER BY DeptName";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            String searchPattern = "%" + keyword + "%";
+            pstmt.setString(1, searchPattern);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Department dept = new Department(
+                        rs.getInt("DepartmentID"),
+                        rs.getString("DeptName"),
+                        rs.getObject("DeptManagerID") != null ? rs.getInt("DeptManagerID") : null
+                    );
+                    departments.add(dept);
+                }
+            }
+        }
+        return departments;
+    }
+
+    public List<Department> searchDepartmentsPaged(String keyword, int offset, int limit) throws SQLException {
+        List<Department> departments = new ArrayList<>();
+        String query = "SELECT * FROM Department WHERE DeptName LIKE ? ORDER BY DeptName LIMIT ? OFFSET ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            String searchPattern = "%" + keyword + "%";
+            pstmt.setString(1, searchPattern);
+            pstmt.setInt(2, limit);
+            pstmt.setInt(3, offset);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Department dept = new Department(
+                        rs.getInt("DepartmentID"),
+                        rs.getString("DeptName"),
+                        rs.getObject("DeptManagerID") != null ? rs.getInt("DeptManagerID") : null
+                    );
+                    departments.add(dept);
+                }
+            }
+        }
+        return departments;
+    }
+
+    public int searchDepartmentsCount(String keyword) throws SQLException {
+        String query = "SELECT COUNT(*) as total FROM Department WHERE DeptName LIKE ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            String searchPattern = "%" + keyword + "%";
+            pstmt.setString(1, searchPattern);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total");
+                }
+            }
+        }
+        return 0;
+    }
+
+
+    public boolean isDepartmentNameExists(String deptName, int excludeDeptId) throws SQLException {
+        String query = "SELECT COUNT(*) as count FROM Department WHERE DeptName = ? AND DepartmentID != ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            pstmt.setString(1, deptName);
+            pstmt.setInt(2, excludeDeptId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("count") > 0;
+                }
+            }
+        }
+        return false;
+    }
 }
 
