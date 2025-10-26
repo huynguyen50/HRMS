@@ -1,4 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -81,7 +83,7 @@
                             <div class="stat-icon">👥</div>
                             <div class="stat-info">
                                 <h3>Total Employees</h3>
-                                <p class="stat-value">${empty totalEmployees ? 0 : totalEmployees}</p>
+                                <p class="stat-value">${totalEmployees}</p>
                             </div>
                         </div>
 
@@ -89,7 +91,7 @@
                             <div class="stat-icon">✅</div>
                             <div class="stat-info">
                                 <h3>Active Employees</h3>
-                                <p class="stat-value">${empty activeEmployees ? 0 : activeEmployees}</p>
+                                <p class="stat-value">${activeEmployees}</p>
                             </div>
                         </div>
 
@@ -97,7 +99,7 @@
                             <div class="stat-icon">🏢</div>
                             <div class="stat-info">
                                 <h3>Departments</h3>
-                                <p class="stat-value">${empty totalDepartments ? 0 : totalDepartments}</p>
+                                <p class="stat-value">${totalDepartments}</p>
                             </div>
                         </div>
 
@@ -105,7 +107,7 @@
                             <div class="stat-icon">👤</div>
                             <div class="stat-info">
                                 <h3>System Users</h3>
-                                <p class="stat-value">${empty totalUsers ? 0 : totalUsers}</p>
+                                <p class="stat-value">${totalUser}</p>
                             </div>
                         </div>
                     </div>
@@ -142,18 +144,21 @@
                         <div class="activity-card">
                             <h3>Recent Activity</h3>
                             <div class="activity-list">
-                                <div class="activity-item">
-                                    <span class="activity-time">2 hours ago</span>
-                                    <span class="activity-text">New employee added: John Doe</span>
-                                </div>
-                                <div class="activity-item">
-                                    <span class="activity-time">5 hours ago</span>
-                                    <span class="activity-text">Department updated: IT</span>
-                                </div>
-                                <div class="activity-item">
-                                    <span class="activity-time">1 day ago</span>
-                                    <span class="activity-text">User role changed: Admin</span>
-                                </div>
+                                <c:choose>
+                                    <c:when test="${not empty recentActivity}">
+                                        <c:forEach var="activity" items="${recentActivity}">
+                                            <div class="activity-item">
+                                                <span class="activity-time"><fmt:formatDate value="${activity.timestamp}" pattern="MMM dd, HH:mm"/></span>
+                                                <span class="activity-text">${activity.action} - ${activity.objectType}: ${activity.newValue}</span>
+                                            </div>
+                                        </c:forEach>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="activity-item">
+                                            <span class="activity-text">No recent activity</span>
+                                        </div>
+                                    </c:otherwise>
+                                </c:choose>
                             </div>
                         </div>
 
@@ -183,6 +188,16 @@
             </main>
         </div>
 
-        <script src="Admin/js/dashboard.js"></script>
+        <script>
+            window.dashboardData = {
+                employeeDistribution: <c:out value="${employeeDistributionJson}" escapeXml="false" />,
+                employeeStatus: <c:out value="${employeeStatusJson}" escapeXml="false" />,
+                activityData: <c:out value="${activityDataJson}" escapeXml="false" />
+            };
+        </script>
+
+
+        <script src="${pageContext.request.contextPath}/Admin/dashboard.js"></script>
+
     </body>
 </html>

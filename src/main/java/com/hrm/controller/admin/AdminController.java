@@ -1,6 +1,9 @@
 package com.hrm.controller.admin;
 
 import com.hrm.dao.*;
+import com.hrm.model.dto.ActivityStats;
+import com.hrm.model.dto.DepartmentStats;
+import com.hrm.model.dto.StatusDistribution;
 import com.hrm.model.entity.*;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -31,6 +34,10 @@ public class AdminController extends HttpServlet {
         switch (action) {
             case "dashboard":
                 loadDashboard(request, response);
+                break;
+
+            case "dashboard-data":
+                getDashboardData(request, response);
                 break;
 
             case "employees":
@@ -102,14 +109,141 @@ public class AdminController extends HttpServlet {
         int totalEmployees = employeeDAO.getTotalEmployees();
         int activeEmployees = employeeDAO.getActiveEmployees();
         int totalDepartments = departmentDAO.getTotalDepartments();
+        int totalUser = userDAO.getTotalSystemUser();
 
         request.setAttribute("totalEmployees", totalEmployees);
         request.setAttribute("activeEmployees", activeEmployees);
         request.setAttribute("totalDepartments", totalDepartments);
+        request.setAttribute("totalUser", totalUser);
 
-        System.out.println("Dashboard counts -> total=" + totalEmployees + ", active=" + activeEmployees + ", depts=" + totalDepartments);
+        DashboardDAO dashboardDAO = new DashboardDAO();
+
+        List<DepartmentStats> employeeByDept = dashboardDAO.getEmployeeByDepartment();
+        StringBuilder deptJson = new StringBuilder("{");
+        for (int i = 0; i < employeeByDept.size(); i++) {
+            DepartmentStats dept = employeeByDept.get(i);
+            deptJson.append("\"").append(dept.getDepartmentName()).append("\": ").append(dept.getCount());
+            if (i < employeeByDept.size() - 1) {
+                deptJson.append(",");
+            }
+        }
+        deptJson.append("}");
+        request.setAttribute("employeeDistributionJson", deptJson.toString());
+
+        List<StatusDistribution> statusDistList = dashboardDAO.getEmployeeStatusDistribution();
+        StringBuilder statusJson = new StringBuilder("{");
+        for (int i = 0; i < statusDistList.size(); i++) {
+            StatusDistribution status = statusDistList.get(i);
+            statusJson.append("\"").append(status.getStatus()).append("\": ").append(status.getCount());
+            if (i < statusDistList.size() - 1) {
+                statusJson.append(",");
+            }
+        }
+        statusJson.append("}");
+        request.setAttribute("employeeStatusJson", statusJson.toString());
+
+        List<ActivityStats> activityLast7 = dashboardDAO.getActivityLast7Days();
+        StringBuilder activityJson = new StringBuilder("{");
+        for (int i = 0; i < activityLast7.size(); i++) {
+            ActivityStats activity = activityLast7.get(i);
+            activityJson.append("\"").append(activity.getDate()).append("\": ").append(activity.getCount());
+            if (i < activityLast7.size() - 1) {
+                activityJson.append(",");
+            }
+        }
+        activityJson.append("}");
+        request.setAttribute("activityDataJson", activityJson.toString());
+
+        List<SystemLog> recentActivity = dashboardDAO.getRecentActivity(5);
+        request.setAttribute("recentActivity", recentActivity);
+
+        System.out.println("Dashboard counts -> total=" + totalEmployees + ", active=" + activeEmployees + ", depts=" + totalDepartments + ", user=" + totalUser);
 
         request.getRequestDispatcher("Admin/AdminHome.jsp").forward(request, response);
+    }
+
+    private void getDashboardData(HttpServletRequest request, HttpServletResponse response)
+              throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        try {
+            DashboardDAO dashboardDAO = new DashboardDAO();
+
+            int totalEmployees = employeeDAO.getTotalEmployees();
+            int activeEmployees = employeeDAO.getActiveEmployees();
+            int inactiveEmployees = totalEmployees - activeEmployees;
+
+            List<DepartmentStats> employeeByDept = dashboardDAO.getEmployeeByDepartment();
+            List<StatusDistribution> statusDistribution = dashboardDAO.getEmployeeStatusDistribution();
+            List<SystemLog> recentActivity = dashboardDAO.getRecentActivity(5);
+            List<ActivityStats> activityLast7Days = dashboardDAO.getActivityLast7Days();
+
+            // Build JSON response
+            StringBuilder json = new StringBuilder();
+            json.append("{");
+            json.append("\"totalEmployees\": ").append(totalEmployees).append(",");
+            json.append("\"activeEmployees\": ").append(activeEmployees).append(",");
+            json.append("\"inactiveEmployees\": ").append(inactiveEmployees).append(",");
+
+            // Employee by department
+            json.append("\"employeeByDepartment\": [");
+            for (int i = 0; i < employeeByDept.size(); i++) {
+                DepartmentStats dept = employeeByDept.get(i);
+                json.append("{\"department\": \"").append(dept.getDepartmentName()).append("\", ");
+                json.append("\"count\": ").append(dept.getCount()).append("}");
+                if (i < employeeByDept.size() - 1) {
+                    json.append(",");
+                }
+            }
+            json.append("],");
+
+            // Status distribution
+            json.append("\"statusDistribution\": [");
+            for (int i = 0; i < statusDistribution.size(); i++) {
+                StatusDistribution status = statusDistribution.get(i);
+                json.append("{\"status\": \"").append(status.getStatus()).append("\", ");
+                json.append("\"count\": ").append(status.getCount()).append("}");
+                if (i < statusDistribution.size() - 1) {
+                    json.append(",");
+                }
+            }
+            json.append("],");
+
+            // Recent activity
+            json.append("\"recentActivity\": [");
+            for (int i = 0; i < recentActivity.size(); i++) {
+                SystemLog activity = recentActivity.get(i);
+                json.append("{\"action\": \"").append(escapeJson(activity.getAction())).append("\", ");
+                json.append("\"objectType\": \"").append(escapeJson(activity.getObjectType())).append("\", ");
+                json.append("\"newValue\": \"").append(escapeJson(activity.getNewValue())).append("\"}");
+                if (i < recentActivity.size() - 1) {
+                    json.append(",");
+                }
+            }
+            json.append("],");
+
+            // Activity last 7 days
+            json.append("\"activityLast7Days\": [");
+            for (int i = 0; i < activityLast7Days.size(); i++) {
+                ActivityStats activity = activityLast7Days.get(i);
+                json.append("{\"date\": \"").append(activity.getDate()).append("\", ");
+                json.append("\"count\": ").append(activity.getCount()).append("}");
+                if (i < activityLast7Days.size() - 1) {
+                    json.append(",");
+                }
+            }
+            json.append("]");
+
+            json.append("}");
+
+            System.out.println("[v0] Dashboard data JSON: " + json.toString());
+            response.getWriter().write(json.toString());
+
+        } catch (Exception e) {
+            response.getWriter().write("{\"error\": \"" + e.getMessage() + "\"}");
+            e.printStackTrace();
+        }
     }
 
     private void loadEmployees(HttpServletRequest request, HttpServletResponse response)
@@ -124,19 +258,30 @@ public class AdminController extends HttpServlet {
         try {
             String pageStr = request.getParameter("page");
             String sizeStr = request.getParameter("pageSize");
-            if (pageStr != null) page = Math.max(1, Integer.parseInt(pageStr));
-            if (sizeStr != null) pageSize = Math.max(1, Integer.parseInt(sizeStr));
-        } catch (NumberFormatException ignore) {}
+            if (pageStr != null) {
+                page = Math.max(1, Integer.parseInt(pageStr));
+            }
+            if (sizeStr != null) {
+                pageSize = Math.max(1, Integer.parseInt(sizeStr));
+            }
+        } catch (NumberFormatException ignore) {
+        }
 
         try {
             if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
                 int totalEmployees = employeeDAO.searchEmployeesCount(searchKeyword);
                 int totalPages = (int) Math.ceil(totalEmployees / (double) pageSize);
-                if (page < 1) page = 1;
-                if (totalPages == 0) totalPages = 1;
-                if (page > totalPages) page = totalPages;
+                if (page < 1) {
+                    page = 1;
+                }
+                if (totalPages == 0) {
+                    totalPages = 1;
+                }
+                if (page > totalPages) {
+                    page = totalPages;
+                }
                 int offset = (page - 1) * pageSize;
-                
+
                 employeeList = employeeDAO.searchEmployeesPaged(searchKeyword, offset, pageSize);
                 request.setAttribute("total", totalEmployees);
                 request.setAttribute("totalPages", totalPages);
@@ -172,13 +317,13 @@ public class AdminController extends HttpServlet {
         try {
             String empIdStr = request.getParameter("id");
             System.out.println("AdminController: viewEmployee called with ID: " + empIdStr);
-            
+
             if (empIdStr != null && !empIdStr.isEmpty()) {
                 int empId = Integer.parseInt(empIdStr);
                 Employee employee = employeeDAO.getById(empId);
-                
+
                 System.out.println("AdminController: Retrieved employee: " + (employee != null ? employee.getFullName() : "null"));
-                
+
                 if (employee != null) {
                     jakarta.servlet.http.HttpSession session = request.getSession(false);
                     if (session != null) {
@@ -223,7 +368,7 @@ public class AdminController extends HttpServlet {
             if (empIdStr != null && !empIdStr.isEmpty()) {
                 int empId = Integer.parseInt(empIdStr);
                 Employee employee = employeeDAO.getById(empId);
-                
+
                 if (employee != null) {
                     List<Department> departments = departmentDAO.getAll();
                     request.setAttribute("employee", employee);
@@ -247,7 +392,7 @@ public class AdminController extends HttpServlet {
             String empIdStr = request.getParameter("id");
             if (empIdStr != null && !empIdStr.isEmpty()) {
                 int empId = Integer.parseInt(empIdStr);
-                
+
                 if (employeeDAO.delete(empId)) {
                     request.setAttribute("successMessage", "Employee deleted successfully");
                 } else {
@@ -257,7 +402,7 @@ public class AdminController extends HttpServlet {
         } catch (NumberFormatException e) {
             request.setAttribute("errorMessage", "Invalid employee ID");
         }
-        
+
         loadEmployees(request, response);
     }
 
@@ -265,17 +410,17 @@ public class AdminController extends HttpServlet {
               throws IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        
+
         try {
             String idStr = request.getParameter("id");
             if (idStr == null || idStr.isEmpty()) {
                 response.getWriter().write("{\"error\": \"Employee ID is required\"}");
                 return;
             }
-            
+
             int employeeId = Integer.parseInt(idStr);
             Employee employee = employeeDAO.getById(employeeId);
-            
+
             System.out.println("[v0] getEmployeeData - Employee ID: " + employeeId);
             if (employee != null) {
                 System.out.println("[v0] getEmployeeData - Employee: " + employee.getFullName());
@@ -286,21 +431,21 @@ public class AdminController extends HttpServlet {
             } else {
                 System.out.println("[v0] getEmployeeData - Employee not found");
             }
-            
+
             if (employee == null) {
                 response.getWriter().write("{\"error\": \"Employee not found\"}");
                 return;
             }
-            
+
             String email = escapeJson(employee.getEmail() != null ? employee.getEmail() : "");
             String position = escapeJson(employee.getPosition() != null ? employee.getPosition() : "");
             String departmentName = escapeJson(employee.getDepartmentName() != null ? employee.getDepartmentName() : "N/A");
-            
+
             String json = String.format(
-                "{\"email\": \"%s\", \"position\": \"%s\", \"departmentName\": \"%s\"}",
-                email, position, departmentName
+                      "{\"email\": \"%s\", \"position\": \"%s\", \"departmentName\": \"%s\"}",
+                      email, position, departmentName
             );
-            
+
             System.out.println("[v0] getEmployeeData - JSON Response: " + json);
             response.getWriter().write(json);
         } catch (NumberFormatException e) {
@@ -311,7 +456,9 @@ public class AdminController extends HttpServlet {
     }
 
     private String escapeJson(String str) {
-        if (str == null) return "";
+        if (str == null) {
+            return "";
+        }
         return str.replace("\\", "\\\\")
                   .replace("\"", "\\\"")
                   .replace("\n", "\\n")
@@ -331,21 +478,41 @@ public class AdminController extends HttpServlet {
         try {
             String pageStr = request.getParameter("page");
             String sizeStr = request.getParameter("pageSize");
-            if (pageStr != null) page = Math.max(1, Integer.parseInt(pageStr));
-            if (sizeStr != null) pageSize = Math.max(1, Integer.parseInt(sizeStr));
-        } catch (NumberFormatException ignore) {}
+            if (pageStr != null) {
+                page = Math.max(1, Integer.parseInt(pageStr));
+            }
+            if (sizeStr != null) {
+                pageSize = Math.max(1, Integer.parseInt(sizeStr));
+            }
+        } catch (NumberFormatException ignore) {
+        }
 
         try {
             if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
-                departmentList = departmentDAO.searchDepartments(searchKeyword);
-                request.setAttribute("total", departmentList.size());
-                request.setAttribute("totalPages", 1);
+                int total = departmentDAO.searchDepartmentsCount(searchKeyword);
+                int totalPages = (int) Math.ceil(total / (double) pageSize);
+                if (totalPages == 0) {
+                    totalPages = 1;
+                }
+                if (page > totalPages) {
+                    page = totalPages;
+                }
+                int offset = (page - 1) * pageSize;
+                departmentList = departmentDAO.searchDepartmentsPaged(searchKeyword, offset, pageSize);
+                request.setAttribute("total", total);
+                request.setAttribute("totalPages", totalPages);
             } else {
                 int totalDepartments = departmentDAO.getTotalDepartmentsCount();
                 int totalPages = (int) Math.ceil(totalDepartments / (double) pageSize);
-                if (page < 1) page = 1;
-                if (totalPages == 0) totalPages = 1;
-                if (page > totalPages) page = totalPages;
+                if (page < 1) {
+                    page = 1;
+                }
+                if (totalPages == 0) {
+                    totalPages = 1;
+                }
+                if (page > totalPages) {
+                    page = totalPages;
+                }
                 int offset = (page - 1) * pageSize;
                 departmentList = departmentDAO.getPaged(offset, pageSize);
                 request.setAttribute("total", totalDepartments);
@@ -375,27 +542,27 @@ public class AdminController extends HttpServlet {
     private void loadDepartmentForm(HttpServletRequest request, HttpServletResponse response, Object dept)
               throws ServletException, IOException {
         request.setAttribute("activePage", "departments");
-        
+
         List<Employee> managers = employeeDAO.getManagerList();
         request.setAttribute("managers", managers);
-        
+
         if (dept != null) {
             request.setAttribute("department", dept);
         }
-        
+
         request.getRequestDispatcher("Admin/DepartmentForm.jsp").forward(request, response);
     }
 
     private void loadDepartmentEdit(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
         request.setAttribute("activePage", "departments");
-        
+
         try {
             String deptIdStr = request.getParameter("id");
             if (deptIdStr != null && !deptIdStr.isEmpty()) {
                 int deptId = Integer.parseInt(deptIdStr);
                 Department dept = departmentDAO.getById(deptId);
-                
+
                 if (dept != null) {
                     List<Employee> managers = employeeDAO.getManagerList();
                     request.setAttribute("managers", managers);
@@ -418,7 +585,7 @@ public class AdminController extends HttpServlet {
             String deptIdStr = request.getParameter("id");
             if (deptIdStr != null && !deptIdStr.isEmpty()) {
                 int deptId = Integer.parseInt(deptIdStr);
-                
+
                 if (departmentDAO.delete(deptId)) {
                     request.setAttribute("successMessage", "Department deleted successfully");
                 } else {
@@ -428,20 +595,20 @@ public class AdminController extends HttpServlet {
         } catch (NumberFormatException e) {
             request.setAttribute("errorMessage", "Invalid department ID");
         }
-        
+
         loadDepartments(request, response);
     }
 
     private void loadDepartmentPermissions(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
         request.setAttribute("activePage", "departments");
-        
+
         try {
             String deptIdStr = request.getParameter("id");
             if (deptIdStr != null && !deptIdStr.isEmpty()) {
                 int deptId = Integer.parseInt(deptIdStr);
                 Department dept = departmentDAO.getById(deptId);
-                
+
                 if (dept != null) {
                     request.setAttribute("department", dept);
                     request.getRequestDispatcher("Admin/DepartmentPermissions.jsp").forward(request, response);
@@ -478,7 +645,7 @@ public class AdminController extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
         String action = request.getParameter("action");
-        
+
         if ("save-employee".equals(action)) {
             saveEmployee(request, response);
         } else if ("accept-intern".equals(action)) {
@@ -491,18 +658,18 @@ public class AdminController extends HttpServlet {
     private void acceptInternAsEmployee(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
         jakarta.servlet.http.HttpSession session = request.getSession();
-        
+
         try {
             String internIdStr = request.getParameter("internId");
             String newStatus = request.getParameter("newStatus");
-            
+
             System.out.println("[v0] Accepting intern with ID: " + internIdStr + " to status: " + newStatus);
-            
+
             if (internIdStr != null && !internIdStr.isEmpty() && newStatus != null && !newStatus.isEmpty()) {
                 int internId = Integer.parseInt(internIdStr);
-                
+
                 boolean updateResult = employeeDAO.updateEmployeeStatus(internId, newStatus);
-                
+
                 if (updateResult) {
                     session.setAttribute("successMessage", "Intern accepted successfully and status changed to " + newStatus);
                     System.out.println("[v0] Intern accepted successfully");
@@ -521,28 +688,28 @@ public class AdminController extends HttpServlet {
             System.err.println("[v0] Unexpected error in acceptInternAsEmployee: " + e.getMessage());
             e.printStackTrace();
         }
-        
+
         response.sendRedirect(request.getContextPath() + "/admin?action=employees");
     }
 
     private void saveEmployee(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
         jakarta.servlet.http.HttpSession session = request.getSession();
-        
+
         try {
             String empIdStr = request.getParameter("employeeId");
             System.out.println("Saving employee with ID: " + empIdStr);
-            
+
             if (empIdStr != null && !empIdStr.isEmpty()) {
                 int empId = Integer.parseInt(empIdStr);
                 Employee employee = employeeDAO.getById(empId);
-                
+
                 if (employee != null) {
                     System.out.println("Found employee: " + employee.getFullName());
-                    
+
                     employee.setFullName(request.getParameter("fullName"));
                     employee.setGender(request.getParameter("gender"));
-                    
+
                     String dobStr = request.getParameter("dob");
                     if (dobStr != null && !dobStr.isEmpty()) {
                         try {
@@ -554,23 +721,23 @@ public class AdminController extends HttpServlet {
                             return;
                         }
                     }
-                    
+
                     employee.setEmail(request.getParameter("email"));
                     employee.setPhone(request.getParameter("phone"));
                     employee.setAddress(request.getParameter("address"));
                     employee.setPosition(request.getParameter("position"));
                     employee.setEmploymentPeriod(request.getParameter("employmentPeriod"));
                     employee.setStatus(request.getParameter("status"));
-                    
+
                     String deptIdStr = request.getParameter("departmentId");
                     if (deptIdStr != null && !deptIdStr.isEmpty()) {
                         employee.setDepartmentId(Integer.parseInt(deptIdStr));
                     }
-                    
+
                     System.out.println("Updating employee in database...");
                     boolean updateResult = employeeDAO.update(employee);
                     System.out.println("Update result: " + updateResult);
-                    
+
                     if (updateResult) {
                         session.setAttribute("successMessage", "Employee information saved successfully");
                         System.out.println("Employee saved successfully");
@@ -578,7 +745,7 @@ public class AdminController extends HttpServlet {
                         session.setAttribute("errorMessage", "Failed to save employee information to database");
                         System.err.println("Failed to update employee in database");
                     }
-                    
+
                     response.sendRedirect(request.getContextPath() + "/admin?action=employees");
                 } else {
                     session.setAttribute("errorMessage", "Employee not found with ID: " + empId);

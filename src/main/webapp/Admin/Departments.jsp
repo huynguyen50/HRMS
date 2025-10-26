@@ -206,13 +206,13 @@
                 <!-- Top Bar -->
                 <header class="top-bar">
                     <div class="search-form">
-                        <form method="GET" action="${pageContext.request.contextPath}/department">
+                        <form method="GET" action="${pageContext.request.contextPath}/admin">
                             <input type="hidden" name="action" value="departments">
                             <input type="text" name="search" placeholder="Search departments..." 
                                    value="${not empty searchKeyword ? searchKeyword : ''}" />
                             <button type="submit">Search</button>
                             <c:if test="${not empty searchKeyword}">
-                                <a href="${pageContext.request.contextPath}/department?action=departments">Clear</a>
+                                <a href="${pageContext.request.contextPath}/admin?action=departments">Clear</a>
                             </c:if>
                         </form>
                     </div>
@@ -378,7 +378,7 @@
                     <h2 id="modalTitle">Add New Department</h2>
                     <button class="modal-close" onclick="closeDepartmentModal()">&times;</button>
                 </div>
-                <form id="departmentForm" method="POST" action="${pageContext.request.contextPath}/department">
+                <form id="departmentForm" method="POST" action="${pageContext.request.contextPath}/departments">
                     <input type="hidden" name="action" value="department-save">
                     <input type="hidden" id="deptId" name="deptId" value="">
 
@@ -412,7 +412,7 @@
                     <h2>Department Permissions - <span id="permDeptName"></span></h2>
                     <button class="modal-close" onclick="closePermissionsModal()">&times;</button>
                 </div>
-                <form id="permissionsForm" method="POST" action="${pageContext.request.contextPath}/department">
+                <form id="permissionsForm" method="POST" action="${pageContext.request.contextPath}/departments">
                     <input type="hidden" name="action" value="department-permissions-save">
                     <input type="hidden" id="permDeptId" name="deptId" value="">
 
@@ -485,7 +485,7 @@
                     <p>Are you sure you want to delete department <strong id="deleteDeptName"></strong>?</p>
                     <p class="warning-text">⚠️ This action cannot be undone.</p>
                 </div>
-                <form id="deleteForm" method="POST" action="${pageContext.request.contextPath}/department">
+                <form id="deleteForm" method="POST" action="${pageContext.request.contextPath}/departments">
                     <input type="hidden" name="action" value="department-delete">
                     <input type="hidden" id="deleteDeptId" name="deptId" value="">
                     <div class="form-actions">
