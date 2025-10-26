@@ -144,13 +144,20 @@
                 </div>
 
                 <div class="sidebar-nav">
-                    <a href="${pageContext.request.contextPath}/admin?action=dashboard" class="nav-item">Dashboard</a>
-                    <a href="${pageContext.request.contextPath}/admin?action=employees" class="nav-item active">Employees</a>
-                    <a href="${pageContext.request.contextPath}/admin?action=departments" class="nav-item">Departments</a>
-                    <a href="${pageContext.request.contextPath}/admin?action=users" class="nav-item">Users</a>
-                    <a href="${pageContext.request.contextPath}/admin?action=roles" class="nav-item">Roles</a>
-                    <a href="${pageContext.request.contextPath}/admin?action=audit-log" class="nav-item">Audit Log</a>
-                    <a href="${pageContext.request.contextPath}/admin?action=profile" class="nav-item">Profile</a>
+                    <a href="${pageContext.request.contextPath}/admin?action=dashboard"
+                       class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">🏠 Dashboard</a>
+                    <a href="${pageContext.request.contextPath}/admin?action=employees"
+                       class="nav-item ${activePage == 'employees' ? 'active' : ''}">👥 Employees</a>
+                    <a href="${pageContext.request.contextPath}/admin?action=departments"
+                       class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
+                    <a href="${pageContext.request.contextPath}/admin?action=users"
+                       class="nav-item ${activePage == 'users' ? 'active' : ''}">👤 Users</a>
+                    <a href="${pageContext.request.contextPath}/admin?action=roles"
+                       class="nav-item ${activePage == 'roles' ? 'active' : ''}">🔐 Roles</a>
+                    <a href="${pageContext.request.contextPath}/admin?action=audit-log"
+                       class="nav-item ${activePage == 'audit-log' ? 'active' : ''}">📜 Audit Log</a>
+                    <a href="${pageContext.request.contextPath}/admin?action=profile"
+                       class="nav-item ${activePage == 'profile' ? 'active' : ''}">⚙️ Profile</a>
                 </div>
             </aside>
 

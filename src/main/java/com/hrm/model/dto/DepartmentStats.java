@@ -3,7 +3,7 @@ package com.hrm.model.dto;
 
 public class DepartmentStats {
     private int departmentId;
-    private String departmentName;
+    private String deptName;
     private int count;
 
     public DepartmentStats() {
@@ -11,7 +11,7 @@ public class DepartmentStats {
 
     public DepartmentStats(int departmentId, String departmentName, int count) {
         this.departmentId = departmentId;
-        this.departmentName = departmentName;
+        this.deptName = departmentName;
         this.count = count;
     }
 
@@ -23,12 +23,12 @@ public class DepartmentStats {
         this.departmentId = departmentId;
     }
 
-    public String getDepartmentName() {
-        return departmentName;
+    public String getDeptName() {
+        return deptName;
     }
 
-    public void setDepartmentName(String departmentName) {
-        this.departmentName = departmentName;
+    public void setDeptName(String deptName) {
+        this.deptName = deptName;
     }
 
     public int getCount() {

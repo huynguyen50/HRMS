@@ -11,11 +11,11 @@ public class DashboardDAO {
 
     public List<DepartmentStats> getEmployeeByDepartment() {
         List<DepartmentStats> result = new ArrayList<>();
-        String sql = "SELECT d.department_id, d.department_name, COUNT(e.employee_id) as count " +
+        String sql = "SELECT d.DepartmentID, d.DeptName, COUNT(e.EmployeeID) as count " +
                      "FROM department d " +
-                     "LEFT JOIN employee e ON d.department_id = e.department_id " +
-                     "WHERE e.status != 'Intern' " +
-                     "GROUP BY d.department_id, d.department_name " +
+                     "LEFT JOIN employee e ON d.DepartmentID = e.DepartmentID " +
+                     "WHERE e.Status != 'Intern' " +
+                     "GROUP BY d.DepartmentID, d.DeptName " +
                      "ORDER BY count DESC";
 
         try (Connection conn = getConnection();
@@ -24,8 +24,8 @@ public class DashboardDAO {
 
             while (rs.next()) {
                 DepartmentStats stats = new DepartmentStats(
-                    rs.getInt("department_id"),
-                    rs.getString("department_name"),
+                    rs.getInt("DepartmentID"),
+                    rs.getString("DeptName"),
                     rs.getInt("count")
                 );
                 result.add(stats);
@@ -59,9 +59,16 @@ public class DashboardDAO {
 
     public List<SystemLog> getRecentActivity(int limit) {
         List<SystemLog> result = new ArrayList<>();
-        String sql = "SELECT log_id, user_id, action, object_type, old_value, new_value, timestamp " +
-                     "FROM system_log " +
-                     "ORDER BY timestamp DESC LIMIT ?";
+        String sql = "SELECT LogID, UserID, Action, ObjectType, OldValue, NewValue, Timestamp " +
+                     "FROM SystemLog " +
+                     "ORDER BY Timestamp DESC LIMIT ?";
+//    private int logId;
+//    private Integer userId;
+//    private String action;
+//    private String objectType;
+//    private String oldValue;
+//    private String newValue;
+//    private LocalDateTime timestamp;
 
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -70,13 +77,13 @@ public class DashboardDAO {
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     SystemLog log = new SystemLog();
-                    log.setLogId(rs.getInt("log_id"));
-                    log.setUserId(rs.getInt("user_id"));
-                    log.setAction(rs.getString("action"));
-                    log.setObjectType(rs.getString("object_type"));
-                    log.setOldValue(rs.getString("old_value"));
-                    log.setNewValue(rs.getString("new_value"));
-                    log.setTimestamp(rs.getTimestamp("timestamp").toLocalDateTime());
+                    log.setLogId(rs.getInt("LogID"));
+                    log.setUserId(rs.getInt("UserID"));
+                    log.setAction(rs.getString("Action"));
+                    log.setObjectType(rs.getString("ObjectType"));
+                    log.setOldValue(rs.getString("OldVvalue"));
+                    log.setNewValue(rs.getString("NewValue"));
+                    log.setTimestamp(rs.getTimestamp("Timestamp").toLocalDateTime());
                     result.add(log);
                 }
             }
@@ -88,10 +95,10 @@ public class DashboardDAO {
 
     public List<ActivityStats> getActivityLast7Days() {
         List<ActivityStats> result = new ArrayList<>();
-        String sql = "SELECT DATE(timestamp) as date, COUNT(*) as count " +
-                     "FROM system_log " +
-                     "WHERE timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY) " +
-                     "GROUP BY DATE(timestamp) " +
+        String sql = "SELECT DATE(Timestamp) as date, COUNT(*) as count " +
+                     "FROM SystemLog " +
+                     "WHERE Timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY) " +
+                     "GROUP BY DATE(Timestamp) " +
                      "ORDER BY date ASC";
 
         try (Connection conn = getConnection();

@@ -62,7 +62,7 @@ public class DepartmentController extends HttpServlet {
         }
     }
 
-private void listDepartments(HttpServletRequest request, HttpServletResponse response)
+  private void listDepartments(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setAttribute("activePage", "departments");
 
@@ -82,6 +82,16 @@ private void listDepartments(HttpServletRequest request, HttpServletResponse res
         }
 
         String searchKeyword = request.getParameter("search");
+        String departmentIdStr = request.getParameter("departmentId");
+        String timeRange = request.getParameter("timeRange");
+        
+        int departmentId = 0;
+        try {
+            if (departmentIdStr != null && !departmentIdStr.isEmpty()) {
+                departmentId = Integer.parseInt(departmentIdStr);
+            }
+        } catch (NumberFormatException ignore) {}
+        
         List<Department> departmentList;
 
         int page = 1;
@@ -94,26 +104,36 @@ private void listDepartments(HttpServletRequest request, HttpServletResponse res
         } catch (NumberFormatException ignore) {}
 
         try {
+            int total = 0;
+            int offset = (page - 1) * pageSize;
+            
             if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
-                int total = departmentDAO.searchDepartmentsCount(searchKeyword);
-                int totalPages = (int) Math.ceil(total / (double) pageSize);
-                if (totalPages == 0) totalPages = 1;
-                if (page > totalPages) page = totalPages;
-                int offset = (page - 1) * pageSize;
+                total = departmentDAO.searchDepartmentsCount(searchKeyword);
                 departmentList = departmentDAO.searchDepartmentsPaged(searchKeyword, offset, pageSize);
-                request.setAttribute("total", total);
-                request.setAttribute("totalPages", totalPages);
+            } else if (departmentId > 0 && (timeRange == null || timeRange.isEmpty())) {
+                // Filter by department only
+                total = departmentDAO.getCountByDepartment(departmentId);
+                departmentList = departmentDAO.getPagedByDepartment(departmentId, offset, pageSize);
+            } else if ((departmentId == 0 || departmentId <= 0) && timeRange != null && !timeRange.isEmpty()) {
+                // Filter by time range only
+                total = departmentDAO.getCountByTimeRange(timeRange);
+                departmentList = departmentDAO.getPagedByTimeRange(timeRange, offset, pageSize);
+            } else if (departmentId > 0 && timeRange != null && !timeRange.isEmpty()) {
+                // Filter by both department and time range
+                total = departmentDAO.getCountByDepartmentAndTimeRange(departmentId, timeRange);
+                departmentList = departmentDAO.getPagedByDepartmentAndTimeRange(departmentId, timeRange, offset, pageSize);
             } else {
-                int total = departmentDAO.getTotalDepartmentsCount();
-                int totalPages = (int) Math.ceil(total / (double) pageSize);
-                if (page < 1) page = 1;
-                if (totalPages == 0) totalPages = 1;
-                if (page > totalPages) page = totalPages;
-                int offset = (page - 1) * pageSize;
+                // No filters, get all departments
+                total = departmentDAO.getTotalDepartmentsCount();
                 departmentList = departmentDAO.getPaged(offset, pageSize);
-                request.setAttribute("total", total);
-                request.setAttribute("totalPages", totalPages);
             }
+            
+            int totalPages = (int) Math.ceil(total / (double) pageSize);
+            if (totalPages == 0) totalPages = 1;
+            if (page > totalPages) page = totalPages;
+            
+            request.setAttribute("total", total);
+            request.setAttribute("totalPages", totalPages);
         } catch (Exception e) {
             departmentList = departmentDAO.getAll();
             request.setAttribute("errorMessage", "Search failed, showing all departments.");
@@ -126,10 +146,14 @@ private void listDepartments(HttpServletRequest request, HttpServletResponse res
         }
 
         List<Employee> managers = employeeDAO.getManagerList();
+        List<Department> allDepartments = departmentDAO.getAll();
 
         request.setAttribute("departmentList", departmentList);
+        request.setAttribute("allDepartments", allDepartments);
         request.setAttribute("managers", managers);
         request.setAttribute("searchKeyword", searchKeyword);
+        request.setAttribute("selectedDepartmentId", departmentId);
+        request.setAttribute("selectedTimeRange", timeRange);
         request.setAttribute("page", page);
         request.setAttribute("pageSize", pageSize);
 

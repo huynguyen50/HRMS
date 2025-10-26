@@ -148,8 +148,8 @@
                                     <c:when test="${not empty recentActivity}">
                                         <c:forEach var="activity" items="${recentActivity}">
                                             <div class="activity-item">
-                                                <span class="activity-time"><fmt:formatDate value="${activity.timestamp}" pattern="MMM dd, HH:mm"/></span>
-                                                <span class="activity-text">${activity.action} - ${activity.objectType}: ${activity.newValue}</span>
+                                                <span class="activity-time"><fmt:formatDate value="${activity.Timestamp}" pattern="MMM dd, HH:mm"/></span>
+                                                <span class="activity-text">${activity.Action} - ${activity.ObjectType}: ${activity.NewValue}</span>
                                             </div>
                                         </c:forEach>
                                     </c:when>

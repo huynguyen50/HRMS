@@ -122,7 +122,7 @@ public class AdminController extends HttpServlet {
         StringBuilder deptJson = new StringBuilder("{");
         for (int i = 0; i < employeeByDept.size(); i++) {
             DepartmentStats dept = employeeByDept.get(i);
-            deptJson.append("\"").append(dept.getDepartmentName()).append("\": ").append(dept.getCount());
+            deptJson.append("\"").append(dept.getDeptName()).append("\": ").append(dept.getCount());
             if (i < employeeByDept.size() - 1) {
                 deptJson.append(",");
             }
@@ -190,7 +190,7 @@ public class AdminController extends HttpServlet {
             json.append("\"employeeByDepartment\": [");
             for (int i = 0; i < employeeByDept.size(); i++) {
                 DepartmentStats dept = employeeByDept.get(i);
-                json.append("{\"department\": \"").append(dept.getDepartmentName()).append("\", ");
+                json.append("{\"department\": \"").append(dept.getDeptName()).append("\", ");
                 json.append("\"count\": ").append(dept.getCount()).append("}");
                 if (i < employeeByDept.size() - 1) {
                     json.append(",");
@@ -471,6 +471,9 @@ public class AdminController extends HttpServlet {
         request.setAttribute("activePage", "departments");
 
         String searchKeyword = request.getParameter("search");
+        String departmentIdStr = request.getParameter("departmentId");
+        String timeRange = request.getParameter("timeRange");
+        
         List<Department> departmentList = new ArrayList<>();
 
         int page = 1;
@@ -514,7 +517,18 @@ public class AdminController extends HttpServlet {
                     page = totalPages;
                 }
                 int offset = (page - 1) * pageSize;
-                departmentList = departmentDAO.getPaged(offset, pageSize);
+                
+                if ((departmentIdStr != null && !departmentIdStr.isEmpty()) || 
+                    (timeRange != null && !timeRange.isEmpty())) {
+                    int deptId = (departmentIdStr != null && !departmentIdStr.isEmpty()) ? 
+                                 Integer.parseInt(departmentIdStr) : 0;
+                    departmentList = departmentDAO.getPagedByDepartmentAndTimeRange(deptId, timeRange, offset, pageSize);
+                    totalDepartments = departmentDAO.getCountByDepartmentAndTimeRange(deptId, timeRange);
+                    totalPages = (int) Math.ceil(totalDepartments / (double) pageSize);
+                } else {
+                    departmentList = departmentDAO.getPaged(offset, pageSize);
+                }
+                
                 request.setAttribute("total", totalDepartments);
                 request.setAttribute("totalPages", totalPages);
             }
@@ -529,12 +543,16 @@ public class AdminController extends HttpServlet {
         }
 
         List<Employee> managers = employeeDAO.getManagerList();
+        List<Department> allDepartments = departmentDAO.getAll();
 
         request.setAttribute("departmentList", departmentList);
         request.setAttribute("managers", managers);
+        request.setAttribute("allDepartments", allDepartments);
         request.setAttribute("searchKeyword", searchKeyword);
         request.setAttribute("page", page);
         request.setAttribute("pageSize", pageSize);
+        request.setAttribute("selectedDepartmentId", departmentIdStr != null ? departmentIdStr : "");
+        request.setAttribute("selectedTimeRange", timeRange != null ? timeRange : "");
 
         request.getRequestDispatcher("Admin/Departments.jsp").forward(request, response);
     }

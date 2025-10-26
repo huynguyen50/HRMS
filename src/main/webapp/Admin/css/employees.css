@@ -344,7 +344,16 @@ body {
   background-color: #d97706;
   box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
 }
-
+.env-selector, .time-selector {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 6px 12px;
+    color: #374151;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
 /* Intern status - Blue for interns */
 .status-badge.intern {
   background-color: #3b82f6;
