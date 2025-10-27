@@ -30,7 +30,7 @@
                     <a href="${pageContext.request.contextPath}/admin?action=departments"
                        class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
 
-                    <a href="${pageContext.request.contextPath}/admin?action=users"
+                    <a href="${pageContext.request.contextPath}/admin/users"
                        class="nav-item ${activePage == 'users' ? 'active' : ''}">👤 Users</a>
 
                     <a href="${pageContext.request.contextPath}/admin?action=roles"
