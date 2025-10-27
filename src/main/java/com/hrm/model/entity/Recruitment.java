@@ -16,18 +16,20 @@ public class Recruitment implements Serializable {
     private String Description;
     private String Requirement;
     private String Locate;   
-    private Double Salary;   
+    private Double Salary;
+    private String Status;
     private LocalDateTime postedDate;
 
     public Recruitment() {}
 
-    public Recruitment(int recruitmentId, String Title, String Description, String Requirement, String Locate, Double Salary, LocalDateTime postedDate) {
+    public Recruitment(int recruitmentId, String Title, String Description, String Requirement, String Locate, Double Salary, String Status, LocalDateTime postedDate) {
         this.recruitmentId = recruitmentId;
         this.Title = Title;
         this.Description = Description;
         this.Requirement = Requirement;
         this.Locate = Locate;
         this.Salary = Salary;
+        this.Status = Status;
         this.postedDate = postedDate;
     }
 
@@ -53,6 +55,14 @@ public class Recruitment implements Serializable {
 
     public void setDescription(String Description) {
         this.Description = Description;
+    }
+
+    public String getStatus() {
+        return Status;
+    }
+
+    public void setStatus(String Status) {
+        this.Status = Status;
     }
 
     public String getRequirement() {
@@ -89,8 +99,10 @@ public class Recruitment implements Serializable {
 
     @Override
     public String toString() {
-        return "Recruitment{" + "recruitmentId=" + recruitmentId + ", Title=" + Title + ", Description=" + Description + ", Requirement=" + Requirement + ", Locate=" + Locate + ", Salary=" + Salary + ", postedDate=" + postedDate + '}';
+        return "Recruitment{" + "recruitmentId=" + recruitmentId + ", Title=" + Title + ", Description=" + Description + ", Requirement=" + Requirement + ", Locate=" + Locate + ", Salary=" + Salary + ", Status=" + Status + ", postedDate=" + postedDate + '}';
     }
+
+    
     
     
     

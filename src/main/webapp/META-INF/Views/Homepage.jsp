@@ -1176,7 +1176,6 @@
              .dashboard-dropdown-item small {
                  font-size: 0.75rem;
              }
-        }
     </style>
 </head>
 <body>
