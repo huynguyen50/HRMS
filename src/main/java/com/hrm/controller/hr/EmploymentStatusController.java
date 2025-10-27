@@ -108,8 +108,14 @@ public class EmploymentStatusController extends HttpServlet {
                 }
             }
             
-            // Redirect back to EmploymentStatusController to reload data
-            response.sendRedirect(request.getContextPath() + "/EmploymentStatusController");
+            // Check if we should redirect to employee list
+            String redirectTo = request.getParameter("redirectTo");
+            if (redirectTo != null && !redirectTo.isEmpty()) {
+                response.sendRedirect(redirectTo);
+            } else {
+                // Redirect back to EmploymentStatusController to reload data
+                response.sendRedirect(request.getContextPath() + "/EmploymentStatusController");
+            }
             
         } catch (Exception e) {
             e.printStackTrace();

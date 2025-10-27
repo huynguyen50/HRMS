@@ -270,6 +270,18 @@
             outline: none;
         }
         
+        .form-control:disabled {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
         .btn {
             padding: 0.75rem 1.5rem;
             border-radius: 10px;
@@ -417,7 +429,7 @@
     <header class="header">
         <nav class="navbar navbar-expand-lg" aria-label="Main navigation">
             <div class="container">
-                <a class="navbar-brand" href="${pageContext.request.contextPath}/Views/Homepage.jsp">
+                <a class="navbar-brand" href="${pageContext.request.contextPath}/homepage">
                     <i class="fas fa-users-cog me-2"></i>Human Resources Management
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -426,7 +438,7 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
-                            <a class="nav-link" href="${pageContext.request.contextPath}/Views/Homepage.jsp">
+                            <a class="nav-link" href="${pageContext.request.contextPath}/homepage">
                                 <i class="fas fa-home me-1"></i>Home
                             </a>
                         </li>
@@ -503,10 +515,7 @@
                     <span class="stat-number">${userStats.loginCount != null ? userStats.loginCount : '0'}</span>
                     <span class="stat-label">Login Count</span>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-number">${userStats.satisfactionRate != null ? userStats.satisfactionRate : '98'}%</span>
-                    <span class="stat-label">Satisfaction Rate</span>
-                </div>
+                
             </div>
         </div>
 
@@ -591,38 +600,39 @@
                     <input type="hidden" name="action" value="update">
                     
                     <div class="form-group">
-                        <label class="form-label">Full Name</label>
-                        <input type="text" class="form-control" name="fullName" value="${userProfile.fullName != null ? userProfile.fullName : ''}" required>
+                        <label class="form-label" for="fullName">Full Name</label>
+                        <input type="text" class="form-control" id="fullName" name="fullName" value="${userProfile.fullName != null ? userProfile.fullName : ''}" disabled required>
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">Email Address</label>
-                        <input type="email" class="form-control" name="email" value="${userProfile.email != null ? userProfile.email : ''}" required>
+                        <label class="form-label" for="email">Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" value="${userProfile.email != null ? userProfile.email : ''}" disabled required>
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">Phone Number</label>
-                        <input type="tel" class="form-control" name="phone" value="${userProfile.phone != null ? userProfile.phone : ''}">
+                        <label class="form-label" for="phone">Phone Number</label>
+                        <input type="tel" class="form-control" id="phone" name="phone" value="${userProfile.phone != null ? userProfile.phone : ''}" disabled>
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">Department</label>
-                        <select class="form-control" name="department">
+                        <label class="form-label" for="department">Department</label>
+                        <select class="form-control" id="department" name="department" disabled>
                             <option value="Information Technology" ${userProfile.department == 'Information Technology' ? 'selected' : ''}>Information Technology</option>
                             <option value="Human Resources" ${userProfile.department == 'Human Resources' ? 'selected' : ''}>Human Resources</option>
                             <option value="Finance" ${userProfile.department == 'Finance' ? 'selected' : ''}>Finance</option>
                             <option value="Marketing" ${userProfile.department == 'Marketing' ? 'selected' : ''}>Marketing</option>
                             <option value="Operations" ${userProfile.department == 'Operations' ? 'selected' : ''}>Operations</option>
                         </select>
+                        <small class="text-muted">Department cannot be changed</small>
                     </div>
                     
                     <div class="form-group">
-                        <label class="form-label">Bio</label>
-                        <textarea class="form-control" name="bio" rows="3" placeholder="Tell us about yourself...">Experienced professional with expertise in enterprise solutions and team management.</textarea>
+                        <label class="form-label" for="bio">Bio</label>
+                        <textarea class="form-control" id="bio" name="bio" rows="3" placeholder="Tell us about yourself..." disabled>Experienced professional with expertise in enterprise solutions and team management.</textarea>
                     </div>
                     
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary" disabled>
                             <i class="fas fa-save me-1"></i>Save Changes
                         </button>
                         <button type="button" class="btn btn-outline-primary" onclick="toggleEditMode()">
@@ -652,18 +662,6 @@
                     </a>
                 </div>
                 
-                <div class="info-item">
-                    <div class="info-icon">
-                        <i class="fas fa-mobile-alt"></i>
-                    </div>
-                    <div class="info-content">
-                        <div class="info-label">Two-Factor Authentication</div>
-                        <div class="info-value">Enabled</div>
-                    </div>
-                    <button class="btn btn-outline-primary btn-sm">
-                        Manage
-                    </button>
-                </div>
                 
                 <div class="info-item">
                     <div class="info-icon">
@@ -772,19 +770,33 @@
             const form = document.querySelector('form');
             const inputs = form.querySelectorAll('input, select, textarea');
             const editBtn = document.querySelector('button[onclick="toggleEditMode()"]');
+            const saveBtn = document.querySelector('button[type="submit"]');
             
-            inputs.forEach(input => {
-                input.disabled = !input.disabled;
-            });
+            // Check if we're currently in edit mode
+            const isEditMode = !inputs[0].disabled; // Check first input (fullName)
             
-            if (editBtn.innerHTML.includes('Edit Profile')) {
-                editBtn.innerHTML = '<i class="fas fa-times me-1"></i>Cancel Edit';
-                editBtn.classList.remove('btn-outline-primary');
-                editBtn.classList.add('btn-outline-danger');
-            } else {
+            if (isEditMode) {
+                // Exit edit mode - disable all inputs except department
+                inputs.forEach(input => {
+                    if (input.name !== 'department') {
+                        input.disabled = true;
+                    }
+                });
+                saveBtn.disabled = true;
                 editBtn.innerHTML = '<i class="fas fa-edit me-1"></i>Edit Profile';
                 editBtn.classList.remove('btn-outline-danger');
                 editBtn.classList.add('btn-outline-primary');
+            } else {
+                // Enter edit mode - enable inputs except department
+                inputs.forEach(input => {
+                    if (input.name !== 'department') {
+                        input.disabled = false;
+                    }
+                });
+                saveBtn.disabled = false;
+                editBtn.innerHTML = '<i class="fas fa-times me-1"></i>Cancel Edit';
+                editBtn.classList.remove('btn-outline-primary');
+                editBtn.classList.add('btn-outline-danger');
             }
         }
         

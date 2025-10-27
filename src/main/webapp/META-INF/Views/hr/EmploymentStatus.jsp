@@ -111,7 +111,6 @@
                                 <button class="filter-btn" data-status="Active">Active</button>
                                 <button class="filter-btn" data-status="Probation">Probation</button>
                                 <button class="filter-btn" data-status="Intern">Intern</button>
-                                <button class="filter-btn" data-status="Resigned">Resigned</button>
                             </div>
                             
                             <div class="employee-status-list">
@@ -138,7 +137,6 @@
                                                             <option value="Active" ${employee.status == 'Active' ? 'selected' : ''}>Active</option>
                                                             <option value="Probation" ${employee.status == 'Probation' ? 'selected' : ''}>Probation</option>
                                                             <option value="Intern" ${employee.status == 'Intern' ? 'selected' : ''}>Intern</option>
-                                                            <option value="Resigned" ${employee.status == 'Resigned' ? 'selected' : ''}>Resigned</option>
                                                         </select>
                                                         <button type="submit" class="btn-update-status">
                                                             <i class="fas fa-save"></i>

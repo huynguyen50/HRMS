@@ -20,7 +20,8 @@
             <!--left-->
             <div class="recruitmentContent">
                 <a href="Homepage.jsp"><button type="button" class="btn btn-primary">Back to home</button></a>
-                <h1>Welcome to our company</h1>
+                <h1>Human Resources Management</h1>
+
                 <div class="info-box">Recruitment information</div>
                 <a href="#">Recruit now</a>
             </div>
@@ -40,10 +41,10 @@
                     <a href="ForgotPassword.jsp">Forgot password?</a>
                     <hr class="divider">
                     <p class="login-or">Or</p>
-                    <button class="btn btn-danger d-flex align-items-center justify-content-center" style="gap:6px; font-weight:500;">
+<!--                    <button class="btn btn-danger d-flex align-items-center justify-content-center" style="gap:6px; font-weight:500;">
                         <span>Login with Gmail</span>
                         <i class="material-icons" style="font-size:20px;">mail</i>
-                    </button>
+                    </button>-->
                 </form>
             </div>
         </div>

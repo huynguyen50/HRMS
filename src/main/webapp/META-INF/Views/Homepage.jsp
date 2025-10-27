@@ -914,6 +914,8 @@
         .action-icon.warning { background: var(--warning-color); }
         .action-icon.danger { background: var(--danger-color); }
         .action-icon.info { background: var(--accent-color); }
+        .action-icon.purple { background: #8b5cf6; }
+        .action-icon.teal { background: #14b8a6; }
         
         .action-title {
             font-size: 1.2rem;
@@ -1190,7 +1192,7 @@
                     </a>
                     <a href="#news" aria-label="Go to News section">
                         <i class="fas fa-newspaper" aria-hidden="true"></i>
-                        <span>News</span>
+                        <span>Recruitment</span>
                     </a>
                     <c:if test="${not empty sessionScope.systemUser}">
                         <div class="dashboard-dropdown">
@@ -1551,6 +1553,53 @@
 </div>
                 </div>
                 </div>
+    </section>
+
+    <!-- Quick Actions Section -->
+    <section class="quick-actions">
+        <div class="container">
+            <h2 class="section-title">Quick Actions</h2>
+            <p class="section-subtitle">Access key HR functions quickly and efficiently</p>
+            
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <a href="${pageContext.request.contextPath}/Views/hr/PostRecruitment.jsp" class="action-card">
+                        <div class="action-icon purple">
+                            <i class="fas fa-bullhorn"></i>
+                        </div>
+                        <h4 class="action-title">Post Recruitment</h4>
+                        <p class="action-description">Create and publish new job postings for open positions</p>
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <a href="${pageContext.request.contextPath}/Views/hr/ViewCandidate.jsp" class="action-card">
+                        <div class="action-icon teal">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h4 class="action-title">View Candidates</h4>
+                        <p class="action-description">Review and manage candidate applications and profiles</p>
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <a href="${pageContext.request.contextPath}/Views/hr/HrHome.jsp" class="action-card">
+                        <div class="action-icon primary">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                        <h4 class="action-title">HR Dashboard</h4>
+                        <p class="action-description">Access comprehensive HR management tools and reports</p>
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <a href="${pageContext.request.contextPath}/Views/hr/EmploymentStatus.jsp" class="action-card">
+                        <div class="action-icon success">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <h4 class="action-title">Employment Status</h4>
+                        <p class="action-description">Manage employee status and employment records</p>
+                    </a>
+                </div>
+            </div>
+        </div>
     </section>
 
     <!-- Contact Information Section -->

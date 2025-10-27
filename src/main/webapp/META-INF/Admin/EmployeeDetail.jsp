@@ -4,8 +4,8 @@
 <html>
     <head>
         <title>Employee Detail - HRMS</title>
-        <link rel="stylesheet" href="Admin/css/Admin_home.css">
-        <style>
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/Admin_home.css">
+
             .detail-container {
                 max-width: 900px;
                 margin: 0 auto;

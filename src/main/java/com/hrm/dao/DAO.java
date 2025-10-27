@@ -1,7 +1,7 @@
-
 package com.hrm.dao;
 
 import com.hrm.model.entity.Guest;
+import com.hrm.model.entity.Recruitment;
 import com.hrm.model.entity.SystemUser;
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -77,13 +77,13 @@ public class DAO {
     public int updateCandidateStatus(int gID, String newStatus) {
         String sql = "UPDATE Guest SET status = ? WHERE guestId = ?";
         int result = 0;
-
-        try {
-            PreparedStatement ps = con.prepareStatement(sql);
-ps.setString(1, newStatus);
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, newStatus);
             ps.setInt(2, gID);
+            result = ps.executeUpdate();
+
         } catch (Exception e) {
-            e.printStackTrace();
+e.printStackTrace();
         }
         return result;
     }
@@ -106,19 +106,40 @@ ps.setString(1, newStatus);
         return gList;
     }
 
-    public int setRecruitment(String title, String description, String req, String location, String salary) {
-        String sql = "UPDATE Recruitment SET Description = ?, Requirement = ?, Location = ?, Salary = ?, Title = ? WHERE RecruitmentID = 1";
+    public int setRecruitment(String title, String description, String req, String location, Double salary) {
+        String sql = "UPDATE Recruitment SET JobDescription = ?, Requirement = ?, Location = ?, Salary = ?, JobTitle = ? WHERE RecruitmentID = 1";
         int result = 0;
         try {
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setString(1, description);
             ps.setString(2, req);
             ps.setString(3, location);
-            ps.setString(4, salary);
+            ps.setDouble(4, salary);
             ps.setString(5, title);
+            result = ps.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
         }
         return result;
+    }
+
+    public Recruitment getRecruitmentInfo() {
+        String sql = "SELECT JobTitle, JobDescription, Requirement, Location, Salary FROM Recruitment WHERE RecruitmentID = 1";
+        try {
+            PreparedStatement ps = con.prepareStatement(sql); 
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Recruitment rec = new Recruitment();
+                rec.setTitle(rs.getString("JobTitle"));
+                rec.setDescription(rs.getString("JobDescription"));
+                rec.setRequirement(rs.getString("Requirement"));
+                rec.setLocate(rs.getString("Location"));
+                rec.setSalary(rs.getDouble("Salary"));
+                return rec;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

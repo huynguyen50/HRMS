@@ -6,11 +6,11 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Department Management - HRMS</title>
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/Admin_home.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/department.css">
- 
     </head>
     <style>
- #toast-container {
+        #toast-container {
             position: fixed;
             top: 20px;
             right: 20px;
@@ -62,6 +62,7 @@
             }
         }
 
+        /* Search form styling for top-bar */
         .top-bar .search-form {
             display: flex;
             gap: 8px;
@@ -109,6 +110,7 @@
             background-color: #5a6268;
         }
 
+        /* Ensure top-bar doesn't break with search form */
         .top-bar {
             display: flex;
             align-items: center;
@@ -123,125 +125,52 @@
             gap: 15px;
         }
 
-            .pagination-bar {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-top: 20px;
-                padding: 15px;
-                background-color: #f8f9fa;
-                border-radius: 4px;
-            }
-
-            .pagination-info {
-                font-size: 14px;
-                color: #666;
-            }
-
-            .pagination-controls {
-                display: flex;
-                gap: 5px;
-            }
-
-            .pagination-controls a,
-            .pagination-controls span {
-                padding: 8px 12px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                text-decoration: none;
-                color: #5b6ef5;
-                cursor: pointer;
-                font-size: 14px;
-            }
-
-            .pagination-controls a:hover {
-                background-color: #f0f0f0;
-            }
-
-            .pagination-controls span.active {
-                background-color: #5b6ef5;
-                color: white;
-                border-color: #5b6ef5;
-            }
-
-            .pagination-controls a.disabled {
-                color: #ccc;
-                cursor: not-allowed;
-                pointer-events: none;
-            }
-
-        .top-bar select {
-            padding: 6px 10px;
-            border: 1px solid #ddd;
+        /* Pagination styling - matching employee page */
+        .pagination-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
             border-radius: 4px;
-            font-size: 13px;
-            height: 32px;
-            background-color: white;
-            cursor: pointer;
         }
 
-        .top-bar select:hover {
+        .pagination-info {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        .pagination-controls a,
+        .pagination-controls span {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #5b6ef5;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .pagination-controls a:hover {
+            background-color: #f0f0f0;
+        }
+
+        .pagination-controls span.active {
+            background-color: #5b6ef5;
+            color: white;
             border-color: #5b6ef5;
         }
 
-        /* Add user menu dropdown styles */
-        .user-menu {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .user-menu img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-        }
-
-        .user-menu span {
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .user-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background-color: white;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            min-width: 150px;
-            z-index: 1000;
-            display: none;
-            margin-top: 8px;
-        }
-
-        .user-dropdown a {
-            display: block;
-            padding: 10px 16px;
-            color: #333;
-            text-decoration: none;
-            font-size: 14px;
-            border-bottom: 1px solid #f0f0f0;
-            transition: background-color 0.2s;
-        }
-
-        .user-dropdown a:last-child {
-            border-bottom: none;
-        }
-
-        .user-dropdown a:hover {
-            background-color: #f5f5f5;
-        }
-
-        .user-dropdown a.logout {
-            color: #f44336;
-        }
-
-        .user-dropdown a.logout:hover {
-            background-color: #ffebee;
+        .pagination-controls a.disabled {
+            color: #ccc;
+            cursor: not-allowed;
+            pointer-events: none;
         }
     </style>
     <body>
@@ -262,7 +191,7 @@
                        class="nav-item ${activePage == 'employees' ? 'active' : ''}">👥 Employees</a>
                     <a href="${pageContext.request.contextPath}/admin?action=departments"
                        class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
-                    <a href="${pageContext.request.contextPath}/admin/users"
+                    <a href="${pageContext.request.contextPath}/admin?action=users"
                        class="nav-item ${activePage == 'users' ? 'active' : ''}">👤 Users</a>
                     <a href="${pageContext.request.contextPath}/admin?action=roles"
                        class="nav-item ${activePage == 'roles' ? 'active' : ''}">🔐 Roles</a>
@@ -277,47 +206,33 @@
                 <!-- Top Bar -->
                 <header class="top-bar">
                     <div class="search-form">
-                        <form method="GET" action="${pageContext.request.contextPath}/admin">
+                        <form method="GET" action="${pageContext.request.contextPath}/department">
                             <input type="hidden" name="action" value="departments">
                             <input type="text" name="search" placeholder="Search departments..." 
                                    value="${not empty searchKeyword ? searchKeyword : ''}" />
                             <button type="submit">Search</button>
                             <c:if test="${not empty searchKeyword}">
-                                <a href="${pageContext.request.contextPath}/admin?action=departments">Clear</a>
+                                <a href="${pageContext.request.contextPath}/department?action=departments">Clear</a>
                             </c:if>
                         </form>
                     </div>
                     <div class="top-bar-actions">
-                        <!-- Ensure dropdown IDs match the JavaScript functions -->
-                        <select id="departmentSelector" class="env-selector" onchange="filterByDepartment()">
-                            <option value="">All Departments</option>
-                            <c:forEach var="dept" items="${allDepartments}">
-                                <option value="${dept.departmentId}" 
-                                        ${selectedDepartmentId == dept.departmentId ? 'selected' : ''}>
-                                    ${dept.deptName}
-                                </option>
-                            </c:forEach>
+                        <select class="env-selector">
+                            <option>Production</option>
+                            <option>Staging</option>
                         </select>
-
-                        <select id="timeRangeSelector" class="time-selector" onchange="filterByTimeRange()">
-                            <option value="">All Time</option>
-                            <option value="today" ${selectedTimeRange == 'today' ? 'selected' : ''}>Today</option>
-                            <option value="week" ${selectedTimeRange == 'week' ? 'selected' : ''}>This Week</option>
-                            <option value="month" ${selectedTimeRange == 'month' ? 'selected' : ''}>This Month</option>
+                        <select class="time-selector">
+                            <option>Today</option>
+                            <option>This Week</option>
+                            <option>This Month</option>
                         </select>
-
-                        <button class="notification-btn" onclick="openNotifications()">
+                        <button class="notification-btn" >
                             🔔
-                            <span class="badge" id="notificationBadge">${notificationCount != null ? notificationCount : 0}</span>
+                            <span class="badge">3</span>
                         </button>
-                        <div class="user-menu" onclick="toggleUserMenu()">
+                        <div class="user-menu">
                             <img src="https://i.pravatar.cc/32" alt="User">
                             <span>Admin</span>
-                            <div id="userDropdown" class="user-dropdown">
-                                <a href="${pageContext.request.contextPath}/admin?action=profile">Profile</a>
-                                <a href="${pageContext.request.contextPath}/admin?action=settings">Settings</a>
-                                <a href="javascript:void(0);" class="logout" onclick="logout()">Logout</a>
-                            </div>
                         </div>
                     </div>
                 </header>
@@ -338,6 +253,15 @@
 
                     <!-- Toast Script -->
                     <script>
+                        function showToast(message, type = "success") {
+                            const container = document.getElementById("toast-container");
+                            const toast = document.createElement("div");
+                            toast.className = "toast " + (type === "success" ? "toast-success" : "toast-error");
+                            toast.innerHTML = message;
+                            container.appendChild(toast);
+                            setTimeout(() => toast.remove(), 3500);
+                        }
+
                         // JSTL session messages
                         <c:if test="${not empty successMessage}">
                         showToast("✓ ${successMessage}", "success");
@@ -404,7 +328,7 @@
                             </c:when>
                             <c:otherwise>
                                 <div class="empty-state">
-                                    <p>No departments found</p>
+                                    <p>📭 No departments found</p>
                                     <button class="btn-primary" onclick="openAddDepartmentModal()">Create First Department</button>
                                 </div>
                             </c:otherwise>
@@ -412,7 +336,7 @@
                     </div>
 
                      <!-- Pagination -->
-                     <c:if test="${not empty totalPages}">
+                     <c:if test="${not empty totalPages && totalPages > 1}">
                          <div class="pagination-bar">
                              <div class="pagination-info">
                                  <c:set var="start" value="${(page - 1) * pageSize + 1}"/>
@@ -423,10 +347,9 @@
                                  <c:set var="prevPage" value="${page > 1 ? page - 1 : 1}"/>
                                  <c:set var="nextPage" value="${page < totalPages ? page + 1 : totalPages}"/>
                                  <c:set var="searchParam" value="${not empty searchKeyword ? '&search=' : ''}${searchKeyword}"/>
-                                 <c:set var="filterParams" value="${not empty selectedDepartmentId ? '&departmentId=' : ''}${selectedDepartmentId}${not empty selectedTimeRange ? '&timeRange=' : ''}${selectedTimeRange}"/>
 
                                  <a class="${page == 1 ? 'disabled' : ''}"
-                                    href="?action=departments&page=${prevPage}&pageSize=${pageSize}${searchParam}${filterParams}">Prev</a>
+                                    href="?action=departments&page=${prevPage}&pageSize=${pageSize}${searchParam}">Prev</a>
 
                                  <c:forEach var="i" begin="1" end="${totalPages}">
                                      <c:choose>
@@ -434,13 +357,13 @@
                                              <span class="active">${i}</span>
                                          </c:when>
                                          <c:otherwise>
-                                             <a href="?action=departments&page=${i}&pageSize=${pageSize}${searchParam}${filterParams}">${i}</a>
+                                             <a href="?action=departments&page=${i}&pageSize=${pageSize}${searchParam}">${i}</a>
                                          </c:otherwise>
                                      </c:choose>
                                  </c:forEach>
 
                                  <a class="${page == totalPages ? 'disabled' : ''}"
-                                    href="?action=departments&page=${nextPage}&pageSize=${pageSize}${searchParam}${filterParams}">Next</a>
+                                    href="?action=departments&page=${nextPage}&pageSize=${pageSize}${searchParam}">Next</a>
                              </div>
                          </div>
                      </c:if>
@@ -455,7 +378,7 @@
                     <h2 id="modalTitle">Add New Department</h2>
                     <button class="modal-close" onclick="closeDepartmentModal()">&times;</button>
                 </div>
-                <form id="departmentForm" method="POST" action="${pageContext.request.contextPath}/departments">
+                <form id="departmentForm" method="POST" action="${pageContext.request.contextPath}/department">
                     <input type="hidden" name="action" value="department-save">
                     <input type="hidden" id="deptId" name="deptId" value="">
 
@@ -489,7 +412,7 @@
                     <h2>Department Permissions - <span id="permDeptName"></span></h2>
                     <button class="modal-close" onclick="closePermissionsModal()">&times;</button>
                 </div>
-                <form id="permissionsForm" method="POST" action="${pageContext.request.contextPath}/departments">
+                <form id="permissionsForm" method="POST" action="${pageContext.request.contextPath}/department">
                     <input type="hidden" name="action" value="department-permissions-save">
                     <input type="hidden" id="permDeptId" name="deptId" value="">
 
@@ -560,9 +483,9 @@
                 </div>
                 <div class="modal-body">
                     <p>Are you sure you want to delete department <strong id="deleteDeptName"></strong>?</p>
-                    <p class="warning-text">This action cannot be undone.</p>
+                    <p class="warning-text">⚠️ This action cannot be undone.</p>
                 </div>
-                <form id="deleteForm" method="POST" action="${pageContext.request.contextPath}/departments">
+                <form id="deleteForm" method="POST" action="${pageContext.request.contextPath}/department">
                     <input type="hidden" name="action" value="department-delete">
                     <input type="hidden" id="deleteDeptId" name="deptId" value="">
                     <div class="form-actions">
@@ -573,127 +496,8 @@
             </div>
         </div>
 
-        <!-- Notifications Modal -->
-        <div id="notificationsModal" class="modal">
-            <div class="modal-content modal-medium">
-                <div class="modal-header">
-                    <h2>Notifications</h2>
-                    <button class="modal-close" onclick="closeNotificationsModal()">&times;</button>
-                </div>
-                <div id="notificationsList" class="notifications-list">
-                    <!-- Notifications will be loaded here -->
-                </div>
-            </div>
-        </div>
-    </body>
-     <script>
-            function filterByDepartment() {
-                console.log("[v0] filterByDepartment called");
-                const deptId = document.getElementById('departmentSelector').value;
-                const timeRange = document.getElementById('timeRangeSelector').value;
-                console.log("[v0] deptId:", deptId, "timeRange:", timeRange);
-                
-                const url = new URL(window.location);
-                url.searchParams.set('action', 'departments');
-                
-                if (deptId) {
-                    url.searchParams.set('departmentId', deptId);
-                } else {
-                    url.searchParams.delete('departmentId');
-                }
-                
-                if (timeRange) {
-                    url.searchParams.set('timeRange', timeRange);
-                } else {
-                    url.searchParams.delete('timeRange');
-                }
-                
-                url.searchParams.set('page', '1');
-                console.log("[v0] Navigating to:", url.toString());
-                window.location.href = url.toString();
-            }
-            
-            function filterByTimeRange() {
-                console.log("[v0] filterByTimeRange called");
-                const deptId = document.getElementById('departmentSelector').value;
-                const timeRange = document.getElementById('timeRangeSelector').value;
-                console.log("[v0] deptId:", deptId, "timeRange:", timeRange);
-                
-                const url = new URL(window.location);
-                url.searchParams.set('action', 'departments');
-                
-                if (deptId) {
-                    url.searchParams.set('departmentId', deptId);
-                } else {
-                    url.searchParams.delete('departmentId');
-                }
-                
-                if (timeRange) {
-                    url.searchParams.set('timeRange', timeRange);
-                } else {
-                    url.searchParams.delete('timeRange');
-                }
-                
-                url.searchParams.set('page', '1');
-                console.log("[v0] Navigating to:", url.toString());
-                window.location.href = url.toString();
-            }
-            
-            function openNotifications() {
-                document.getElementById('notificationsModal').style.display = 'flex';
-                loadNotifications();
-            }
-
-            function closeNotificationsModal() {
-                document.getElementById('notificationsModal').style.display = 'none';
-            }
-
-            function loadNotifications() {
-                fetch('${pageContext.request.contextPath}/admin?action=get-notifications')
-                    .then(response => response.json())
-                    .then(data => {
-                        const notificationsList = document.getElementById('notificationsList');
-                        notificationsList.innerHTML = '';
-                        
-                        if (data.notifications && data.notifications.length > 0) {
-                            data.notifications.forEach(notification => {
-                                const notifDiv = document.createElement('div');
-                                notifDiv.className = 'notification-item';
-                                notifDiv.innerHTML = `
-                                    <div class="notification-content">
-                                        <p class="notification-message">${notification.message}</p>
-                                        <span class="notification-time">${notification.createdAt}</span>
-                                    </div>
-                                `;
-                                notificationsList.appendChild(notifDiv);
-                            });
-                        } else {
-                            notificationsList.innerHTML = '<p class="empty-notification">No notifications</p>';
-                        }
-                    })
-                    .catch(error => console.error('Error loading notifications:', error));
-            }
-
-            function loadDepartmentPermissions(deptId) {
-                fetch('${pageContext.request.contextPath}/departments?action=get-permissions&deptId=' + deptId)
-                    .then(response => response.json())
-                    .then(data => {
-                        document.querySelectorAll('#permissionsForm input[type="checkbox"]').forEach(checkbox => {
-                            checkbox.checked = false;
-                        });
-                        
-                        if (data.permissions && data.permissions.length > 0) {
-                            data.permissions.forEach(permission => {
-                                const checkbox = document.querySelector(`input[value="${permission}"]`);
-                                if (checkbox) {
-                                    checkbox.checked = true;
-                                }
-                            });
-                        }
-                    })
-                    .catch(error => console.error('Error loading permissions:', error));
-            }
-
+        <script>
+            // Add Department Modal
             function openAddDepartmentModal() {
                 document.getElementById('modalTitle').textContent = 'Add New Department';
                 document.getElementById('departmentForm').reset();
@@ -701,6 +505,7 @@
                 document.getElementById('departmentModal').style.display = 'flex';
             }
 
+            // Edit Department Modal
             function openEditDepartmentModal(deptId, deptName, managerId) {
                 document.getElementById('modalTitle').textContent = 'Edit Department';
                 document.getElementById('deptId').value = deptId;
@@ -713,17 +518,19 @@
                 document.getElementById('departmentModal').style.display = 'none';
             }
 
+            // Permissions Modal
             function openPermissionsModal(deptId, deptName) {
                 document.getElementById('permDeptId').value = deptId;
                 document.getElementById('permDeptName').textContent = deptName;
                 document.getElementById('permissionsModal').style.display = 'flex';
-                loadDepartmentPermissions(deptId);
+                // TODO: Load existing permissions from server
             }
 
             function closePermissionsModal() {
                 document.getElementById('permissionsModal').style.display = 'none';
             }
 
+            // Delete Modal
             function confirmDelete(deptId, deptName) {
                 document.getElementById('deleteDeptId').value = deptId;
                 document.getElementById('deleteDeptName').textContent = deptName;
@@ -734,11 +541,11 @@
                 document.getElementById('deleteModal').style.display = 'none';
             }
 
+            // Close modal when clicking outside
             window.onclick = function (event) {
                 const departmentModal = document.getElementById('departmentModal');
                 const permissionsModal = document.getElementById('permissionsModal');
                 const deleteModal = document.getElementById('deleteModal');
-                const notificationsModal = document.getElementById('notificationsModal');
 
                 if (event.target === departmentModal) {
                     departmentModal.style.display = 'none';
@@ -749,40 +556,7 @@
                 if (event.target === deleteModal) {
                     deleteModal.style.display = 'none';
                 }
-                if (event.target === notificationsModal) {
-                    notificationsModal.style.display = 'none';
-                }
             };
-
-            function logout() {
-                if (confirm('Are you sure you want to logout?')) {
-                    window.location.href = '${pageContext.request.contextPath}/admin?action=logout';
-                }
-            }
-
-            function toggleUserMenu() {
-                const userDropdown = document.getElementById('userDropdown');
-                userDropdown.style.display = userDropdown.style.display === 'block' ? 'none' : 'block';
-            }
-
-            // Close dropdown when clicking outside
-            document.addEventListener('click', function(event) {
-                const userMenu = document.querySelector('.user-menu');
-                const userDropdown = document.getElementById('userDropdown');
-                if (userMenu && !userMenu.contains(event.target)) {
-                    if (userDropdown) {
-                        userDropdown.style.display = 'none';
-                    }
-                }
-            });
-
-            function showToast(message, type = "success") {
-                const container = document.getElementById("toast-container");
-                const toast = document.createElement("div");
-                toast.className = "toast " + (type === "success" ? "toast-success" : "toast-error");
-                toast.innerHTML = message;
-                container.appendChild(toast);
-                setTimeout(() => toast.remove(), 3500);
-            }
         </script>
+    </body>
 </html>

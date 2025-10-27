@@ -584,6 +584,19 @@
                 gap: 1rem !important;
             }
             
+            /* Responsive grid for Quick Access */
+            @media (min-width: 1200px) {
+                .access-grid {
+                    grid-template-columns: repeat(3, 1fr) !important;
+                }
+            }
+            
+            @media (max-width: 1199px) and (min-width: 768px) {
+                .access-grid {
+                    grid-template-columns: repeat(2, 1fr) !important;
+                }
+            }
+            
             .access-card {
                 background: white !important;
                 border: 1px solid #e5e7eb !important;
@@ -746,22 +759,10 @@
                 <aside class="hr-sidebar">
                     <nav class="hr-nav">
                         <div class="nav-section">
-                            <h3>Human Resources Management</h3>
+                            
                             <a href="#hr-home" class="nav-item active" data-section="hr-home">
                                 <i class="fas fa-home"></i>
                                 <span>HR Home</span>
-                            </a>
-                            <a href="#profile-management" class="nav-item" data-section="EmploymentStatusController">
-                                <i class="fas fa-user-edit"></i>
-                                <span>Profile Management</span>
-                            </a>
-                            <a href="#employment-status" class="nav-item" data-section="employment-status">
-                                <i class="fas fa-user-check"></i>
-                                <span>Employment Status</span>
-                            </a>
-                            <a href="#task-management" class="nav-item" data-section="task-management">
-                                <i class="fas fa-tasks"></i>
-                                <span>Task Management</span>
                             </a>
                         </div>
                         
@@ -783,9 +784,25 @@
                         
                         <div class="nav-section">
                             <h3>Recruitment</h3>
-                            <a href="#recruitment-system" class="nav-item" data-section="recruitment-system">
+                            <a href="${pageContext.request.contextPath}/Views/hr/PostRecruitment.jsp" class="nav-item">
+                                <i class="fas fa-bullhorn"></i>
+                                <span>Post Recruitment</span>
+                            </a>
+                            <a href="${pageContext.request.contextPath}/candidates" class="nav-item">
+                                <i class="fas fa-users"></i>
+                                <span>View Candidates</span>
+                            </a>
+                            <a href="${pageContext.request.contextPath}/hr/create-employee" class="nav-item">
                                 <i class="fas fa-user-plus"></i>
-                                <span>Recruitment</span>
+                                <span>Create Employee</span>
+                            </a>
+                            <a href="${pageContext.request.contextPath}/hr/employee-list" class="nav-item">
+                                <i class="fas fa-list"></i>
+                                <span>Employee List</span>
+                            </a>
+                            <a href="#recruitment-system" class="nav-item" data-section="recruitment-system">
+                                <i class="fas fa-clipboard-list"></i>
+                                <span>Recruitment System</span>
                             </a>
                         </div>
                         
@@ -822,68 +839,89 @@
                             <!-- Main Statistics Grid -->
                             <div class="main-stats-grid">
                                 <div class="stat-card primary">
-                                    <div class="stat-icon">
-                                        <i class="fas fa-users"></i>
-                                    </div>
-                                    <div class="stat-content">
+                                <div class="stat-icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="stat-content">
                                         <h3>Total Employees</h3>
                                         <span class="stat-number">${not empty employees ? employees.size() : 0}</span>
                                         <p>Active employees in system</p>
-                                    </div>
                                 </div>
+                            </div>
                                 
                                 <div class="stat-card success">
-                                    <div class="stat-icon">
+                                <div class="stat-icon">
                                         <i class="fas fa-user-check"></i>
-                                    </div>
-                                    <div class="stat-content">
+                                </div>
+                                <div class="stat-content">
                                         <h3>Active Staff</h3>
                                         <span class="stat-number">${not empty employees ? employees.size() : 0}</span>
                                         <p>Currently working employees</p>
-                                    </div>
                                 </div>
+                            </div>
                                 
                                 <div class="stat-card warning">
-                                    <div class="stat-icon">
+                                <div class="stat-icon">
                                         <i class="fas fa-building"></i>
-                                    </div>
-                                    <div class="stat-content">
+                                </div>
+                                <div class="stat-content">
                                         <h3>Departments</h3>
                                         <span class="stat-number">${not empty departments ? departments.size() : 0}</span>
                                         <p>Organizational departments</p>
-                                    </div>
                                 </div>
+                            </div>
                                 
                                 <div class="stat-card info">
-                                    <div class="stat-icon">
+                                <div class="stat-icon">
                                         <i class="fas fa-tasks"></i>
-                                    </div>
-                                    <div class="stat-content">
+                                </div>
+                                <div class="stat-content">
                                         <h3>Pending Tasks</h3>
                                         <span class="stat-number">${not empty tasks ? tasks.size() : 0}</span>
                                         <p>Tasks awaiting completion</p>
-                                    </div>
                                 </div>
                             </div>
-                            
+                        </div>
+
                             <!-- Quick Access Functions -->
                             <div class="quick-access">
                                 <h3>Quick Access</h3>
                                 <div class="access-grid">
                                     <a href="${pageContext.request.contextPath}/ProfileManagementController" class="access-card">
-                                        <i class="fas fa-user-edit"></i>
+                                    <i class="fas fa-user-edit"></i>
                                         <h4>Profile Management</h4>
                                         <p>Manage employee profiles</p>
                                     </a>
-                                    <a href="${pageContext.request.contextPath}/EmploymentStatusController" class="access-card">
+<!--                                    <a href="${pageContext.request.contextPath}/EmploymentStatusController" class="access-card">
                                         <i class="fas fa-user-check"></i>
                                         <h4>Employment Status</h4>
                                         <p>Update employment status</p>
-                                    </a>
+                                    </a>-->
                                     <a href="${pageContext.request.contextPath}/TaskManagementController" class="access-card">
                                         <i class="fas fa-tasks"></i>
                                         <h4>Task Management</h4>
                                         <p>Assign and track tasks</p>
+                                    </a>
+                                    <a href="${pageContext.request.contextPath}/Views/hr/PostRecruitment.jsp" class="access-card">
+                                        <i class="fas fa-bullhorn"></i>
+                                        <h4>Post Recruitment</h4>
+                                        <p>Create job postings</p>
+                                    </a>
+                                    
+                                    <a href="${pageContext.request.contextPath}/candidates" class="access-card">
+                                        <i class="fas fa-users"></i>
+                                        <h4>View Candidates</h4>
+                                        <p>Review applications</p>
+                                    </a>
+                                    <a href="${pageContext.request.contextPath}/hr/create-employee" class="access-card">
+                                        <i class="fas fa-user-plus"></i>
+                                        <h4>Create Employee</h4>
+                                        <p>Convert candidates to employees</p>
+                                    </a>
+                                    <a href="${pageContext.request.contextPath}/hr/employee-list" class="access-card">
+                                        <i class="fas fa-list"></i>
+                                        <h4>Employee List</h4>
+                                        <p>View all employees</p>
                                     </a>
                                     <a href="#payroll-management" class="access-card" onclick="showSection('payroll-management')">
                                         <i class="fas fa-money-bill-wave"></i>
@@ -921,7 +959,7 @@
                     
 
                     <!-- Profile Management Section -->
-                    <section id="profile-management" class="content-section">
+                    <section id="ProfileManagementController" class="content-section">
                         <div class="section-header">
                             <h2>Profile Management</h2>
                             <p>Approve or reject employee personal information update requests</p>
@@ -992,7 +1030,7 @@
                         </div>
                     </section>
 
-                    <!-- Employment Status Management Section -->
+<!--                     Employment Status Management Section 
                     <section id="employment-status" class="content-section">
                         <div class="section-header">
                             <h2>Employment Status Management</h2>
@@ -1005,8 +1043,6 @@
                                 <button class="filter-btn" data-status="active">Active</button>
                                 <button class="filter-btn" data-status="intern">Intern</button>
                                 <button class="filter-btn" data-status="probation">Probation</button>
-                                <button class="filter-btn" data-status="resigned">Resigned</button>
-                                <button class="filter-btn" data-status="terminated">Terminated</button>
                             </div>
                             
                             <div class="employee-status-list">
@@ -1030,8 +1066,6 @@
                                                             <option value="Active" ${employee.status == 'Active' ? 'selected' : ''}>Active</option>
                                                             <option value="Probation" ${employee.status == 'Probation' ? 'selected' : ''}>Probation</option>
                                                             <option value="Intern" ${employee.status == 'Intern' ? 'selected' : ''}>Intern</option>
-                                                            <option value="Resigned" ${employee.status == 'Resigned' ? 'selected' : ''}>Resigned</option>
-                                                            <option value="Terminated" ${employee.status == 'Terminated' ? 'selected' : ''}>Terminated</option>
                                         </select>
                                                         <button type="submit" class="btn-update-status">
                                             <i class="fas fa-save"></i>
@@ -1052,7 +1086,7 @@
                                 </c:choose>
                             </div>
                         </div>
-                    </section>
+                    </section>-->
 
                     <!-- Task Management Section -->
                     <section id="task-management" class="content-section">

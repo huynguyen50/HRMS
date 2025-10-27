@@ -18,7 +18,7 @@ import jakarta.servlet.http.HttpServletResponse;
  *
  * @author DELL
  */
-@WebServlet(name="PostRecruitmentController", urlPatterns={"/PostRecruitmentController"})
+@WebServlet(name="PostRecruitmentController", urlPatterns={"/postRecruitment"})
 public class PostRecruitmentController extends HttpServlet {
 
     @Override
@@ -34,9 +34,13 @@ public class PostRecruitmentController extends HttpServlet {
         String Description = request.getParameter("description");
         String Requirement = request.getParameter("requirement");
         String Location = request.getParameter("location");
-        String Salary = request.getParameter("salary");
+        String SalaryRaw = request.getParameter("salary");
         
-        DAO.getInstance().setRecruitment(Title, Description, Title, Location, Salary);
+        double Salary = Double.parseDouble(SalaryRaw);
+        
+        DAO.getInstance().setRecruitment(Title, Description, Requirement, Location, Salary);
+        
+        response.sendRedirect(request.getContextPath() + "/Views/Success.jsp");
     }
 
     @Override
