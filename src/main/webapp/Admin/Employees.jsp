@@ -4,7 +4,6 @@
 <html>
     <head>
         <title>Employees - HRMS</title>
-        <link rel="stylesheet" href="Admin/css/Admin_home.css">
         <link rel="stylesheet" href="Admin/css/employees.css">
         <style>
             /* Add pagination styling */
@@ -134,7 +133,7 @@
                         <input type="text" name="search" placeholder="Search employees by name, email, position..." value="${searchKeyword != null ? searchKeyword : ''}">
                         <button type="submit">Search</button>
                         <% if (request.getAttribute("searchKeyword") != null && !((String)request.getAttribute("searchKeyword")).isEmpty()) { %>
-                            <a href="${pageContext.request.contextPath}/admin?action=employees">Clear</a>
+                        <a href="${pageContext.request.contextPath}/admin?action=employees">Clear</a>
                         <% } %>
                     </form>
                     <div class="top-bar-actions">
@@ -159,14 +158,14 @@
                 </header>
                 <div class="dashboard-content">
                     <% if (request.getAttribute("successMessage") != null) { %>
-                        <div class="alert alert-success">
-                            <%= request.getAttribute("successMessage") %>
-                        </div>
+                    <div class="alert alert-success">
+                        <%= request.getAttribute("successMessage") %>
+                    </div>
                     <% } %>
                     <% if (request.getAttribute("errorMessage") != null) { %>
-                        <div class="alert alert-error">
-                            <%= request.getAttribute("errorMessage") %>
-                        </div>
+                    <div class="alert alert-error">
+                        <%= request.getAttribute("errorMessage") %>
+                    </div>
                     <% } %>
 
                     <div class="page-header">
@@ -191,6 +190,7 @@
                         <select id="statusFilter" onchange="filterTable()">
                             <option value="">All Status</option>
                             <option value="active">Active</option>
+                            <option value="resigned">Resigned</option>
                             <option value="probation">Probation</option>
                             <option value="intern">Intern</option>
                         </select>
@@ -267,26 +267,26 @@
                                 
                                 if (currentPage > 1) {
                             %>
-                                <a href="${pageContext.request.contextPath}/admin?action=employees&page=<%= currentPage - 1 %><%= searchParam %>">Prev</a>
+                            <a href="${pageContext.request.contextPath}/admin?action=employees&page=<%= currentPage - 1 %><%= searchParam %>">Prev</a>
                             <% } else { %>
-                                <span class="disabled">Prev</span>
+                            <span class="disabled">Prev</span>
                             <% } %>
-                            
+
                             <%
                                 for (int i = 1; i <= totalPages; i++) {
                                     if (i == currentPage) {
                             %>
-                                <span class="active"><%= i %></span>
+                            <span class="active"><%= i %></span>
                             <% } else { %>
-                                <a href="${pageContext.request.contextPath}/admin?action=employees&page=<%= i %><%= searchParam %>"><%= i %></a>
+                            <a href="${pageContext.request.contextPath}/admin?action=employees&page=<%= i %><%= searchParam %>"><%= i %></a>
                             <% } } %>
-                            
+
                             <%
                                 if (currentPage < totalPages) {
                             %>
-                                <a href="${pageContext.request.contextPath}/admin?action=employees&page=<%= currentPage + 1 %><%= searchParam %>">Next</a>
+                            <a href="${pageContext.request.contextPath}/admin?action=employees&page=<%= currentPage + 1 %><%= searchParam %>">Next</a>
                             <% } else { %>
-                                <span class="disabled">Next</span>
+                            <span class="disabled">Next</span>
                             <% } %>
                         </div>
                     </div>
@@ -297,101 +297,96 @@
         <div id="employeeModal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 id="modalTitle">Add Employee</h2>
+                    <h2 id="modalTitle">Accept Intern as Employee</h2>
                     <span class="close-btn" onclick="closeModal()">&times;</span>
                 </div>
-                <form id="employeeForm" method="POST" action="${pageContext.request.contextPath}/admin?action=save-employee">
-                    <input type="hidden" id="employeeId" name="employeeId">
-                    
+                <!-- Replace form with dropdown to select intern -->
+                <form id="employeeForm" method="POST" action="${pageContext.request.contextPath}/admin?action=accept-intern">
                     <div class="form-group">
-                        <label for="fullName">Full Name *</label>
-                        <input type="text" id="fullName" name="fullName" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="gender">Gender *</label>
-                        <select id="gender" name="gender" required>
-                            <option value="">Select Gender</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email">Email *</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="phone">Phone</label>
-                        <input type="tel" id="phone" name="phone">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="address">Address</label>
-                        <input type="text" id="address" name="address">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="dob">Date of Birth</label>
-                        <input type="date" id="dob" name="dob">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="departmentId">Department *</label>
-                        <select id="departmentId" name="departmentId" required>
-                            <option value="">Select Department</option>
+                        <label for="internId">Select Intern to Accept *</label>
+                        <select id="internId" name="internId" required onchange="loadInternDetails()">
+                            <option value="">-- Choose an Intern --</option>
                             <%
-                                if (departments != null) {
-                                    for (Department dept : departments) {
+                                List<Employee> internEmployees = (List<Employee>) request.getAttribute("internEmployees");
+                                if (internEmployees != null && !internEmployees.isEmpty()) {
+                                    for (Employee intern : internEmployees) {
                             %>
-                            <option value="<%= dept.getDepartmentId() %>"><%= dept.getDeptName() %></option>
+                            <option value="<%= intern.getEmployeeId() %>">
+                                <%= intern.getFullName() %> - <%= intern.getPosition() %> (<%= intern.getDepartmentName() != null ? intern.getDepartmentName() : "N/A" %>)
+                            </option>
                             <%
                                     }
+                                } else {
+                            %>
+                            <option value="" disabled>No interns available</option>
+                            <%
                                 }
                             %>
                         </select>
                     </div>
 
-                    <div class="form-group">
-                        <label for="position">Position *</label>
-                        <input type="text" id="position" name="position" required>
+                    <!-- Display intern details -->
+                    <div id="internDetails" style="display: none; margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 4px;">
+                        <h3>Intern Details</h3>
+                        <p><strong>Email:</strong> <span id="detailEmail"></span></p>
+                        <p><strong>Position:</strong> <span id="detailPosition"></span></p>
+                        <p><strong>Department:</strong> <span id="detailDepartment"></span></p>
                     </div>
 
-                    <div class="form-group">
-                        <label for="employmentPeriod">Employment Period</label>
-                        <input type="text" id="employmentPeriod" name="employmentPeriod" placeholder="e.g., 2 years">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="status">Status *</label>
-                        <select id="status" name="status" required>
-                            <option value="">Select Status</option>
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label for="newStatus">Change Status To *</label>
+                        <select id="newStatus" name="newStatus" required>
+                            <option value="">Select New Status</option>
                             <option value="Active">Active</option>
                             <option value="Probation">Probation</option>
-                            <option value="Intern">Intern</option>
                         </select>
                     </div>
 
-                    <div class="form-actions"view>
+                    <div class="form-actions">
                         <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
-                        <button type="submit" class="btn-submit">Save</button>
+                        <button type="submit" class="btn-submit">Accept Intern</button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <script>
+  <script>
             function openAddModal() {
-                document.getElementById('modalTitle').textContent = 'Add Employee';
+                document.getElementById('modalTitle').textContent = 'Accept Intern as Employee';
                 document.getElementById('employeeForm').reset();
-                document.getElementById('employeeId').value = '';
+                document.getElementById('internDetails').style.display = 'none';
                 document.getElementById('employeeModal').classList.add('show');
             }
 
             function closeModal() {
                 document.getElementById('employeeModal').classList.remove('show');
+            }
+
+            function loadInternDetails() {
+                const internId = document.getElementById('internId').value;
+                if (!internId) {
+                    document.getElementById('internDetails').style.display = 'none';
+                    return;
+                }
+
+                // Get intern data from the dropdown option
+                const selectElement = document.getElementById('internId');
+                const selectedOption = selectElement.options[selectElement.selectedIndex];
+                
+                // Fetch full details via AJAX
+                fetch('${pageContext.request.contextPath}/admin?action=employee-get-data&id=' + internId)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            console.error('Error loading intern details:', data.error);
+                            return;
+                        }
+                        document.getElementById('detailEmail').textContent = data.email;
+                        document.getElementById('detailPosition').textContent = data.position;
+                        document.getElementById('detailDepartment').textContent = data.departmentName || 'N/A';
+                        document.getElementById('internDetails').style.display = 'block';
+                    })
+                    .catch(error => console.error('Error:', error));
             }
 
             function deleteEmployee(id) {
@@ -423,5 +418,6 @@
                 }
             }
         </script>
+
     </body>
 </html>

@@ -223,7 +223,7 @@
                         <select id="employeeId" name="employeeId" required>
                             <option value="">Select Employee</option>
                             <c:forEach var="employee" items="${employees}">
-                                <option value="${employee.employeeID}">${employee.fullName}</option>
+                                <option value="${employee.employeeId}">${employee.fullName}</option>
                             </c:forEach>
                         </select>
                     </div>
