@@ -1193,7 +1193,7 @@
                     </a>
                     <a href="#news" aria-label="Go to News section">
                         <i class="fas fa-newspaper" aria-hidden="true"></i>
-                        <span>News</span>
+                        <span>Recruitment</span>
                     </a>
                     <c:if test="${not empty sessionScope.systemUser}">
                         <div class="dashboard-dropdown">
