@@ -85,7 +85,7 @@ public class HomepageController extends HttpServlet {
                         response.sendRedirect(request.getContextPath() + "/admin?action=dashboard");
                         return;
                     case "hr":
-                        response.sendRedirect(request.getContextPath() + "/Views/hr/HrHome.jsp");
+                        response.sendRedirect(request.getContextPath() + "/ProfileManagementController");
                         return;
                     case "employee":
                         response.sendRedirect(request.getContextPath() + "/Views/Employee/EmployeeHome.jsp");
@@ -221,8 +221,8 @@ public class HomepageController extends HttpServlet {
                 access.setCanAccessHR(true);
                 access.setCanAccessEmployee(true);
                 access.setCanAccessGuest(true);
-                access.setAdminUrl("/admin?action=dashboard");
-                access.setHrUrl("/Views/hr/HrHome.jsp");
+                access.setAdminUrl("/admin");
+                access.setHrUrl("/ProfileManagementController");
                 access.setEmployeeUrl("/Views/Employee/EmployeeHome.jsp");
                 access.setGuestUrl("/Views/Homepage.jsp");
                 break;
@@ -232,7 +232,7 @@ public class HomepageController extends HttpServlet {
                 access.setCanAccessHR(true);
                 access.setCanAccessEmployee(true);
                 access.setCanAccessGuest(true);
-                access.setHrUrl("/Views/hr/HrHome.jsp");
+                access.setHrUrl("/ProfileManagementController");
                 access.setEmployeeUrl("/Views/Employee/EmployeeHome.jsp");
                 access.setGuestUrl("/Views/Homepage.jsp");
                 break;

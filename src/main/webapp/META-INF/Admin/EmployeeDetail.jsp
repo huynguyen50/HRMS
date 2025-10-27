@@ -5,7 +5,7 @@
     <head>
         <title>Employee Detail - HRMS</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/Admin_home.css">
-        <style>
+
             .detail-container {
                 max-width: 900px;
                 margin: 0 auto;
@@ -144,13 +144,20 @@
                 </div>
 
                 <div class="sidebar-nav">
-                    <a href="${pageContext.request.contextPath}/admin?action=dashboard" class="nav-item">Dashboard</a>
-                    <a href="${pageContext.request.contextPath}/admin?action=employees" class="nav-item active">Employees</a>
-                    <a href="${pageContext.request.contextPath}/admin?action=departments" class="nav-item">Departments</a>
-                    <a href="${pageContext.request.contextPath}/admin?action=users" class="nav-item">Users</a>
-                    <a href="${pageContext.request.contextPath}/admin?action=roles" class="nav-item">Roles</a>
-                    <a href="${pageContext.request.contextPath}/admin?action=audit-log" class="nav-item">Audit Log</a>
-                    <a href="${pageContext.request.contextPath}/admin?action=profile" class="nav-item">Profile</a>
+                    <a href="${pageContext.request.contextPath}/admin?action=dashboard"
+                       class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">🏠 Dashboard</a>
+                    <a href="${pageContext.request.contextPath}/admin?action=employees"
+                       class="nav-item ${activePage == 'employees' ? 'active' : ''}">👥 Employees</a>
+                    <a href="${pageContext.request.contextPath}/admin?action=departments"
+                       class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
+                    <a href="${pageContext.request.contextPath}/admin?action=users"
+                       class="nav-item ${activePage == 'users' ? 'active' : ''}">👤 Users</a>
+                    <a href="${pageContext.request.contextPath}/admin?action=roles"
+                       class="nav-item ${activePage == 'roles' ? 'active' : ''}">🔐 Roles</a>
+                    <a href="${pageContext.request.contextPath}/admin?action=audit-log"
+                       class="nav-item ${activePage == 'audit-log' ? 'active' : ''}">📜 Audit Log</a>
+                    <a href="${pageContext.request.contextPath}/admin?action=profile"
+                       class="nav-item ${activePage == 'profile' ? 'active' : ''}">⚙️ Profile</a>
                 </div>
             </aside>
 
@@ -194,6 +201,7 @@
 
                         <%
                             Employee employee = (Employee) request.getAttribute("employee");
+                            System.out.println("EmployeeDetail.jsp: Employee object: " + (employee != null ? employee.getFullName() : "null"));
                             if (employee != null) {
                         %>
 
@@ -278,6 +286,7 @@
                                         <select id="status" name="status" required>
                                             <option value="">Select Status</option>
                                             <option value="Active" <%= "Active".equals(employee.getStatus()) ? "selected" : "" %>>Active</option>
+                                            <option value="Resigned" <%= "Resigned".equals(employee.getStatus()) ? "selected" : "" %>>Resigned</option>
                                             <option value="Probation" <%= "Probation".equals(employee.getStatus()) ? "selected" : "" %>>Probation</option>
                                             <option value="Intern" <%= "Intern".equals(employee.getStatus()) ? "selected" : "" %>>Intern</option>
                                         </select>
