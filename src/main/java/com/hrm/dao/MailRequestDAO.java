@@ -1,3 +1,4 @@
+//
 ///*
 // * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
 // * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
@@ -5,7 +6,7 @@
 //package com.hrm.dao;
 //
 //import com.hrm.model.entity.MailRequest;
-//import com.hrm.util.DbConnection;
+//import com.hrm.dao.DBConnection;
 //import java.sql.*;
 //import java.util.*;
 //
@@ -16,7 +17,7 @@
 //            INSERT INTO MailRequest (EmployeeID, RequestType, StartDate, EndDate, Reason, Status)
 //            VALUES (?, ?, ?, ?, ?, 'Pending')
 //        """;
-//        try (Connection con = DbConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+//        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
 //            ps.setInt(1, r.getEmployeeId());
 //            ps.setString(2, r.getRequestType());
 //            ps.setObject(3, r.getStartDate());
@@ -31,7 +32,7 @@
 //
 //    public boolean updateStatus(int requestId, String status, int approverId) {
 //        String sql = "UPDATE MailRequest SET Status=?, ApprovedBy=? WHERE RequestID=?";
-//        try (Connection con = DbConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+//        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
 //            ps.setString(1, status);
 //            ps.setInt(2, approverId);
 //            ps.setInt(3, requestId);
@@ -45,7 +46,7 @@
 //    public List<MailRequest> getByEmployee(int empId) {
 //        List<MailRequest> list = new ArrayList<>();
 //        String sql = "SELECT * FROM MailRequest WHERE EmployeeID=?";
-//        try (Connection con = DbConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+//        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
 //            ps.setInt(1, empId);
 //            ResultSet rs = ps.executeQuery();
 //            while (rs.next()) {
@@ -65,3 +66,4 @@
 //        return list;
 //    }
 //}
+

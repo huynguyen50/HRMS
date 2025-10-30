@@ -19,9 +19,22 @@
         <div class="container">
             <!--left-->
             <div class="recruitmentContent">
-                <a href="Home.jsp"><button type="button" class="btn btn-primary">Back to home</button></a>
+                <a href="${pageContext.request.contextPath}/Views/Homepage.jsp"><button type="button" class="btn btn-primary">Back to home</button></a>
                 <h1>Welcome to our company</h1>
-                <div class="info-box">Recruitment information</div>
+                <div class="info-box">
+                    <c:choose>
+                        <c:when test="${not empty recruitment}">
+                            <h4>${recruitment.title}</h4>
+                            <p><strong>Description:</strong> ${recruitment.description}</p>
+                            <p><strong>Requirement:</strong> ${recruitment.requirement}</p>
+                            <p><strong>Location:</strong> ${recruitment.location}</p>
+                            <p><strong>Salary:</strong> ${recruitment.salary}</p>
+                        </c:when>
+                        <c:otherwise>
+                            <p>There is no recruitment now!</p>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
                 <a href="#">Recruit now</a>
             </div>
             <!--right-->
@@ -30,21 +43,24 @@
                     <input type="text" name="user" value="${username}" class="form-control" required="" autofocus="" placeholder="Username">
                     <input type="password" name="pass" value="${password}" class="form-control" required="" autofocus="" placeholder="Password">
                     <div class="remember-group">
-                        <input type="checkbox" name="rememberMe" value="1" id="exampleCheck" ${username != null ? "checked" : ""}>
+<input type="checkbox" name="rememberMe" value="1" id="exampleCheck" ${username != null ? "checked" : ""}>
                         <label for="exampleCheck">Remember me</label>
                     </div>                
                     <c:if test="${not empty mess}">
                         <p style="color: red; font-size: 20px;">${mess}</p>
                     </c:if>
                     <input type="submit" value="Login" class="submit">
-                    <a href="ForgotPassword.jsp">Forgot password?</a>
+                    <a href="${pageContext.request.contextPath}/Views/ForgotPassword.jsp">Forgot password?</a>
                     <hr class="divider">
                     <p class="login-or">Or</p>
-                    <button class="btn btn-danger d-flex align-items-center justify-content-center" style="gap:6px; font-weight:500;">
-                        <span>Login with Gmail</span>
-                        <i class="material-icons" style="font-size:20px;">mail</i>
-                    </button>
+                    
                 </form>
+                    <a href="https://accounts.google.com/o/oauth2/auth?scope=email%20pro…2sdrgc53oqd.apps.googleusercontent.com&approval_prompt=force">
+                        <button class="btn btn-danger d-flex align-items-center justify-content-center" style="gap:6px; font-weight:500;">
+                            <span>Login with Gmail</span>
+                            <i class="material-icons" style="font-size:20px;">mail</i>
+                        </button>
+                    </a>
             </div>
         </div>
     </body>

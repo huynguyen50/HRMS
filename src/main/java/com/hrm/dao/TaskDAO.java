@@ -1,70 +1,200 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.hrm.dao;
 
-import com.hrm.model.dto.TaskDTO;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import com.hrm.model.entity.Task;
+import java.sql.*;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TaskDAO {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TaskDAO.class);
+    public List<Task> getAll() {
+        List<Task> list = new ArrayList<>();
+        String sql = """
+            SELECT t.*, e1.FullName as AssignedByName, e2.FullName as AssignToName
+            FROM Task t 
+            LEFT JOIN Employee e1 ON t.AssignedBy = e1.EmployeeID
+            LEFT JOIN Employee e2 ON t.AssignTo = e2.EmployeeID
+            ORDER BY t.DueDate DESC
+        """;
 
-    public List<TaskDTO> findTasksToday() {
-        String sql = "SELECT t.task_id, t.title, t.description, t.assigned_by, t.assign_to,"
-                + " t.start_date, t.due_date, t.status, e.full_name AS assign_to_name"
-                + " FROM tasks t"
-                + " LEFT JOIN employees e ON e.employee_id = t.assign_to"
-                + " WHERE DATE(t.due_date) = CURRENT_DATE() OR DATE(t.start_date) = CURRENT_DATE()"
-                + " ORDER BY COALESCE(t.due_date, t.start_date) ASC";
-        return queryTasks(sql);
-    }
-
-    public List<TaskDTO> findTasksUpcoming() {
-        String sql = "SELECT t.task_id, t.title, t.description, t.assigned_by, t.assign_to,"
-                + " t.start_date, t.due_date, t.status, e.full_name AS assign_to_name"
-                + " FROM tasks t"
-                + " LEFT JOIN employees e ON e.employee_id = t.assign_to"
-                + " WHERE (t.start_date > CURRENT_DATE() OR t.due_date > CURRENT_DATE())"
-                + " ORDER BY COALESCE(t.start_date, t.due_date) ASC"
-                + " LIMIT 100";
-        return queryTasks(sql);
-    }
-
-    private List<TaskDTO> queryTasks(String sql) {
-        List<TaskDTO> tasks = new ArrayList<>();
         try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    TaskDTO dto = new TaskDTO();
-                    dto.setTaskId(rs.getInt("task_id"));
-                    dto.setTitle(rs.getString("title"));
-                    dto.setDescription(rs.getString("description"));
-                    dto.setAssignedBy((Integer) rs.getObject("assigned_by"));
-                    dto.setAssignTo((Integer) rs.getObject("assign_to"));
-                    dto.setAssignToName(rs.getString("assign_to_name"));
-                    Date start = (Date) rs.getObject("start_date");
-                    Date due = (Date) rs.getObject("due_date");
-                    dto.setStartDate(start);
-                    dto.setDueDate(due);
-                    dto.setStatus(rs.getString("status"));
-                    tasks.add(dto);
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Task task = new Task();
+                task.setTaskId(rs.getInt("TaskID"));
+                task.setTitle(rs.getString("Title"));
+                task.setDescription(rs.getString("Description"));
+                task.setAssignedBy(rs.getInt("AssignedBy"));
+                task.setAssignTo(rs.getInt("AssignTo"));
+                
+                if (rs.getDate("StartDate") != null) {
+                    task.setStartDate(rs.getDate("StartDate").toLocalDate());
                 }
+                
+                if (rs.getDate("DueDate") != null) {
+                    task.setDueDate(rs.getDate("DueDate").toLocalDate());
+                }
+                
+                task.setStatus(rs.getString("Status"));
+                list.add(task);
             }
         } catch (SQLException e) {
-            // log and return empty list
-            LOGGER.error("TaskDAO query failed", e);
+            e.printStackTrace();
         }
-        return tasks;
+        return list;
+    }
+
+    public Task getById(int id) {
+        String sql = "SELECT * FROM Task WHERE TaskID = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Task task = new Task();
+                task.setTaskId(rs.getInt("TaskID"));
+                task.setTitle(rs.getString("Title"));
+                task.setDescription(rs.getString("Description"));
+                task.setAssignedBy(rs.getInt("AssignedBy"));
+                task.setAssignTo(rs.getInt("AssignTo"));
+                
+                if (rs.getDate("StartDate") != null) {
+                    task.setStartDate(rs.getDate("StartDate").toLocalDate());
+                }
+                
+                if (rs.getDate("DueDate") != null) {
+                    task.setDueDate(rs.getDate("DueDate").toLocalDate());
+                }
+                
+                task.setStatus(rs.getString("Status"));
+                return task;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public boolean insert(Task task) {
+        String sql = """
+            INSERT INTO Task (Title, Description, AssignedBy, AssignTo, StartDate, DueDate, Status)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """;
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, task.getTitle());
+            ps.setString(2, task.getDescription());
+            ps.setInt(3, task.getAssignedBy());
+            ps.setInt(4, task.getAssignTo());
+            
+            if (task.getStartDate() != null) {
+                ps.setDate(5, Date.valueOf(task.getStartDate()));
+            } else {
+                ps.setDate(5, new Date(System.currentTimeMillis())); // Current date
+            }
+            
+            if (task.getDueDate() != null) {
+                ps.setDate(6, Date.valueOf(task.getDueDate()));
+            } else {
+                ps.setNull(6, Types.DATE);
+            }
+            
+            ps.setString(7, task.getStatus());
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean update(Task task) {
+        String sql = """
+            UPDATE Task SET Title=?, Description=?, AssignedBy=?, AssignTo=?, 
+                          StartDate=?, DueDate=?, Status=? 
+            WHERE TaskID=?
+        """;
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, task.getTitle());
+            ps.setString(2, task.getDescription());
+            ps.setInt(3, task.getAssignedBy());
+            ps.setInt(4, task.getAssignTo());
+            
+            if (task.getStartDate() != null) {
+                ps.setDate(5, Date.valueOf(task.getStartDate()));
+            } else {
+                ps.setNull(5, Types.DATE);
+            }
+            
+            if (task.getDueDate() != null) {
+                ps.setDate(6, Date.valueOf(task.getDueDate()));
+            } else {
+                ps.setNull(6, Types.DATE);
+            }
+            
+            ps.setString(7, task.getStatus());
+            ps.setInt(8, task.getTaskId());
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean delete(int id) {
+        String sql = "DELETE FROM Task WHERE TaskID = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public List<Task> getTasksByEmployee(int employeeId) {
+        List<Task> list = new ArrayList<>();
+        String sql = "SELECT * FROM Task WHERE AssignTo = ? ORDER BY DueDate DESC";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, employeeId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                Task task = new Task();
+                task.setTaskId(rs.getInt("TaskID"));
+                task.setTitle(rs.getString("Title"));
+                task.setDescription(rs.getString("Description"));
+                task.setAssignedBy(rs.getInt("AssignedBy"));
+                task.setAssignTo(rs.getInt("AssignTo"));
+                
+                if (rs.getDate("StartDate") != null) {
+                    task.setStartDate(rs.getDate("StartDate").toLocalDate());
+                }
+                
+                if (rs.getDate("DueDate") != null) {
+                    task.setDueDate(rs.getDate("DueDate").toLocalDate());
+                }
+                
+                task.setStatus(rs.getString("Status"));
+                list.add(task);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }
+
+
+
