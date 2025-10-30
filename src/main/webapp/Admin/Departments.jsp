@@ -260,7 +260,7 @@
                        class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">🏠 Dashboard</a>
                     <a href="${pageContext.request.contextPath}/admin?action=employees"
                        class="nav-item ${activePage == 'employees' ? 'active' : ''}">👥 Employees</a>
-                    <a href="${pageContext.request.contextPath}/admin?action=departments"
+                    <a href="${pageContext.request.contextPath}/departments?action=departments" 
                        class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
                     <a href="${pageContext.request.contextPath}/admin?action=users"
                        class="nav-item ${activePage == 'users' ? 'active' : ''}">👤 Users</a>
@@ -277,13 +277,13 @@
                 <!-- Top Bar -->
                 <header class="top-bar">
                     <div class="search-form">
-                        <form method="GET" action="${pageContext.request.contextPath}/admin">
+                        <form method="GET" action="${pageContext.request.contextPath}/departments">
                             <input type="hidden" name="action" value="departments">
                             <input type="text" name="search" placeholder="Search departments..." 
                                    value="${not empty searchKeyword ? searchKeyword : ''}" />
                             <button type="submit">Search</button>
                             <c:if test="${not empty searchKeyword}">
-                                <a href="${pageContext.request.contextPath}/admin?action=departments">Clear</a>
+                                <a href="${pageContext.request.contextPath}/departments?action=departments">Clear</a>
                             </c:if>
                         </form>
                     </div>

@@ -52,7 +52,7 @@ public class Department implements Serializable {
         this.deptManagerId = deptManagerId;
     }
 
-    public Integer getDEmployeeCount() {
+    public Integer getEmployeeCount() {
         return employeeCount;
     }
 
