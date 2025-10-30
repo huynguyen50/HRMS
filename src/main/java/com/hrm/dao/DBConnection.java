@@ -3,41 +3,52 @@ package com.hrm.dao;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.io.InputStream;
-import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public final class DBConnection {
+public class DBConnection {
 
-    DBConnection() {
-        throw new UnsupportedOperationException("Utility class");
+    // --- Thông tin kết nối Database ---
+    private static final String URL = "jdbc:mysql://localhost:3306/hrm_db";
+    private static final String USER = "root";
+    private static final String PASSWORD = "Hahahaha2%";
+
+    /**
+     * Phương thức chính để lấy kết nối JDBC.
+     */
+    public static Connection getJDBCConnection() {
+        try {
+            // Nạp driver MySQL
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            // Tạo kết nối và trả về
+            return DriverManager.getConnection(URL, USER, PASSWORD);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(DBConnection.class.getName()).log(Level.SEVERE, "Không tìm thấy Driver JDBC!", ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(DBConnection.class.getName()).log(Level.SEVERE, "Lỗi kết nối database!", ex);
+        }
+        return null;
     }
 
-    public static Connection getConnection() throws SQLException {
-        Properties props = new Properties();
+    /**
+     * Phương thức tiện ích được DAO gọi (giống như alias).
+     */
+    public static Connection getConnection() {
+        return getJDBCConnection();
+    }
 
-        // ✅ Thử đọc file db.properties, nếu không có thì dùng cấu hình mặc định
-        try (InputStream input = DBConnection.class.getClassLoader().getResourceAsStream("db.properties")) {
-            if (input != null) {
-                props.load(input);
+    /**
+     * Dùng để test riêng file kết nối này.
+     */
+    public static void main(String[] args) {
+        try (Connection conn = getConnection()) {
+            if (conn != null) {
+                System.out.println("Check: Connection created successfully.");
             } else {
-                System.out.println("⚠️ Không tìm thấy file db.properties, dùng cấu hình mặc định.");
-                props.setProperty("db.url", "jdbc:mysql://localhost:3306/hrm_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC");
-                props.setProperty("db.user", "root");
-                props.setProperty("db.password", "Hahahaha2%");
+                System.out.println("Check: Connection not created.");
             }
-        } catch (Exception e) {
-            throw new SQLException("Lỗi khi đọc file db.properties", e);
-        }
-
-        String url = props.getProperty("db.url");
-        String user = props.getProperty("db.user");
-        String password = props.getProperty("db.password");
-
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            return DriverManager.getConnection(url, user, password);
-        } catch (ClassNotFoundException e) {
-            throw new SQLException("Không tìm thấy MySQL JDBC Driver", e);
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
     }
 }

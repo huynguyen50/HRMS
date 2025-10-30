@@ -26,7 +26,7 @@
             </div>
             <!--right-->
             <div id="logreg-forms"> 
-                <form class="form-signin" action="/HRMS/login" method="post">
+                <form class="form-signin" action="${pageContext.request.contextPath}/login" method="post">
                     <input type="text" name="user" value="${username}" class="form-control" required="" autofocus="" placeholder="Username">
                     <input type="password" name="pass" value="${password}" class="form-control" required="" autofocus="" placeholder="Password">
                     <div class="remember-group">
