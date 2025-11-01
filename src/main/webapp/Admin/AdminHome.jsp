@@ -1,3 +1,4 @@
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
@@ -20,10 +21,6 @@
                     </div>
                 </div>
                 
-                <div class="sidebar-nav">
-                <a href="${pageContext.request.contextPath}/homepage" class="btn-homepage" title="Back to Homepage">
-                            <i class="fas fa-home"></i>
-                            <span>Homepage</span>
                 <div class="sidebar-nav">
                     <a href="${pageContext.request.contextPath}/admin?action=dashboard"
                        class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">🏠 Dashboard</a>
@@ -152,8 +149,8 @@
                                     <c:when test="${not empty recentActivity}">
                                         <c:forEach var="activity" items="${recentActivity}">
                                             <div class="activity-item">
-                                                <span class="activity-time"><fmt:formatDate value="${activity.Timestamp}" pattern="MMM dd, HH:mm"/></span>
-                                                <span class="activity-text">${activity.Action} - ${activity.ObjectType}: ${activity.NewValue}</span>
+                                                    <span class="activity-time">${activity.timestamp.month} ${activity.timestamp.dayOfMonth}, ${String.format('%02d', activity.timestamp.hour)}:${String.format('%02d', activity.timestamp.minute)}</span>
+                                                <span class="activity-text">${activity.action} - ${activity.objectType}: ${activity.newValue}</span>
                                             </div>
                                         </c:forEach>
                                     </c:when>

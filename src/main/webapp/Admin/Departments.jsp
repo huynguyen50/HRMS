@@ -5,8 +5,9 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Department Management - HRMS</title>
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/department.css">
+    <title>Department Management - HRMS</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/department.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/pagination.css">
  
     </head>
     <style>
@@ -123,52 +124,7 @@
             gap: 15px;
         }
 
-            .pagination-bar {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-top: 20px;
-                padding: 15px;
-                background-color: #f8f9fa;
-                border-radius: 4px;
-            }
-
-            .pagination-info {
-                font-size: 14px;
-                color: #666;
-            }
-
-            .pagination-controls {
-                display: flex;
-                gap: 5px;
-            }
-
-            .pagination-controls a,
-            .pagination-controls span {
-                padding: 8px 12px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                text-decoration: none;
-                color: #5b6ef5;
-                cursor: pointer;
-                font-size: 14px;
-            }
-
-            .pagination-controls a:hover {
-                background-color: #f0f0f0;
-            }
-
-            .pagination-controls span.active {
-                background-color: #5b6ef5;
-                color: white;
-                border-color: #5b6ef5;
-            }
-
-            .pagination-controls a.disabled {
-                color: #ccc;
-                cursor: not-allowed;
-                pointer-events: none;
-            }
+            /* pagination styles moved to Admin/css/pagination.css */
 
         .top-bar select {
             padding: 6px 10px;
