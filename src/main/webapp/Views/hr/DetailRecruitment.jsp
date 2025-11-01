@@ -1,12 +1,17 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%-- 
+    Document   : DetailRecruitment
+    Created on : Oct 30, 2025, 11:54:21 AM
+    Author     : DELL
+--%>
+
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>HRM - Manage Recruitment Posts</title>
+        <title>HRM - Edit Recruitment</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -349,36 +354,6 @@
                 min-height: 60vh;
                 padding: 40px 0;
             }
-
-            /* Custom styles for recruitment list */
-            .recruitment-list-item {
-                border-left: 4px solid var(--primary-color);
-                transition: all 0.3s ease;
-            }
-            .recruitment-list-item:hover {
-                transform: translateY(-3px);
-                box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-                border-left-color: var(--accent-color);
-            }
-            .recruitment-title {
-                color: var(--dark-color);
-                font-weight: 600;
-            }
-            .recruitment-meta {
-                font-size: 0.9rem;
-                color: var(--text-muted);
-            }
-            .action-btn-custom {
-                text-decoration: none;
-                padding: 0.4rem 0.8rem;
-                border-radius: 5px;
-                font-size: 0.9rem;
-                transition: all 0.2s ease;
-            }
-            .action-btn-custom:hover {
-                text-decoration: none;
-                transform: translateY(-1px);
-            }
         </style>
     </head>
     <body>
@@ -467,137 +442,72 @@
         <!-- MAIN CONTENT AREA -->
         <main class="main-content-area">
             <div class="container">
-                <!-- Tiêu đề trang -->
+                <!-- Nút Back và Tiêu đề trang -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="h2">Manage Recruitment Posts</h1>
-                    <a href="${pageContext.request.contextPath}/Views/hr/CreateNewRecruitment.jsp" class="btn btn-success">
-                        <i class="fas fa-plus-circle me-1"></i> Create New
+                    <h1 class="h2">Edit Recruitment Details</h1>
+                    <a href="${pageContext.request.contextPath}/postRecruitments" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to List
                     </a>
                 </div>
 
-                <!-- FORM TÌM KIẾM VÀ LỌC -->
-                <div class="card mb-4">
+                <!-- FORM CHỈNH SỬA -->
+                <div class="card">
                     <div class="card-body">
-                        <form action="${pageContext.request.contextPath}/postRecruitments" method="GET" class="row g-3 align-items-end">
-                            <!-- Cột tìm kiếm theo Title -->
-                            <div class="col-md-3">
-                                <label class="form-label">Search by Title</label>
-                                <input type="text" class="form-control" name="searchByTitle" placeholder="Enter title..." value="${param.searchByTitle}">
+                        <form action="${pageContext.request.contextPath}/detailRecruitment" method="post">
+                            <input type="hidden" name="id" value="${rec.recruitmentId}">
+
+                            <div class="mb-3">
+                                <label for="titleInput" class="form-label">Title</label>
+                                <input type="text" class="form-control" id="titleInput" name="Title" value="${rec.title}" placeholder="Enter recruitment title" maxlength="50" required>
                             </div>
 
-                            <!-- Cột lọc theo trạng thái -->
-                            <div class="col-md-2">
-                                <label class="form-label">Status</label>
-                                <select class="form-select" id="filterStatus" name="filterStatus">
-                                    <option value="">All</option>
-                                    <option value="New" <c:if test="${param.filterStatus eq 'New'}">selected</c:if>>New</option>
-                                    <option value="Waiting" <c:if test="${param.filterStatus eq 'Waiting'}">selected</c:if>>Waiting</option>
-                                    <option value="Closed" <c:if test="${param.filterStatus eq 'Closed'}">selected</c:if>>Closed</option>
-                                    </select>
+                            <div class="mb-3">
+                                <label for="descriptionInput" class="form-label">Description</label>
+                                <textarea class="form-control" id="descriptionInput" name="Description" placeholder="Enter detailed description" maxlength="1000" rows="5" required>${rec.description}</textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="requirementInput" class="form-label">Requirement</label>
+                                <input type="text" class="form-control" id="requirementInput" name="Requirement" value="${rec.requirement}" placeholder="Enter key requirements" maxlength="50" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="locationInput" class="form-label">Location</label>
+                                <input type="text" class="form-control" id="locationInput" name="Location" value="${rec.location}" placeholder="Enter job location" maxlength="50" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="locationInput" class="form-label">Applicant</label>
+                                <input type="number" class="form-control" id="applicantInput" name="Applicant" value="${rec.applicant}" placeholder="Enter job applicant" step="1" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="salaryInput" class="form-label">Salary</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="salaryInput" name="Salary" value="${rec.salary}" placeholder="Enter salary" step="10000" required>
+                                    <span class="input-group-text">đ</span>
                                 </div>
-
-                                <!-- Cột ngày bắt đầu -->
-                                <div class="col-md-2">
-                                    <label class="form-label">Start Date</label>
-                                    <input type="date" class="form-control" id="startDate" name="startDate" value="${param.startDate}">
                             </div>
-
-                            <!-- Cột ngày kết thúc -->
-                            <div class="col-md-2">
-                                <label class="form-label">End Date</label>
-                                <input type="date" class="form-control" id="endDate" name="endDate" value="${param.endDate}">
-                            </div>
-
-                            <!-- Cột nút Apply -->
-                            <div class="col-md-auto d-flex gap-2">
+                            <c:if test="${not empty mess}">
+                                <p style="color: red; font-size: 20px;">${mess}</p>
+                            </c:if>            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-filter me-1"></i> Apply Filter
+                                    <i class="fas fa-save me-1"></i> Save Changes
                                 </button>
-                                <!-- Nút Clear dùng thẻ a -->
-                                <a href="${pageContext.request.contextPath}/postRecruitments" class="btn btn-secondary">
-                                    <i class="fas fa-times me-1"></i> Clear
-                                </a>
+
+                                <form action="${pageContext.request.contextPath}/detailRecruitment" method="post" style="display: inline;">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="id" value="${rec.recruitmentId}">
+                                    <button type="submit" class="btn btn-danger" 
+                                            onclick="return confirm('Are you sure you want to delete this recruitment post? This action cannot be undone.');">
+                                        <i class="fas fa-trash-alt me-1"></i> Delete
+                                    </button>
+                                </form>
                             </div>
                         </form>
                     </div>
                 </div>
-                <!-- KẾT THÚC FORM -->
-
-                <!-- DANH SÁCH TUYỂN DỤNG -->
-                <c:if test="${not empty recruitment}">
-                    <c:forEach var="rec" items="${recruitment}">
-                        <div class="card mb-3 recruitment-list-item">
-                            <div class="card-body">
-                                <div class="row align-items-center">
-                                    <div class="col-md-8">
-                                        <h5 class="card-title recruitment-title">${rec.title}</h5>
-                                        <p class="card-text recruitment-meta">
-                                            <i class="far fa-calendar-alt me-1"></i> Posted on: value="${rec.postedDate}"
-                                            <span class="mx-2">|</span>
-                                            <i class="fas fa-info-circle me-1"></i> Status: <span class="badge bg-info text-dark">${rec.status}</span>
-                                            <span class="mx-2">|</span>
-                                            <i class="fas fa-users me-1"></i> Applicants: ${rec.applicant}
-                                        </p>
-                                    </div>
-                                    <div class="col-md-4 text-end">
-                                        <a href="${pageContext.request.contextPath}/detailRecruitment?id=${rec.recruitmentId}" class="action-btn-custom btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye me-1"></i> View
-                                        </a>
-                                        <a href="${pageContext.request.contextPath}/postRecruitments?action=send&id=${rec.recruitmentId}" 
-                                           class="action-btn-custom btn btn-sm btn-outline-success ms-2"
-                                           onclick="return confirm('Do you want to send this recruitment? This action cannot be undone.');">
-                                            <i class="fas fa-paper-plane me-1"></i> Send
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </c:forEach>
-                </c:if>
-
-                <c:if test="${empty recruitment}">
-                    <div class="alert alert-warning text-center" role="alert">
-                        <i class="fas fa-exclamation-triangle me-2"></i> No recruitment posts found.
-                    </div>
-                </c:if>
-
-                <!-- PHÂN TRANG -->
-                <c:if test="${totalPages > 1}">
-                    <nav aria-label="Page navigation" class="mt-4">
-                        <ul class="pagination justify-content-center">
-                            <c:if test="${currentPage > 1}">
-                                <li class="page-item">
-                                    <a class="page-link" href="${pageContext.request.contextPath}/postRecruitments?page=${currentPage - 1}&searchByTitle=${searchByTitle}&filterStatus=${filterStatus}&startDate=${startDate}&endDate=${endDate}" aria-label="Previous">
-                                        <span aria-hidden="true">&laquo;</span>
-                                    </a>
-                                </li>
-                            </c:if>
-
-                            <c:forEach begin="1" end="${totalPages}" var="i">
-                                <c:choose>
-                                    <c:when test="${currentPage == i}">
-                                        <li class="page-item active" aria-current="page">
-                                            <span class="page-link">${i}</span>
-                                        </li>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <li class="page-item">
-                                            <a class="page-link" href="${pageContext.request.contextPath}/postRecruitments?page=${i}&searchByTitle=${searchByTitle}&filterStatus=${filterStatus}&startDate=${startDate}&endDate=${endDate}">${i}</a>
-                                        </li>
-                                    </c:otherwise>
-                                </c:choose>
-                            </c:forEach>
-
-                            <c:if test="${currentPage < totalPages}">
-                                <li class="page-item">
-                                    <a class="page-link" href="${pageContext.request.contextPath}/postRecruitments?page=${currentPage + 1}&searchByTitle=${searchByTitle}&filterStatus=${filterStatus}&startDate=${startDate}&endDate=${endDate}" aria-label="Next">
-                                        <span aria-hidden="true">&raquo;</span>
-                                    </a>
-                                </li>
-                            </c:if>
-                        </ul>
-                    </nav>
-                </c:if>
             </div>
         </main>
 
@@ -636,32 +546,25 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-       // Copy các hàm JS cần thiết từ trang mẫu
-       function handleLogout() {
-           if (confirm('Are you sure you want to logout?')) {
-               window.location.href = '${pageContext.request.contextPath}/logout';
-           }
-       }
-       function toggleProfileDropdown() {
-           const dropdown = document.getElementById('profileDropdown');
-           if (dropdown) {
-               dropdown.classList.toggle('show');
-           }
-       }
-       document.addEventListener('click', function (event) {
-           const profileDropdown = document.getElementById('profileDropdown');
-           const profileAvatar = document.querySelector('.profile-avatar');
-           if (profileDropdown && profileAvatar && !profileAvatar.contains(event.target) && !profileDropdown.contains(event.target)) {
-               profileDropdown.classList.remove('show');
-           }
-       });
-       function performSearch() {
-           // Placeholder function for search
-           const searchInput = document.getElementById('searchInput');
-           if (searchInput) {
-               alert('Search functionality for "' + searchInput.value + '" is not yet implemented.');
-           }
-       }
+                    // Copy các hàm JS cần thiết từ trang mẫu
+                    function handleLogout() {
+                        if (confirm('Are you sure you want to logout?')) {
+                            window.location.href = '${pageContext.request.contextPath}/logout';
+                        }
+                    }
+                    function toggleProfileDropdown() {
+                        const dropdown = document.getElementById('profileDropdown');
+                        if (dropdown) {
+                            dropdown.classList.toggle('show');
+                        }
+                    }
+                    document.addEventListener('click', function (event) {
+                        const profileDropdown = document.getElementById('profileDropdown');
+                        const profileAvatar = document.querySelector('.profile-avatar');
+                        if (profileDropdown && profileAvatar && !profileAvatar.contains(event.target) && !profileDropdown.contains(event.target)) {
+                            profileDropdown.classList.remove('show');
+                        }
+                    });
         </script>
     </body>
 </html>

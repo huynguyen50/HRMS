@@ -75,7 +75,7 @@ public class HomepageController extends HttpServlet {
                 // Get user role and permissions
                 Role userRole = getUserRole(currentUser.getRoleId());
                 request.setAttribute("userRole", userRole);
-                DashboardAccess dashboardAccess = getDashboardAccess(userRole);
+DashboardAccess dashboardAccess = getDashboardAccess(userRole);
                 request.setAttribute("dashboardAccess", dashboardAccess);
                 
                 // Redirect to appropriate dashboard based on role
@@ -139,7 +139,7 @@ public class HomepageController extends HttpServlet {
                 try (PreparedStatement stmt = conn.prepareStatement(taskQuery);
                      ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        stats.setTotalProjects(rs.getInt("total"));
+stats.setTotalProjects(rs.getInt("total"));
                     }
                 }
                 
@@ -218,7 +218,7 @@ public class HomepageController extends HttpServlet {
         switch (roleName) {
             case "admin":
                 access.setCanAccessAdmin(true);
-                access.setCanAccessHR(true);
+access.setCanAccessHR(true);
                 access.setCanAccessEmployee(true);
                 access.setCanAccessGuest(true);
                 access.setAdminUrl("/admin?action=dashboard");
@@ -290,7 +290,7 @@ public class HomepageController extends HttpServlet {
         public void setCanAccessEmployee(boolean canAccessEmployee) { this.canAccessEmployee = canAccessEmployee; }
         
         public boolean isCanAccessGuest() { return canAccessGuest; }
-        public void setCanAccessGuest(boolean canAccessGuest) { this.canAccessGuest = canAccessGuest; }
+public void setCanAccessGuest(boolean canAccessGuest) { this.canAccessGuest = canAccessGuest; }
         
         public String getAdminUrl() { return adminUrl; }
         public void setAdminUrl(String adminUrl) { this.adminUrl = adminUrl; }
@@ -362,9 +362,8 @@ public class HomepageController extends HttpServlet {
         
         public String getType() { return type; }
         public void setType(String type) { this.type = type; }
-    } 
-
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    }
+// <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /** 
      * Handles the HTTP <code>GET</code> method.
      * @param request servlet request

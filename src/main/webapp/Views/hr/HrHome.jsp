@@ -784,7 +784,7 @@
                         
                         <div class="nav-section">
                             <h3>Recruitment</h3>
-                            <a href="${pageContext.request.contextPath}/Views/hr/PostRecruitment.jsp" class="nav-item">
+                            <a href="${pageContext.request.contextPath}/postRecruitments" class="nav-item">
                                 <i class="fas fa-bullhorn"></i>
                                 <span>Post Recruitment</span>
                             </a>

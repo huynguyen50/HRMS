@@ -81,8 +81,7 @@ public class RecruitmentController extends HttpServlet {
             // Lấy 3 tin tuyển dụng mới nhất
             var recruitments = recruitmentDAO.getLatestThree();
             request.setAttribute("recruitments", recruitments);
-            
-            RequestDispatcher dispatcher = request.getRequestDispatcher("/Views/Recruitment.jsp");
+RequestDispatcher dispatcher = request.getRequestDispatcher("/Views/Recruitment.jsp");
             dispatcher.forward(request, response);
         } catch (Exception e) {
             e.printStackTrace();
@@ -140,8 +139,7 @@ public class RecruitmentController extends HttpServlet {
                 String cvFileName = null;
                 Part cvFilePart = request.getPart("cvFile");
                 System.out.println("CV File Part: " + (cvFilePart != null ? "Found" : "Not found"));
-                
-                if (cvFilePart != null && cvFilePart.getSize() > 0) {
+if (cvFilePart != null && cvFilePart.getSize() > 0) {
                     System.out.println("File size: " + cvFilePart.getSize() + " bytes");
                     String originalFileName = getFileName(cvFilePart);
                     System.out.println("Original filename: " + originalFileName);
@@ -194,7 +192,7 @@ public class RecruitmentController extends HttpServlet {
                 
                 if (insertResult) {
                     System.out.println("Redirecting to success page");
-                    response.sendRedirect("Views/Success.jsp");
+response.sendRedirect("Views/Success.jsp");
                 } else {
                     System.out.println("Insert failed!");
                     request.setAttribute("error", "Có lỗi xảy ra khi nộp đơn. Vui lòng thử lại!");
@@ -264,7 +262,7 @@ public class RecruitmentController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        processRequest(request, response);
+processRequest(request, response);
     } 
 
     /** 

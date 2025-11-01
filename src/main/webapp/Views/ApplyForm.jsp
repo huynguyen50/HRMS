@@ -118,7 +118,7 @@
         .form-group input[type="file"] {
             width: 100%;
             padding: 0.8rem;
-            border: 2px solid #e9ecef;
+border: 2px solid #e9ecef;
             border-radius: 8px;
             font-size: 1rem;
             transition: border-color 0.3s ease;
@@ -240,7 +240,7 @@
         .alert {
             padding: 1rem;
             margin: 1rem 0;
-            border-radius: 8px;
+border-radius: 8px;
             font-weight: 500;
         }
 
@@ -328,7 +328,7 @@
             <form action="RecruitmentController" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="submitApplication">
                 <% if (recruitment != null) { %>
-                <input type="hidden" name="recruitmentId" value="<%= recruitment.getRecruitmentId() %>">
+<input type="hidden" name="recruitmentId" value="<%= recruitment.getRecruitmentId() %>">
                 <% } %>
 
                 <div class="form-group">
@@ -383,7 +383,7 @@
         document.getElementById('cvFile').addEventListener('change', function(e) {
             const file = e.target.files[0];
             const fileInfo = document.getElementById('fileInfo');
-            const fileName = document.getElementById('fileName');
+const fileName = document.getElementById('fileName');
             const fileSize = document.getElementById('fileSize');
             const fileType = document.getElementById('fileType');
 
@@ -454,7 +454,7 @@
             }
 
             // Simple email validation
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 alert('Vui lòng nhập email hợp lệ');
                 e.preventDefault();

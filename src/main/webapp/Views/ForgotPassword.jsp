@@ -16,7 +16,7 @@
     <body>
         <div class="finding-forms">
             <a href="Login.jsp"><button type="button" class="btn btn-primary"> Back </button></a>
-            <form class="form-find" action="/HRMS/ForgotPassword" method="post">
+            <form class="form-find" action="${pageContext.request.contextPath}/ForgotPassword" method="post">
                 <h1 class="page-title">Find your account</h1>
                 <hr class="divider">
                 <h3 class="page-subtitle">Please enter your email to find your account</h3>

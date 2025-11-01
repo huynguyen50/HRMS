@@ -15,8 +15,8 @@
     </head>
     <body>
         <div class="finding-forms">
-            <a href="Home.jsp"><button type="button" class="btn btn-primary">Back to home</button></a>
-            <form class="form-find" action="HRMS/changepass" method="post">
+            <a href="${pageContext.request.contextPath}/Views/Homepage.jsp"><button type="button" class="btn btn-primary">Back to home</button></a>
+            <form class="form-find" action="${pageContext.request.contextPath}/changepass" method="post">
                 <h1 class="page-title">Change your password</h1>
                 <hr class="divider">
                 <input type="password" value="" required="" placeholder="Current password" name="curPass" class="input-email">
@@ -24,7 +24,7 @@
                 <input type="password" value="" required="" placeholder="Confirm password" name="confirmPass" class="input-email">
                 <c:if test="${not empty mess}">
                     <p style="color: red; font-size: 20px;">${mess}</p>
-                    </c:if>
+                </c:if>
                 <input type="submit" value="Save" class="submit">
             </form>
         </div>

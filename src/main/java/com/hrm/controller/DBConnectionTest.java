@@ -62,8 +62,7 @@ public class DBConnectionTest extends HttpServlet {
                     // Test query
                     Statement stmt = conn.createStatement();
                     ResultSet rs = stmt.executeQuery("SELECT COUNT(*) as total FROM Employee");
-                    
-                    if (rs.next()) {
+if (rs.next()) {
                         int employeeCount = rs.getInt("total");
                         out.println("<div class='info'>");
                         out.println("<h3>📊 Database Data Check</h3>");
@@ -114,8 +113,7 @@ public class DBConnectionTest extends HttpServlet {
                     out.println("</ul>");
                     out.println("</div>");
                 }
-                
-            } catch (Exception e) {
+} catch (Exception e) {
                 out.println("<div class='error'>");
                 out.println("<h3>❌ Database Error!</h3>");
                 out.println("<p>Error: " + e.getMessage() + "</p>");
@@ -129,6 +127,3 @@ public class DBConnectionTest extends HttpServlet {
         }
     }
 }
-
-
-
