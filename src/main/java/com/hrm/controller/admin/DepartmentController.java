@@ -3,7 +3,13 @@ package com.hrm.controller.admin;
 import com.hrm.dao.*;
 import com.hrm.model.entity.*;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.sql.SQLException;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -82,15 +88,11 @@ public class DepartmentController extends HttpServlet {
         }
 
         String searchKeyword = request.getParameter("search");
-        String departmentIdStr = request.getParameter("departmentId");
-        String timeRange = request.getParameter("timeRange");
-        
-        int departmentId = 0;
-        try {
-            if (departmentIdStr != null && !departmentIdStr.isEmpty()) {
-                departmentId = Integer.parseInt(departmentIdStr);
-            }
-        } catch (NumberFormatException ignore) {}
+        String status = request.getParameter("status");
+        String sortBy = request.getParameter("sortBy");
+
+        // Convert status parameter
+        String effectiveStatus = (status != null && !status.isEmpty()) ? status : "all";
         
         List<Department> departmentList;
 
@@ -107,25 +109,107 @@ public class DepartmentController extends HttpServlet {
             int total = 0;
             int offset = (page - 1) * pageSize;
             
+            // Build the SQL query based on filters
+            StringBuilder sqlCount = new StringBuilder(
+                "SELECT COUNT(*) as total FROM department d WHERE 1=1"
+            );
+            
+            StringBuilder sql = new StringBuilder(
+                "SELECT d.*, COUNT(e.EmployeeID) as emp_count " +
+                "FROM department d " +
+                "LEFT JOIN employee e ON d.DepartmentID = e.DepartmentID " +
+                "WHERE 1=1"
+            );
+            
+            // Add status filter
+            if (!"all".equals(effectiveStatus)) {
+                String statusCondition = " AND d.Status = '" + effectiveStatus + "'";
+                sqlCount.append(statusCondition);
+                sql.append(statusCondition);
+            }
+            
+            // Add search filter
             if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
-                total = departmentDAO.searchDepartmentsCount(searchKeyword);
-                departmentList = departmentDAO.searchDepartmentsPaged(searchKeyword, offset, pageSize);
-            } else if (departmentId > 0 && (timeRange == null || timeRange.isEmpty())) {
-                // Filter by department only
-                total = departmentDAO.getCountByDepartment(departmentId);
-                departmentList = departmentDAO.getPagedByDepartment(departmentId, offset, pageSize);
-            } else if ((departmentId == 0 || departmentId <= 0) && timeRange != null && !timeRange.isEmpty()) {
-                // Filter by time range only
-                total = departmentDAO.getCountByTimeRange(timeRange);
-                departmentList = departmentDAO.getPagedByTimeRange(timeRange, offset, pageSize);
-            } else if (departmentId > 0 && timeRange != null && !timeRange.isEmpty()) {
-                // Filter by both department and time range
-                total = departmentDAO.getCountByDepartmentAndTimeRange(departmentId, timeRange);
-                departmentList = departmentDAO.getPagedByDepartmentAndTimeRange(departmentId, timeRange, offset, pageSize);
+                String searchCondition = " AND d.DeptName LIKE '%" + searchKeyword.trim() + "%'";
+                sqlCount.append(searchCondition);
+                sql.append(searchCondition);
+            }
+            
+            sql.append(" GROUP BY d.DepartmentID ");
+            
+            // Add sorting
+            sql.append(" ORDER BY ");
+            if (sortBy != null && !sortBy.isEmpty()) {
+                switch (sortBy) {
+                    case "name":
+                        sql.append("d.DeptName ASC");
+                        break;
+                    case "employees":
+                        sql.append("emp_count DESC");
+                        break;
+                    case "created":
+                        sql.append("d.CreatedAt DESC");
+                        break;
+                    default:
+                        sql.append("d.DeptName ASC");
+                }
             } else {
-                // No filters, get all departments
-                total = departmentDAO.getTotalDepartmentsCount();
-                departmentList = departmentDAO.getPaged(offset, pageSize);
+                sql.append("d.DeptName ASC");
+            }
+            
+            // Add pagination
+            sql.append(" LIMIT ").append(pageSize).append(" OFFSET ").append(offset);
+            
+            Connection conn = null;
+            Statement stCount = null;
+            Statement st = null;
+            ResultSet rsCount = null;
+            ResultSet rs = null;
+            
+            try {
+                conn = DBConnection.getConnection();
+                if (conn == null) {
+                    throw new SQLException("Cannot connect to database");
+                }
+                
+                // Get total count
+                stCount = conn.createStatement();
+                rsCount = stCount.executeQuery(sqlCount.toString());
+                if (rsCount.next()) {
+                    total = rsCount.getInt("total");
+                }
+                
+                // Get department list
+                departmentList = new ArrayList<>();
+                st = conn.createStatement();
+                rs = st.executeQuery(sql.toString());
+                
+                while (rs.next()) {
+                    Department dept = new Department(
+                        rs.getInt("DepartmentID"),
+                        rs.getString("DeptName"),
+                        rs.getObject("ManagerID") != null ? rs.getInt("ManagerID") : null,
+                        rs.getString("Status"),
+                        rs.getTimestamp("CreatedAt")
+                    );
+                    // Lấy số lượng nhân viên từ kết quả JOIN
+                    dept.setEmployeeCount(rs.getInt("emp_count"));
+                    departmentList.add(dept);
+                }
+            } catch (SQLException e) {
+                throw new ServletException("Database error: " + e.getMessage(), e);
+            } finally {
+                // Đóng tất cả các resources theo thứ tự ngược lại
+                try {
+                    if (rs != null) rs.close();
+                    if (st != null) st.close();
+                    if (rsCount != null) rsCount.close();
+                    if (stCount != null) stCount.close();
+                    if (conn != null) conn.close();
+                } catch (SQLException e) {
+                    Logger.getLogger(DepartmentController.class.getName())
+                          .log(Level.SEVERE, "Error closing database resources", e);
+                }
             }
             
             int totalPages = (int) Math.ceil(total / (double) pageSize);
@@ -135,14 +219,17 @@ public class DepartmentController extends HttpServlet {
             request.setAttribute("total", total);
             request.setAttribute("totalPages", totalPages);
         } catch (Exception e) {
+            // Fallback to loading all departments if filtering/query fails
             departmentList = departmentDAO.getAll();
-            request.setAttribute("errorMessage", "Search failed, showing all departments.");
+            request.setAttribute("errorMessage", "Search failed, showing all departments: " + e.getMessage());
             e.printStackTrace();
-        }
 
-        for (Department dept : departmentList) {
-            int count = employeeDAO.getEmployeeCountByDepartment(dept.getDepartmentId());
-            dept.setEmployeeCount(count);
+            // Ensure pagination attributes exist to avoid NPE in JSP
+            int totalFallback = departmentList != null ? departmentList.size() : 0;
+            int totalPagesFallback = (int) Math.ceil(totalFallback / (double) pageSize);
+            if (totalPagesFallback == 0) totalPagesFallback = 1;
+            request.setAttribute("total", totalFallback);
+            request.setAttribute("totalPages", totalPagesFallback);
         }
 
         List<Employee> managers = employeeDAO.getManagerList();
@@ -152,8 +239,8 @@ public class DepartmentController extends HttpServlet {
         request.setAttribute("allDepartments", allDepartments);
         request.setAttribute("managers", managers);
         request.setAttribute("searchKeyword", searchKeyword);
-        request.setAttribute("selectedDepartmentId", departmentId);
-        request.setAttribute("selectedTimeRange", timeRange);
+        request.setAttribute("status", effectiveStatus);
+        request.setAttribute("sortBy", sortBy);
         request.setAttribute("page", page);
         request.setAttribute("pageSize", pageSize);
 

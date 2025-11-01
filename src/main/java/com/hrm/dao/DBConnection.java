@@ -1,11 +1,13 @@
 package com.hrm.dao;
 
+import jakarta.servlet.annotation.WebListener;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@WebListener
 public class DBConnection {
 
     // --- Thông tin kết nối Database ---

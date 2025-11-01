@@ -1,7 +1,6 @@
 package com.hrm.controller.admin;
 
 import com.hrm.dao.*;
-import java.time.format.DateTimeFormatter;
 import com.hrm.model.dto.ActivityStats;
 import com.hrm.model.dto.DepartmentStats;
 import com.hrm.model.dto.StatusDistribution;
@@ -144,17 +143,15 @@ public class AdminController extends HttpServlet {
         request.setAttribute("employeeStatusJson", statusJson.toString());
 
         List<ActivityStats> activityLast7 = dashboardDAO.getActivityLast7Days();
-        StringBuilder activityJson = new StringBuilder("[");
+        StringBuilder activityJson = new StringBuilder("{");
         for (int i = 0; i < activityLast7.size(); i++) {
             ActivityStats activity = activityLast7.get(i);
-                LocalDate date = activity.getDate();
-                String formattedDate = date.format(DateTimeFormatter.ofPattern("MMM dd"));
-                activityJson.append("{\"date\":\"").append(formattedDate).append("\",\"count\":").append(activity.getCount()).append("}");
+            activityJson.append("\"").append(activity.getDate()).append("\": ").append(activity.getCount());
             if (i < activityLast7.size() - 1) {
                 activityJson.append(",");
             }
         }
-        activityJson.append("]");
+        activityJson.append("}");
         request.setAttribute("activityDataJson", activityJson.toString());
 
         List<SystemLog> recentActivity = dashboardDAO.getRecentActivity(5);
@@ -253,16 +250,9 @@ public class AdminController extends HttpServlet {
               throws ServletException, IOException {
         request.setAttribute("activePage", "employees");
 
-        // Get filter parameters
         String searchKeyword = request.getParameter("search");
-        String departmentIdStr = request.getParameter("departmentId");
-        String status = request.getParameter("status");
-        String gender = request.getParameter("gender");
-        String position = request.getParameter("position");
-
         List<Employee> employeeList = new ArrayList<>();
 
-        // Set up pagination
         int page = 1;
         int pageSize = 10;
         try {
@@ -278,78 +268,44 @@ public class AdminController extends HttpServlet {
         }
 
         try {
-            // Convert departmentId to integer if provided
-            Integer departmentId = null;
-            if (departmentIdStr != null && !departmentIdStr.isEmpty()) {
-                try {
-                    departmentId = Integer.parseInt(departmentIdStr);
-                } catch (NumberFormatException ignore) {}
-            }
+            if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
+                int totalEmployees = employeeDAO.searchEmployeesCount(searchKeyword);
+                int totalPages = (int) Math.ceil(totalEmployees / (double) pageSize);
+                if (page < 1) {
+                    page = 1;
+                }
+                if (totalPages == 0) {
+                    totalPages = 1;
+                }
+                if (page > totalPages) {
+                    page = totalPages;
+                }
+                int offset = (page - 1) * pageSize;
 
-            // Apply filters and get filtered results
-            int totalEmployees;
-            int totalPages;
-            int offset = (page - 1) * pageSize;
-
-            if (hasActiveFilters(searchKeyword, departmentId, status, gender, position)) {
-                // Get filtered results with pagination
-                employeeList = employeeDAO.getFilteredEmployees(
-                    searchKeyword, 
-                    departmentId,
-                    status,
-                    gender,
-                    position,
-                    offset,
-                    pageSize
-                );
-                
-                // Get total count for pagination
-                totalEmployees = employeeDAO.getFilteredEmployeesCount(
-                    searchKeyword,
-                    departmentId,
-                    status,
-                    gender,
-                    position
-                );
+                employeeList = employeeDAO.searchEmployeesPaged(searchKeyword, offset, pageSize);
+                request.setAttribute("total", totalEmployees);
+                request.setAttribute("totalPages", totalPages);
             } else {
-                // No filters - get all employees
-                totalEmployees = employeeDAO.getNonInternEmployeesCount();
+                int total = employeeDAO.getNonInternEmployeesCount();
+                int totalPages = (int) Math.ceil(total / (double) pageSize);
+                int offset = (page - 1) * pageSize;
+
                 employeeList = employeeDAO.getNonInternEmployees(offset, pageSize);
+                request.setAttribute("total", total);
+                request.setAttribute("totalPages", totalPages);
             }
-
-            totalPages = (int) Math.ceil(totalEmployees / (double) pageSize);
-            if (totalPages == 0) totalPages = 1;
-            if (page > totalPages) page = totalPages;
-
-            request.setAttribute("total", totalEmployees);
-            request.setAttribute("totalPages", totalPages);
-
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("errorMessage", "Error loading employees: " + e.getMessage());
         }
 
-        // Load required data for filters
         List<Department> departments = departmentDAO.getAll();
         List<Employee> internEmployees = employeeDAO.getInternEmployees();
-        List<String> positions = employeeDAO.getDistinctPositions();
-        Map<String, Long> statusStats = employeeDAO.getStatusStats();
-        Map<String, Long> departmentStats = employeeDAO.getDepartmentStats();
 
-        // Set attributes for the view
         request.setAttribute("employeeList", employeeList);
         request.setAttribute("departments", departments);
         request.setAttribute("internEmployees", internEmployees);
-        request.setAttribute("positions", positions);
-        request.setAttribute("statusStats", statusStats);
-        request.setAttribute("departmentStats", departmentStats);
-
-        // Set selected filter values
         request.setAttribute("searchKeyword", searchKeyword);
-        request.setAttribute("selectedDepartmentId", departmentIdStr);
-        request.setAttribute("selectedStatus", status);
-        request.setAttribute("selectedGender", gender);
-        request.setAttribute("selectedPosition", position);
         request.setAttribute("page", page);
         request.setAttribute("pageSize", pageSize);
 
@@ -829,14 +785,6 @@ public class AdminController extends HttpServlet {
             e.printStackTrace();
             response.sendRedirect(request.getContextPath() + "/admin?action=employees");
         }
-    }
-
-    private boolean hasActiveFilters(String searchKeyword, Integer departmentId, String status, String gender, String position) {
-        return (searchKeyword != null && !searchKeyword.trim().isEmpty()) ||
-               (departmentId != null) ||
-               (status != null && !status.trim().isEmpty()) ||
-               (gender != null && !gender.trim().isEmpty()) ||
-               (position != null && !position.trim().isEmpty());
     }
 
     @Override

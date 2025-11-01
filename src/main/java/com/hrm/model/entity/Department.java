@@ -19,13 +19,21 @@ public class Department implements Serializable {
     private String deptName;
     private Integer deptManagerId;
     private Integer employeeCount;
+    private String status;
+    private java.sql.Timestamp createdAt;
     public Department() {
     }
 
     public Department(int departmentId, String deptName, Integer deptManagerId) {
+        this(departmentId, deptName, deptManagerId, null, null);
+    }
+
+    public Department(int departmentId, String deptName, Integer deptManagerId, String status, java.sql.Timestamp createdAt) {
         this.departmentId = departmentId;
         this.deptName = deptName;
         this.deptManagerId = deptManagerId;
+        this.status = status;
+        this.createdAt = createdAt;
     }
 
     public int getDepartmentId() {
@@ -59,6 +67,23 @@ public class Department implements Serializable {
     public void setEmployeeCount(Integer employeeCount) {
         this.employeeCount = employeeCount;
     }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public java.sql.Timestamp getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(java.sql.Timestamp createdAt) {
+        this.createdAt = createdAt;
+    }
+
     @Override
     public String toString() {
         return "Department{" + "departmentId=" + departmentId + ", deptName=" + deptName + ", deptManagerId=" + deptManagerId + '}';

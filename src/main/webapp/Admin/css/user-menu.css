@@ -1,0 +1,82 @@
+/* User menu styling */
+.user-menu {
+    position: relative;
+    cursor: pointer;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.user-info:hover {
+    background: #f2f6fa;
+}
+
+.user-info img {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-info span {
+    font-size: 14px;
+    color: #1f2937;
+}
+
+.dropdown-arrow {
+    font-size: 12px;
+    color: #6b7280;
+    transition: transform 0.18s ease;
+}
+
+.user-menu.active .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(37,48,63,0.08);
+    min-width: 200px;
+    padding: 6px 0;
+    display: none;
+    z-index: 120;
+}
+
+.user-menu.active .dropdown-menu {
+    display: block;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    color: #111827;
+    text-decoration: none;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+    background: #f6f8fa;
+}
+
+.dropdown-item .icon {
+    font-size: 16px;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: #eef2f6;
+    margin: 6px 0;
+}

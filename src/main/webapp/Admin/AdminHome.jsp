@@ -8,6 +8,7 @@
         <meta charset="UTF-8">
         <title>Admin Dashboard</title>
         <link rel="stylesheet" href="Admin/css/Admin_home.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/user-menu.css">
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     </head>
     <body>
@@ -54,23 +55,39 @@
                         <input type="text" placeholder="Search...">
                     </div>
                     <div class="top-bar-actions">
-                        <select class="env-selector">
-                            <option>Production</option>
-                            <option>Staging</option>
-                        </select>
-                        <select class="time-selector">
-                            <option>Today</option>
-                            <option>This Week</option>
-                            <option>This Month</option>
-                        </select>
-                        <button class="notification-btn" >
-                            🔔
-                            <span class="badge">3</span>
-                        </button>
-                        <div class="user-menu">
-                            <img src="https://i.pravatar.cc/32" alt="User">
-                            <span>Admin</span>
-                        </div>
+                      
+                        <div class="user-menu" onclick="toggleUserMenu()">
+                            <div class="user-info">
+                                <img src="https://i.pravatar.cc/32" alt="User">
+                                <span>Admin</span>
+                                <span class="dropdown-arrow">▼</span>
+                            </div>
+                            <div class="dropdown-menu" id="userDropdown">
+                                <a href="${pageContext.request.contextPath}/admin?action=profile" class="dropdown-item">
+                                    <span class="icon">👤</span> Profile
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="${pageContext.request.contextPath}/logout" class="dropdown-item">
+                                    <span class="icon">🚪</span> Logout
+                                </a>
+                            </div>
+                        </div>                    
+                   
+                    <script>
+                        function toggleUserMenu() {
+                            const userMenu = document.querySelector('.user-menu');
+                            userMenu.classList.toggle('active');
+                        }
+
+                        document.addEventListener('click', function (event) {
+                            if (!event.target.closest('.user-menu')) {
+                                const userMenu = document.querySelector('.user-menu');
+                                if (userMenu.classList.contains('active')) {
+                                    userMenu.classList.remove('active');
+                                }
+                            }
+                        });
+                    </script>
                     </div>
                 </header>
 
@@ -147,12 +164,12 @@
                             <div class="activity-list">
                                 <c:choose>
                                     <c:when test="${not empty recentActivity}">
-                                        <c:forEach var="activity" items="${recentActivity}">
-                                            <div class="activity-item">
-                                                    <span class="activity-time">${activity.timestamp.month} ${activity.timestamp.dayOfMonth}, ${String.format('%02d', activity.timestamp.hour)}:${String.format('%02d', activity.timestamp.minute)}</span>
-                                                <span class="activity-text">${activity.action} - ${activity.objectType}: ${activity.newValue}</span>
-                                            </div>
-                                        </c:forEach>
+                                                <c:forEach var="activity" items="${recentActivity}">
+                                                    <div class="activity-item">
+                                                            <span class="activity-time">${activity.timestamp.month} ${activity.timestamp.dayOfMonth}, ${String.format('%02d', activity.timestamp.hour)}:${String.format('%02d', activity.timestamp.minute)}</span>
+                                                        <span class="activity-text">${activity.action} - ${activity.objectType}: ${activity.newValue}</span>
+                                                    </div>
+                                                </c:forEach>
                                     </c:when>
                                     <c:otherwise>
                                         <div class="activity-item">
@@ -198,7 +215,7 @@
         </script>
 
 
-        <script src="${pageContext.request.contextPath}/Admin/dashboard.js"></script>
+        <script src="${pageContext.request.contextPath}/Admin/js/dashboard.js"></script>
 
     </body>
 </html>
