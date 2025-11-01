@@ -12,22 +12,26 @@ public class Recruitment implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private int recruitmentId;
-    private String jobTitle;
-    private String jobDescription;
-    private LocalDate postDate;
-    private String status;
-    private Integer postedBy;
+    private String Title;
+    private String Description;
+    private String Requirement;
+    private String Location;   
+    private Double Salary;
+    private String Status;
+    private int Applicant;
     private LocalDateTime postedDate;
 
     public Recruitment() {}
 
-    public Recruitment(int recruitmentId, String jobTitle, String jobDescription, LocalDate postDate, String status, Integer postedBy, LocalDateTime postedDate) {
+    public Recruitment(int recruitmentId, String Title, String Description, String Requirement, String Location, Double Salary, String Status, int Applicant, LocalDateTime postedDate) {
         this.recruitmentId = recruitmentId;
-        this.jobTitle = jobTitle;
-        this.jobDescription = jobDescription;
-        this.postDate = postDate;
-        this.status = status;
-        this.postedBy = postedBy;
+        this.Title = Title;
+        this.Description = Description;
+        this.Requirement = Requirement;
+        this.Location = Location;
+        this.Salary = Salary;
+        this.Status = Status;
+        this.Applicant = Applicant;
         this.postedDate = postedDate;
     }
 
@@ -39,44 +43,60 @@ public class Recruitment implements Serializable {
         this.recruitmentId = recruitmentId;
     }
 
-    public String getJobTitle() {
-        return jobTitle;
+    public String getTitle() {
+        return Title;
     }
 
-    public void setJobTitle(String jobTitle) {
-        this.jobTitle = jobTitle;
+    public void setTitle(String Title) {
+        this.Title = Title;
     }
 
-    public String getJobDescription() {
-        return jobDescription;
+    public String getDescription() {
+        return Description;
     }
 
-    public void setJobDescription(String jobDescription) {
-        this.jobDescription = jobDescription;
+    public void setDescription(String Description) {
+        this.Description = Description;
     }
 
-    public LocalDate getPostDate() {
-        return postDate;
+    public String getRequirement() {
+        return Requirement;
     }
 
-    public void setPostDate(LocalDate postDate) {
-        this.postDate = postDate;
+    public void setRequirement(String Requirement) {
+        this.Requirement = Requirement;
+    }
+
+    public String getLocation() {
+        return Location;
+    }
+
+    public void setLocation(String Location) {
+        this.Location = Location;
+    }
+
+    public Double getSalary() {
+        return Salary;
+    }
+
+    public void setSalary(Double Salary) {
+        this.Salary = Salary;
     }
 
     public String getStatus() {
-        return status;
+        return Status;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setStatus(String Status) {
+        this.Status = Status;
     }
 
-    public Integer getPostedBy() {
-        return postedBy;
+    public int getApplicant() {
+        return Applicant;
     }
 
-    public void setPostedBy(Integer postedBy) {
-        this.postedBy = postedBy;
+    public void setApplicant(int Applicant) {
+        this.Applicant = Applicant;
     }
 
     public LocalDateTime getPostedDate() {
@@ -87,49 +107,15 @@ public class Recruitment implements Serializable {
         this.postedDate = postedDate;
     }
 
-    // Compatibility methods for JSP
-    public String getTitle() {
-        return jobTitle;
-    }
-
-    public void setTitle(String title) {
-        this.jobTitle = title;
-    }
-
-    public String getDescription() {
-        return jobDescription;
-    }
-
-    public void setDescription(String description) {
-        this.jobDescription = description;
-    }
-
-    public String getRequirement() {
-        return ""; // Not in current DB schema
-    }
-
-    public void setRequirement(String requirement) {
-        // Not in current DB schema
-    }
-
-    public String getLocate() {
-        return "Hồ Chí Minh"; // Default location
-    }
-
-    public void setLocate(String locate) {
-        // Not in current DB schema
-    }
-
-    public Double getSalary() {
-        return 15000000.0; // Default salary
-    }
-
-    public void setSalary(Double salary) {
-        // Not in current DB schema
-    }
-
     @Override
     public String toString() {
-        return "Recruitment{" + "recruitmentId=" + recruitmentId + ", jobTitle=" + jobTitle + ", jobDescription=" + jobDescription + ", postDate=" + postDate + ", status=" + status + ", postedBy=" + postedBy + ", postedDate=" + postedDate + '}';
+        return "Recruitment{" + "recruitmentId=" + recruitmentId + ", Title=" + Title + ", Description=" + Description + ", Requirement=" + Requirement + ", Location=" + Location + ", Salary=" + Salary + ", Status=" + Status + ", Applicant=" + Applicant + ", postedDate=" + postedDate + '}';
     }
+
+    
+
+    
+    
+    
+    
 }

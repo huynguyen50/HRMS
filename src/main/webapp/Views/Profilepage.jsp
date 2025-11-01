@@ -87,7 +87,7 @@
         
         .profile-avatar:hover {
             transform: scale(1.1);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
         }
         
         .profile-dropdown-menu {
@@ -193,8 +193,7 @@
             text-align: center;
             margin-bottom: 1rem;
         }
-        
-        .profile-stats {
+.profile-stats {
             display: flex;
             justify-content: center;
             gap: 2rem;
@@ -311,7 +310,7 @@
         }
         
         .btn-outline-primary:hover {
-            background: var(--primary-color);
+background: var(--primary-color);
             color: white;
         }
         
@@ -429,7 +428,7 @@
     <header class="header">
         <nav class="navbar navbar-expand-lg" aria-label="Main navigation">
             <div class="container">
-                <a class="navbar-brand" href="${pageContext.request.contextPath}/homepage">
+<a class="navbar-brand" href="${pageContext.request.contextPath}/homepage">
                     <i class="fas fa-users-cog me-2"></i>Human Resources Management
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -475,7 +474,7 @@
                                     </a>
                                 </div>
                             </div>
-                        </li>
+</li>
                     </ul>
                 </div>
             </div>
@@ -544,7 +543,7 @@
                     </div>
                     <div class="info-content">
                         <div class="info-label">Phone Number</div>
-                        <div class="info-value">${userProfile.phone != null ? userProfile.phone : 'Not provided'}</div>
+<div class="info-value">${userProfile.phone != null ? userProfile.phone : 'Not provided'}</div>
                     </div>
                 </div>
                 
@@ -606,7 +605,7 @@
                     
                     <div class="form-group">
                         <label class="form-label" for="email">Email Address</label>
-                        <input type="email" class="form-control" id="email" name="email" value="${userProfile.email != null ? userProfile.email : ''}" disabled required>
+<input type="email" class="form-control" id="email" name="email" value="${userProfile.email != null ? userProfile.email : ''}" disabled required>
                     </div>
                     
                     <div class="form-group">
@@ -653,7 +652,7 @@
                     <div class="info-icon">
                         <i class="fas fa-key"></i>
                     </div>
-                    <div class="info-content">
+<div class="info-content">
                         <div class="info-label">Password</div>
                         <div class="info-value">Last changed 30 days ago</div>
                     </div>
@@ -713,7 +712,7 @@
                     </c:when>
                     <c:otherwise>
                         <div class="activity-item">
-                            <div class="activity-icon">
+<div class="activity-icon">
                                 <i class="fas fa-info-circle"></i>
                             </div>
                             <div class="activity-content">
@@ -783,7 +782,7 @@
                     }
                 });
                 saveBtn.disabled = true;
-                editBtn.innerHTML = '<i class="fas fa-edit me-1"></i>Edit Profile';
+editBtn.innerHTML = '<i class="fas fa-edit me-1"></i>Edit Profile';
                 editBtn.classList.remove('btn-outline-danger');
                 editBtn.classList.add('btn-outline-primary');
             } else {

@@ -83,7 +83,7 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+gap: 0.5rem;
             padding: 0.5rem 1rem;
             border-radius: 8px;
             position: relative;
@@ -185,7 +185,7 @@
         }
         
         .search-container input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
+color: rgba(255, 255, 255, 0.6);
             font-weight: 400;
         }
         
@@ -281,8 +281,7 @@
             font-size: 0.9rem;
             color: #111827; /* primary label darker */
         }
-        
-        .dashboard-dropdown-item small {
+.dashboard-dropdown-item small {
             display: block;
             color: #4b5563; /* slightly darker subtitle */
             font-size: 0.8rem;
@@ -390,7 +389,7 @@
         }
         
         .profile-dropdown-item {
-            display: flex;
+display: flex;
             align-items: center;
             padding: 12px 16px;
             color: #374151;
@@ -507,7 +506,7 @@
         }
         
         /* Header */
-        .header {
+.header {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
             padding: 1rem 0;
@@ -609,7 +608,7 @@
         
         .role-badge:hover {
             background: rgba(255, 255, 255, 0.25);
-            transform: translateY(-2px);
+transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
         
@@ -719,8 +718,7 @@
             background: rgba(255, 255, 255, 0.7);
             transform: scale(1.1);
         }
-        
-        .carousel-indicator.active {
+.carousel-indicator.active {
             background: white;
             transform: scale(1.3);
             box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
@@ -826,7 +824,7 @@
             border-radius: 20px;
             display: flex;
             align-items: center;
-            justify-content: center;
+justify-content: center;
             margin: 0 auto 1.5rem;
             color: white;
             font-size: 2rem;
@@ -932,7 +930,7 @@
         .footer {
             background: var(--dark-color);
             color: white;
-            padding: 40px 0 20px;
+padding: 40px 0 20px;
         }
         
         .footer-title {
@@ -1050,7 +1048,7 @@
              }
              
              .search-container input {
-                 width: 100%;
+width: 100%;
                  font-size: 0.85rem;
              }
              
@@ -1172,8 +1170,7 @@
              .dashboard-dropdown-item span {
                  font-size: 0.9rem;
              }
-             
-             .dashboard-dropdown-item small {
+.dashboard-dropdown-item small {
                  font-size: 0.75rem;
              }
         
@@ -1222,7 +1219,7 @@
                                     </a>
                                 </c:if>
                                 <c:if test="${dashboardAccess.canAccessGuest}">
-                                    <a href="${pageContext.request.contextPath}${dashboardAccess.guestUrl}" class="dashboard-dropdown-item guest">
+<a href="${pageContext.request.contextPath}${dashboardAccess.guestUrl}" class="dashboard-dropdown-item guest">
                                         <i class="fas fa-home"></i>
                                         <span>Guest View</span>
                                     </a>
@@ -1276,7 +1273,7 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                            <a class="nav-link" href="mailto:ducnvhe180815@gmail.com">
+<a class="nav-link" href="mailto:ducnvhe180815@gmail.com">
                                 <i class="fas fa-envelope me-1"></i>ducnvhe180815@gmail.com
                         </a>
                     </li>
@@ -1317,7 +1314,7 @@
                                         <i class="fas fa-user"></i>
                                         Profile
                                     </a>
-                                    <a href="${pageContext.request.contextPath}/Admin/AdminHome.jsp" class="profile-dropdown-item">
+<a href="${pageContext.request.contextPath}/Admin/AdminHome.jsp" class="profile-dropdown-item">
                                         <i class="fas fa-tachometer-alt"></i>
                                         Dashboard
                                     </a>
@@ -1370,7 +1367,7 @@
                                 <i class="fas fa-phone me-2"></i>Contact Us
                             </a>
                             <a href="#about" class="btn-hero" style="background: transparent; color: white; border: 2px solid white; margin-left: 1rem;">
-                                <i class="fas fa-info-circle me-2"></i>Learn More
+<i class="fas fa-info-circle me-2"></i>Learn More
                             </a>
             </div>
                     </div>
@@ -1421,7 +1418,7 @@
                          <div class="feature-icon" style="background: #10b981;">
                              <i class="fas fa-newspaper"></i>
                 </div>
-                         <h3 class="feature-title">Company Expansion</h3>
+<h3 class="feature-title">Company Expansion</h3>
                          <p class="feature-description">We are excited to announce our expansion into new markets, bringing our services to more customers worldwide.</p>
                          <small class="text-muted">December 15, 2024</small>
                 </div>
@@ -1475,7 +1472,7 @@
                         <p class="feature-description">With over 10 years of experience in the field, we have served thousands of customers with the best service quality.</p>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6 mb-4">
+<div class="col-lg-4 col-md-6 mb-4">
                     <div class="feature-card">
                         <div class="feature-icon">
                             <i class="fas fa-users"></i>
@@ -1532,7 +1529,7 @@
                     <div class="stat-item">
                         <div class="stat-number">10+</div>
                         <div class="stat-label">Years Experience</div>
-                            </div>
+</div>
                             </div>
                 <div class="col-lg-3 col-md-6">
                     <div class="stat-item">
@@ -1592,7 +1589,7 @@
                 </div>
                 <div class="col-lg-3 col-md-6 mb-4">
                     <a href="${pageContext.request.contextPath}/Views/hr/EmploymentStatus.jsp" class="action-card">
-                        <div class="action-icon success">
+<div class="action-icon success">
                             <i class="fas fa-user-check"></i>
                         </div>
                         <h4 class="action-title">Employment Status</h4>
@@ -1643,7 +1640,7 @@
                             <i class="fas fa-map-marker-alt"></i>
                         </div>
                         <h4 class="action-title">Address</h4>
-                        <p class="action-description">FPT <br>Hà  Nội, Vietnam</p>
+                        <p class="action-description">FPT <br>Hà  Nội, Vietnam</p>
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-6 mb-4">
@@ -1653,7 +1650,7 @@
                         </div>
                         <h4 class="action-title">Working Hours</h4>
                         <p class="action-description">Monday - Friday: 8:00 - 17:30<br>Saturday: 8:00 - 12:00</p>
-                    </div>
+</div>
                 </div>
                 <div class="col-lg-4 col-md-6 mb-4">
                     <div class="action-card">
@@ -1711,7 +1708,7 @@
                         </div>
                         <h3 class="feature-title">LinkedIn</h3>
                         <p class="feature-description">Professional networking with us on LinkedIn</p>
-                        <a href="#" class="btn btn-primary">Connect</a>
+<a href="#" class="btn btn-primary">Connect</a>
                             </div>
                             </div>
                 <div class="col-lg-3 col-md-6 mb-4">
@@ -1761,7 +1758,7 @@
                 </div>
                 <div class="col-lg-6 mb-4">
                     <div class="feature-card">
-                        <h4 class="feature-title"><i class="fas fa-question-circle text-primary me-2"></i>How to become a partner?</h4>
+<h4 class="feature-title"><i class="fas fa-question-circle text-primary me-2"></i>How to become a partner?</h4>
                         <p class="feature-description">You can send partnership proposals via email partnership@company.com or contact the business department directly.</p>
                     </div>
                             </div>
@@ -1811,7 +1808,7 @@
                     <h6>Newsletter Subscription</h6>
                     <p>Get the latest information from us</p>
                     <div class="input-group">
-                        <input type="email" class="form-control" placeholder="Your email">
+<input type="email" class="form-control" placeholder="Your email">
                         <button class="btn btn-primary" type="button">Subscribe</button>
                     </div>
                 </div>
@@ -1857,8 +1854,7 @@
                 updateVietnameseContent();
             }
         }
-        
-        function updateVietnameseContent() {
+function updateVietnameseContent() {
             // Update stats section
             const statLabels = document.querySelectorAll('.stat-label');
             if (statLabels.length >= 4) {
@@ -1917,7 +1913,7 @@
                 emailLinks.forEach(link => {
                     link.innerHTML = '<i class="fas fa-envelope me-1"></i>ducnvhe180815@gmail.com';
                     link.href = 'mailto:info@company.com';
-                });
+});
                 
                 // Update address
                 const addressElements = document.querySelectorAll('.action-description');
@@ -1994,7 +1990,7 @@
                      const parent = textNode.parentElement;
                      if (parent && !parent.closest('.top-bar, .header, .footer')) {
                          searchResults.push({
-                             element: parent,
+element: parent,
                              text: text,
                              index: index
                          });
@@ -2065,7 +2061,7 @@
          
          function showSearchMessage(message, type) {
              // Remove existing message
-             const existingMessage = document.querySelector('.search-message');
+const existingMessage = document.querySelector('.search-message');
              if (existingMessage) {
                  existingMessage.remove();
              }
@@ -2139,7 +2135,7 @@
          let isTransitioning = false;
          
          function showSlide(index) {
-             if (isTransitioning) return;
+if (isTransitioning) return;
              isTransitioning = true;
              
              // Remove active class from all slides and indicators
@@ -2224,8 +2220,7 @@
              if (slides.length > 0) {
                  showSlide(0);
                  resetCarouselInterval();
-                 
-                 // Add touch event listeners
+// Add touch event listeners
                  const carousel = document.querySelector('.hero-carousel');
                  if (carousel) {
                      carousel.addEventListener('touchstart', handleTouchStart, false);
@@ -2294,7 +2289,7 @@
          // Show login required message
          function showLoginRequired() {
              alert('Please login first to access this feature.');
-             window.location.href = '${pageContext.request.contextPath}/Views/Login.jsp';
+window.location.href = '${pageContext.request.contextPath}/Views/Login.jsp';
          }
      </script>
 </body>

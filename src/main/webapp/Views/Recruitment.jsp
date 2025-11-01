@@ -120,7 +120,7 @@
 
         .section-title h2 {
             font-size: 2.2rem;
-            color: #2c3e50;
+color: #2c3e50;
             margin-bottom: 0.5rem;
         }
 
@@ -245,7 +245,7 @@
             background: white;
             padding: 3rem 0;
             margin-top: 3rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         .company-stats {
@@ -357,7 +357,7 @@
 
             <% if (request.getAttribute("success") != null) { %>
                 <div class="alert alert-success">
-                    <i class="fas fa-check-circle"></i> <%= request.getAttribute("success") %>
+<i class="fas fa-check-circle"></i> <%= request.getAttribute("success") %>
                 </div>
             <% } %>
 
@@ -371,14 +371,13 @@
                 <%
                     List<Recruitment> recruitments = (List<Recruitment>) request.getAttribute("recruitments");
                     if (recruitments != null && !recruitments.isEmpty()) {
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                         for (Recruitment recruitment : recruitments) {
                 %>
                 <div class="job-card">
                     <div class="job-header">
                         <h3 class="job-title"><%= recruitment.getTitle() %></h3>
                         <div class="job-location">
-                            <i class="fas fa-map-marker-alt"></i> <%= recruitment.getLocate() %>
+                            <i class="fas fa-map-marker-alt"></i> <%= recruitment.getLocation() %>
                         </div>
                         <% if (recruitment.getSalary() != null) { %>
                         <div class="job-salary">
@@ -418,7 +417,7 @@
                         </div>
                         <a href="RecruitmentController?action=apply&recruitmentId=<%= recruitment.getRecruitmentId() %>" 
                            class="apply-btn">
-                            <i class="fas fa-paper-plane"></i> Apply Now
+<i class="fas fa-paper-plane"></i> Apply Now
                         </a>
                     </div>
                 </div>
@@ -508,7 +507,7 @@
         };
 
         const observer = new IntersectionObserver(function(entries) {
-            entries.forEach(entry => {
+entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.style.opacity = '1';
                     entry.target.style.transform = 'translateY(0)';

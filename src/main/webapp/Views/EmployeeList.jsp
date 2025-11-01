@@ -70,7 +70,7 @@
                     </li>
                 </ul>
                 <hr class="text-white-50">
-                 <div class="user-info p-3 d-flex align-items-center">
+<div class="user-info p-3 d-flex align-items-center">
                     <div class="user-avatar me-2">
                        <i class="fas fa-user-circle fa-2x"></i>
                     </div>
@@ -127,7 +127,7 @@
                             <th>ID</th>
                             <th>Họ và tên</th>
                             <th>Giới tính</th>
-                            <th>Ngày sinh</th>
+<th>Ngày sinh</th>
                             <th>Phòng ban</th>
                             <th>Chức vụ</th>
                             <th>Ngày vào làm</th>

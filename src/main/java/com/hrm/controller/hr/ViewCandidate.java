@@ -72,7 +72,7 @@ public class ViewCandidate extends HttpServlet {
         request.setAttribute("filterStatus", filterStatus);
         request.setAttribute("startDate", startDate);
         request.setAttribute("endDate", endDate);
-request.getRequestDispatcher("/Views/hr/ViewCandidate.jsp").forward(request, response);
+        request.getRequestDispatcher("/Views/hr/ViewCandidate.jsp").forward(request, response);
     }
 
     @Override

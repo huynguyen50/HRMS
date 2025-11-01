@@ -99,7 +99,7 @@
     <select name="leaveType">
         <option>Annual Leave</option>
         <option>Sick Leave</option>
-        <option>Unpaid Leave</option>
+<option>Unpaid Leave</option>
         <option>Personal Leave</option>
         <option>Maternity/Paternity Leave</option>
     </select>
