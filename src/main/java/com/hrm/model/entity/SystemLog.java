@@ -6,6 +6,7 @@ package com.hrm.model.entity;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  *
@@ -22,6 +23,7 @@ public class SystemLog implements Serializable {
     private String oldValue;
     private String newValue;
     private LocalDateTime timestamp;
+    private Date timestampDate;
 
     public SystemLog() {
     }
@@ -91,6 +93,14 @@ public class SystemLog implements Serializable {
 
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public Date getTimestampDate() {
+        return timestampDate;
+    }
+
+    public void setTimestampDate(Date timestampDate) {
+        this.timestampDate = timestampDate;
     }
 
     @Override

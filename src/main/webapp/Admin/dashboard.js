@@ -124,9 +124,9 @@ function initializeActivityChart() {
   const ctx = document.getElementById("activityChart")
   if (!ctx) return
 
-  const data = window.dashboardData.activityData || {}
-  const labels = Object.keys(data)
-  const values = Object.values(data)
+  const data = window.dashboardData.activityData || []
+  const labels = data.map(item => item.date)
+  const values = data.map(item => item.count)
 
   new Chart(ctx, {
     type: "line",
@@ -149,6 +149,7 @@ function initializeActivityChart() {
       ],
     },
     options: {
+        aspectRatio: 2.5,
       responsive: true,
       maintainAspectRatio: true,
       plugins: {
@@ -162,10 +163,22 @@ function initializeActivityChart() {
             },
           },
         },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `Activities: ${context.parsed.y}`;
+              }
+            }
+          }
       },
       scales: {
         y: {
           beginAtZero: true,
+            min: 0,
+            ticks: {
+              stepSize: 1,
+              precision: 0
+            },
           grid: {
             color: "rgba(0, 0, 0, 0.05)",
           },

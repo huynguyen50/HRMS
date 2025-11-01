@@ -1,100 +1,13 @@
 <%@ page import="java.util.List, com.hrm.model.entity.Employee, com.hrm.model.entity.Department" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html>
     <head>
         <title>Employees - HRMS</title>
         <link rel="stylesheet" href="Admin/css/employees.css">
-        <style>
-            /* Add pagination styling */
-            .pagination-bar {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-top: 20px;
-                padding: 15px;
-                background-color: #f8f9fa;
-                border-radius: 4px;
-            }
-
-            .pagination-info {
-                font-size: 14px;
-                color: #666;
-            }
-
-            .pagination-controls {
-                display: flex;
-                gap: 5px;
-            }
-
-            .pagination-controls a,
-            .pagination-controls span {
-                padding: 8px 12px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                text-decoration: none;
-                color: #5b6ef5;
-                cursor: pointer;
-                font-size: 14px;
-            }
-
-            .pagination-controls a:hover {
-                background-color: #f0f0f0;
-            }
-
-            .pagination-controls span.active {
-                background-color: #5b6ef5;
-                color: white;
-                border-color: #5b6ef5;
-            }
-
-            .pagination-controls a.disabled {
-                color: #ccc;
-                cursor: not-allowed;
-                pointer-events: none;
-            }
-
-            .search-form {
-                display: flex;
-                gap: 10px;
-                align-items: center;
-                margin-bottom: 20px;
-            }
-
-            .search-form input {
-                flex: 1;
-                max-width: 400px;
-                padding: 8px 12px;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                font-size: 14px;
-            }
-
-            .search-form button,
-            .search-form a {
-                padding: 8px 16px;
-                background-color: #5b6ef5;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                text-decoration: none;
-                display: inline-block;
-                font-size: 14px;
-            }
-
-            .search-form button:hover {
-                background-color: #4a5dd8;
-            }
-
-            .search-form a {
-                background-color: #6c757d;
-            }
-
-            .search-form a:hover {
-                background-color: #5a6268;
-            }
-        </style>
+        <link rel="stylesheet" href="Admin/css/employees-filters.css">
+        <link rel="stylesheet" href="Admin/css/pagination.css">
     </head>
     <body>
         <div class="dashboard-container">
@@ -127,32 +40,84 @@
             <main class="main-content">
                 <!-- Top Bar -->
                 <header class="top-bar">
-                    <!-- Add search form for employees -->
-                    <form method="GET" action="${pageContext.request.contextPath}/admin" class="search-form">
+                    <form method="GET" action="${pageContext.request.contextPath}/admin" class="search-form" id="filterForm">
                         <input type="hidden" name="action" value="employees">
-                        <input type="text" name="search" placeholder="Search employees by name, email, position..." value="${searchKeyword != null ? searchKeyword : ''}">
-                        <button type="submit">Search</button>
-                        <% if (request.getAttribute("searchKeyword") != null && !((String)request.getAttribute("searchKeyword")).isEmpty()) { %>
-                        <a href="${pageContext.request.contextPath}/admin?action=employees">Clear</a>
-                        <% } %>
+                        
+                        <!-- Search input -->
+                        <div class="search-input">
+                            <input type="text" name="search" placeholder="Search employees by name, email, position..." 
+                                value="${searchKeyword != null ? searchKeyword : ''}">
+                        </div>
+                        
+                        <!-- Department filter -->
+                        <div class="filter-group">
+                            <select name="departmentId" id="departmentFilter">
+                                <option value="">All Departments</option>
+                                <c:forEach var="dept" items="${departments}">
+                                    <option value="${dept.departmentId}" ${dept.departmentId == selectedDepartmentId ? 'selected' : ''}>
+                                        ${dept.deptName} (${departmentStats[dept.deptName]})
+                                    </option>
+                                </c:forEach>
+                            </select>
+                        </div>
+
+                        <!-- Status filter -->
+                        <div class="filter-group">
+                            <select name="status" id="statusFilter">
+                                <option value="">All Status</option>
+                                <c:forEach var="entry" items="${statusStats}">
+                                    <option value="${entry.key}" ${entry.key == selectedStatus ? 'selected' : ''}>
+                                        ${entry.key} (${entry.value})
+                                    </option>
+                                </c:forEach>
+                            </select>
+                        </div>
+
+                        <!-- Gender filter -->
+                        <div class="filter-group">
+                            <select name="gender" id="genderFilter">
+                                <option value="">All Genders</option>
+                                <option value="Male" ${selectedGender == 'Male' ? 'selected' : ''}>Male</option>
+                                <option value="Female" ${selectedGender == 'Female' ? 'selected' : ''}>Female</option>
+                                <option value="Other" ${selectedGender == 'Other' ? 'selected' : ''}>Other</option>
+                            </select>
+                        </div>
+
+                        <!-- Position filter -->
+                        <div class="filter-group">
+                            <select name="position" id="positionFilter">
+                                <option value="">All Positions</option>
+                                <c:forEach var="pos" items="${positions}">
+                                    <option value="${pos}" ${pos == selectedPosition ? 'selected' : ''}>
+                                        ${pos}
+                                    </option>
+                                </c:forEach>
+                            </select>
+                        </div>
+
+                        <!-- Filter actions -->
+                        <div class="filter-actions">
+                            <button type="submit" class="btn-filter">Apply Filters</button>
+                            <a href="${pageContext.request.contextPath}/admin?action=employees" class="btn-clear">Clear All</a>
+                        </div>
                     </form>
                     <div class="top-bar-actions">
-                        <select class="env-selector">
-                            <option>Production</option>
-                            <option>Staging</option>
-                        </select>
-                        <select class="time-selector">
-                            <option>Today</option>
-                            <option>This Week</option>
-                            <option>This Month</option>
-                        </select>
-                        <button class="notification-btn" >
-                            🔔
-                            <span class="badge">3</span>
-                        </button>
-                        <div class="user-menu">
-                            <img src="https://i.pravatar.cc/32" alt="User">
-                            <span>Admin</span>
+                        
+                        <div class="user-menu" onclick="toggleUserMenu()">
+                            <div class="user-info">
+                                <img src="https://i.pravatar.cc/32" alt="User">
+                                <span>Admin</span>
+                                <span class="dropdown-arrow">▼</span>
+                            </div>
+                            <div class="dropdown-menu" id="userDropdown">
+                                <a href="${pageContext.request.contextPath}/admin?action=profile" class="dropdown-item">
+                                    <span class="icon">👤</span> Profile
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="${pageContext.request.contextPath}/logout" class="dropdown-item">
+                                    <span class="icon">🚪</span> Logout
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </header>
@@ -170,30 +135,10 @@
 
                     <div class="page-header">
                         <h1 class="page-title">Employee Management</h1>
-                        <button class="btn-primary" onclick="openAddModal()">+ Add Employee</button>
-                    </div>
-
-                    <div class="filter-section">
-                        <select id="departmentFilter" onchange="filterTable()">
-                            <option value="">All Departments</option>
-                            <%
-                                List<Department> departments = (List<Department>) request.getAttribute("departments");
-                                if (departments != null) {
-                                    for (Department dept : departments) {
-                            %>
-                            <option value="<%= dept.getDeptName() %>"><%= dept.getDeptName() %></option>
-                            <%
-                                    }
-                                }
-                            %>
-                        </select>
-                        <select id="statusFilter" onchange="filterTable()">
-                            <option value="">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="resigned">Resigned</option>
-                            <option value="probation">Probation</option>
-                            <option value="intern">Intern</option>
-                        </select>
+                        <div class="page-actions">
+                            <button class="btn-primary" onclick="openAddModal()">+ Add Employee</button>
+                           
+                        </div>
                     </div>
 
                     <div class="table-section">
@@ -263,28 +208,68 @@
                         <div class="pagination-controls">
                             <%
                                 int totalPages = (Integer) request.getAttribute("totalPages");
-                                String searchParam = request.getAttribute("searchKeyword") != null ? "&search=" + java.net.URLEncoder.encode((String)request.getAttribute("searchKeyword"), "UTF-8") : "";
+                                StringBuilder params = new StringBuilder();
+                                String searchParam = request.getParameter("search");
+                                String deptParam = request.getParameter("departmentId");
+                                String statusParam = request.getParameter("status");
+                                String genderParam = request.getParameter("gender");
+                                String positionParam = request.getParameter("position");
+
+                                if (searchParam != null && !searchParam.isEmpty()) {
+                                    params.append("&search=").append(java.net.URLEncoder.encode(searchParam, "UTF-8"));
+                                }
+                                if (deptParam != null && !deptParam.isEmpty()) {
+                                    params.append("&departmentId=").append(deptParam);
+                                }
+                                if (statusParam != null && !statusParam.isEmpty()) {
+                                    params.append("&status=").append(java.net.URLEncoder.encode(statusParam, "UTF-8"));
+                                }
+                                if (genderParam != null && !genderParam.isEmpty()) {
+                                    params.append("&gender=").append(java.net.URLEncoder.encode(genderParam, "UTF-8"));
+                                }
+                                if (positionParam != null && !positionParam.isEmpty()) {
+                                    params.append("&position=").append(java.net.URLEncoder.encode(positionParam, "UTF-8"));
+                                }
                                 
+                                // Calculate range of page numbers to show
+                                int range = 2; // Show 2 pages before and after current page
+                                int start_page = Math.max(1, currentPage - range);
+                                int end_page = Math.min(totalPages, currentPage + range);
+
                                 if (currentPage > 1) {
                             %>
-                            <a href="${pageContext.request.contextPath}/admin?action=employees&page=<%= currentPage - 1 %><%= searchParam %>">Prev</a>
+                            <a href="${pageContext.request.contextPath}/admin?action=employees&page=<%= currentPage - 1 %><%= params.toString() %>">Prev</a>
                             <% } else { %>
                             <span class="disabled">Prev</span>
                             <% } %>
 
+                            <% if (start_page > 1) { %>
+                                <a href="${pageContext.request.contextPath}/admin?action=employees&page=1<%= params.toString() %>">1</a>
+                                <% if (start_page > 2) { %>
+                                    <span class="ellipsis">...</span>
+                                <% } %>
+                            <% } %>
+
                             <%
-                                for (int i = 1; i <= totalPages; i++) {
+                                for (int i = start_page; i <= end_page; i++) {
                                     if (i == currentPage) {
                             %>
                             <span class="active"><%= i %></span>
                             <% } else { %>
-                            <a href="${pageContext.request.contextPath}/admin?action=employees&page=<%= i %><%= searchParam %>"><%= i %></a>
+                            <a href="${pageContext.request.contextPath}/admin?action=employees&page=<%= i %><%= params.toString() %>"><%= i %></a>
                             <% } } %>
+
+                            <% if (end_page < totalPages) { %>
+                                <% if (end_page < totalPages - 1) { %>
+                                    <span class="ellipsis">...</span>
+                                <% } %>
+                                <a href="${pageContext.request.contextPath}/admin?action=employees&page=<%= totalPages %><%= params.toString() %>"><%= totalPages %></a>
+                            <% } %>
 
                             <%
                                 if (currentPage < totalPages) {
                             %>
-                            <a href="${pageContext.request.contextPath}/admin?action=employees&page=<%= currentPage + 1 %><%= searchParam %>">Next</a>
+                            <a href="${pageContext.request.contextPath}/admin?action=employees&page=<%= currentPage + 1 %><%= params.toString() %>">Next</a>
                             <% } else { %>
                             <span class="disabled">Next</span>
                             <% } %>
@@ -416,8 +401,19 @@
                 if (event.target === modal) {
                     modal.classList.remove('show');
                 }
+                
+                // Close dropdown when clicking outside
+                if (!event.target.closest('.user-menu')) {
+                    const userMenu = document.querySelector('.user-menu');
+                    userMenu.classList.remove('active');
+                }
+            }
+
+            function toggleUserMenu() {
+                const userMenu = document.querySelector('.user-menu');
+                userMenu.classList.toggle('active');
             }
         </script>
-
+        <script src="Admin/js/employee-filters.js"></script>
     </body>
 </html>

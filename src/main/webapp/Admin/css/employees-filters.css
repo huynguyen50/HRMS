@@ -1,0 +1,191 @@
+/* Top bar styling - unified and professional */
+.top-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    border-bottom: 1px solid rgba(15,23,42,0.04);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    color: #243242;
+}
+
+.top-bar .search-form {
+    flex: 1 1 700px; /* grow and allow shrink */
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 6px 10px;
+    background: #f6f8fa;
+    border: 1px solid #eef2f6;
+    border-radius: 10px;
+    margin: 0; /* override any page-level spacing */
+}
+
+.top-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.env-selector {
+    padding: 6px 10px;
+    border: 1px solid #e6ecf2;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 13px;
+    color: #3b4858;
+    cursor: pointer;
+}
+
+.notification-btn {
+    position: relative;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    transition: background 0.12s;
+}
+
+.notification-btn:hover { background: #f2f6fa; }
+
+.notification-btn .icon { font-size: 18px; }
+
+.notification-btn .badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: #dc3545;
+    color: white;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+.user-menu { position: relative; }
+
+.user-info { display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:8px; }
+.user-info:hover { background:#f2f6fa; }
+.user-info img { width:34px; height:34px; border-radius:50%; object-fit:cover; }
+.dropdown-arrow { font-size:11px; color:#6b7280; transition: transform 0.18s ease; }
+.user-menu.active .dropdown-arrow { transform: rotate(180deg); }
+
+.dropdown-menu { position:absolute; top:calc(100% + 8px); right:0; background:#fff; border-radius:10px; box-shadow:0 8px 24px rgba(37,48,63,0.08); min-width:200px; padding:6px 0; display:none; z-index:120; }
+.user-menu.active .dropdown-menu { display:block; }
+.dropdown-item { display:flex; align-items:center; gap:10px; padding:10px 14px; color:#111827; text-decoration:none; font-size:14px; }
+.dropdown-item:hover { background:#f6f8fa; }
+.dropdown-divider { height:1px; background:#eef2f6; margin:6px 0; }
+
+/* Page header actions */
+.page-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-logout {
+    padding: 8px 16px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.2s;
+}
+
+.btn-logout:hover {
+    background-color: #c82333;
+    text-decoration: none;
+    color: white;
+}
+
+/* Employee filters styling (scoped to #filterForm) */
+#filterForm {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: transparent; /* top-bar already provides background */
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+.search-input {
+    flex: 1;
+    min-width: 220px;
+}
+
+#filterForm .search-input input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e6ecf2;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #ffffff;
+}
+
+.filter-group {
+    min-width: 160px;
+}
+
+.filter-group select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #e6ecf2;
+    border-radius: 8px;
+    background: #ffffff;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 10px;
+    margin-left: 0;
+}
+
+.btn-filter {
+    padding: 8px 14px;
+    background-color: #0b76d1;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.15s;
+}
+
+.btn-filter:hover { background-color: #0960a8; }
+
+.btn-clear {
+    padding: 8px 14px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: background-color 0.15s;
+}
+
+.btn-clear:hover { background-color: #5a6268; }
+
+/* Responsive: stack filters on small screens */
+@media (max-width: 800px) {
+    .top-bar { padding: 0.6rem; }
+    .top-bar .search-form { flex-direction: column; gap: 8px; }
+    #filterForm { flex-direction: column; }
+    .filter-group { min-width: 100%; }
+    .top-bar-actions { gap: 8px; }
+}

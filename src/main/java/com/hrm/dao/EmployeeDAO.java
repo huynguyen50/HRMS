@@ -8,7 +8,9 @@ import com.hrm.dao.DBConnection;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class EmployeeDAO {
 
@@ -672,5 +674,214 @@ public class EmployeeDAO {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public List<Employee> getFilteredEmployees(String searchKeyword, Integer departmentId,
+                                             String status, String gender, String position,
+                                             int offset, int limit) {
+        List<Employee> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("""
+            SELECT e.*, d.DeptName, COALESCE(c.BaseSalary, 0) as BaseSalary
+            FROM Employee e
+            LEFT JOIN Department d ON e.DepartmentID = d.DepartmentID
+            LEFT JOIN Contract c ON e.EmployeeID = c.EmployeeID AND c.ContractID = (
+                SELECT ContractID FROM Contract
+                WHERE EmployeeID = e.EmployeeID
+                ORDER BY StartDate DESC
+                LIMIT 1
+            )
+            WHERE 1=1
+        """);
+
+        List<Object> params = new ArrayList<>();
+
+        if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
+            sql.append(" AND (e.FullName LIKE ? OR e.Email LIKE ? OR e.Position LIKE ?)");
+            String pattern = "%" + searchKeyword.trim() + "%";
+            params.add(pattern);
+            params.add(pattern);
+            params.add(pattern);
+        }
+
+        if (departmentId != null) {
+            sql.append(" AND e.DepartmentID = ?");
+            params.add(departmentId);
+        }
+
+        if (status != null && !status.trim().isEmpty()) {
+            sql.append(" AND e.Status = ?");
+            params.add(status.trim());
+        }
+
+        if (gender != null && !gender.trim().isEmpty()) {
+            sql.append(" AND e.Gender = ?");
+            params.add(gender.trim());
+        }
+
+        if (position != null && !position.trim().isEmpty()) {
+            sql.append(" AND e.Position = ?");
+            params.add(position.trim());
+        }
+
+        sql.append(" ORDER BY e.FullName LIMIT ? OFFSET ?");
+        params.add(limit);
+        params.add(offset);
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Employee e = new Employee();
+                e.setEmployeeId(rs.getInt("EmployeeID"));
+                e.setFullName(rs.getString("FullName"));
+                e.setGender(rs.getString("Gender"));
+                e.setDob(rs.getDate("DOB") != null ? rs.getDate("DOB").toLocalDate() : null);
+                e.setAddress(rs.getString("Address"));
+                e.setPhone(rs.getString("Phone"));
+                e.setEmail(rs.getString("Email"));
+                e.setDepartmentId(rs.getInt("DepartmentID"));
+                e.setDepartmentName(rs.getString("DeptName"));
+                e.setPosition(rs.getString("Position"));
+                e.setEmploymentPeriod(rs.getString("EmploymentPeriod"));
+                e.setStatus(rs.getString("Status"));
+                e.setSalary(rs.getDouble("BaseSalary"));
+                list.add(e);
+            }
+        } catch (SQLException e) {
+            System.err.println("[v0] Error in getFilteredEmployees: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public int getFilteredEmployeesCount(String searchKeyword, Integer departmentId,
+                                       String status, String gender, String position) {
+        StringBuilder sql = new StringBuilder("""
+            SELECT COUNT(*) as total
+            FROM Employee e
+            WHERE 1=1
+        """);
+
+        List<Object> params = new ArrayList<>();
+
+        if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
+            sql.append(" AND (e.FullName LIKE ? OR e.Email LIKE ? OR e.Position LIKE ?)");
+            String pattern = "%" + searchKeyword.trim() + "%";
+            params.add(pattern);
+            params.add(pattern);
+            params.add(pattern);
+        }
+
+        if (departmentId != null) {
+            sql.append(" AND e.DepartmentID = ?");
+            params.add(departmentId);
+        }
+
+        if (status != null && !status.trim().isEmpty()) {
+            sql.append(" AND e.Status = ?");
+            params.add(status.trim());
+        }
+
+        if (gender != null && !gender.trim().isEmpty()) {
+            sql.append(" AND e.Gender = ?");
+            params.add(gender.trim());
+        }
+
+        if (position != null && !position.trim().isEmpty()) {
+            sql.append(" AND e.Position = ?");
+            params.add(position.trim());
+        }
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+        } catch (SQLException e) {
+            System.err.println("[v0] Error in getFilteredEmployeesCount: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public List<String> getDistinctPositions() {
+        List<String> positions = new ArrayList<>();
+        String sql = "SELECT DISTINCT Position FROM Employee WHERE Position IS NOT NULL ORDER BY Position";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            while (rs.next()) {
+                String position = rs.getString("Position");
+                if (position != null && !position.trim().isEmpty()) {
+                    positions.add(position);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("[v0] Error in getDistinctPositions: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return positions;
+    }
+
+    public Map<String, Long> getStatusStats() {
+        Map<String, Long> stats = new HashMap<>();
+        String sql = "SELECT Status, COUNT(*) as count FROM Employee WHERE Status IS NOT NULL GROUP BY Status";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            while (rs.next()) {
+                String status = rs.getString("Status");
+                long count = rs.getLong("count");
+                if (status != null && !status.trim().isEmpty()) {
+                    stats.put(status, count);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("[v0] Error in getStatusStats: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return stats;
+    }
+
+    public Map<String, Long> getDepartmentStats() {
+        Map<String, Long> stats = new HashMap<>();
+        String sql = """
+            SELECT d.DeptName, COUNT(e.EmployeeID) as count
+            FROM Department d
+            LEFT JOIN Employee e ON d.DepartmentID = e.DepartmentID
+            GROUP BY d.DeptName
+        """;
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            while (rs.next()) {
+                String deptName = rs.getString("DeptName");
+                long count = rs.getLong("count");
+                if (deptName != null && !deptName.trim().isEmpty()) {
+                    stats.put(deptName, count);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("[v0] Error in getDepartmentStats: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return stats;
     }
 }

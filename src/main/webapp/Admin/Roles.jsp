@@ -8,6 +8,7 @@
     <title>Role Management</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/Admin_home.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/roles.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/pagination.css">
 </head>
 <body>
     <div class="dashboard-container">
