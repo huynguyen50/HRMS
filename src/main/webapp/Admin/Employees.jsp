@@ -26,7 +26,7 @@
                        class="nav-item ${activePage == 'employees' ? 'active' : ''}">👥 Employees</a>
                     <a href="${pageContext.request.contextPath}/admin?action=departments"
                        class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
-                    <a href="${pageContext.request.contextPath}/admin?action=users"
+                    <a href="${pageContext.request.contextPath}/admin/users"
                        class="nav-item ${activePage == 'users' ? 'active' : ''}">👤 Users</a>
                     <a href="${pageContext.request.contextPath}/admin?action=roles"
                        class="nav-item ${activePage == 'roles' ? 'active' : ''}">🔐 Roles</a>
@@ -97,8 +97,8 @@
 
                         <!-- Filter actions -->
                         <div class="filter-actions">
-                            <button type="submit" class="btn-filter">Apply Filters</button>
-                            <a href="${pageContext.request.contextPath}/admin?action=employees" class="btn-clear">Clear All</a>
+                            <button type="submit" class="btn-primary">Lọc</button>
+                            <a href="${pageContext.request.contextPath}/admin?action=employees" class="btn-secondary">Xóa lọc</a>
                         </div>
                     </form>
                     <div class="top-bar-actions">

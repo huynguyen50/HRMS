@@ -1,3 +1,43 @@
+/* Button styles for filter actions - sync with sidebar/menu */
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 32px;
+  font-size: 16px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(102,126,234,0.08);
+  display: inline-block;
+  text-align: center;
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  box-shadow: 0 4px 16px rgba(102,126,234,0.15);
+}
+.btn-secondary {
+  background: #fff;
+  color: #764ba2;
+  border: 2px solid #764ba2;
+  border-radius: 12px;
+  padding: 10px 32px;
+  font-size: 16px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+  display: inline-block;
+  text-align: center;
+  text-decoration: none;
+}
+.btn-secondary:hover {
+  background: #f3f4f6;
+  color: #667eea;
+  border-color: #667eea;
+}
 * {
   margin: 0;
   padding: 0;
