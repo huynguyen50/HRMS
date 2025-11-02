@@ -307,7 +307,7 @@ border-radius: 8px;
             %>
             <div class="job-info">
                 <h3><i class="fas fa-briefcase"></i> <%= recruitment.getTitle() %></h3>
-                <p><i class="fas fa-map-marker-alt"></i> <strong>Địa điểm:</strong> <%= recruitment.getLocate() %></p>
+                <p><i class="fas fa-map-marker-alt"></i> <strong>Địa điểm:</strong> <%= recruitment.getLocation() != null ? recruitment.getLocation() : "N/A" %></p>
                 <% if (recruitment.getSalary() != null) { %>
                 <p><i class="fas fa-dollar-sign"></i> <strong>Mức lương:</strong> <%= String.format("%.0f", recruitment.getSalary()) %> VNĐ</p>
                 <% } %>

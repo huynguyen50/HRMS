@@ -441,11 +441,7 @@ background: var(--primary-color);
                                 <i class="fas fa-home me-1"></i>Home
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="${pageContext.request.contextPath}/Admin/AdminHome.jsp">
-                                <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                            </a>
-                        </li>
+                        
                         <li class="nav-item">
                             <div class="profile-dropdown">
                                 <div class="profile-avatar" onclick="toggleProfileDropdown()" title="Profile Menu">
