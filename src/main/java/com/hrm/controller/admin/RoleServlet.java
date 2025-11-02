@@ -1,4 +1,4 @@
-package com.hrm.controller;
+package com.hrm.controller.admin;
 
 import com.hrm.dao.RoleDAO;
 import com.hrm.model.entity.Role;

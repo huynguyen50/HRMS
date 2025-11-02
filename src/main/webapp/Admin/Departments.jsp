@@ -315,8 +315,7 @@
                 <div class="sidebar-nav">
                     <a href="${pageContext.request.contextPath}/admin?action=dashboard"
                        class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">🏠 Dashboard</a>
-                    <a href="${pageContext.request.contextPath}/admin?action=employees"
-                       class="nav-item ${activePage == 'employees' ? 'active' : ''}">👥 Employees</a>
+                          <!-- Employees link removed -->
                     <a href="${pageContext.request.contextPath}/departments?action=departments" 
                        class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
                     <a href="${pageContext.request.contextPath}/admin/users"
@@ -491,82 +490,96 @@
 
                     <!-- Pagination -->
                     <!-- Add pagination bar with "Showing X - Y of Z" display -->
+<!-- Pagination -->
                     <div class="pagination-bar">
                         <div class="pagination-info">
-                            <%
-                                int currentPage = (Integer) request.getAttribute("page");
-                                int pageSize = (Integer) request.getAttribute("pageSize");
-                                int total = (Integer) request.getAttribute("total");
-                                int start = (currentPage - 1) * pageSize + 1;
-                                int end = Math.min(currentPage * pageSize, total);
-                            %>
-                            Showing <%= start %> - <%= end %> of <%= total %>
+                            <%-- JSTL is cleaner for this calculation --%>
+                            <c:set var="start" value="${(page - 1) * pageSize + 1}" />
+                            <c:set var="end" value="${page * pageSize}" />
+                            <c:if test="${end > total}">
+                                <c:set var="end" value="${total}" />
+                            </c:if>
+                            Showing ${start} - ${end} of ${total}
                         </div>
+
                         <div class="pagination-controls">
-                            <%
-                                int totalPages = (Integer) request.getAttribute("totalPages");
-                                StringBuilder params = new StringBuilder();
-                                String searchParam = request.getParameter("search");
-                                String statusParam = request.getParameter("status");
-                                String sortByParam = request.getParameter("sortBy");
+                            <%-- Use c:url to build a base URL with all current filter parameters --%>
+                            <c:url var="baseUrl" value="/departments">
+                                <c:param name="action" value="departments" />
+                                <c:if test="${not empty param.search}">
+                                    <c:param name="search" value="${param.search}" />
+                                </c:if>
+                                <c:if test="${not empty param.status}">
+                                    <c:param name="status" value="${param.status}" />
+                                </c:if>
+                                <c:if test="${not empty param.sortBy}">
+                                    <c:param name="sortBy" value="${param.sortBy}" />
+                                </c:if>
+                            </c:url>
 
-                                if (searchParam != null && !searchParam.isEmpty()) {
-                                    params.append("&search=").append(java.net.URLEncoder.encode(searchParam, "UTF-8"));
-                                }
-                                if (statusParam != null && !statusParam.isEmpty()) {
-                                    params.append("&status=").append(java.net.URLEncoder.encode(statusParam, "UTF-8"));
-                                }
-                                if (sortByParam != null && !sortByParam.isEmpty()) {
-                                    params.append("&sortBy=").append(java.net.URLEncoder.encode(sortByParam, "UTF-8"));
-                                }
-                                
-                                // Calculate range of page numbers to show
-                                int range = 2; // Show 2 pages before and after current page
-                                int start_page = Math.max(1, currentPage - range);
-                                int end_page = Math.min(totalPages, currentPage + range);
-                                
-                                if (currentPage > 1) {
-                            %>
-                            <a href="${pageContext.request.contextPath}/departments?action=departments&page=<%= currentPage - 1 %><%= params.toString() %>">Prev</a>
-                            <% } else { %>
-                            <span class="disabled">Prev</span>
-                            <% } %>
+                            <!-- Previous Button -->
+                            <c:choose>
+                                <c:when test="${page > 1}">
+                                    <c:url var="prevUrl" value="${baseUrl}">
+                                        <c:param name="page" value="${page - 1}" />
+                                    </c:url>
+                                    <a href="${prevUrl}">Prev</a>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="disabled">Prev</span>
+                                </c:otherwise>
+                            </c:choose>
 
-                            <% if (start_page > 1) { %>
-                            <a href="${pageContext.request.contextPath}/departments?action=departments&page=1<%= params.toString() %>">1</a>
-                            <% if (start_page > 2) { %>
-                            <span class="ellipsis">...</span>
-                            <% } %>
-                            <% } %>
+                            <!-- Page Numbers -->
+                            <c:set var="range" value="2" />
+                            <c:set var="start_page" value="${page - range > 1 ? page - range : 1}" />
+                            <c:set var="end_page" value="${page + range < totalPages ? page + range : totalPages}" />
 
-                            <%
-                                for (int i = start_page; i <= end_page; i++) {
-                                    if (i == currentPage) {
-                            %>
-                            <span class="active"><%= i %></span>
-                            <% } else { %>
-                            <a href="${pageContext.request.contextPath}/departments?action=departments&page=<%= i %><%= params.toString() %>"><%= i %></a>
-                            <% } } %>
+                            <%-- Ellipsis and first page link --%>
+                            <c:if test="${start_page > 1}">
+                                <c:url var="firstPageUrl" value="${baseUrl}"><c:param name="page" value="1" /></c:url>
+                                <a href="${firstPageUrl}">1</a>
+                                <c:if test="${start_page > 2}">
+                                    <span class="ellipsis">...</span>
+                                </c:if>
+                            </c:if>
 
-                            <% if (end_page < totalPages) { %>
-                            <% if (end_page < totalPages - 1) { %>
-                            <span class="ellipsis">...</span>
-                            <% } %>
-                            <a href="${pageContext.request.contextPath}/departments?action=departments&page=<%= totalPages %><%= params.toString() %>"><%= totalPages %></a>
-                            <% } %>
+                            <%-- Numbered page links --%>
+                            <c:forEach begin="${start_page}" end="${end_page}" var="i">
+                                <c:choose>
+                                    <c:when test="${i == page}">
+                                        <span class="active">${i}</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <c:url var="pageUrl" value="${baseUrl}"><c:param name="page" value="${i}" /></c:url>
+                                        <a href="${pageUrl}">${i}</a>
+                                    </c:otherwise>
+                                </c:choose>
+                            </c:forEach>
 
-                            <%
-                                if (currentPage < totalPages) {
-                            %>
-                            <a href="${pageContext.request.contextPath}/departments?action=departments&page=<%= currentPage + 1 %><%= params.toString() %>">Next</a>
-                            <% } else { %>
-                            <span class="disabled">Next</span>
-                            <% } %>
+                            <%-- Ellipsis and last page link --%>
+                            <c:if test="${end_page < totalPages}">
+                                <c:if test="${end_page < totalPages - 1}">
+                                    <span class="ellipsis">...</span>
+                                </c:if>
+                                <c:url var="lastPageUrl" value="${baseUrl}"><c:param name="page" value="${totalPages}" /></c:url>
+                                <a href="${lastPageUrl}">${totalPages}</a>
+                            </c:if>
+
+                            <!-- Next Button -->
+                            <c:choose>
+                                <c:when test="${page < totalPages}">
+                                    <c:url var="nextUrl" value="${baseUrl}">
+                                        <c:param name="page" value="${page + 1}" />
+                                    </c:url>
+                                    <a href="${nextUrl}">Next</a>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="disabled">Next</span>
+                                </c:otherwise>
+                            </c:choose>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
 
         <!-- Add/Edit Department Modal -->
         <div id="departmentModal" class="modal">

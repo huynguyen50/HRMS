@@ -5,7 +5,8 @@ import com.hrm.model.entity.*;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.Statement;
+// Bỏ import java.sql.Statement;
+import java.sql.PreparedStatement; // Thêm import này
 import java.sql.SQLException;
 import java.util.*;
 import java.util.logging.Level;
@@ -94,7 +95,9 @@ public class DepartmentController extends HttpServlet {
         // Convert status parameter
         String effectiveStatus = (status != null && !status.isEmpty()) ? status : "all";
         
-        List<Department> departmentList;
+        List<Department> departmentList = new ArrayList<>(); // Khởi tạo list ở đây
+        List<Object> paramsCount = new ArrayList<>(); // List tham số cho query count
+        List<Object> paramsList = new ArrayList<>(); // List tham số cho query list
 
         int page = 1;
         int pageSize = 10;
@@ -105,148 +108,139 @@ public class DepartmentController extends HttpServlet {
             if (sizeStr != null) pageSize = Math.max(1, Integer.parseInt(sizeStr));
         } catch (NumberFormatException ignore) {}
 
-        try {
-            int total = 0;
-            int offset = (page - 1) * pageSize;
-            
-            // Build the SQL query based on filters
-            StringBuilder sqlCount = new StringBuilder(
-                "SELECT COUNT(*) as total FROM department d WHERE 1=1"
-            );
-            
-            StringBuilder sql = new StringBuilder(
-                "SELECT d.*, COUNT(e.EmployeeID) as emp_count " +
-                "FROM department d " +
-                "LEFT JOIN employee e ON d.DepartmentID = e.DepartmentID " +
-                "WHERE 1=1"
-            );
-            
-            // Add status filter
-            if (!"all".equals(effectiveStatus)) {
-                String statusCondition = " AND d.Status = '" + effectiveStatus + "'";
-                sqlCount.append(statusCondition);
-                sql.append(statusCondition);
+        int total = 0;
+        int offset = (page - 1) * pageSize;
+        
+        // Build the SQL query based on filters
+        StringBuilder sqlCount = new StringBuilder(
+            "SELECT COUNT(*) as total FROM department d WHERE 1=1"
+        );
+        
+        // SỬA LỖI: Thêm JOIN để lấy ManagerName và sửa GROUP BY
+        StringBuilder sql = new StringBuilder(
+            "SELECT d.*, COUNT(e.EmployeeID) as emp_count, m.FullName as ManagerName " +
+            "FROM department d " +
+            "LEFT JOIN employee e ON d.DepartmentID = e.DepartmentID " +
+            "LEFT JOIN employee m ON d.DeptManagerID = m.EmployeeID " + // Thêm join này
+            "WHERE 1=1"
+        );
+        
+        // Add status filter
+        if (!"all".equals(effectiveStatus)) {
+            String statusCondition = " AND d.Status = ?";
+            sqlCount.append(statusCondition);
+            sql.append(statusCondition);
+            paramsCount.add(effectiveStatus); // Thêm tham số
+            paramsList.add(effectiveStatus); // Thêm tham số
+        }
+        
+        // Add search filter
+        if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
+            String searchCondition = " AND d.DeptName LIKE ?";
+            sqlCount.append(searchCondition);
+            sql.append(searchCondition);
+            String searchParam = "%" + searchKeyword.trim() + "%";
+            paramsCount.add(searchParam); // Thêm tham số
+            paramsList.add(searchParam); // Thêm tham số
+        }
+        
+        // SỬA LỖI: Cập nhật GROUP BY
+        sql.append(" GROUP BY d.DepartmentID, m.FullName ");
+        
+        // Add sorting
+        sql.append(" ORDER BY ");
+        if (sortBy != null && !sortBy.isEmpty()) {
+            switch (sortBy) {
+                case "name":
+                    sql.append("d.DeptName ASC");
+                    break;
+                case "employees":
+                    sql.append("emp_count DESC");
+                    break;
+                case "created":
+                    sql.append("d.CreatedAt DESC");
+                    break;
+                default:
+                    sql.append("d.DeptName ASC");
             }
-            
-            // Add search filter
-            if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
-                String searchCondition = " AND d.DeptName LIKE '%" + searchKeyword.trim() + "%'";
-                sqlCount.append(searchCondition);
-                sql.append(searchCondition);
-            }
-            
-            sql.append(" GROUP BY d.DepartmentID ");
-            
-            // Add sorting
-            sql.append(" ORDER BY ");
-            if (sortBy != null && !sortBy.isEmpty()) {
-                switch (sortBy) {
-                    case "name":
-                        sql.append("d.DeptName ASC");
-                        break;
-                    case "employees":
-                        sql.append("emp_count DESC");
-                        break;
-                    case "created":
-                        sql.append("d.CreatedAt DESC");
-                        break;
-                    default:
-                        sql.append("d.DeptName ASC");
-                }
-            } else {
-                sql.append("d.DeptName ASC");
-            }
-            
-            // Add pagination
-            sql.append(" LIMIT ").append(pageSize).append(" OFFSET ").append(offset);
-            
-            Connection conn = null;
-            Statement stCount = null;
-            Statement st = null;
-            ResultSet rsCount = null;
-            ResultSet rs = null;
-            
-            try {
-                conn = DBConnection.getConnection();
-                if (conn == null) {
-                    throw new SQLException("Cannot connect to database");
-                }
-                
-                // Get total count
-                stCount = conn.createStatement();
-                rsCount = stCount.executeQuery(sqlCount.toString());
-                if (rsCount.next()) {
-                    total = rsCount.getInt("total");
-                }
-                
-                // Get department list
-                departmentList = new ArrayList<>();
-                st = conn.createStatement();
-                rs = st.executeQuery(sql.toString());
-                
-                while (rs.next()) {
-                    Department dept = new Department(
-                        rs.getInt("DepartmentID"),
-                        rs.getString("DeptName"),
-                        rs.getObject("ManagerID") != null ? rs.getInt("ManagerID") : null,
-                        rs.getString("Status"),
-                        rs.getTimestamp("CreatedAt")
-                    );
-                    // Lấy số lượng nhân viên từ kết quả JOIN
-                    dept.setEmployeeCount(rs.getInt("emp_count"));
-                    departmentList.add(dept);
-                }
-            } catch (SQLException e) {
-                throw new ServletException("Database error: " + e.getMessage(), e);
-            } finally {
-                // Đóng tất cả các resources theo thứ tự ngược lại
-                try {
-                    if (rs != null) rs.close();
-                    if (st != null) st.close();
-                    if (rsCount != null) rsCount.close();
-                    if (stCount != null) stCount.close();
-                    if (conn != null) conn.close();
-                } catch (SQLException e) {
-                    Logger.getLogger(DepartmentController.class.getName())
-                          .log(Level.SEVERE, "Error closing database resources", e);
-                }
-            }
-            
-            int totalPages = (int) Math.ceil(total / (double) pageSize);
-            if (totalPages == 0) totalPages = 1;
-            if (page > totalPages) page = totalPages;
-            
-            request.setAttribute("total", total);
-            request.setAttribute("totalPages", totalPages);
-        } catch (Exception e) {
-            // Fallback to loading all departments if filtering/query fails
-            departmentList = departmentDAO.getAll();
-            request.setAttribute("errorMessage", "Search failed, showing all departments: " + e.getMessage());
-            e.printStackTrace();
+        } else {
+            sql.append("d.DeptName ASC");
+        }
+        
+        // Add pagination
+        sql.append(" LIMIT ? OFFSET ?");
+        paramsList.add(pageSize); // Thêm tham số limit
+        paramsList.add(offset);   // Thêm tham số offset
+        
+        Connection conn = null;
+        PreparedStatement psCount = null; // Dùng PreparedStatement
+        PreparedStatement ps = null; // Dùng PreparedStatement
+        ResultSet rsCount = null;
+        ResultSet rs = null;
 
-            // Ensure pagination attributes exist to avoid NPE in JSP
-            int totalFallback = departmentList != null ? departmentList.size() : 0;
-            int totalPagesFallback = (int) Math.ceil(totalFallback / (double) pageSize);
-            if (totalPagesFallback == 0) totalPagesFallback = 1;
-            request.setAttribute("total", totalFallback);
-            request.setAttribute("totalPages", totalPagesFallback);
+        try {
+            conn = DBConnection.getConnection();
+            if (conn == null) {
+                throw new SQLException("Cannot connect to database");
+            }
+            
+            // Get total count
+            psCount = conn.prepareStatement(sqlCount.toString());
+            // Set tham số cho count
+            for (int i = 0; i < paramsCount.size(); i++) {
+                psCount.setObject(i + 1, paramsCount.get(i));
+            }
+            rsCount = psCount.executeQuery();
+            if (rsCount.next()) {
+                total = rsCount.getInt("total");
+            }
+
+            // Get department list
+            ps = conn.prepareStatement(sql.toString());
+            // Set tham số cho list
+            for (int i = 0; i < paramsList.size(); i++) {
+                ps.setObject(i + 1, paramsList.get(i));
+            }
+            rs = ps.executeQuery();
+            
+            while (rs.next()) {
+                Department dept = new Department(
+                    rs.getInt("DepartmentID"),
+                    rs.getString("DeptName"),
+                    rs.getObject("DeptManagerID") != null ? rs.getInt("DeptManagerID") : null
+                );
+                dept.setEmployeeCount(rs.getInt("emp_count"));
+                dept.setStatus(rs.getString("Status"));
+                dept.setCreatedAt(rs.getTimestamp("CreatedAt"));
+                dept.setManagerName(rs.getString("ManagerName")); // Bây giờ sẽ hoạt động
+                departmentList.add(dept);
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            request.setAttribute("errorMessage", "Error loading departments: " + e.getMessage());
+        } finally {
+            // Đóng resources theo thứ tự
+            try { if (rs != null) rs.close(); } catch (SQLException e) { e.printStackTrace(); }
+            try { if (ps != null) ps.close(); } catch (SQLException e) { e.printStackTrace(); }
+            try { if (rsCount != null) rsCount.close(); } catch (SQLException e) { e.printStackTrace(); }
+            try { if (psCount != null) psCount.close(); } catch (SQLException e) { e.printStackTrace(); }
+            try { if (conn != null) conn.close(); } catch (SQLException e) { e.printStackTrace(); }
         }
 
-        List<Employee> managers = employeeDAO.getManagerList();
-        List<Department> allDepartments = departmentDAO.getAll();
+        int totalPages = (int) Math.ceil((double) total / pageSize);
 
         request.setAttribute("departmentList", departmentList);
-        request.setAttribute("allDepartments", allDepartments);
-        request.setAttribute("managers", managers);
+        request.setAttribute("total", total);
+        request.setAttribute("totalPages", totalPages);
         request.setAttribute("searchKeyword", searchKeyword);
-        request.setAttribute("status", effectiveStatus);
+        request.setAttribute("status", effectiveStatus); // Gửi effectiveStatus (sẽ là "all" nếu null)
         request.setAttribute("sortBy", sortBy);
         request.setAttribute("page", page);
         request.setAttribute("pageSize", pageSize);
-
+        
         request.getRequestDispatcher("Admin/Departments.jsp").forward(request, response);
     }
-
 
     private void saveDepartment(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -267,63 +261,29 @@ public class DepartmentController extends HttpServlet {
 
         boolean success = false;
         String message = "";
-
         try {
             if (deptId == null || deptId.isEmpty()) {
+                // Thêm mới
                 success = departmentDAO.insert(dept);
-                message = success ? "Phòng ban '" + deptName.trim() + "' đã được thêm thành công!" 
-                                  : "Không thể thêm phòng ban '" + deptName.trim() + "'. Vui lòng thử lại.";
+                message = success ? "Phòng ban '" + deptName.trim() + "' đã được thêm." : "Không thể thêm phòng ban.";
             } else {
+                // Cập nhật
                 dept.setDepartmentId(Integer.parseInt(deptId));
                 success = departmentDAO.update(dept);
-                message = success ? "Phòng ban '" + deptName.trim() + "' đã được cập nhật thành công!" 
-                                  : "Không thể cập nhật phòng ban '" + deptName.trim() + "'. Vui lòng thử lại.";
+                message = success ? "Phòng ban '" + deptName.trim() + "' đã được cập nhật." : "Không thể cập nhật phòng ban.";
             }
-        } catch (NumberFormatException e) {
-            message = "Lỗi: ID phòng ban không hợp lệ.";
-            e.printStackTrace();
         } catch (Exception e) {
-            message = "Lỗi: " + e.getMessage();
             e.printStackTrace();
+            success = false;
+            message = "Đã xảy ra lỗi: " + e.getMessage();
         }
 
         jakarta.servlet.http.HttpSession session = request.getSession();
-        session.setAttribute(success ? "successMessage" : "errorMessage", message);
-        
-        response.sendRedirect(request.getContextPath() + "/departments?action=departments");
-    }
-
-    private void deleteDepartment(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        String deptId = request.getParameter("deptId");
-        String message = "";
-        boolean success = false;
-
-        try {
-            int id = Integer.parseInt(deptId);
-            
-            Department dept = departmentDAO.getById(id);
-            String deptName = dept != null ? dept.getDeptName() : "Phòng ban";
-            
-            int employeeCount = employeeDAO.getEmployeeCountByDepartment(id);
-            if (employeeCount > 0) {
-                message = "Không thể xóa phòng ban '" + deptName + "' vì nó có " + employeeCount + " nhân viên. Vui lòng chuyển nhân viên sang phòng ban khác trước.";
-            } else {
-                success = departmentDAO.delete(id);
-                message = success ? "Phòng ban '" + deptName + "' đã được xóa thành công!" 
-                                  : "Không thể xóa phòng ban '" + deptName + "'. Vui lòng thử lại.";
-            }
-        } catch (NumberFormatException e) {
-            message = "Lỗi: ID phòng ban không hợp lệ.";
-            e.printStackTrace();
-        } catch (Exception e) {
-            message = "Lỗi: " + e.getMessage();
-            e.printStackTrace();
+        if (success) {
+            session.setAttribute("successMessage", message);
+        } else {
+            session.setAttribute("errorMessage", message);
         }
-
-        jakarta.servlet.http.HttpSession session = request.getSession();
-        session.setAttribute(success ? "successMessage" : "errorMessage", message);
-        
         response.sendRedirect(request.getContextPath() + "/departments?action=departments");
     }
 
@@ -332,20 +292,61 @@ public class DepartmentController extends HttpServlet {
         String deptId = request.getParameter("id");
         try {
             Department dept = departmentDAO.getById(Integer.parseInt(deptId));
+            List<Employee> managerList = employeeDAO.getAll(); // Giả sử bạn có hàm này
+            
             request.setAttribute("department", dept);
+            request.setAttribute("managerList", managerList); // Gửi danh sách quản lý
             request.getRequestDispatcher("Admin/DepartmentForm.jsp").forward(request, response);
+            
         } catch (Exception e) {
-            request.setAttribute("errorMessage", "Failed to load department.");
-            listDepartments(request, response);
+            e.printStackTrace();
+            request.getSession().setAttribute("errorMessage", "Không thể tải chi tiết phòng ban.");
+            response.sendRedirect(request.getContextPath() + "/departments?action=departments");
         }
+    }
+
+    private void deleteDepartment(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String deptId = request.getParameter("deptId");
+        String message = "";
+        boolean success = false;
+        try {
+            int id = Integer.parseInt(deptId);
+            // Kiểm tra xem phòng ban còn nhân viên không
+            if (employeeDAO.getEmployeeCountByDepartment(id) > 0) {
+                message = "Không thể xóa phòng ban. Vẫn còn nhân viên trong phòng ban này.";
+                success = false;
+            } else {
+                success = departmentDAO.delete(id);
+                message = success ? "Phòng ban đã được xóa." : "Không thể xóa phòng ban.";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            message = "Lỗi khi xóa phòng ban: " + e.getMessage();
+            success = false;
+        }
+
+        jakarta.servlet.http.HttpSession session = request.getSession();
+        if (success) {
+            session.setAttribute("successMessage", message);
+        } else {
+            session.setAttribute("errorMessage", message);
+        }
+        response.sendRedirect(request.getContextPath() + "/departments?action=departments");
     }
 
     private void manageDepartmentPermissions(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String deptId = request.getParameter("id");
         try {
+            String deptId = request.getParameter("id");
             Department dept = departmentDAO.getById(Integer.parseInt(deptId));
+            // Logic để lấy quyền
+            List<String> allPermissions = Arrays.asList("View Reports", "Manage Employees", "Edit Settings");
+            List<String> currentPermissions = Arrays.asList("View Reports"); // Lấy quyền thực tế từ DB
+
             request.setAttribute("department", dept);
+            request.setAttribute("allPermissions", allPermissions);
+            request.setAttribute("currentPermissions", currentPermissions);
             request.getRequestDispatcher("Admin/DepartmentPermissions.jsp").forward(request, response);
         } catch (Exception e) {
             request.setAttribute("errorMessage", "Failed to load department permissions.");
@@ -363,16 +364,21 @@ public class DepartmentController extends HttpServlet {
             String permissionList = permissions != null ? String.join(", ", permissions) : "None";
             System.out.println("Permissions saved for department " + id + ": " + permissionList); 
             String message = "Permissions updated successfully!";
-            request.setAttribute("successMessage", message);
+            
+            // SỬA LỖI: Dùng session để gửi thông báo qua redirect
+            jakarta.servlet.http.HttpSession session = request.getSession();
+            session.setAttribute("successMessage", message);
+            
         } catch (NumberFormatException e) {
-            request.setAttribute("errorMessage", "Invalid department ID format.");
+            request.getSession().setAttribute("errorMessage", "Invalid department ID format.");
             e.printStackTrace();
         } catch (Exception e) {
-            request.setAttribute("errorMessage", "Error saving permissions: " + e.getMessage());
+            request.getSession().setAttribute("errorMessage", "Error saving permissions: " + e.getMessage());
             e.printStackTrace();
         }
 
-        response.sendRedirect(request.getContextPath() + "/department?action=departments");
+        // SỬA LỖI: Sai đường dẫn, thiếu 's'
+        response.sendRedirect(request.getContextPath() + "/departments?action=departments");
     }
 
     @Override

@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <title>Role Management</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <link href="css/user-menu.css" rel="stylesheet" type="text/css"/>
+    
     <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/Admin_home.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/roles.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/pagination.css">
@@ -15,7 +15,7 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        const contextPath = '${pageContext.request.contextPath}';
+        window.contextPath = '${pageContext.request.contextPath}';
     </script>
     <script src="${pageContext.request.contextPath}/Admin/js/role-management.js"></script>
 </head>
@@ -34,8 +34,7 @@
                 <a href="${pageContext.request.contextPath}/admin?action=dashboard"
                    class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">🏠 Dashboard</a>
 
-                <a href="${pageContext.request.contextPath}/admin?action=employees"
-                   class="nav-item ${activePage == 'employees' ? 'active' : ''}">👥 Employees</a>
+                     <!-- Employees link removed -->
 
                 <a href="${pageContext.request.contextPath}/admin?action=departments"
                    class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
@@ -126,26 +125,78 @@
                 </table>
             </div>
 
-                <!-- Pagination -->
+                <!-- Pagination (department-style) -->
                 <div class="pagination-bar">
-                    <c:if test="${currentPage > 1}">
-                        <a href="?action=roles&page=1">First</a>
-                        <a href="?action=roles&page=${currentPage - 1}">Previous</a>
-                    </c:if>
-                    <c:forEach var="i" begin="1" end="${totalPages}">
-                        <c:choose>
-                            <c:when test="${i == currentPage}">
-                                <span class="active">${i}</span>
-                            </c:when>
-                            <c:otherwise>
-                                <a href="?action=roles&page=${i}">${i}</a>
-                            </c:otherwise>
-                        </c:choose>
-                    </c:forEach>
-                    <c:if test="${currentPage < totalPages}">
-                        <a href="?action=roles&page=${currentPage + 1}">Next</a>
-                        <a href="?action=roles&page=${totalPages}">Last</a>
-                    </c:if>
+                    <div class="pagination-info">
+                        <%
+                            Integer currentPageObj = (Integer) request.getAttribute("currentPage");
+                            Integer pageSizeObj = (Integer) request.getAttribute("pageSize");
+                            Integer totalObj = (Integer) request.getAttribute("total");
+                            int currentPage = (currentPageObj != null) ? currentPageObj : 1;
+                            int pageSize = (pageSizeObj != null) ? pageSizeObj : 10;
+                            int total = (totalObj != null) ? totalObj : 0;
+                            int start = (currentPage - 1) * pageSize + 1;
+                            int end = Math.min(currentPage * pageSize, total);
+                            if (total == 0) { start = 0; end = 0; }
+                        %>
+                        Showing <%= start %> - <%= end %> of <%= total %>
+                    </div>
+                    <div class="pagination-controls">
+                        <%
+                            Integer totalPagesObj = (Integer) request.getAttribute("totalPages");
+                            int totalPages = (totalPagesObj != null) ? totalPagesObj : 1;
+
+                            StringBuilder params = new StringBuilder();
+                            String searchParam = request.getParameter("search");
+                            String roleFilter = request.getParameter("roleFilter");
+                            if (searchParam != null && !searchParam.isEmpty()) {
+                                params.append("&search=").append(java.net.URLEncoder.encode(searchParam, "UTF-8"));
+                            }
+                            if (roleFilter != null && !roleFilter.isEmpty()) {
+                                params.append("&roleFilter=").append(java.net.URLEncoder.encode(roleFilter, "UTF-8"));
+                            }
+
+                            int range = 2;
+                            int start_page = Math.max(1, currentPage - range);
+                            int end_page = Math.min(totalPages, currentPage + range);
+
+                            if (currentPage > 1) {
+                        %>
+                        <a href="${pageContext.request.contextPath}/admin?action=roles&page=<%= currentPage - 1 %><%= params.toString() %>">Prev</a>
+                        <% } else { %>
+                        <span class="disabled">Prev</span>
+                        <% }
+
+                            if (start_page > 1) { %>
+                                <a href="${pageContext.request.contextPath}/admin?action=roles&page=1<%= params.toString() %>">1</a>
+                                <% if (start_page > 2) { %>
+                                    <span class="ellipsis">...</span>
+                                <% } %>
+                            <% }
+
+                            for (int i = start_page; i <= end_page; i++) {
+                                if (i == currentPage) {
+                        %>
+                            <span class="active"><%= i %></span>
+                        <%  } else { %>
+                            <a href="${pageContext.request.contextPath}/admin?action=roles&page=<%= i %><%= params.toString() %>"><%= i %></a>
+                        <%  }
+                            }
+
+                            if (end_page < totalPages) {
+                                if (end_page < totalPages - 1) { %>
+                                    <span class="ellipsis">...</span>
+                                <% } %>
+                                <a href="${pageContext.request.contextPath}/admin?action=roles&page=<%= totalPages %><%= params.toString() %>"><%= totalPages %></a>
+                            <% }
+
+                            if (currentPage < totalPages) {
+                        %>
+                        <a href="${pageContext.request.contextPath}/admin?action=roles&page=<%= currentPage + 1 %><%= params.toString() %>">Next</a>
+                        <% } else { %>
+                        <span class="disabled">Next</span>
+                        <% } %>
+                    </div>
                 </div>
             </section>
         </main>

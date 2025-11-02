@@ -21,6 +21,7 @@ public class Department implements Serializable {
     private Integer employeeCount;
     private String status;
     private java.sql.Timestamp createdAt;
+    private String managerName;
     public Department() {
     }
 
@@ -83,7 +84,14 @@ public class Department implements Serializable {
     public void setCreatedAt(java.sql.Timestamp createdAt) {
         this.createdAt = createdAt;
     }
+    
+    public String getManagerName() {
+        return managerName;
+    }
 
+    public void setManagerName(String managerName) {
+        this.managerName = managerName;
+    }
     @Override
     public String toString() {
         return "Department{" + "departmentId=" + departmentId + ", deptName=" + deptName + ", deptManagerId=" + deptManagerId + '}';
