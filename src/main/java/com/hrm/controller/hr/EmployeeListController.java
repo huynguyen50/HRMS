@@ -37,60 +37,62 @@ public class EmployeeListController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         try {
-            // Get filter parameters
-            String searchKeyword = request.getParameter("search");
-            String statusFilter = request.getParameter("status");
-            String departmentFilter = request.getParameter("department");
-            String positionFilter = request.getParameter("position");
+            // Fixed page size
+            final int pageSize = 5;
             
-            // Get pagination parameters
+            // Get search parameter - only search by name and position
+            String searchKeyword = request.getParameter("search");
+            
+            // Get current page number
             int page = 1;
-            int pageSize = 5;
             try {
                 String pageParam = request.getParameter("page");
                 if (pageParam != null && !pageParam.trim().isEmpty()) {
                     page = Integer.parseInt(pageParam);
-                }
-                String pageSizeParam = request.getParameter("pageSize");
-                if (pageSizeParam != null && !pageSizeParam.trim().isEmpty()) {
-                    pageSize = Integer.parseInt(pageSizeParam);
+                    if (page < 1) page = 1;
                 }
             } catch (NumberFormatException e) {
-                // Use default values if parsing fails
+                // Use default page = 1
+            }
+            
+            // Get all employees (filtered if search keyword exists) - for statistics
+            List<Employee> allEmployees;
+            if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
+                allEmployees = getFilteredEmployees(searchKeyword);
+            } else {
+                allEmployees = employeeDAO.getAll();
+            }
+            
+            // Get total count for pagination
+            int totalCount = allEmployees.size();
+            
+            // Calculate pagination
+            int totalPages = (int) Math.ceil((double) totalCount / pageSize);
+            if (page > totalPages && totalPages > 0) {
+                page = totalPages;
             }
             
             // Calculate offset
             int offset = (page - 1) * pageSize;
             
-            List<Employee> employees;
-            int totalCount;
+            // Get employees for current page only (for table display)
+            List<Employee> employees = allEmployees.stream()
+                .skip(offset)
+                .limit(pageSize)
+                .toList();
             
-            // Apply filters and get employees
-            if (hasFilters(searchKeyword, statusFilter, departmentFilter, positionFilter)) {
-                employees = getFilteredEmployees(searchKeyword, statusFilter, departmentFilter, positionFilter, offset, pageSize);
-                totalCount = getFilteredEmployeesCount(searchKeyword, statusFilter, departmentFilter, positionFilter);
-            } else {
-                employees = employeeDAO.getPaged(offset, pageSize);
-                totalCount = employeeDAO.getTotalEmployeesCount();
-            }
-            
-            // Get departments for filter dropdown
+            // Get departments (might be needed for other purposes, but not for filtering)
             List<Department> departments = departmentDAO.getAll();
             
-            // Calculate pagination info
-            int totalPages = (int) Math.ceil((double) totalCount / pageSize);
-            
             // Set attributes
-            request.setAttribute("employees", employees);
+            request.setAttribute("employees", employees); // Only 5 employees for current page
+            request.setAttribute("allEmployeesForStats", allEmployees); // All employees for statistics
             request.setAttribute("departments", departments);
             request.setAttribute("currentPage", page);
             request.setAttribute("pageSize", pageSize);
             request.setAttribute("totalPages", totalPages);
             request.setAttribute("totalCount", totalCount);
-            request.setAttribute("searchKeyword", searchKeyword);
-            request.setAttribute("statusFilter", statusFilter);
-            request.setAttribute("departmentFilter", departmentFilter);
-            request.setAttribute("positionFilter", positionFilter);
+            request.setAttribute("searchKeyword", searchKeyword != null ? searchKeyword : "");
             
             // Check for success/error messages in session
             jakarta.servlet.http.HttpSession session = request.getSession(false);
@@ -118,52 +120,19 @@ public class EmployeeListController extends HttpServlet {
         }
     }
     
-    private boolean hasFilters(String searchKeyword, String statusFilter, String departmentFilter, String positionFilter) {
-        return (searchKeyword != null && !searchKeyword.trim().isEmpty()) ||
-               (statusFilter != null && !statusFilter.trim().isEmpty()) ||
-               (departmentFilter != null && !departmentFilter.trim().isEmpty()) ||
-               (positionFilter != null && !positionFilter.trim().isEmpty());
-    }
-    
-    private List<Employee> getFilteredEmployees(String searchKeyword, String statusFilter, String departmentFilter, String positionFilter, int offset, int pageSize) {
-        // For now, use the existing search method and filter in memory
-        // In a production environment, you'd want to modify the DAO to handle complex filtering
+    /**
+     * Filter employees by name and position only
+     */
+    private List<Employee> getFilteredEmployees(String searchKeyword) {
         List<Employee> allEmployees = employeeDAO.getAll();
+        String keyword = searchKeyword.trim().toLowerCase();
         
-        // Apply filters
+        // Filter by name and position only
         return allEmployees.stream()
-            .filter(emp -> searchKeyword == null || searchKeyword.trim().isEmpty() || 
-                    emp.getFullName().toLowerCase().contains(searchKeyword.toLowerCase()) ||
-                    emp.getEmail().toLowerCase().contains(searchKeyword.toLowerCase()) ||
-                    emp.getPosition().toLowerCase().contains(searchKeyword.toLowerCase()) ||
-                    (emp.getDepartmentName() != null && emp.getDepartmentName().toLowerCase().contains(searchKeyword.toLowerCase())))
-            .filter(emp -> statusFilter == null || statusFilter.trim().isEmpty() || 
-                    emp.getStatus().equals(statusFilter))
-            .filter(emp -> departmentFilter == null || departmentFilter.trim().isEmpty() || 
-                    String.valueOf(emp.getDepartmentId()).equals(departmentFilter))
-            .filter(emp -> positionFilter == null || positionFilter.trim().isEmpty() || 
-                    emp.getPosition().toLowerCase().contains(positionFilter.toLowerCase()))
-            .skip(offset)
-            .limit(pageSize)
-            .collect(java.util.stream.Collectors.toList());
-    }
-    
-    private int getFilteredEmployeesCount(String searchKeyword, String statusFilter, String departmentFilter, String positionFilter) {
-        List<Employee> allEmployees = employeeDAO.getAll();
-        
-        return (int) allEmployees.stream()
-            .filter(emp -> searchKeyword == null || searchKeyword.trim().isEmpty() || 
-                    emp.getFullName().toLowerCase().contains(searchKeyword.toLowerCase()) ||
-                    emp.getEmail().toLowerCase().contains(searchKeyword.toLowerCase()) ||
-                    emp.getPosition().toLowerCase().contains(searchKeyword.toLowerCase()) ||
-                    (emp.getDepartmentName() != null && emp.getDepartmentName().toLowerCase().contains(searchKeyword.toLowerCase())))
-            .filter(emp -> statusFilter == null || statusFilter.trim().isEmpty() || 
-                    emp.getStatus().equals(statusFilter))
-            .filter(emp -> departmentFilter == null || departmentFilter.trim().isEmpty() || 
-                    String.valueOf(emp.getDepartmentId()).equals(departmentFilter))
-            .filter(emp -> positionFilter == null || positionFilter.trim().isEmpty() || 
-                    emp.getPosition().toLowerCase().contains(positionFilter.toLowerCase()))
-            .count();
+            .filter(emp -> 
+                    (emp.getFullName() != null && emp.getFullName().toLowerCase().contains(keyword)) ||
+                    (emp.getPosition() != null && emp.getPosition().toLowerCase().contains(keyword)))
+            .toList();
     } 
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

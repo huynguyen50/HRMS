@@ -328,7 +328,7 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     <div class="header">
         <div class="container">
             <div class="header-content">
-                <a href="/HRMS/homepage" class="home-btn">
+                <a href="${pageContext.request.contextPath}/homepage" class="home-btn">
                     <i class="fas fa-home"></i> Home
                 </a>
                 <div class="header-text">
@@ -369,6 +369,7 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 
             <div class="jobs-grid">
                 <%
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                     List<Recruitment> recruitments = (List<Recruitment>) request.getAttribute("recruitments");
                     if (recruitments != null && !recruitments.isEmpty()) {
                         for (Recruitment recruitment : recruitments) {
@@ -381,7 +382,7 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                         </div>
                         <% if (recruitment.getSalary() != null) { %>
                         <div class="job-salary">
-                            <i class="fas fa-dollar-sign"></i> $<%= String.format("%.0f", recruitment.getSalary()) %>
+                            <i class="fas fa-money-bill-wave"></i> <%= String.format("%,.0f", recruitment.getSalary()) %> VNĐ
                         </div>
                         <% } %>
                     </div>

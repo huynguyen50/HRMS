@@ -529,7 +529,7 @@
                             <span>HR Manager</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
-                        <a href="Views/Homepage.jsp" class="btn-homepage" title="Back to Homepage">
+                        <a href="/homepage" class="btn-homepage" title="Back to Homepage">
                             <i class="fas fa-home"></i>
                             <span>Homepage</span>
                         </a>
@@ -551,14 +551,6 @@
                             <a href="${pageContext.request.contextPath}/ProfileManagementController" class="nav-item">
                                 <i class="fas fa-user-edit"></i>
                                 <span>Profile Management</span>
-                            </a>
-                            <a href="${pageContext.request.contextPath}/EmploymentStatusController" class="nav-item">
-                                <i class="fas fa-user-check"></i>
-                                <span>Employment Status</span>
-                            </a>
-                            <a href="${pageContext.request.contextPath}/TaskManagementController" class="nav-item">
-                                <i class="fas fa-tasks"></i>
-                                <span>Task Management</span>
                             </a>
                             <a href="${pageContext.request.contextPath}/hr/employee-list" class="nav-item active">
                                 <i class="fas fa-users"></i>
@@ -609,35 +601,27 @@
                     <div class="card mb-4">
                         <div class="card-header">
                             <h5 class="mb-0">
-                                <i class="fas fa-filter me-2"></i>Filter & Search
+                                <i class="fas fa-filter me-2"></i>Search
                             </h5>
                         </div>
                         <div class="card-body">
                             <form method="GET" action="${pageContext.request.contextPath}/hr/employee-list" id="filterForm">
+                                <input type="hidden" name="page" value="1" id="pageInput">
                                 <div class="row g-3">
-                                    <div class="col-md-6">
+                                    <div class="col-md-8">
                                         <label for="search" class="form-label">Search</label>
                                         <input type="text" class="form-control" id="search" name="search" 
-                                               placeholder="Search by name, email, position..." 
+                                               placeholder="Search by name or position..." 
                                                value="${searchKeyword}">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label for="pageSize" class="form-label">Per Page</label>
-                                        <select class="form-select" id="pageSize" name="pageSize">
-                                            <option value="5" ${pageSize == 5 ? 'selected' : ''}>5</option>
-                                            <option value="10" ${pageSize == 10 ? 'selected' : ''}>10</option>
-                                            <option value="20" ${pageSize == 20 ? 'selected' : ''}>20</option>
-                                            <option value="50" ${pageSize == 50 ? 'selected' : ''}>50</option>
-                                        </select>
                                     </div>
                                 </div>
                                 <div class="row mt-3">
                                     <div class="col-12">
                                         <button type="submit" class="btn btn-primary me-2">
-                                            <i class="fas fa-search me-1"></i>Apply Filters
+                                            <i class="fas fa-search me-1"></i>Search
                                         </button>
                                         <a href="${pageContext.request.contextPath}/hr/employee-list" class="btn btn-outline-secondary">
-                                            <i class="fas fa-times me-1"></i>Clear Filters
+                                            <i class="fas fa-times me-1"></i>Clear
                                         </a>
                                     </div>
                                 </div>
@@ -664,11 +648,11 @@
                     </c:if>
 
                     <!-- Statistics Summary -->
-                    <c:if test="${not empty employees}">
+                    <c:if test="${not empty allEmployeesForStats}">
                         <div class="row mb-4">
                             <div class="col-md-3">
                                 <div class="stats-card">
-                                    <div class="stats-number">${employees.size()}</div>
+                                    <div class="stats-number">${totalCount}</div>
                                     <div class="stats-label">Total Employees</div>
                                 </div>
                             </div>
@@ -676,7 +660,7 @@
                                 <div class="stats-card">
                                     <div class="stats-number">
                                         <c:set var="activeCount" value="0" />
-                                        <c:forEach var="emp" items="${employees}">
+                                        <c:forEach var="emp" items="${allEmployeesForStats}">
                                             <c:if test="${emp.status == 'Active'}">
                                                 <c:set var="activeCount" value="${activeCount + 1}" />
                                             </c:if>
@@ -690,7 +674,7 @@
                                 <div class="stats-card">
                                     <div class="stats-number">
                                         <c:set var="probationCount" value="0" />
-                                        <c:forEach var="emp" items="${employees}">
+                                        <c:forEach var="emp" items="${allEmployeesForStats}">
                                             <c:if test="${emp.status == 'Probation'}">
                                                 <c:set var="probationCount" value="${probationCount + 1}" />
                                             </c:if>
@@ -704,7 +688,7 @@
                                 <div class="stats-card">
                                     <div class="stats-number">
                                         <c:set var="internCount" value="0" />
-                                        <c:forEach var="emp" items="${employees}">
+                                        <c:forEach var="emp" items="${allEmployeesForStats}">
                                             <c:if test="${emp.status == 'Intern'}">
                                                 <c:set var="internCount" value="${internCount + 1}" />
                                             </c:if>
@@ -821,7 +805,7 @@
                             <ul class="pagination justify-content-center">
                                 <!-- Previous button -->
                                 <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
-                                    <a class="page-link" href="${pageContext.request.contextPath}/hr/employee-list?page=${currentPage - 1}&pageSize=${pageSize}&search=${searchKeyword}">
+                                    <a class="page-link" href="${pageContext.request.contextPath}/hr/employee-list?page=${currentPage - 1}&search=${searchKeyword}">
                                         <i class="fas fa-chevron-left"></i> Previous
                                     </a>
                                 </li>
@@ -836,7 +820,7 @@
                                         </c:when>
                                         <c:when test="${pageNum <= 3 || pageNum > totalPages - 3 || (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)}">
                                             <li class="page-item">
-                                                <a class="page-link" href="${pageContext.request.contextPath}/hr/employee-list?page=${pageNum}&pageSize=${pageSize}&search=${searchKeyword}">
+                                                <a class="page-link" href="${pageContext.request.contextPath}/hr/employee-list?page=${pageNum}&search=${searchKeyword}">
                                                     ${pageNum}
                                                 </a>
                                             </li>
@@ -856,7 +840,7 @@
                                 
                                 <!-- Next button -->
                                 <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
-                                    <a class="page-link" href="${pageContext.request.contextPath}/hr/employee-list?page=${currentPage + 1}&pageSize=${pageSize}&search=${searchKeyword}">
+                                    <a class="page-link" href="${pageContext.request.contextPath}/hr/employee-list?page=${currentPage + 1}&search=${searchKeyword}">
                                         Next <i class="fas fa-chevron-right"></i>
                                     </a>
                                 </li>
@@ -969,12 +953,6 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-            // Auto-submit form when page size changes
-            document.getElementById('pageSize').addEventListener('change', function() {
-                document.getElementById('filterForm').submit();
-            });
-            
-
             // Update status function - no longer needed since we're using the same controller
 
             // Debug form submit function

@@ -870,17 +870,6 @@
                                         <p>Organizational departments</p>
                                 </div>
                             </div>
-                                
-                                <div class="stat-card info">
-                                <div class="stat-icon">
-                                        <i class="fas fa-tasks"></i>
-                                </div>
-                                <div class="stat-content">
-                                        <h3>Pending Tasks</h3>
-                                        <span class="stat-number">${not empty tasks ? tasks.size() : 0}</span>
-                                        <p>Tasks awaiting completion</p>
-                                </div>
-                            </div>
                         </div>
 
                             <!-- Quick Access Functions -->
@@ -897,11 +886,6 @@
                                         <h4>Employment Status</h4>
                                         <p>Update employment status</p>
                                     </a>-->
-                                    <a href="${pageContext.request.contextPath}/TaskManagementController" class="access-card">
-                                        <i class="fas fa-tasks"></i>
-                                        <h4>Task Management</h4>
-                                        <p>Assign and track tasks</p>
-                                    </a>
                                     <a href="${pageContext.request.contextPath}/Views/hr/PostRecruitment.jsp" class="access-card">
                                         <i class="fas fa-bullhorn"></i>
                                         <h4>Post Recruitment</h4>
@@ -1087,152 +1071,6 @@
                             </div>
                         </div>
                     </section>-->
-
-                    <!-- Task Management Section -->
-                    <section id="task-management" class="content-section">
-                        <div class="section-header">
-                            <h2>Task Management</h2>
-                            <p>Assign tasks to employees and track progress</p>
-                        </div>
-                        
-                        <div class="task-management-tabs">
-                            <button class="tab-btn active" data-tab="assign-tasks">Assign Tasks</button>
-                            <button class="tab-btn" data-tab="task-progress">Track Progress</button>
-                            <button class="tab-btn" data-tab="completed-tasks">Completed</button>
-                        </div>
-                        
-                        <div class="tab-content">
-                            <div id="assign-tasks" class="tab-panel active">
-                                <div class="task-assignment-form">
-                                    <h3>New Task Assignment</h3>
-                                    <form method="POST" action="/HRMS/TaskManagementController" onsubmit="return confirmTaskCreation(this)">
-                                        <input type="hidden" name="action" value="createTask">
-                                        <input type="hidden" name="assignedBy" value="1">
-                                        <div class="form-group">
-                                            <label>Select Employee:</label>
-                                            <select name="assignTo" class="form-select" required>
-                                                <option value="">Select Employee</option>
-                                                <c:forEach var="employee" items="${employees}">
-                                                    <option value="${employee.employeeId}">${employee.fullName} - ${employee.departmentName}</option>
-                                                </c:forEach>
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Task Title:</label>
-                                            <input type="text" name="title" class="form-input" placeholder="Enter task title" required>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Detailed Description:</label>
-                                            <textarea name="description" class="form-textarea" placeholder="Describe the task in detail" required></textarea>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Deadline:</label>
-                                            <input type="date" name="dueDate" class="form-input" required>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Status:</label>
-                                            <select name="status" class="form-select">
-                                                <option value="Pending">Pending</option>
-                                                <option value="In Progress">In Progress</option>
-                                                <option value="Completed">Completed</option>
-                                                <option value="Rejected">Rejected</option>
-                                            </select>
-                                        </div>
-                                        <button type="submit" class="btn-primary">
-                                            <i class="fas fa-paper-plane"></i>
-                                            Assign Task
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                            
-                            <div id="task-progress" class="tab-panel">
-                                <div class="task-list">
-                                    <h3>All Tasks</h3>
-                                    <c:choose>
-                                        <c:when test="${not empty tasks}">
-                                            <c:forEach var="task" items="${tasks}">
-                                                <div class="task-card">
-                                                    <div class="task-info">
-                                                        <h4>${task.title}</h4>
-                                                        <p><strong>Description:</strong> ${task.description}</p>
-                                                        <p><strong>Assigned To:</strong> 
-                                                            <c:forEach var="emp" items="${employees}">
-                                                                <c:if test="${emp.employeeId == task.assignTo}">
-                                                                    ${emp.fullName}
-                                                                </c:if>
-                                                            </c:forEach>
-                                                        </p>
-                                                        <p><strong>Due Date:</strong> ${task.dueDate}</p>
-                                                        <p><strong>Status:</strong> <span class="status-badge ${task.status.toLowerCase().replace(' ', '-')}">${task.status}</span></p>
-                                                    </div>
-                                                    <div class="task-actions">
-                                                        <button class="btn-secondary">
-                                                            <i class="fas fa-edit"></i>
-                                                            Edit
-                                                        </button>
-                                                        <button class="btn-primary">
-                                                            <i class="fas fa-eye"></i>
-                                                            View Details
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </c:forEach>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <div class="no-data">
-                                                <i class="fas fa-tasks"></i>
-                                                <h3>No tasks found</h3>
-                                                <p>There are no tasks to display at the moment.</p>
-                                            </div>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </div>
-                            </div>
-                            
-                            <div id="completed-tasks" class="tab-panel">
-                                <div class="task-list">
-                                    <h3>Completed Tasks</h3>
-                                    <c:choose>
-                                        <c:when test="${not empty tasks}">
-                                            <c:forEach var="task" items="${tasks}">
-                                                <c:if test="${task.status == 'Completed'}">
-                                                    <div class="task-card completed">
-                                                        <div class="task-info">
-                                                            <h4>${task.title}</h4>
-                                                            <p><strong>Description:</strong> ${task.description}</p>
-                                                            <p><strong>Assigned To:</strong> 
-                                                                <c:forEach var="emp" items="${employees}">
-                                                                    <c:if test="${emp.employeeId == task.assignTo}">
-                                                                        ${emp.fullName}
-                                                                    </c:if>
-                                                                </c:forEach>
-                                                            </p>
-                                                            <p><strong>Due Date:</strong> ${task.dueDate}</p>
-                                                            <p><strong>Status:</strong> <span class="status-badge completed">Completed</span></p>
-                                                        </div>
-                                                        <div class="task-actions">
-                                                            <button class="btn-success">
-                                                                <i class="fas fa-check"></i>
-                                                                Completed
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </c:if>
-                                            </c:forEach>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <div class="no-data">
-                                                <i class="fas fa-check-circle"></i>
-                                                <h3>No completed tasks</h3>
-                                                <p>There are no completed tasks to display.</p>
-                                            </div>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
 
                     <!-- Requests and Recommendations Section -->
                     <section id="requests-approval" class="content-section">
@@ -1608,21 +1446,6 @@
                 return confirm(`Are you sure you want to update ${employeeName}'s status to ${newStatus}?`);
             }
             
-            // Confirm task creation
-            function confirmTaskCreation(form) {
-                const employeeSelect = form.querySelector('select[name="assignTo"]');
-                const selectedOption = employeeSelect.options[employeeSelect.selectedIndex];
-                const employeeName = selectedOption.text;
-                const taskTitle = form.querySelector('input[name="title"]').value;
-                
-                if (!taskTitle) {
-                    alert('Please enter a task title.');
-                    return false;
-                }
-                
-                return confirm(`Are you sure you want to assign task "${taskTitle}" to ${employeeName}?`);
-            }
-            
             // Handle form submissions with AJAX to avoid page reload
             document.addEventListener('DOMContentLoaded', function() {
                 // Handle status update forms
@@ -1647,27 +1470,6 @@
                         })
                         .catch(error => {
                             showMessage('Error updating status: ' + error.message, 'error');
-                        });
-                    });
-                });
-                
-                // Handle task creation forms
-                document.querySelectorAll('form[action*="TaskManagementController"]').forEach(form => {
-                    form.addEventListener('submit', function(e) {
-                        e.preventDefault();
-                        const formData = new FormData(this);
-                        
-                        fetch('/HRMS/TaskManagementController', {
-                            method: 'POST',
-                            body: formData
-                        })
-                        .then(response => response.text())
-                        .then(data => {
-                            showMessage('Task created successfully!', 'success');
-                            this.reset(); // Clear the form
-                        })
-                        .catch(error => {
-                            showMessage('Error creating task: ' + error.message, 'error');
                         });
                     });
                 });
