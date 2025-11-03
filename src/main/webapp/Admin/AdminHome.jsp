@@ -26,16 +26,13 @@
                     <a href="${pageContext.request.contextPath}/admin?action=dashboard"
                        class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">🏠 Dashboard</a>
 
-                    <a href="${pageContext.request.contextPath}/admin?action=employees"
-                       class="nav-item ${activePage == 'employees' ? 'active' : ''}">👥 Employees</a>
-
                     <a href="${pageContext.request.contextPath}/admin?action=departments"
                        class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
 
                     <a href="${pageContext.request.contextPath}/admin/users"
                        class="nav-item ${activePage == 'users' ? 'active' : ''}">👤 Users</a>
 
-                    <a href="${pageContext.request.contextPath}/admin?action=roles"
+                    <a href="${pageContext.request.contextPath}/admin/role/list"
                        class="nav-item ${activePage == 'roles' ? 'active' : ''}">🔐 Roles</a>
 
                     <a href="${pageContext.request.contextPath}/admin?action=audit-log"

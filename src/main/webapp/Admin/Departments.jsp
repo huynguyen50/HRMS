@@ -315,8 +315,6 @@
                 <div class="sidebar-nav">
                     <a href="${pageContext.request.contextPath}/admin?action=dashboard"
                        class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">🏠 Dashboard</a>
-                    <a href="${pageContext.request.contextPath}/admin?action=employees"
-                       class="nav-item ${activePage == 'employees' ? 'active' : ''}">👥 Employees</a>
                     <a href="${pageContext.request.contextPath}/departments?action=departments" 
                        class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
                     <a href="${pageContext.request.contextPath}/admin/users"

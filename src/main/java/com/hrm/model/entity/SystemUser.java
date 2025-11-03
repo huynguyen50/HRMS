@@ -19,7 +19,8 @@ public class SystemUser implements Serializable {
     private boolean isActive;
     private LocalDateTime createdDate;
     private Integer employeeId;
-    
+    private Department department;
+    private Employee employee; 
     private Role role;
 
     public SystemUser() {}
@@ -112,5 +113,19 @@ public class SystemUser implements Serializable {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+    public Department getDepartment() {
+        return department;
+    }
+
+    public void setDepartment(Department department) {
+        this.department = department;
+    }
+    public Employee getEmployee() {
+        return employee;
+    }
+
+    public void setEmployee(Employee employee) {
+        this.employee = employee;
     }
 }

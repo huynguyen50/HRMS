@@ -340,11 +340,6 @@ public List<Department> searchDepartments(String keyword) throws SQLException {
         return list;
     }
 
-    /**
-     * Get count of departments filtered by time range
-     * @param timeRange Time range filter: "today", "week", "month"
-     * @return Total count
-     */
     public int getCountByTimeRange(String timeRange) {
         String sql = "SELECT COUNT(*) as total FROM Department WHERE 1=1";
         
@@ -376,14 +371,6 @@ public List<Department> searchDepartments(String keyword) throws SQLException {
         return 0;
     }
 
-    /**
-     * Get departments filtered by both department ID and time range with pagination
-     * @param departmentId Department ID to filter by (0 = all)
-     * @param timeRange Time range filter: "today", "week", "month"
-     * @param offset Pagination offset
-     * @param limit Pagination limit
-     * @return List of filtered departments
-     */
    public List<Department> getPagedByDepartmentAndTimeRange(int departmentId, String timeRange, int offset, int limit) {
         List<Department> list = new ArrayList<>();
         String sql = "SELECT * FROM Department WHERE 1=1";
@@ -429,13 +416,6 @@ public List<Department> searchDepartments(String keyword) throws SQLException {
         return list;
     }
 
-    /**
-     * Get count of departments filtered by both department ID and time range
-     * Added method to count filtered departments
-     * @param departmentId Department ID to filter by (0 = all)
-     * @param timeRange Time range filter: "today", "week", "month"
-     * @return Total count
-     */
     public int getCountByDepartmentAndTimeRange(int departmentId, String timeRange) {
         String sql = "SELECT COUNT(*) as total FROM Department WHERE 1=1";
         

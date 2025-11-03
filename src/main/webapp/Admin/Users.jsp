@@ -6,12 +6,28 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Management</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/Admin_home.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/users.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/pagination.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/user-menu.css">
+        <title>User Management</title>
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/Admin_home.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/users.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/pagination.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/user-menu.css">
     </head>
+    <style>
+        .error-text {
+            color: #dc2626;
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .input-error {
+
+            border: 2px solid #ef4444 !important;
+            background-color: #fef2f2;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+        }
+    </style>
     <body>
         <div class="dashboard-container">
             <!-- Sidebar -->
@@ -26,13 +42,11 @@
                 <div class="sidebar-nav">
                     <a href="${pageContext.request.contextPath}/admin?action=dashboard"
                        class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">🏠 Dashboard</a>
-                    <a href="${pageContext.request.contextPath}/admin?action=employees"
-                       class="nav-item ${activePage == 'employees' ? 'active' : ''}">👥 Employees</a>
                     <a href="${pageContext.request.contextPath}/admin?action=departments"
                        class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
                     <a href="${pageContext.request.contextPath}/admin/users"
                        class="nav-item ${activePage == 'users' ? 'active' : ''}">👤 Users</a>
-                    <a href="${pageContext.request.contextPath}/admin?action=roles"
+                    <a href="${pageContext.request.contextPath}/admin/role/list"
                        class="nav-item ${activePage == 'roles' ? 'active' : ''}">🔐 Roles</a>
                     <a href="${pageContext.request.contextPath}/admin?action=audit-log"
                        class="nav-item ${activePage == 'audit-log' ? 'active' : ''}">📜 Audit Log</a>
@@ -45,9 +59,9 @@
             <main class="main-content">
                 <!-- Top Bar -->
                 <header class="top-bar">
-                    
+
                     <div class="top-bar-actions">
-                        
+
                         <div class="user-menu" onclick="toggleUserMenu()">
                             <div class="user-info">
                                 <img src="https://i.pravatar.cc/32" alt="User">
@@ -101,13 +115,13 @@
                             <button class="btn-primary" type="button" onclick="openAddUserModal()">+ Add New User</button>
                         </form>
                         <script>
-                        function resetFilters() {
-                            document.querySelector('select[name=roleFilter]').selectedIndex = 0;
-                            document.querySelector('select[name=statusFilter]').selectedIndex = 0;
-                            document.querySelector('select[name=departmentFilter]').selectedIndex = 0;
-                            document.querySelector('input[name=usernameFilter]').value = '';
-                            document.getElementById('filterForm').submit();
-                        }
+                            function resetFilters() {
+                                document.querySelector('select[name=roleFilter]').selectedIndex = 0;
+                                document.querySelector('select[name=statusFilter]').selectedIndex = 0;
+                                document.querySelector('select[name=departmentFilter]').selectedIndex = 0;
+                                document.querySelector('input[name=usernameFilter]').value = '';
+                                document.getElementById('filterForm').submit();
+                            }
                         </script>
                     </div>
 
@@ -134,9 +148,9 @@
                                             <tr>
                                                 <td>${user.userId}</td>
                                                 <td><strong>${user.username}</strong></td>
-                                                <td>${user.employeeId != null ? 'Employee ' : 'N/A'}</td>
-                                                <td>Department</td>
-                                                <td>${user.role.roleName}</td>
+                                                <td>${empty user.employee ? 'N/A' : user.employee.fullName}</td>
+                                                <td>${empty user.department ? 'N/A' : user.department.deptName}</td>
+                                                <td>${empty user.role ? 'N/A' : user.role.roleName}</td>
                                                 <td>
                                                     <span class="status-badge ${user.isActive ? 'active' : 'inactive'}">
                                                         ${user.isActive ? 'Active' : 'Inactive'}
@@ -189,23 +203,49 @@
 
                     <!-- Pagination -->
                     <div class="pagination-bar">
+                        <%-- Build base URL with all filter parameters --%>
+                        <c:url var="baseUrl" value="/admin/users">
+                            <c:if test="${not empty param.roleFilter}">
+                                <c:param name="roleFilter" value="${param.roleFilter}" />
+                            </c:if>
+                            <c:if test="${not empty param.statusFilter}">
+                                <c:param name="statusFilter" value="${param.statusFilter}" />
+                            </c:if>
+                            <c:if test="${not empty param.departmentFilter}">
+                                <c:param name="departmentFilter" value="${param.departmentFilter}" />
+                            </c:if>
+                            <c:if test="${not empty param.usernameFilter}">
+                                <c:param name="usernameFilter" value="${param.usernameFilter}" />
+                            </c:if>
+                        </c:url>
+
+                        <!-- First and Previous Buttons -->
                         <c:if test="${currentPage > 1}">
-                            <a href="?page=1">First</a>
-                            <a href="?page=${currentPage - 1}">Previous</a>
+                            <c:url var="firstPageUrl" value="${baseUrl}"><c:param name="page" value="1" /></c:url>
+                            <a href="${firstPageUrl}">First</a>
+                            <c:url var="prevPageUrl" value="${baseUrl}"><c:param name="page" value="${currentPage - 1}" /></c:url>
+                            <a href="${prevPageUrl}">Previous</a>
                         </c:if>
+
+                        <!-- Page Numbers -->
                         <c:forEach var="i" begin="1" end="${totalPages}">
                             <c:choose>
                                 <c:when test="${i == currentPage}">
                                     <span class="active">${i}</span>
                                 </c:when>
                                 <c:otherwise>
-                                    <a href="?page=${i}">${i}</a>
+                                    <c:url var="pageUrl" value="${baseUrl}"><c:param name="page" value="${i}" /></c:url>
+                                    <a href="${pageUrl}">${i}</a>
                                 </c:otherwise>
                             </c:choose>
                         </c:forEach>
+
+                        <!-- Next and Last Buttons -->
                         <c:if test="${currentPage < totalPages}">
-                            <a href="?page=${currentPage + 1}">Next</a>
-                            <a href="?page=${totalPages}">Last</a>
+                            <c:url var="nextPageUrl" value="${baseUrl}"><c:param name="page" value="${currentPage + 1}" /></c:url>
+                            <a href="${nextPageUrl}">Next</a>
+                            <c:url var="lastPageUrl" value="${baseUrl}"><c:param name="page" value="${totalPages}" /></c:url>
+                            <a href="${lastPageUrl}">Last</a>
                         </c:if>
                     </div>
                 </section>
@@ -218,7 +258,7 @@
                     <h2 id="modalTitle">Add New User</h2>
                     <button class="close-btn" onclick="closeUserModal()">&times;</button>
                 </div>
-                <form id="userForm" method="POST" action="${pageContext.request.contextPath}/admin/users">
+                <form id="userForm" >
                     <input type="hidden" id="userId" name="id">
                     <input type="hidden" id="actionField" name="action" value="save">
 
@@ -226,12 +266,14 @@
                         <label for="username">Username *</label>
                         <input type="text" id="username" name="username" required>
                         <small class="form-hint">Username must be unique and contain 3-50 characters</small>
+                        <small class="error-text" id="error-username"></small>
                     </div>
 
                     <div class="form-group">
                         <label for="password">Password *</label>
-                        <input type="password" id="password" name="password" required>
+                        <input type="password" id="password" name="password" required **autocomplete="new-password"**>
                         <small class="form-hint">Password must be at least 8 characters</small>
+                        <small class="error-text" id="error-password"></small>
                     </div>
 
                     <div class="form-group">
@@ -242,6 +284,7 @@
                                 <option value="${employee.employeeId}">${employee.fullName}</option>
                             </c:forEach>
                         </select>
+                        <small class="error-text" id="error-employee"></small>
                     </div>
 
                     <div class="form-group">
@@ -252,6 +295,7 @@
                                 <option value="${role.roleId}">${role.roleName}</option>
                             </c:forEach>
                         </select>
+                        <small class="error-text" id="error-role"></small>
                     </div>
 
                     <div class="form-group checkbox-group">
@@ -322,34 +366,54 @@
             }
 
             function resetPassword(userId) {
-                currentResetUserId = userId;
-                document.getElementById('resetPasswordModal').classList.add('show');
-            }
+                if (confirm("Bạn có chắc muốn đặt lại mật khẩu không? Mật khẩu tạm thời mới sẽ được tạo ngẫu nhiên.")) {
+                    // 💡 Gửi request POST
+                    fetch('${pageContext.request.contextPath}/admin/users', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        // Thêm action=resetPassword vào body
+                        body: 'action=resetPassword&id=' + userId
+                    }).then(async res => {
+                        const data = await res.json();
 
-            function closeResetPasswordModal() {
-                document.getElementById('resetPasswordModal').classList.remove('show');
-                currentResetUserId = null;
-            }
-
-            function confirmResetPassword() {
-                if (currentResetUserId) {
-                    window.location.href = '${pageContext.request.contextPath}/admin/users?action=resetPassword&id=' + currentResetUserId;
+                        if (res.ok) { // Kiểm tra status code 200-299
+                            // Thành công: Hiển thị mật khẩu tạm thời mới từ server
+                            alert("Đặt lại mật khẩu thành công!\n" + data.message);
+                            // Không cần reload toàn bộ trang, nhưng nên cập nhật lại danh sách nếu cần
+                            // Ở đây, tôi chọn reload để đồng bộ nhanh chóng
+                            window.location.reload();
+                        } else { // Xử lý lỗi (ví dụ: 400, 500)
+                            alert("Lỗi: " + data.message);
+                        }
+                    }).catch(err => {
+                        alert('Lỗi kết nối hoặc xử lý dữ liệu: ' + err.message);
+                    });
                 }
             }
 
+
+
             function toggleUserStatus(userId) {
-                if (confirm('Are you sure you want to toggle this user\'s status?')) {
+                if (confirm('Bạn có chắc muốn thay đổi trạng thái tài khoản này không?')) {
                     window.location.href = '${pageContext.request.contextPath}/admin/users?action=toggleStatus&id=' + userId;
                 }
             }
 
+
+
             function deleteUser(userId) {
-                if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
-                    window.location.href = '${pageContext.request.contextPath}/admin/users?action=delete&id=' + userId;
+                if (confirm('Are you sure you want to delete this user?')) {
+                    fetch('${pageContext.request.contextPath}/admin/users', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: 'action=delete&id=' + userId
+                    }).then(() => window.location.reload());
                 }
             }
 
-            // Close modal when clicking outside
+
             window.onclick = function (event) {
                 const userModal = document.getElementById('userModal');
                 const resetModal = document.getElementById('resetPasswordModal');
@@ -363,14 +427,12 @@
             }
         </script>
         <script>
-            // Toggle user menu dropdown
             function toggleUserMenu() {
                 const userMenu = document.querySelector('.user-menu');
                 userMenu.classList.toggle('active');
             }
 
-            // Close user menu when clicking outside
-            document.addEventListener('click', function(event) {
+            document.addEventListener('click', function (event) {
                 if (!event.target.closest('.user-menu')) {
                     const userMenu = document.querySelector('.user-menu');
                     if (userMenu.classList.contains('active')) {
@@ -379,5 +441,56 @@
                 }
             });
         </script>
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                const userForm = document.getElementById("userForm");
+                if (!userForm)
+                    return;
+
+                userForm.addEventListener("submit", async (event) => {
+                    event.preventDefault(); // chặn reload GET
+
+                    const formData = new FormData(userForm);
+
+                    try {
+                        const formData = new FormData(userForm);
+                        // 💡 BIẾN ĐỔI: Chuyển FormData thành URLSearchParams
+                        const urlEncodedData = new URLSearchParams(formData);
+
+                        const res = await fetch("${pageContext.request.contextPath}/admin/users", {
+                            method: "POST",
+                            // 💡 BIẾN ĐỔI: Chỉ định Content-Type
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            // 💡 BIẾN ĐỔI: Gửi dữ liệu đã được mã hóa
+                            body: urlEncodedData
+                        });
+
+                        const text = await res.text();
+                        if (!text.trim())
+                            throw new Error("Empty response from server");
+
+                        let data;
+                        try {
+                            data = JSON.parse(text);
+                        } catch (e) {
+                            throw new Error("Invalid JSON: " + text);
+                        }
+
+                        if (!data.success) {
+                            alert(data.message);
+                        } else {
+                            alert(data.message);
+                            window.location.reload();
+                        }
+                    } catch (err) {
+                        alert("Lỗi gửi dữ liệu: " + err.message);
+                    }
+                });
+            });
+        </script>
+
+
     </body>
 </html>

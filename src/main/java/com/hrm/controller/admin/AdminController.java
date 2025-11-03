@@ -22,6 +22,7 @@ public class AdminController extends HttpServlet {
     private DepartmentDAO departmentDAO = new DepartmentDAO();
     private SystemUserDAO userDAO = new SystemUserDAO();
     private RoleDAO roleDAO = new RoleDAO();
+    private SystemLogDAO systemLogDAO = new SystemLogDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -38,26 +39,6 @@ public class AdminController extends HttpServlet {
 
             case "dashboard-data":
                 getDashboardData(request, response);
-                break;
-
-            case "employees":
-                loadEmployees(request, response);
-                break;
-
-            case "employee-view":
-                viewEmployee(request, response);
-                break;
-
-            case "employee-edit":
-                editEmployee(request, response);
-                break;
-
-            case "employee-delete":
-                deleteEmployee(request, response);
-                break;
-
-            case "employee-get-data":
-                getEmployeeData(request, response);
                 break;
 
             case "departments":
@@ -146,7 +127,9 @@ public class AdminController extends HttpServlet {
         StringBuilder activityJson = new StringBuilder("{");
         for (int i = 0; i < activityLast7.size(); i++) {
             ActivityStats activity = activityLast7.get(i);
-            activityJson.append("\"").append(activity.getDate()).append("\": ").append(activity.getCount());
+
+            activityJson.append("{\"date\":\"").append(activity.getDate())
+                      .append("\",\"count\":").append(activity.getCount()).append("}");
             if (i < activityLast7.size() - 1) {
                 activityJson.append(",");
             }
@@ -473,7 +456,7 @@ public class AdminController extends HttpServlet {
         String searchKeyword = request.getParameter("search");
         String departmentIdStr = request.getParameter("departmentId");
         String timeRange = request.getParameter("timeRange");
-        
+
         List<Department> departmentList = new ArrayList<>();
 
         int page = 1;
@@ -517,18 +500,18 @@ public class AdminController extends HttpServlet {
                     page = totalPages;
                 }
                 int offset = (page - 1) * pageSize;
-                
-                if ((departmentIdStr != null && !departmentIdStr.isEmpty()) || 
-                    (timeRange != null && !timeRange.isEmpty())) {
-                    int deptId = (departmentIdStr != null && !departmentIdStr.isEmpty()) ? 
-                                 Integer.parseInt(departmentIdStr) : 0;
+
+                if ((departmentIdStr != null && !departmentIdStr.isEmpty())
+                          || (timeRange != null && !timeRange.isEmpty())) {
+                    int deptId = (departmentIdStr != null && !departmentIdStr.isEmpty())
+                              ? Integer.parseInt(departmentIdStr) : 0;
                     departmentList = departmentDAO.getPagedByDepartmentAndTimeRange(deptId, timeRange, offset, pageSize);
                     totalDepartments = departmentDAO.getCountByDepartmentAndTimeRange(deptId, timeRange);
                     totalPages = (int) Math.ceil(totalDepartments / (double) pageSize);
                 } else {
                     departmentList = departmentDAO.getPaged(offset, pageSize);
                 }
-                
+
                 request.setAttribute("total", totalDepartments);
                 request.setAttribute("totalPages", totalPages);
             }
@@ -656,7 +639,84 @@ public class AdminController extends HttpServlet {
     private void loadAuditLog(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
         request.setAttribute("activePage", "audit-log");
-        request.getRequestDispatcher("Admin/AuditLog.jsp").forward(request, response);
+
+        try {
+            // 1. Đọc và xác định các tham số MỚI
+            String pageStr = request.getParameter("page");
+            String pageSizeStr = request.getParameter("pageSize");
+            String searchQuery = request.getParameter("search");
+            String filterAction = request.getParameter("filterAction");
+            String filterObjectType = request.getParameter("filterObjectType");
+            String sortBy = request.getParameter("sortBy");
+            String sortOrder = request.getParameter("sortOrder"); // ASC/DESC
+
+            // 2. Thiết lập giá trị mặc định cho phân trang
+            int page = 1;
+            int pageSize = 10;
+
+            try {
+                page = (pageStr != null && pageStr.matches("\\d+")) ? Integer.parseInt(pageStr) : 1;
+            } catch (NumberFormatException e) {
+                page = 1;
+            }
+            try {
+                pageSize = (pageSizeStr != null && pageSizeStr.matches("\\d+")) ? Integer.parseInt(pageSizeStr) : 10;
+            } catch (NumberFormatException e) {
+                pageSize = 10;
+            }
+
+            // 3. Thiết lập giá trị mặc định cho sắp xếp
+            if (sortBy == null || sortBy.trim().isEmpty()) {
+                sortBy = "Timestamp";
+            }
+            if (sortOrder == null || sortOrder.trim().isEmpty()) {
+                sortOrder = "DESC";
+            }
+
+            // 4. Lấy tổng số lượng (có tính đến search/filter)
+            int totalLogs = systemLogDAO.getTotalSystemLogCount(searchQuery, filterAction, filterObjectType);
+
+            // 5. Tính toán phân trang
+            int totalPages = (int) Math.ceil((double) totalLogs / pageSize);
+            if (page < 1) {
+                page = 1;
+            }
+            if (page > totalPages && totalPages > 0) {
+                page = totalPages;
+            }
+
+            int offset = (page - 1) * pageSize;
+
+            // 6. Lấy dữ liệu (có tính đến tất cả các tham số)
+            List<SystemLog> systemLogs = systemLogDAO.getPagedSystemLogsWithUserInfo(
+                      offset, pageSize, searchQuery, filterAction, filterObjectType, sortBy, sortOrder);
+
+            // 7. Lấy danh sách duy nhất cho bộ lọc
+            List<String> distinctActions = systemLogDAO.getAllDistinctActions();
+            List<String> distinctObjectTypes = systemLogDAO.getAllDistinctObjectTypes();
+
+            // 8. Đặt các thuộc tính vào request (Rất quan trọng để JSP giữ lại trạng thái)
+            request.setAttribute("systemLogs", systemLogs);
+            request.setAttribute("page", page);
+            request.setAttribute("pageSize", pageSize);
+            request.setAttribute("total", totalLogs);
+            request.setAttribute("totalPages", totalPages);
+            request.setAttribute("searchQuery", searchQuery != null ? searchQuery : "");
+            request.setAttribute("filterAction", filterAction != null ? filterAction : "all");
+            request.setAttribute("filterObjectType", filterObjectType != null ? filterObjectType : "all");
+            request.setAttribute("sortBy", sortBy);
+            request.setAttribute("sortOrder", sortOrder);
+
+            request.setAttribute("distinctActions", distinctActions);
+            request.setAttribute("distinctObjectTypes", distinctObjectTypes);
+
+            request.getRequestDispatcher("Admin/AuditLog.jsp").forward(request, response);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("errorMessage", "Error loading audit log data: " + e.getMessage());
+            request.getRequestDispatcher("Admin/Error.jsp").forward(request, response);
+        }
     }
 
     @Override

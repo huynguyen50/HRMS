@@ -1,5 +1,10 @@
-let currentPage = 1;
-let deleteRoleId = null;
+
+let currentPage = 1
+const currentSearch = ""
+const deleteRoleId = null
+const pageSize = 10
+const $ = window.$ // Declare the $ variable
+const contextPath = window.contextPath // Declare the contextPath variable
 
 // Load roles on page load
 $(document).ready(function() {
@@ -17,23 +22,34 @@ $(document).ready(function() {
     loadRoles();
 });
 
-// Load roles with pagination and search
-function loadRoles(page) {
-    currentPage = page || 1;
-    const search = $('#roleNameFilter').val();
-    const url = contextPath + '/admin/role?' + $.param({
-        page: currentPage,
-        search: search
-    });
 
-    $.get(url)
-        .done(function(data) {
-            displayRoles(data);
-            displayPagination(data);
-        })
-        .fail(function(xhr) {
-            alert('Error loading roles: ' + xhr.responseJSON?.message || 'Unknown error');
-        });
+function loadRoles(page = 1) {
+  currentPage = page
+  const search = $("#roleNameFilter").val() || ""
+
+  console.log("[v0] loadRoles called - page:", page, "search:", search)
+
+  const params = new URLSearchParams({
+    page: page,
+    pageSize: pageSize,
+    search: search,
+  })
+
+  const url = contextPath + "/admin/role?" + params.toString()
+
+  console.log("[v0] Fetching from URL:", url)
+
+  $.get(url)
+    .done((data) => {
+      console.log("[v0] Response received:", data)
+      displayRoles(data)
+      displayPagination(data)
+    })
+    .fail((xhr) => {
+      console.log("[v0] Error:", xhr)
+      alert("Error loading roles: " + (xhr.responseJSON?.message || "Unknown error"))
+    })
+
 }
 
 // Display roles in table
@@ -41,9 +57,11 @@ function displayRoles(data) {
     const tbody = $('#rolesTableBody');
     tbody.empty();
 
-    if (data.roles && data.roles.length > 0) {
-        data.roles.forEach(function(role) {
-            tbody.append(`
+
+  if (data.roles && data.roles.length > 0) {
+    data.roles.forEach((role) => {
+      tbody.append(`
+
                 <tr>
                     <td>${role.roleId}</td>
                     <td>${role.roleName}</td>
@@ -72,32 +90,72 @@ function displayPagination(data) {
     const pagination = $('.pagination-bar');
     pagination.empty();
 
-    if (data.totalPages > 1) {
-        // Previous button
-        if (currentPage > 1) {
-            pagination.append(`
-                <a onclick="loadRoles(1)">First</a>
-                <a onclick="loadRoles(${currentPage - 1})">Previous</a>
-            `);
-        }
 
-        // Page numbers
-        for (let i = 1; i <= data.totalPages; i++) {
-            if (i === currentPage) {
-                pagination.append(`<span class="active">${i}</span>`);
-            } else {
-                pagination.append(`<a onclick="loadRoles(${i})">${i}</a>`);
-            }
-        }
+  const totalItems = data.totalItems || 0
+  const totalPages = data.totalPages || 1
+  const start = (currentPage - 1) * pageSize + 1
+  const end = Math.min(currentPage * pageSize, totalItems)
 
-        // Next button
-        if (currentPage < data.totalPages) {
-            pagination.append(`
-                <a onclick="loadRoles(${currentPage + 1})">Next</a>
-                <a onclick="loadRoles(${data.totalPages})">Last</a>
-            `);
-        }
+  console.log("[v0] Pagination - total:", totalItems, "pages:", totalPages, "current:", currentPage)
+
+  // Add info text
+  const infoDiv = $(`
+        <div class="pagination-info">
+            Showing ${totalItems === 0 ? 0 : start} - ${end} of ${totalItems}
+        </div>
+    `)
+  pagination.append(infoDiv)
+
+  // Add controls
+  const controlsDiv = $('<div class="pagination-controls"></div>')
+
+  if (totalPages > 1) {
+    // Previous button
+    if (currentPage > 1) {
+      controlsDiv.append(`<a onclick="loadRoles(1)">First</a>`)
+      controlsDiv.append(`<a onclick="loadRoles(${currentPage - 1})">Prev</a>`)
+    } else {
+      controlsDiv.append('<span class="disabled">First</span>')
+      controlsDiv.append('<span class="disabled">Prev</span>')
     }
+
+    // Page numbers
+    const startPage = Math.max(1, currentPage - 2)
+    const endPage = Math.min(totalPages, currentPage + 2)
+
+    if (startPage > 1) {
+      controlsDiv.append(`<a onclick="loadRoles(1)">1</a>`)
+      if (startPage > 2) {
+        controlsDiv.append('<span class="ellipsis">...</span>')
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      if (i === currentPage) {
+        controlsDiv.append(`<span class="active">${i}</span>`)
+      } else {
+        controlsDiv.append(`<a onclick="loadRoles(${i})">${i}</a>`)
+      }
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        controlsDiv.append('<span class="ellipsis">...</span>')
+      }
+      controlsDiv.append(`<a onclick="loadRoles(${totalPages})">${totalPages}</a>`)
+    }
+
+    // Next button
+    if (currentPage < totalPages) {
+      controlsDiv.append(`<a onclick="loadRoles(${currentPage + 1})">Next</a>`)
+      controlsDiv.append(`<a onclick="loadRoles(${totalPages})">Last</a>`)
+    } else {
+      controlsDiv.append('<span class="disabled">Next</span>')
+      controlsDiv.append('<span class="disabled">Last</span>')
+    }
+  }
+
+  pagination.append(controlsDiv)
 }
 
 function openAddRoleModal() {
