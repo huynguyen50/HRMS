@@ -173,6 +173,40 @@ color: #2c3e50;
             font-size: 1.1rem;
         }
 
+        .job-status {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .status-new {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .status-waiting {
+            background-color: #ffc107;
+            color: #333;
+        }
+
+        .status-applied {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .status-close {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .status-deleted {
+            background-color: #dc3545;
+            color: white;
+        }
+
         .job-description {
             color: #666;
             margin-bottom: 1.5rem;
@@ -386,6 +420,11 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                             <i class="fas fa-money-bill-wave"></i> <%= String.format("%,.0f", recruitment.getSalary()) %> VNĐ
                         </div>
                         <% } %>
+                        <% if (recruitment.getStatus() != null && "Applied".equals(recruitment.getStatus())) { %>
+                        <div class="job-status status-applied">
+                            <i class="fas fa-info-circle"></i> Đã có ứng viên
+                        </div>
+                        <% } %>
                     </div>
 
                     <div class="job-description">
@@ -417,10 +456,24 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                                 <%= recruitment.getPostedDate().format(formatter) %>
                             <% } %>
                         </div>
+<<<<<<< HEAD
+=======
+                        <% 
+                            // Chỉ hiển thị nút Apply vì chỉ có recruitment có Status = Applied mới được hiển thị
+                            String status = recruitment.getStatus();
+                            boolean canApply = status != null && status.equals("Applied");
+                        %>
+                        <% if (canApply) { %>
+>>>>>>> main
                         <a href="${pageContext.request.contextPath}/RecruitmentController?action=apply&recruitmentId=<%= recruitment.getRecruitmentId() %>" 
                            class="apply-btn">
-<i class="fas fa-paper-plane"></i> Apply Now
+                            <i class="fas fa-paper-plane"></i> Apply Now
                         </a>
+                        <% } else { %>
+                        <span class="apply-btn" style="background: #6c757d; cursor: not-allowed; opacity: 0.7;">
+                            <i class="fas fa-lock"></i> Đã đóng
+                        </span>
+                        <% } %>
                     </div>
                 </div>
                 <%

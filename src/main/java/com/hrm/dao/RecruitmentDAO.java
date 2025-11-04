@@ -75,10 +75,17 @@ public class RecruitmentDAO {
         return null;
     }
 
+<<<<<<< HEAD
     // Lấy tất cả Recruitment có status Open hoặc New
     public List<Recruitment> getLatestThree() {
         List<Recruitment> list = new ArrayList<>();
         String sql = "SELECT * FROM Recruitment WHERE Status IN ('Open', 'New') ORDER BY PostedDate DESC";
+=======
+    // Chỉ lấy các Recruitment có status Applied (các trạng thái khác không hiển thị)
+    public List<Recruitment> getLatestThree() {
+        List<Recruitment> list = new ArrayList<>();
+        String sql = "SELECT * FROM Recruitment WHERE Status = 'Applied' ORDER BY PostedDate DESC LIMIT 3";
+>>>>>>> main
         
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);
