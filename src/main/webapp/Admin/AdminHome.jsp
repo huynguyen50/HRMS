@@ -9,7 +9,6 @@
         <title>Admin Dashboard</title>
         <link rel="stylesheet" href="Admin/css/Admin_home.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/user-menu.css">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/chart-enhancements.css">
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     </head>
     <body>
@@ -27,15 +26,13 @@
                     <a href="${pageContext.request.contextPath}/admin?action=dashboard"
                        class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">🏠 Dashboard</a>
 
-                          <!-- Employees link removed -->
-
                     <a href="${pageContext.request.contextPath}/admin?action=departments"
                        class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
 
                     <a href="${pageContext.request.contextPath}/admin/users"
                        class="nav-item ${activePage == 'users' ? 'active' : ''}">👤 Users</a>
 
-                    <a href="${pageContext.request.contextPath}/admin?action=roles"
+                    <a href="${pageContext.request.contextPath}/admin/role/list"
                        class="nav-item ${activePage == 'roles' ? 'active' : ''}">🔐 Roles</a>
 
                     <a href="${pageContext.request.contextPath}/admin?action=audit-log"
@@ -152,31 +149,8 @@
                             <div class="chart-header">
                                 <h3>System Activity</h3>
                                 <div class="chart-info">Last 7 days</div>
-                                <div class="chart-controls">
-                                    <select id="activityChartRange" class="chart-range-selector">
-                                        <option value="7">Last 7 days</option>
-                                        <option value="14">Last 14 days</option>
-                                        <option value="30">Last 30 days</option>
-                                    </select>
-                                </div>
                             </div>
-                            <div class="chart-container">
-                                <canvas id="activityChart" height="200"></canvas>
-                            </div>
-                            <div class="chart-summary">
-                                <div class="summary-item">
-                                    <span class="summary-label">Total Activities</span>
-                                    <span id="totalActivities" class="summary-value">0</span>
-                                </div>
-                                <div class="summary-item">
-                                    <span class="summary-label">Average Per Day</span>
-                                    <span id="avgActivities" class="summary-value">0</span>
-                                </div>
-                                <div class="summary-item">
-                                    <span class="summary-label">Peak Day</span>
-                                    <span id="peakDay" class="summary-value">-</span>
-                                </div>
-                            </div>
+                            <canvas id="activityChart" height="200"></canvas>
                         </div>
                     </div>
 
@@ -206,7 +180,10 @@
                         <div class="referrals-card">
                             <h3>Quick Actions</h3>
                             <div class="referrals-list">
-                                <!-- Manage Employees quick action removed -->
+                                <a href="${pageContext.request.contextPath}/admin?action=employees" class="referral-item">
+                                    <span class="referral-name">Manage Employees</span>
+                                    <span class="referral-count">→</span>
+                                </a>
                                 <a href="${pageContext.request.contextPath}/admin?action=departments" class="referral-item">
                                     <span class="referral-name">Manage Departments</span>
                                     <span class="referral-count">→</span>

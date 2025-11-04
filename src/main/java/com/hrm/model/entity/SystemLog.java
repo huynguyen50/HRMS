@@ -24,7 +24,8 @@ public class SystemLog implements Serializable {
     private String newValue;
     private LocalDateTime timestamp;
     private Date timestampDate;
-
+    private String userName;
+    
     public SystemLog() {
     }
 
@@ -101,6 +102,14 @@ public class SystemLog implements Serializable {
 
     public void setTimestampDate(Date timestampDate) {
         this.timestampDate = timestampDate;
+    }
+    
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     @Override

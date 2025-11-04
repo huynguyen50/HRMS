@@ -16,14 +16,13 @@ import org.json.JSONObject;
 public class RoleServlet extends HttpServlet {
     private final RoleDAO roleDAO = new RoleDAO();
     private static final int DEFAULT_PAGE_SIZE = 10;
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String pathInfo = request.getPathInfo();
         
         try {
-            if (pathInfo == null || "/".equals(pathInfo)) {
+            if (pathInfo == null || "/".equals(pathInfo) || "/list".equals(pathInfo)) {
                 handleListRoles(request, response);
             } else if (pathInfo.matches("/\\d+")) {
                 int roleId = Integer.parseInt(pathInfo.substring(1));
@@ -87,31 +86,57 @@ public class RoleServlet extends HttpServlet {
     }
 
     private void handleListRoles(HttpServletRequest request, HttpServletResponse response)
-            throws SQLException, IOException {
-        int page = getIntParameter(request, "page", 1);
-        int pageSize = getIntParameter(request, "pageSize", DEFAULT_PAGE_SIZE);
-        String search = request.getParameter("search");
-
-        List<Role> roles = roleDAO.getRoles(page, pageSize, search);
-        int totalItems = roleDAO.getTotalRoleCount(search);
-        int totalPages = (int) Math.ceil((double) totalItems / pageSize);
-
-        org.json.JSONArray rolesArray = new org.json.JSONArray();
-        for (Role r : roles) {
-            JSONObject rj = new JSONObject();
-            rj.put("roleId", r.getRoleId());
-            rj.put("roleName", r.getRoleName());
-            rolesArray.put(rj);
+            throws ServletException, IOException, SQLException {
+        
+        String pageStr = request.getParameter("page");
+        String pageSizeStr = request.getParameter("pageSize");
+        String searchQuery = request.getParameter("search");
+        String sortBy = request.getParameter("sortBy");
+        String sortOrder = request.getParameter("sortOrder");
+        
+        int page = 1;
+        int pageSize = DEFAULT_PAGE_SIZE; 
+        
+        try {
+            page = (pageStr != null && pageStr.matches("\\d+")) ? Integer.parseInt(pageStr) : 1;
+        } catch (NumberFormatException e) {
+            page = 1;
         }
+        try {
+            pageSize = (pageSizeStr != null && pageSizeStr.matches("\\d+")) ? Integer.parseInt(pageSizeStr) : DEFAULT_PAGE_SIZE;
+        } catch (NumberFormatException e) {
+            pageSize = DEFAULT_PAGE_SIZE;
+        }
+        
+        if (sortBy == null || sortBy.trim().isEmpty()) {
+            sortBy = "RoleID"; 
+        }
+        if (sortOrder == null || sortOrder.trim().isEmpty()) {
+            sortOrder = "ASC"; 
+        }
+        
+        int totalRoles = roleDAO.getTotalRoleCount(searchQuery);
 
-        JSONObject result = new JSONObject();
-        result.put("roles", rolesArray);
-        result.put("currentPage", page);
-        result.put("pageSize", pageSize);
-        result.put("totalItems", totalItems);
-        result.put("totalPages", totalPages);
+        int totalPages = (int) Math.ceil((double) totalRoles / pageSize);
+        if (page < 1) page = 1;
+        if (page > totalPages && totalPages > 0) page = totalPages;
 
-        sendJsonResponse(response, result.toString());
+        int offset = (page - 1) * pageSize;
+        
+        List<Role> roles = roleDAO.getPagedRoles(
+                offset, pageSize, searchQuery, sortBy, sortOrder);
+
+        request.setAttribute("roles", roles);
+        request.setAttribute("page", page);
+        request.setAttribute("pageSize", pageSize);
+        request.setAttribute("total", totalRoles);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("searchQuery", searchQuery != null ? searchQuery : "");
+        request.setAttribute("sortBy", sortBy);
+        request.setAttribute("sortOrder", sortOrder);
+        
+        request.setAttribute("activePage", "roles");
+        request.getRequestDispatcher("/Admin/Roles.jsp").forward(request, response);
     }
 
     private void handleGetRole(int roleId, HttpServletResponse response)

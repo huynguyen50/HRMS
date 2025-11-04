@@ -62,14 +62,6 @@ public class DashboardDAO {
         String sql = "SELECT LogID, UserID, Action, ObjectType, OldValue, NewValue, Timestamp " +
                      "FROM SystemLog " +
                      "ORDER BY Timestamp DESC LIMIT ?";
-//    private int logId;
-//    private Integer userId;
-//    private String action;
-//    private String objectType;
-//    private String oldValue;
-//    private String newValue;
-//    private LocalDateTime timestamp;
-
         try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
