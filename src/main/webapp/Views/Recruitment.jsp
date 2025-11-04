@@ -173,6 +173,13 @@ color: #2c3e50;
             font-size: 1.1rem;
         }
 
+        .job-applicant {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-top: 0.5rem;
+        }
+
         .job-status {
             display: inline-block;
             padding: 0.3rem 0.8rem;
@@ -420,9 +427,12 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                             <i class="fas fa-money-bill-wave"></i> <%= String.format("%,.0f", recruitment.getSalary()) %> VNĐ
                         </div>
                         <% } %>
+                        <div class="job-applicant">
+                            <i class="fas fa-users"></i> Number of vacancies: <%= recruitment.getApplicant() %> People
+                        </div>
                         <% if (recruitment.getStatus() != null && "Applied".equals(recruitment.getStatus())) { %>
                         <div class="job-status status-applied">
-                            <i class="fas fa-info-circle"></i> Đã có ứng viên
+                            <i class="fas fa-info-circle"></i> Available
                         </div>
                         <% } %>
                     </div>
