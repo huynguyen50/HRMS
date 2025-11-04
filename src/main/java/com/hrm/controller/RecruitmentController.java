@@ -78,10 +78,11 @@ public class RecruitmentController extends HttpServlet {
     private void showRecruitmentList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            // Lấy 3 tin tuyển dụng mới nhất
+            // Chỉ lấy các tin tuyển dụng có status = 'Applied'
+            // Các trạng thái New, Waiting, Close, Deleted sẽ không được hiển thị
             var recruitments = recruitmentDAO.getLatestThree();
             request.setAttribute("recruitments", recruitments);
-RequestDispatcher dispatcher = request.getRequestDispatcher("/Views/Recruitment.jsp");
+            RequestDispatcher dispatcher = request.getRequestDispatcher("/Views/Recruitment.jsp");
             dispatcher.forward(request, response);
         } catch (Exception e) {
             e.printStackTrace();
@@ -96,7 +97,21 @@ RequestDispatcher dispatcher = request.getRequestDispatcher("/Views/Recruitment.
             if (recruitmentIdStr != null) {
                 int recruitmentId = Integer.parseInt(recruitmentIdStr);
                 Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
-                request.setAttribute("recruitment", recruitment);
+                
+                // Kiểm tra Status - chỉ cho phép apply nếu status là Applied
+                if (recruitment != null) {
+                    String status = recruitment.getStatus();
+                    if (status == null || !status.equals("Applied")) {
+                        request.setAttribute("error", "Tin tuyển dụng này không khả dụng hoặc đã đóng!");
+                        showRecruitmentList(request, response);
+                        return;
+                    }
+                    request.setAttribute("recruitment", recruitment);
+                } else {
+                    request.setAttribute("error", "Không tìm thấy tin tuyển dụng!");
+                    showRecruitmentList(request, response);
+                    return;
+                }
             }
             
             RequestDispatcher dispatcher = request.getRequestDispatcher("/Views/ApplyForm.jsp");
