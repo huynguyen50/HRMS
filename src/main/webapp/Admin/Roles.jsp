@@ -6,8 +6,18 @@
 <head>
     <meta charset="UTF-8">
     <title>Role Management</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
     <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/Admin_home.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/roles.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/pagination.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/user-menu.css">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        window.contextPath = '${pageContext.request.contextPath}';
+    </script>
+    <script src="${pageContext.request.contextPath}/Admin/js/role-management.js"></script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -24,8 +34,7 @@
                 <a href="${pageContext.request.contextPath}/admin?action=dashboard"
                    class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">🏠 Dashboard</a>
 
-                <a href="${pageContext.request.contextPath}/admin?action=employees"
-                   class="nav-item ${activePage == 'employees' ? 'active' : ''}">👥 Employees</a>
+                     <!-- Employees link removed -->
 
                 <a href="${pageContext.request.contextPath}/admin?action=departments"
                    class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
@@ -53,23 +62,38 @@
                     <input type="text" id="searchInput" placeholder="Search roles...">
                 </div>
                 <div class="top-bar-actions">
-                    <select class="env-selector">
-                        <option>Production</option>
-                        <option>Staging</option>
-                    </select>
-                    <select class="time-selector">
-                        <option>Today</option>
-                        <option>This Week</option>
-                        <option>This Month</option>
-                    </select>
-                    <button class="notification-btn">
-                        🔔
-                        <span class="badge">3</span>
-                    </button>
-                    <div class="user-menu">
-                        <img src="https://i.pravatar.cc/32" alt="User">
-                        <span>Admin</span>
-                    </div>
+                    <div class="user-menu" onclick="toggleUserMenu()">
+                            <div class="user-info">
+                                <img src="https://i.pravatar.cc/32" alt="User">
+                                <span>Admin</span>
+                                <span class="dropdown-arrow">▼</span>
+                            </div>
+                            <div class="dropdown-menu" id="userDropdown">
+                                <a href="${pageContext.request.contextPath}/admin?action=profile" class="dropdown-item">
+                                    <span class="icon">👤</span> Profile
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="${pageContext.request.contextPath}/logout" class="dropdown-item">
+                                    <span class="icon">🚪</span> Logout
+                                </a>
+                            </div>
+                        </div>                    
+                    
+                    <script>
+                        function toggleUserMenu() {
+                            const userMenu = document.querySelector('.user-menu');
+                            userMenu.classList.toggle('active');
+                        }
+
+                        document.addEventListener('click', function (event) {
+                            if (!event.target.closest('.user-menu')) {
+                                const userMenu = document.querySelector('.user-menu');
+                                if (userMenu.classList.contains('active')) {
+                                    userMenu.classList.remove('active');
+                                }
+                            }
+                        });
+                    </script>
                 </div>
             </header>
 
@@ -87,67 +111,92 @@
 
                 <!-- Roles Table -->
                 <div class="table-section">
-                    <table class="roles-table">
-                        <thead>
-                            <tr>
-                                <th>Role ID</th>
-                                <th>Role Name</th>
-                                <th>User Count</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <c:choose>
-                                <c:when test="${not empty roles}">
-                                    <c:forEach var="role" items="${roles}">
-                                        <tr>
-                                            <td>${role.RoleID}</td>
-                                            <td>${role.RoleName}</td>
-                                            <td>
-                                                <span class="user-count-badge">${role.UserCount}</span>
-                                            </td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <button class="btn-edit" onclick="editRole(${role.RoleID})">Edit</button>
-                                                    <button class="btn-permissions" onclick="manageRolePermissions(${role.RoleID})">Permissions</button>
-                                                    <button class="btn-delete" onclick="deleteRole(${role.RoleID})">Delete</button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </c:forEach>
-                                </c:when>
-                                <c:otherwise>
-                                    <tr>
-                                        <td colspan="4" style="text-align: center; padding: 20px; color: #9ca3af;">
-                                            No roles found
-                                        </td>
-                                    </tr>
-                                </c:otherwise>
-                            </c:choose>
-                        </tbody>
-                    </table>
-                </div>
+                <table class="roles-table">
+                    <thead>
+                        <tr>
+                            <th>Role ID</th>
+                            <th>Role Name</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rolesTableBody">
+                        <!-- Roles will be loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
 
-                <!-- Pagination -->
+                <!-- Pagination (department-style) -->
                 <div class="pagination-bar">
-                    <c:if test="${currentPage > 1}">
-                        <a href="?action=roles&page=1">First</a>
-                        <a href="?action=roles&page=${currentPage - 1}">Previous</a>
-                    </c:if>
-                    <c:forEach var="i" begin="1" end="${totalPages}">
-                        <c:choose>
-                            <c:when test="${i == currentPage}">
-                                <span class="active">${i}</span>
-                            </c:when>
-                            <c:otherwise>
-                                <a href="?action=roles&page=${i}">${i}</a>
-                            </c:otherwise>
-                        </c:choose>
-                    </c:forEach>
-                    <c:if test="${currentPage < totalPages}">
-                        <a href="?action=roles&page=${currentPage + 1}">Next</a>
-                        <a href="?action=roles&page=${totalPages}">Last</a>
-                    </c:if>
+                    <div class="pagination-info">
+                        <%
+                            Integer currentPageObj = (Integer) request.getAttribute("currentPage");
+                            Integer pageSizeObj = (Integer) request.getAttribute("pageSize");
+                            Integer totalObj = (Integer) request.getAttribute("total");
+                            int currentPage = (currentPageObj != null) ? currentPageObj : 1;
+                            int pageSize = (pageSizeObj != null) ? pageSizeObj : 10;
+                            int total = (totalObj != null) ? totalObj : 0;
+                            int start = (currentPage - 1) * pageSize + 1;
+                            int end = Math.min(currentPage * pageSize, total);
+                            if (total == 0) { start = 0; end = 0; }
+                        %>
+                        Showing <%= start %> - <%= end %> of <%= total %>
+                    </div>
+                    <div class="pagination-controls">
+                        <%
+                            Integer totalPagesObj = (Integer) request.getAttribute("totalPages");
+                            int totalPages = (totalPagesObj != null) ? totalPagesObj : 1;
+
+                            StringBuilder params = new StringBuilder();
+                            String searchParam = request.getParameter("search");
+                            String roleFilter = request.getParameter("roleFilter");
+                            if (searchParam != null && !searchParam.isEmpty()) {
+                                params.append("&search=").append(java.net.URLEncoder.encode(searchParam, "UTF-8"));
+                            }
+                            if (roleFilter != null && !roleFilter.isEmpty()) {
+                                params.append("&roleFilter=").append(java.net.URLEncoder.encode(roleFilter, "UTF-8"));
+                            }
+
+                            int range = 2;
+                            int start_page = Math.max(1, currentPage - range);
+                            int end_page = Math.min(totalPages, currentPage + range);
+
+                            if (currentPage > 1) {
+                        %>
+                        <a href="${pageContext.request.contextPath}/admin?action=roles&page=<%= currentPage - 1 %><%= params.toString() %>">Prev</a>
+                        <% } else { %>
+                        <span class="disabled">Prev</span>
+                        <% }
+
+                            if (start_page > 1) { %>
+                                <a href="${pageContext.request.contextPath}/admin?action=roles&page=1<%= params.toString() %>">1</a>
+                                <% if (start_page > 2) { %>
+                                    <span class="ellipsis">...</span>
+                                <% } %>
+                            <% }
+
+                            for (int i = start_page; i <= end_page; i++) {
+                                if (i == currentPage) {
+                        %>
+                            <span class="active"><%= i %></span>
+                        <%  } else { %>
+                            <a href="${pageContext.request.contextPath}/admin?action=roles&page=<%= i %><%= params.toString() %>"><%= i %></a>
+                        <%  }
+                            }
+
+                            if (end_page < totalPages) {
+                                if (end_page < totalPages - 1) { %>
+                                    <span class="ellipsis">...</span>
+                                <% } %>
+                                <a href="${pageContext.request.contextPath}/admin?action=roles&page=<%= totalPages %><%= params.toString() %>"><%= totalPages %></a>
+                            <% }
+
+                            if (currentPage < totalPages) {
+                        %>
+                        <a href="${pageContext.request.contextPath}/admin?action=roles&page=<%= currentPage + 1 %><%= params.toString() %>">Next</a>
+                        <% } else { %>
+                        <span class="disabled">Next</span>
+                        <% } %>
+                    </div>
                 </div>
             </section>
         </main>
@@ -160,40 +209,10 @@
                 <h2 id="modalTitle">Add New Role</h2>
                 <button class="close-btn" onclick="closeRoleModal()">&times;</button>
             </div>
-            <form id="roleForm" method="POST" action="${pageContext.request.contextPath}/admin?action=saveRole">
+            <form id="roleForm">
                 <div class="form-group">
                     <label for="roleName">Role Name *</label>
                     <input type="text" id="roleName" name="roleName" required placeholder="e.g., Manager, HR, Finance">
-                </div>
-
-                <div class="form-group">
-                    <label>Permissions</label>
-                    <div class="permissions-list">
-                        <label class="permission-item">
-                            <input type="checkbox" name="permissions" value="view_dashboard"> View Dashboard
-                        </label>
-                        <label class="permission-item">
-                            <input type="checkbox" name="permissions" value="manage_employees"> Manage Employees
-                        </label>
-                        <label class="permission-item">
-                            <input type="checkbox" name="permissions" value="manage_departments"> Manage Departments
-                        </label>
-                        <label class="permission-item">
-                            <input type="checkbox" name="permissions" value="manage_users"> Manage Users
-                        </label>
-                        <label class="permission-item">
-                            <input type="checkbox" name="permissions" value="manage_roles"> Manage Roles
-                        </label>
-                        <label class="permission-item">
-                            <input type="checkbox" name="permissions" value="view_audit_log"> View Audit Log
-                        </label>
-                        <label class="permission-item">
-                            <input type="checkbox" name="permissions" value="manage_payroll"> Manage Payroll
-                        </label>
-                        <label class="permission-item">
-                            <input type="checkbox" name="permissions" value="manage_recruitment"> Manage Recruitment
-                        </label>
-                    </div>
                 </div>
 
                 <div class="form-actions">
@@ -204,62 +223,7 @@
         </div>
     </div>
 
-    <script>
-        function openAddRoleModal() {
-            document.getElementById('modalTitle').textContent = 'Add New Role';
-            document.getElementById('roleForm').reset();
-            document.getElementById('roleForm').action = '${pageContext.request.contextPath}/admin?action=saveRole';
-            document.getElementById('roleModal').classList.add('show');
-        }
-
-        function closeRoleModal() {
-            document.getElementById('roleModal').classList.remove('show');
-        }
-
-        function editRole(roleId) {
-            // Fetch role data and populate form
-            fetch('${pageContext.request.contextPath}/admin?action=getRole&id=' + roleId)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('modalTitle').textContent = 'Edit Role';
-                    document.getElementById('roleName').value = data.RoleName;
-                    
-                    // Reset all checkboxes
-                    document.querySelectorAll('input[name="permissions"]').forEach(checkbox => {
-                        checkbox.checked = false;
-                    });
-                    
-                    // Check permissions for this role
-                    if (data.Permissions) {
-                        data.Permissions.forEach(permission => {
-                            const checkbox = document.querySelector(`input[name="permissions"][value="${permission}"]`);
-                            if (checkbox) checkbox.checked = true;
-                        });
-                    }
-                    
-                    document.getElementById('roleForm').action = '${pageContext.request.contextPath}/admin?action=updateRole&id=' + roleId;
-                    document.getElementById('roleModal').classList.add('show');
-                });
-        }
-
-        function deleteRole(roleId) {
-            if (confirm('Are you sure you want to delete this role? Users with this role will be affected.')) {
-                window.location.href = '${pageContext.request.contextPath}/admin?action=deleteRole&id=' + roleId;
-            }
-        }
-
-        function manageRolePermissions(roleId) {
-            window.location.href = '${pageContext.request.contextPath}/admin?action=rolePermissions&id=' + roleId;
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('roleModal');
-            if (event.target == modal) {
-                modal.classList.remove('show');
-            }
-        }
-    </script>
+    <!-- role-management.js handles modal, fetch, pagination and filtering -->
 
     <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/department.css">
 </body>

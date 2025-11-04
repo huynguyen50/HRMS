@@ -6,9 +6,11 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>User Management</title>
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/Admin_home.css">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/users.css">
+    <title>User Management</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/Admin_home.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/users.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/pagination.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/user-menu.css">
     </head>
     <body>
         <div class="dashboard-container">
@@ -24,8 +26,7 @@
                 <div class="sidebar-nav">
                     <a href="${pageContext.request.contextPath}/admin?action=dashboard"
                        class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">🏠 Dashboard</a>
-                    <a href="${pageContext.request.contextPath}/admin?action=employees"
-                       class="nav-item ${activePage == 'employees' ? 'active' : ''}">👥 Employees</a>
+                          <!-- Employees link removed -->
                     <a href="${pageContext.request.contextPath}/admin?action=departments"
                        class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
                     <a href="${pageContext.request.contextPath}/admin/users"
@@ -43,22 +44,24 @@
             <main class="main-content">
                 <!-- Top Bar -->
                 <header class="top-bar">
-                    <div class="search-box">
-                        <span class="search-icon">🔍</span>
-                        <input type="text" id="searchInput" placeholder="Search users...">
-                    </div>
+                    
                     <div class="top-bar-actions">
-                        <select class="env-selector">
-                            <option>Production</option>
-                            <option>Staging</option>
-                        </select>
-                        <button class="notification-btn">
-                            🔔
-                            <span class="badge">3</span>
-                        </button>
-                        <div class="user-menu">
-                            <img src="https://i.pravatar.cc/32" alt="User">
-                            <span>Admin</span>
+                        
+                        <div class="user-menu" onclick="toggleUserMenu()">
+                            <div class="user-info">
+                                <img src="https://i.pravatar.cc/32" alt="User">
+                                <span>Admin</span>
+                                <span class="dropdown-arrow">▼</span>
+                            </div>
+                            <div class="dropdown-menu" id="userDropdown">
+                                <a href="${pageContext.request.contextPath}/admin?action=profile" class="dropdown-item">
+                                    <span class="icon">👤</span> Profile
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="${pageContext.request.contextPath}/logout" class="dropdown-item">
+                                    <span class="icon">🚪</span> Logout
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </header>
@@ -67,31 +70,44 @@
                 <section class="dashboard-content">
                     <div class="page-header">
                         <h1 class="page-title">User Management</h1>
-                        <button class="btn-primary" onclick="openAddUserModal()">+ Add New User</button>
                     </div>
 
                     <!-- Filter Section -->
-                    <div class="filter-section">
-                        <form method="GET" action="${pageContext.request.contextPath}/admin/users" style="display: flex; gap: 15px; flex-wrap: wrap; width: 100%;">
-                            <select name="roleFilter" class="filter-select" onchange="this.form.submit()">
-                                <option value="">All Roles</option>
-                                <c:forEach var="role" items="${roles}">
-                                    <option value="${role.roleId}">${role.roleName}</option>
-                                </c:forEach>
-                            </select>
-                            <select name="statusFilter" class="filter-select" onchange="this.form.submit()">
-                                <option value="">All Status</option>
-                                <option value="1">Active</option>
-                                <option value="0">Inactive</option>
-                            </select>
-                            <select name="departmentFilter" class="filter-select" onchange="this.form.submit()">
-                                <option value="">All Departments</option>
-                                <c:forEach var="dept" items="${departments}">
-                                    <option value="${dept.departmentId}">${dept.deptName}</option>
-                                </c:forEach>
-                            </select>
-                            <input type="text" name="usernameFilter" placeholder="Filter by username..." class="filter-input" onkeyup="this.form.submit()">
+                    <div class="filter-section" style="width:100%;">
+                        <form id="filterForm" method="GET" action="${pageContext.request.contextPath}/admin/users" style="display: flex; gap: 15px; flex-wrap: wrap; width: 100%; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+                                <select name="roleFilter" class="filter-select">
+                                    <option value="">All Roles</option>
+                                    <c:forEach var="role" items="${roles}">
+                                        <option value="${role.roleId}" ${param.roleFilter == role.roleId ? 'selected' : ''}>${role.roleName}</option>
+                                    </c:forEach>
+                                </select>
+                                <select name="statusFilter" class="filter-select">
+                                    <option value="">All Status</option>
+                                    <option value="1" ${param.statusFilter == '1' ? 'selected' : ''}>Active</option>
+                                    <option value="0" ${param.statusFilter == '0' ? 'selected' : ''}>Inactive</option>
+                                </select>
+                                <select name="departmentFilter" class="filter-select">
+                                    <option value="">All Departments</option>
+                                    <c:forEach var="dept" items="${departments}">
+                                        <option value="${dept.departmentId}" ${param.departmentFilter == dept.departmentId ? 'selected' : ''}>${dept.deptName}</option>
+                                    </c:forEach>
+                                </select>
+                                <input type="text" name="usernameFilter" value="${param.usernameFilter}" placeholder="Filter by username..." class="filter-input">
+                                <button type="submit" class="btn-primary" style="height: 40px;">Apply Filters</button>
+                                <button type="button" class="btn-secondary" style="height: 40px;" onclick="resetFilters()">Clear All</button>
+                            </div>
+                            <button class="btn-primary" type="button" onclick="openAddUserModal()">+ Add New User</button>
                         </form>
+                        <script>
+                        function resetFilters() {
+                            document.querySelector('select[name=roleFilter]').selectedIndex = 0;
+                            document.querySelector('select[name=statusFilter]').selectedIndex = 0;
+                            document.querySelector('select[name=departmentFilter]').selectedIndex = 0;
+                            document.querySelector('input[name=usernameFilter]').value = '';
+                            document.getElementById('filterForm').submit();
+                        }
+                        </script>
                     </div>
 
                     <!-- Users Table -->
@@ -145,14 +161,14 @@
 
                                                 <td>
                                                     <div class="action-buttons">
-                                                        <button class="btn-edit" onclick="editUser(${user.userId})" title="Edit user">Edit</button>
-                                                        <button class="btn-reset" onclick="resetPassword(${user.userId})" title="Reset password">Reset</button>
+                                                        <button class="btn-edit" onclick="editUser(<c:out value='${user.userId}'/>)" title="Edit user">Edit</button>
+                                                        <button class="btn-reset" onclick="resetPassword(<c:out value='${user.userId}'/>)" title="Reset password">Reset</button>
                                                         <button class="btn-toggle ${user.isActive ? 'btn-lock' : 'btn-unlock'}" 
-                                                                onclick="toggleUserStatus(${user.userId})" 
+                                                                onclick="toggleUserStatus(<c:out value='${user.userId}'/>)" 
                                                                 title="${user.isActive ? 'Lock account' : 'Unlock account'}">
                                                             ${user.isActive ? '🔓 Lock' : '🔒 Unlock'}
                                                         </button>
-                                                        <button class="btn-delete" onclick="deleteUser(${user.userId})" title="Delete user">Delete</button>
+                                                        <button class="btn-delete" onclick="deleteUser(<c:out value='${user.userId}'/>)" title="Delete user">Delete</button>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -195,7 +211,6 @@
             </main>
         </div>
 
-        <!-- Add/Edit User Modal -->
         <div id="userModal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -345,6 +360,23 @@
                     resetModal.classList.remove('show');
                 }
             }
+        </script>
+        <script>
+            // Toggle user menu dropdown
+            function toggleUserMenu() {
+                const userMenu = document.querySelector('.user-menu');
+                userMenu.classList.toggle('active');
+            }
+
+            // Close user menu when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!event.target.closest('.user-menu')) {
+                    const userMenu = document.querySelector('.user-menu');
+                    if (userMenu.classList.contains('active')) {
+                        userMenu.classList.remove('active');
+                    }
+                }
+            });
         </script>
     </body>
 </html>

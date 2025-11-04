@@ -81,9 +81,17 @@ public class DashboardDAO {
                     log.setUserId(rs.getInt("UserID"));
                     log.setAction(rs.getString("Action"));
                     log.setObjectType(rs.getString("ObjectType"));
-                    log.setOldValue(rs.getString("OldVvalue"));
+                    log.setOldValue(rs.getString("OldValue"));
                     log.setNewValue(rs.getString("NewValue"));
-                    log.setTimestamp(rs.getTimestamp("Timestamp").toLocalDateTime());
+                    Timestamp ts = rs.getTimestamp("Timestamp");
+                    if (ts != null) {
+                        log.setTimestamp(ts.toLocalDateTime());
+                        // Convert LocalDateTime to java.util.Date for JSP compatibility
+                        log.setTimestampDate(java.util.Date.from(ts.toLocalDateTime().atZone(java.time.ZoneId.systemDefault()).toInstant()));
+                    } else {
+                        log.setTimestamp(null);
+                        log.setTimestampDate(null);
+                    }
                     result.add(log);
                 }
             }

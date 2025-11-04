@@ -438,7 +438,7 @@
                             <span>HR Manager</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
-                        <a href="${pageContext.request.contextPath}/HrHomeController" class="nav-btn">
+                        <a href="${pageContext.request.contextPath}/ProfileManagementController" class="nav-btn">
                             <i class="fas fa-tachometer-alt"></i>
                             HR Dashboard
                         </a>
@@ -464,10 +464,6 @@
                             <i class="fas fa-user-edit"></i>
                             <span>Profile Management</span>
                         </a>
-                        <a href="${pageContext.request.contextPath}/EmploymentStatusController" class="nav-item">
-                            <i class="fas fa-user-check"></i>
-                            <span>Employment Status</span>
-                        </a>
                         <a href="${pageContext.request.contextPath}/hr/create-employee" class="nav-item active">
                             <i class="fas fa-user-plus"></i>
                             <span>Create Employee</span>
@@ -483,10 +479,6 @@
                         <a href="${pageContext.request.contextPath}/candidates" class="nav-item">
                             <i class="fas fa-user-tie"></i>
                             <span>View Candidates</span>
-                        </a>
-                        <a href="${pageContext.request.contextPath}/TaskManagementController" class="nav-item">
-                            <i class="fas fa-tasks"></i>
-                            <span>Task Management</span>
                         </a>
                     </div>
                 </nav>

@@ -328,7 +328,7 @@
     <div class="header">
         <div class="container">
             <div class="header-content">
-                <a href="/HRMS/homepage" class="home-btn">
+                <a href="${pageContext.request.contextPath}/homepage" class="home-btn">
                     <i class="fas fa-home"></i> Home
                 </a>
                 <div class="header-text">

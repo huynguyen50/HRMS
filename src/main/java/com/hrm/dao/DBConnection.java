@@ -1,17 +1,19 @@
 package com.hrm.dao;
 
+import jakarta.servlet.annotation.WebListener;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@WebListener
 public class DBConnection {
 
     // --- Thông tin kết nối Database ---
     private static final String URL = "jdbc:mysql://localhost:3306/hrm_db";
     private static final String USER = "root";
-    private static final String PASSWORD = "Hahahaha2%";
+    private static final String PASSWORD = "12345";
 
     /**
      * Phương thức chính để lấy kết nối JDBC.
