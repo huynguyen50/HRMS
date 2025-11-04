@@ -1188,14 +1188,11 @@ width: 100%;
                         <i class="fas fa-home" aria-hidden="true"></i>
                         <span>Home</span>
                     </a>
-                    <a href="${pageContext.request.contextPath}/HRMS/RecruitmentController" aria-label="Go to Recruitment page">
+                    <a href="${pageContext.request.contextPath}/RecruitmentController" aria-label="Go to Recruitment page">
                         <i class="fas fa-briefcase" aria-hidden="true"></i>
                         <span>Recruitment</span>
                     </a>
-                    <a href="${pageContext.request.contextPath}/viewRecruitment" aria-label="Go to Recruitment page">
-                        <i class="fas fa-briefcase" aria-hidden="true"></i>
-                        <span>Recruitment</span>
-                    </a>
+                   
                     <c:if test="${not empty sessionScope.systemUser}">
                         <div class="dashboard-dropdown">
                             <a href="#" onclick="toggleDashboardDropdown()" aria-label="Dashboard Menu">
