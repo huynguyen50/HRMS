@@ -295,7 +295,7 @@ border-radius: 8px;
 
     <div class="container">
         <div class="navigation-buttons">
-            <a href="RecruitmentController" class="back-btn">
+            <a href="${pageContext.request.contextPath}/RecruitmentController" class="back-btn">
                 <i class="fas fa-arrow-left"></i> Back to Job List
             </a>
         </div>
@@ -325,7 +325,7 @@ border-radius: 8px;
                 </div>
             <% } %>
 
-            <form action="RecruitmentController" method="POST" enctype="multipart/form-data">
+            <form action="${pageContext.request.contextPath}/RecruitmentController" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="submitApplication">
                 <% if (recruitment != null) { %>
 <input type="hidden" name="recruitmentId" value="<%= recruitment.getRecruitmentId() %>">

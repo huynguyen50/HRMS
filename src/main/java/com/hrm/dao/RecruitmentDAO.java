@@ -6,7 +6,6 @@ package com.hrm.dao;
 
 import com.hrm.model.entity.Recruitment;
 import java.sql.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,18 +26,18 @@ public class RecruitmentDAO {
              ResultSet rs = ps.executeQuery()) {
             
             while (rs.next()) {
-//                Recruitment recruitment = new Recruitment();
-//                recruitment.setRecruitmentId(rs.getInt("RecruitmentID"));
-//                recruitment.setJobTitle(rs.getString("JobTitle"));
-//                recruitment.setJobDescription(rs.getString("JobDescription"));
-//                recruitment.setPostDate(rs.getDate("PostDate") != null ? 
-//                    rs.getDate("PostDate").toLocalDate() : null);
-//                recruitment.setStatus(rs.getString("Status"));
-//                recruitment.setPostedBy(rs.getObject("PostedBy", Integer.class));
-//                recruitment.setPostedDate(rs.getTimestamp("PostedDate") != null ? 
-//                    rs.getTimestamp("PostedDate").toLocalDateTime() : null);
-                
-//                list.add(recruitment);
+                Recruitment recruitment = new Recruitment(
+                    rs.getInt("RecruitmentID"),
+                    rs.getString("JobTitle"),
+                    rs.getString("JobDescription"),
+                    rs.getString("Requirement"),
+                    rs.getString("Location"),
+                    rs.getDouble("Salary"),
+                    rs.getString("Status"),
+                    rs.getInt("Applicant"),
+                    rs.getObject("PostedDate", LocalDateTime.class)
+                );
+                list.add(recruitment);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -56,18 +55,18 @@ public class RecruitmentDAO {
             ps.setInt(1, recruitmentId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-//                    Recruitment recruitment = new Recruitment();
-//                    recruitment.setRecruitmentId(rs.getInt("RecruitmentID"));
-//                    recruitment.setJobTitle(rs.getString("JobTitle"));
-//                    recruitment.setJobDescription(rs.getString("JobDescription"));
-//                    recruitment.setPostDate(rs.getDate("PostDate") != null ? 
-//                        rs.getDate("PostDate").toLocalDate() : null);
-//                    recruitment.setStatus(rs.getString("Status"));
-//                    recruitment.setPostedBy(rs.getObject("PostedBy", Integer.class));
-//                    recruitment.setPostedDate(rs.getTimestamp("PostedDate") != null ? 
-//                        rs.getTimestamp("PostedDate").toLocalDateTime() : null);
-//                    
-//                    return recruitment;
+                    Recruitment recruitment = new Recruitment(
+                        rs.getInt("RecruitmentID"),
+                        rs.getString("JobTitle"),
+                        rs.getString("JobDescription"),
+                        rs.getString("Requirement"),
+                        rs.getString("Location"),
+                        rs.getDouble("Salary"),
+                        rs.getString("Status"),
+                        rs.getInt("Applicant"),
+                        rs.getObject("PostedDate", LocalDateTime.class)
+                    );
+                    return recruitment;
                 }
             }
         } catch (SQLException e) {
@@ -76,28 +75,28 @@ public class RecruitmentDAO {
         return null;
     }
 
-    // Lấy 3 Recruitment mới nhất
+    // Lấy tất cả Recruitment có status Open hoặc New
     public List<Recruitment> getLatestThree() {
         List<Recruitment> list = new ArrayList<>();
-        String sql = "SELECT * FROM Recruitment WHERE Status = 'Open' ORDER BY PostedDate DESC LIMIT 3";
+        String sql = "SELECT * FROM Recruitment WHERE Status IN ('Open', 'New') ORDER BY PostedDate DESC";
         
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             
             while (rs.next()) {
-//                Recruitment recruitment = new Recruitment();
-//                recruitment.setRecruitmentId(rs.getInt("RecruitmentID"));
-//                recruitment.setJobTitle(rs.getString("JobTitle"));
-//                recruitment.setJobDescription(rs.getString("JobDescription"));
-//                recruitment.setPostDate(rs.getDate("PostDate") != null ? 
-//                    rs.getDate("PostDate").toLocalDate() : null);
-//                recruitment.setStatus(rs.getString("Status"));
-//                recruitment.setPostedBy(rs.getObject("PostedBy", Integer.class));
-//                recruitment.setPostedDate(rs.getTimestamp("PostedDate") != null ? 
-//                    rs.getTimestamp("PostedDate").toLocalDateTime() : null);
-//                
-//                list.add(recruitment);
+                Recruitment recruitment = new Recruitment(
+                    rs.getInt("RecruitmentID"),
+                    rs.getString("JobTitle"),
+                    rs.getString("JobDescription"),
+                    rs.getString("Requirement"),
+                    rs.getString("Location"),
+                    rs.getDouble("Salary"),
+                    rs.getString("Status"),
+                    rs.getInt("Applicant"),
+                    rs.getObject("PostedDate", LocalDateTime.class)
+                );
+                list.add(recruitment);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -209,18 +208,18 @@ public class RecruitmentDAO {
             
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-//                    Recruitment recruitment = new Recruitment();
-//                    recruitment.setRecruitmentId(rs.getInt("RecruitmentID"));
-//                    recruitment.setJobTitle(rs.getString("JobTitle"));
-//                    recruitment.setJobDescription(rs.getString("JobDescription"));
-//                    recruitment.setPostDate(rs.getDate("PostDate") != null ? 
-//                        rs.getDate("PostDate").toLocalDate() : null);
-//                    recruitment.setStatus(rs.getString("Status"));
-//                    recruitment.setPostedBy(rs.getObject("PostedBy", Integer.class));
-//                    recruitment.setPostedDate(rs.getTimestamp("PostedDate") != null ? 
-//                        rs.getTimestamp("PostedDate").toLocalDateTime() : null);
-//                    
-//                    list.add(recruitment);
+                    Recruitment recruitment = new Recruitment(
+                        rs.getInt("RecruitmentID"),
+                        rs.getString("JobTitle"),
+                        rs.getString("JobDescription"),
+                        rs.getString("Requirement"),
+                        rs.getString("Location"),
+                        rs.getDouble("Salary"),
+                        rs.getString("Status"),
+                        rs.getInt("Applicant"),
+                        rs.getObject("PostedDate", LocalDateTime.class)
+                    );
+                    list.add(recruitment);
                 }
             }
         } catch (SQLException e) {

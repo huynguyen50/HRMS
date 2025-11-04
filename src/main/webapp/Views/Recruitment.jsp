@@ -44,7 +44,7 @@
         }
 
         .home-btn {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(239, 247, 247, 0.95);
             color: white;
             padding: 0.8rem 1.5rem;
             border-radius: 8px;
@@ -328,9 +328,10 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     <div class="header">
         <div class="container">
             <div class="header-content">
-                <a href="${pageContext.request.contextPath}/homepage" class="home-btn">
-                    <i class="fas fa-home"></i> Home
-                </a>
+                <a href="${pageContext.request.contextPath}/Views/Homepage.jsp" class="btn-homepage" title="Back to Homepage">
+                            <i class="fas fa-home"></i>
+                            <span>Homepage</span>
+                        </a>
                 <div class="header-text">
                     <h1><i class="fas fa-briefcase"></i> Recruitment</h1>
                     <p>Discover amazing career opportunities with us</p>
@@ -416,7 +417,7 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                                 <%= recruitment.getPostedDate().format(formatter) %>
                             <% } %>
                         </div>
-                        <a href="RecruitmentController?action=apply&recruitmentId=<%= recruitment.getRecruitmentId() %>" 
+                        <a href="${pageContext.request.contextPath}/RecruitmentController?action=apply&recruitmentId=<%= recruitment.getRecruitmentId() %>" 
                            class="apply-btn">
 <i class="fas fa-paper-plane"></i> Apply Now
                         </a>

@@ -456,14 +456,11 @@
                 <nav class="hr-sidebar">
                     <div class="nav-section">
                         <h3>NAVIGATION</h3>
-                        <a href="${pageContext.request.contextPath}/HrHomeController" class="nav-item">
+                        <a href="${pageContext.request.contextPath}/ProfileManagementController" class="nav-item">
                             <i class="fas fa-home"></i>
                             <span>HR Dashboard</span>
                         </a>
-                        <a href="${pageContext.request.contextPath}/ProfileManagementController" class="nav-item">
-                            <i class="fas fa-user-edit"></i>
-                            <span>Profile Management</span>
-                        </a>
+                       
                         <a href="${pageContext.request.contextPath}/hr/create-employee" class="nav-item active">
                             <i class="fas fa-user-plus"></i>
                             <span>Create Employee</span>
@@ -654,7 +651,7 @@
                     
                     <!-- Form Actions -->
                     <div class="form-actions">
-                        <a href="${pageContext.request.contextPath}/HrHomeController" class="btn btn-secondary">Cancel</a>
+                       
                         <button type="submit" class="btn btn-success" id="createEmployeeBtn">Create Employee</button>
                     </div>
                 </div>
