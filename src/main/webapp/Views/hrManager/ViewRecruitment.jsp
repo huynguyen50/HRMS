@@ -1,24 +1,23 @@
 <%-- 
-    Document   : DetailRecruitment
-    Created on : Oct 30, 2025, 11:54:21 AM
+    Document   : ViewRecruitment (Final Merged Version)
+    Created on : Nov 2, 2025, 10:55:04 PM
     Author     : DELL
 --%>
 
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>HRM - Edit Recruitment</title>
+        <title>HRM - Manage Waiting Recruitment Posts</title> <%-- THAY ĐỔI TIÊU ĐỀ --%>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/7.2.3/css/flag-icons.min.css" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <%-- Toàn bộ phần CSS giữ nguyên --%>
         <style>
-            /* Sao chép toàn bộ style từ trang mẫu để giữ giao diện nhất quán */
             :root {
                 --primary-color: #2563eb;
                 --secondary-color: #1e40af;
@@ -354,6 +353,36 @@
                 min-height: 60vh;
                 padding: 40px 0;
             }
+
+            /* Custom styles for recruitment list */
+            .recruitment-list-item {
+                border-left: 4px solid var(--primary-color);
+                transition: all 0.3s ease;
+            }
+            .recruitment-list-item:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+                border-left-color: var(--accent-color);
+            }
+            .recruitment-title {
+                color: var(--dark-color);
+                font-weight: 600;
+            }
+            .recruitment-meta {
+                font-size: 0.9rem;
+                color: var(--text-muted);
+            }
+            .action-btn-custom {
+                text-decoration: none;
+                padding: 0.4rem 0.8rem;
+                border-radius: 5px;
+                font-size: 0.9rem;
+                transition: all 0.2s ease;
+            }
+            .action-btn-custom:hover {
+                text-decoration: none;
+                transform: translateY(-1px);
+            }
         </style>
     </head>
     <body>
@@ -439,66 +468,135 @@
             </nav>
         </header>
 
+
         <!-- MAIN CONTENT AREA -->
         <main class="main-content-area">
             <div class="container">
-                <!-- Nút Back và Tiêu đề trang -->
+                <!-- Tiêu đề trang -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="h2">Edit Recruitment Details</h1>
-                    <a href="${pageContext.request.contextPath}/postRecruitments" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-1"></i> Back to List
-                    </a>
+                    <%-- THAY ĐỔI TIÊU ĐỀ --%>
+                    <h1 class="h2">Manage Waiting Recruitment Posts</h1>
                 </div>
 
-                <!-- FORM CHỈNH SỬA -->
-                <div class="card">
+                <!-- FORM TÌM KIẾM VÀ LỌC -->
+                <div class="card mb-4">
                     <div class="card-body">
-                        <form action="${pageContext.request.contextPath}/detailRecruitment" method="post">
-                            <input type="hidden" name="id" value="${rec.recruitmentId}">
-
-                            <div class="mb-3">
-                                <label for="titleInput" class="form-label">Title</label>
-                                <input type="text" class="form-control" id="titleInput" name="Title" value="${rec.title}" placeholder="Enter recruitment title" maxlength="50" required>
+                        <form action="${pageContext.request.contextPath}/viewRecruitment" method="GET" class="row g-3 align-items-end">
+                            <!-- Cột tìm kiếm theo Title -->
+                            <div class="col-md-4">
+                                <label class="form-label">Search by Title</label>
+                                <input type="text" class="form-control" name="searchByTitle" placeholder="Enter title..." value="${param.searchByTitle}">
+                            </div>
+                            <!-- Cột ngày bắt đầu -->
+                            <div class="col-md-3">
+                                <label class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="startDate" name="startDate" value="${param.startDate}">
                             </div>
 
-                            <div class="mb-3">
-                                <label for="descriptionInput" class="form-label">Description</label>
-                                <textarea class="form-control" id="descriptionInput" name="Description" placeholder="Enter detailed description" maxlength="1000" rows="5" required>${rec.description}</textarea>
+                            <!-- Cột ngày kết thúc -->
+                            <div class="col-md-3">
+                                <label class="form-label">End Date</label>
+                                <input type="date" class="form-control" id="endDate" name="endDate" value="${param.endDate}">
                             </div>
 
-                            <div class="mb-3">
-                                <label for="requirementInput" class="form-label">Requirement</label>
-                                <input type="text" class="form-control" id="requirementInput" name="Requirement" value="${rec.requirement}" placeholder="Enter key requirements" maxlength="50" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="locationInput" class="form-label">Location</label>
-                                <input type="text" class="form-control" id="locationInput" name="Location" value="${rec.location}" placeholder="Enter job location" maxlength="50" required>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="locationInput" class="form-label">Applicant</label>
-                                <input type="number" class="form-control" id="applicantInput" name="Applicant" value="${rec.applicant}" placeholder="Enter job applicant" step="1" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="salaryInput" class="form-label">Salary</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" id="salaryInput" name="Salary" value="${rec.salary}" placeholder="Enter salary" required>
-                                    <span class="input-group-text">đ</span>
-                                </div>
-                            </div>
-                            <c:if test="${not empty mess}">
-                                <p style="color: red; font-size: 20px;">${mess}</p>
-                            </c:if>            
-                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <!-- Cột nút Apply -->
+                            <div class="col-md-auto d-flex gap-2">
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save me-1"></i> Save Changes
+                                    <i class="fas fa-filter me-1"></i> Apply Filter
                                 </button>
+                                <!-- Nút Clear dùng thẻ a -->
+                                <a href="${pageContext.request.contextPath}/viewRecruitment" class="btn btn-secondary">
+                                    <i class="fas fa-times me-1"></i> Clear
+                                </a>
                             </div>
                         </form>
                     </div>
                 </div>
+                <!-- KẾT THÚC FORM -->
+
+                <!-- DANH SÁCH TUYỂN DỤNG -->
+                <c:if test="${not empty recruitment}">
+                    <c:forEach var="rec" items="${recruitment}">
+                        <div class="card mb-3 recruitment-list-item">
+                            <div class="card-body">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <h5 class="card-title recruitment-title">${rec.title}</h5>
+                                        <p class="card-text recruitment-meta">
+                                            <%-- SỬA LỖI HIỂN THỊ NGÀY --%>
+                                            <i class="far fa-calendar-alt me-1"></i> Posted on: <span class="badge bg-info text-dark">${rec.postedDate}</span>
+                                            <span class="mx-2">|</span>
+                                            <i class="fas fa-info-circle me-1"></i> Status: <span class="badge bg-info text-dark">${rec.status}</span>
+                                            <span class="mx-2">|</span>
+                                            <i class="fas fa-users me-1"></i> Applicants: ${rec.applicant}
+                                        </p>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <a href="${pageContext.request.contextPath}/detailWaitingRecruitment?id=${rec.recruitmentId}" class="action-btn-custom btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye me-1"></i> View
+                                        </a>
+                                        <a href="${pageContext.request.contextPath}/viewRecruitment?action=apply&id=${rec.recruitmentId}" 
+                                           class="action-btn-custom btn btn-sm btn-outline-success ms-2"
+                                           onclick="return confirm('Do you want to apply this recruitment? This action cannot be undone.');">
+                                            <i class="fas fa-paper-plane me-1"></i> Apply
+                                        </a>
+                                        <a href="${pageContext.request.contextPath}/viewRecruitment?action=reject&id=${rec.recruitmentId}" 
+                                           class="action-btn-custom btn btn-sm btn-outline-success ms-2"
+                                           onclick="return confirm('Do you want to reject this recruitment? This action cannot be undone.');">
+                                            <i class="fas fa-paper-plane me-1"></i> Reject
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </c:forEach>
+                </c:if>
+
+                <c:if test="${empty recruitment}">
+                    <div class="alert alert-warning text-center" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i> No recruitment posts found.
+                    </div>
+                </c:if>
+
+                <!-- PHÂN TRANG -->
+ 
+                <c:if test="${totalPages > 1}">
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <c:if test="${currentPage > 1}">
+                                <li class="page-item">
+                                    <a class="page-link" href="${pageContext.request.contextPath}/viewRecruitment?page=${currentPage - 1}&searchByTitle=${param.searchByTitle}&startDate=${param.startDate}&endDate=${param.endDate}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            </c:if>
+                            <c:forEach begin="1" end="${totalPages}" var="i">
+                                <c:choose>
+                                    <c:when test="${currentPage == i}">
+                                        <li class="page-item active" aria-current="page">
+                                            <%-- Dùng thẻ <span> thay vì <a> cho trang hiện tại để người dùng không thể click vào nó --%>
+                                            <span class="page-link">${i}</span>
+                                        </li>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <li class="page-item">
+                                            <a class="page-link" href="${pageContext.request.contextPath}/viewRecruitment?page=${i}&searchByTitle=${param.searchByTitle}&startDate=${param.startDate}&endDate=${param.endDate}">${i}</a>
+                                        </li>
+                                    </c:otherwise>
+                                </c:choose>
+                            </c:forEach>
+
+                            <c:if test="${currentPage < totalPages}">
+                                <li class="page-item">
+                                    <a class="page-link" href="${pageContext.request.contextPath}/viewRecruitment?page=${currentPage + 1}&searchByTitle=${param.searchByTitle}&startDate=${param.startDate}&endDate=${param.endDate}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            </c:if>
+
+                        </ul>
+                    </nav>
+                </c:if>
             </div>
         </main>
 
@@ -537,25 +635,32 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-                    // Copy các hàm JS cần thiết từ trang mẫu
-                    function handleLogout() {
-                        if (confirm('Are you sure you want to logout?')) {
-                            window.location.href = '${pageContext.request.contextPath}/logout';
-                        }
-                    }
-                    function toggleProfileDropdown() {
-                        const dropdown = document.getElementById('profileDropdown');
-                        if (dropdown) {
-                            dropdown.classList.toggle('show');
-                        }
-                    }
-                    document.addEventListener('click', function (event) {
-                        const profileDropdown = document.getElementById('profileDropdown');
-                        const profileAvatar = document.querySelector('.profile-avatar');
-                        if (profileDropdown && profileAvatar && !profileAvatar.contains(event.target) && !profileDropdown.contains(event.target)) {
-                            profileDropdown.classList.remove('show');
-                        }
-                    });
+                                               // Copy các hàm JS cần thiết từ trang mẫu
+                                               function handleLogout() {
+                                                   if (confirm('Are you sure you want to logout?')) {
+                                                       window.location.href = '${pageContext.request.contextPath}/logout';
+                                                   }
+                                               }
+                                               function toggleProfileDropdown() {
+                                                   const dropdown = document.getElementById('profileDropdown');
+                                                   if (dropdown) {
+                                                       dropdown.classList.toggle('show');
+                                                   }
+                                               }
+                                               document.addEventListener('click', function (event) {
+                                                   const profileDropdown = document.getElementById('profileDropdown');
+                                                   const profileAvatar = document.querySelector('.profile-avatar');
+                                                   if (profileDropdown && profileAvatar && !profileAvatar.contains(event.target) && !profileDropdown.contains(event.target)) {
+                                                       profileDropdown.classList.remove('show');
+                                                   }
+                                               });
+                                               function performSearch() {
+                                                   // Placeholder function for search
+                                                   const searchInput = document.getElementById('searchInput');
+                                                   if (searchInput) {
+                                                       alert('Search functionality for "' + searchInput.value + '" is not yet implemented.');
+                                                   }
+                                               }
         </script>
     </body>
 </html>

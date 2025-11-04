@@ -17,8 +17,7 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-//        Recruitment recruitment = DAO.getInstance().getRecruitmentInfo();
-//        request.setAttribute("recruitment", recruitment);
+        
 
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
@@ -40,6 +39,19 @@ public class LoginController extends HttpServlet {
 
         SystemUser sys = DAO.getInstance().getAccountByUsername(username);
 
+        if(password.length()<8 || password.length()>16 || username.length()<8 || password.length()>16){
+            request.setAttribute("mess", "Username and password must be between 8 and 16 characters long!");
+            request.getRequestDispatcher("/Views/Login.jsp").forward(request, response);
+            return;
+        }
+        
+        String allowPattern = "[a-zA-Z0-9]+";
+        if(!password.matches(allowPattern) || !username.matches(allowPattern)){
+            request.setAttribute("mess", "Username and password must contain no special characters!");
+            request.getRequestDispatcher("/Views/Login.jsp").forward(request, response);
+            return;
+        }
+        
         if (sys != null && sys.getPassword().equals(password)) {
             request.getSession().setAttribute("systemUser", sys);
 
@@ -59,7 +71,6 @@ public class LoginController extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/homepage");
         } else {
             request.setAttribute("mess", "Wrong username or password!");
-//            request.setAttribute("recruitment", DAO.getInstance().getRecruitmentInfo());
             request.getRequestDispatcher("/Views/Login.jsp").forward(request, response);
         }
     }
