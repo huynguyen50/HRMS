@@ -445,7 +445,7 @@
                 <!-- Nút Back và Tiêu đề trang -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h1 class="h2">Edit Recruitment Details</h1>
-                    <a href="${pageContext.request.contextPath}/postRecruitments" class="btn btn-secondary">
+                    <a href="${pageContext.request.contextPath}/viewRecruitment" class="btn btn-secondary">
                         <i class="fas fa-arrow-left me-1"></i> Back to List
                     </a>
                 </div>
@@ -453,7 +453,7 @@
                 <!-- FORM CHỈNH SỬA -->
                 <div class="card">
                     <div class="card-body">
-                        <form action="${pageContext.request.contextPath}/detailRecruitment" method="post">
+                        <form action="${pageContext.request.contextPath}/detailWaitingRecruitment" method="post">
                             <input type="hidden" name="id" value="${rec.recruitmentId}">
 
                             <div class="mb-3">
