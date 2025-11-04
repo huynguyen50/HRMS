@@ -484,7 +484,7 @@
                             <div class="mb-3">
                                 <label for="salaryInput" class="form-label">Salary</label>
                                 <div class="input-group">
-                                    <input type="number" class="form-control" id="salaryInput" name="Salary" value="${rec.salary}" placeholder="Enter salary" required>
+                                    <input type="number" class="form-control" id="salaryInput" name="Salary" value="${rec.salary}" placeholder="Enter salary" step="10000" required>
                                     <span class="input-group-text">đ</span>
                                 </div>
                             </div>
@@ -495,6 +495,15 @@
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-save me-1"></i> Save Changes
                                 </button>
+
+                                <form action="${pageContext.request.contextPath}/detailRecruitment" method="post" style="display: inline;">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="id" value="${rec.recruitmentId}">
+                                    <button type="submit" class="btn btn-danger" 
+                                            onclick="return confirm('Are you sure you want to delete this recruitment post? This action cannot be undone.');">
+                                        <i class="fas fa-trash-alt me-1"></i> Delete
+                                    </button>
+                                </form>
                             </div>
                         </form>
                     </div>

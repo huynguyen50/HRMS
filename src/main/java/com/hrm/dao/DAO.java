@@ -342,7 +342,7 @@ public class DAO {
             while (rs.next()) {
                 Recruitment rec = new Recruitment(rs.getInt("RecruitmentID"), rs.getString("JobTitle"),
                         rs.getString("JobDescription"), rs.getString("Requirement"), rs.getString("Location"), rs.getDouble("Salary"),
-                        rs.getString("Status"), rs.getInt("Applicant"), rs.getObject("PostedDate", java.time.LocalDateTime.class));
+                        rs.getString("Status"),rs.getInt("Applicant"), rs.getObject("PostedDate", java.time.LocalDateTime.class));
                 rList.add(rec);
             }
         } catch (SQLException e) {
@@ -405,7 +405,7 @@ public class DAO {
             while (rs.next()) {
                 Recruitment rec = new Recruitment(rs.getInt("RecruitmentID"), rs.getString("JobTitle"),
                         rs.getString("JobDescription"), rs.getString("Requirement"), rs.getString("Location"), rs.getDouble("Salary"),
-                        rs.getString("Status"), rs.getInt("Applicant"), rs.getObject("PostedDate", java.time.LocalDateTime.class));
+                        rs.getString("Status"),rs.getInt("Applicant"), rs.getObject("PostedDate", java.time.LocalDateTime.class));
                 rList.add(rec);
             }
         } catch (SQLException e) {
@@ -431,208 +431,93 @@ public class DAO {
     public Recruitment getRecruitmentById(int id) {
         String sql = "SELECT * FROM Recruitment WHERE recruitmentId = ?";
         try {
-            PreparedStatement ps = con.prepareStatement(sql);
+            PreparedStatement ps = con.prepareStatement(sql); 
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 Recruitment rec = new Recruitment(rs.getInt("RecruitmentID"), rs.getString("JobTitle"),
                         rs.getString("JobDescription"), rs.getString("Requirement"), rs.getString("Location"), rs.getDouble("Salary"),
-                        rs.getString("Status"), rs.getInt("Applicant"), rs.getObject("PostedDate", java.time.LocalDateTime.class));
+                        rs.getString("Status"),rs.getInt("Applicant"), rs.getObject("PostedDate", java.time.LocalDateTime.class));
                 return rec;
             }
-        } catch (SQLException e) {
+        }
+        catch (SQLException e) {
             e.printStackTrace();
         }
         return null;
+}
+    public int setRecruitmentById(String title, String description, String requirement, String location, Double salary,int applicant, int id) {
+    String sql = "UPDATE Recruitment SET JobTitle = ?, JobDescription = ?, Requirement = ?, Location = ?, Salary = ?, Applicant=? WHERE RecruitmentID = ?";
+    int result = 0;
+    
+    try (PreparedStatement ps = con.prepareStatement(sql)) {
+        ps.setString(1, title);
+        ps.setString(2, description);
+        ps.setString(3, requirement);
+        ps.setString(4, location);
+        ps.setDouble(5, salary);
+        ps.setInt(6, applicant);
+        ps.setInt(7, id);
+        
+        result = ps.executeUpdate();
+        
+    } catch (Exception e) {
+        e.printStackTrace();
     }
-
-    public int setRecruitmentById(String title, String description, String requirement, String location, Double salary, int applicant, int id) {
-        String sql = "UPDATE Recruitment SET JobTitle = ?, JobDescription = ?, Requirement = ?, Location = ?, Salary = ?, Applicant=? WHERE RecruitmentID = ?";
-        int result = 0;
-
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, title);
-            ps.setString(2, description);
-            ps.setString(3, requirement);
-            ps.setString(4, location);
-            ps.setDouble(5, salary);
-            ps.setInt(6, applicant);
-            ps.setInt(7, id);
-
-            result = ps.executeUpdate();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return result;
-    }
-
+    
+    return result;
+}
+    
     public int deleteRecruitmentById(int id) {
-        String sql = "DELETE FROM Recruitment WHERE RecruitmentID = ?";
-        int result = 0;
-
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            result = ps.executeUpdate();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return result;
-    }
-
-    public int createRecruitment(String title, String description, String requirement,
-            String location, double salary,
-            LocalDateTime postedDate, int applicant) {
-        String sql = "INSERT INTO Recruitment (JobTitle, JobDescription, Requirement, Location, Salary, Status, PostedDate, Applicant) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        int result = 0;
-
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, title);
-            ps.setString(2, description);
-            ps.setString(3, requirement);
-            ps.setString(4, location);
-            ps.setDouble(5, salary);
-            ps.setString(6, "New");
-            ps.setTimestamp(7, java.sql.Timestamp.valueOf(postedDate));
-            ps.setInt(8, applicant);
-
-            result = ps.executeUpdate();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return result;
-    }
-
-    public int updateRecruitmentStatus(int id,String status) {
-        String sql = "UPDATE Recruitment SET Status = ? WHERE RecruitmentID = ?";
-        int result = 0;
-
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, status);
-            ps.setInt(2, id);
-
-            result = ps.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Error updating recruitment status: " + e.getMessage());
-        }
-
-        return result;
-    }
-
-    public List<Recruitment> searchRecruitmentWaiting(String title, String startDate, String endDate, int page, int size) {
-        List<Recruitment> rList = new ArrayList<>();
-        int offset = (page - 1) * size;
-        StringBuilder sql = new StringBuilder("SELECT * FROM Recruitment WHERE Status = 'Waiting'");
-        List<Object> params = new ArrayList<>();
-
-        if (title != null && !title.trim().isEmpty()) {
-            sql.append(" AND JobTitle LIKE ?");
-            params.add("%" + title + "%");
-        }
-
-        if (startDate != null && !startDate.trim().isEmpty()) {
-            sql.append(" AND PostedDate >= ?");
-            params.add(startDate);
-        }
-
-        if (endDate != null && !endDate.trim().isEmpty()) {
-            sql.append(" AND PostedDate <= ?");
-            params.add(endDate);
-        }
-        sql.append(" ORDER BY RecruitmentID LIMIT ? OFFSET ?");
-        params.add(size);
-        params.add(offset);
-
-        try (PreparedStatement ps = con.prepareStatement(sql.toString())) {
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
-            }
-
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Recruitment rec = new Recruitment(rs.getInt("RecruitmentID"), rs.getString("JobTitle"),
-                        rs.getString("JobDescription"), rs.getString("Requirement"), rs.getString("Location"), rs.getDouble("Salary"),
-                        rs.getString("Status"), rs.getInt("Applicant"), rs.getObject("PostedDate", java.time.LocalDateTime.class));
-                rList.add(rec);
-            }
-        } catch (SQLException e) {
-            System.err.println("Lỗi trong searchRecruitmentWaiting: " + e.getMessage());
-        }
-
-        return rList;
-    }
-
-    public int searchCountRecruitmentWaiting(String title, String startDate, String endDate) {
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Recruitment WHERE Status = 'Waiting'");
-        List<Object> params = new ArrayList<>();
-
-        if (title != null && !title.trim().isEmpty()) {
-            sql.append(" AND JobTitle LIKE ?");
-            params.add("%" + title + "%");
-        }
-
-        if (startDate != null && !startDate.trim().isEmpty()) {
-            sql.append(" AND PostedDate >= ?");
-            params.add(startDate);
-        }
-
-        if (endDate != null && !endDate.trim().isEmpty()) {
-            sql.append(" AND PostedDate <= ?");
-            params.add(endDate);
-        }
-
-        try (PreparedStatement ps = con.prepareStatement(sql.toString())) {
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
-            }
-
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-        } catch (SQLException e) {
-            System.err.println("Lỗi trong countRecruitmentWaiting: " + e.getMessage());
-        }
-
-        return 0;
+    String sql = "DELETE FROM Recruitment WHERE RecruitmentID = ?";
+    int result = 0;
+    
+    try (PreparedStatement ps = con.prepareStatement(sql)) {
+        ps.setInt(1, id);
+        result = ps.executeUpdate();
+    } catch (Exception e) {
+        e.printStackTrace();
     }
     
-    public int getCountRecruitmentWaiting() {
-        String sql = "SELECT COUNT(*) FROM Recruitment WHERE Status = 'Waiting'";
-        try {
-            PreparedStatement ps = con.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-        } catch (SQLException e) {
-            System.err.println(e.getMessage());
-        }
-        return 0;
+    return result;
+}
+    public int createRecruitment(String title, String description, String requirement, 
+                           String location, double salary,  
+                           LocalDateTime postedDate, int applicant) {
+    String sql = "INSERT INTO Recruitment (JobTitle, JobDescription, Requirement, Location, Salary, Status, PostedDate, Applicant) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    int result = 0;
+    
+    try (PreparedStatement ps = con.prepareStatement(sql)) {
+        ps.setString(1, title);
+        ps.setString(2, description);
+        ps.setString(3, requirement);
+        ps.setString(4, location);
+        ps.setDouble(5, salary);
+        ps.setString(6, "New");
+        ps.setTimestamp(7, java.sql.Timestamp.valueOf(postedDate));
+        ps.setInt(8, applicant);
+        
+        result = ps.executeUpdate();
+    } catch (Exception e) {
+        e.printStackTrace();
     }
     
-    public List<Recruitment> getAllRecruitmentWaiting(int page, int size) {
-    List<Recruitment> rList = new ArrayList<>();
-    int offset = (page - 1) * size;
-    // Thay đổi 1: Thêm điều kiện WHERE vào câu SQL
-    String sql = "SELECT * from Recruitment WHERE Status = 'Waiting' ORDER BY RecruitmentID LIMIT ? OFFSET ?";
-    try {
-        PreparedStatement ps = con.prepareStatement(sql);
-        ps.setInt(1, size);
-        ps.setInt(2, offset);
-        ResultSet rs = ps.executeQuery();
-        while (rs.next()) {
-            Recruitment rec = new Recruitment(rs.getInt("RecruitmentID"), rs.getString("JobTitle"),
-                    rs.getString("JobDescription"), rs.getString("Requirement"), rs.getString("Location"), rs.getDouble("Salary"),
-                    rs.getString("Status"), rs.getInt("Applicant"), rs.getObject("PostedDate", java.time.LocalDateTime.class));
-            rList.add(rec);
-        }
+    return result;
+}
+    
+    public int updateRecruitmentStatus(int id) {
+    String sql = "UPDATE Recruitment SET Status = ? WHERE RecruitmentID = ?";
+    int result = 0;
+    
+    try (PreparedStatement ps = con.prepareStatement(sql)) {
+        ps.setString(1, "Applied");
+        ps.setInt(2, id);
+        
+        result = ps.executeUpdate();
     } catch (SQLException e) {
-        System.err.println(e.getMessage());
+        System.err.println("Error updating recruitment status: " + e.getMessage());
     }
-    return rList;
+    
+    return result;
 }
 }

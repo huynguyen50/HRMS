@@ -77,7 +77,7 @@
 
             .top-nav a {
                 color: rgba(255, 255, 255, 0.85);
-                text-decoration: none;
+text-decoration: none;
                 font-weight: 500;
                 font-size: 0.9rem;
                 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -166,7 +166,7 @@
                 background: rgba(255, 255, 255, 0.15);
                 border-color: rgba(255, 255, 255, 0.3);
                 transform: translateY(-1px);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             }
 
             .search-container:hover::before {
@@ -263,7 +263,7 @@
             }
 
             .profile-dropdown-menu {
-                position: absolute;
+position: absolute;
                 top: 100%;
                 right: 0;
                 background: white;
@@ -362,7 +362,7 @@
             <div class="container">
                 <nav class="top-nav" role="navigation" aria-label="Top navigation">
                     <a href="${pageContext.request.contextPath}/home.jsp" aria-label="Go to Home section">
-                        <i class="fas fa-home" aria-hidden="true"></i>
+<i class="fas fa-home" aria-hidden="true"></i>
                         <span>Home</span>
                     </a>
                     <a href="${pageContext.request.contextPath}/candidates" aria-label="Go to Candidate List">
@@ -409,7 +409,7 @@
                                 <a class="nav-link" href="tel:0123456789">
                                     <i class="fas fa-phone me-1"></i>0818886875
                                 </a>
-                            </li>
+</li>
                             <li class="nav-item">
                                 <c:if test="${not empty sessionScope.systemUser}">
                                     <div class="profile-dropdown">
@@ -458,7 +458,7 @@
 
                             <!-- Cột lọc theo trạng thái -->
                             <div class="col-md-2">
-                                <label class="form-label">Status</label>
+<label class="form-label">Status</label>
                                 <select class="form-select" id="filterStatus" name="filterStatus">
                                     <option value="">All</option>
                                     <option value="processing" <c:if test="${param.filterStatus eq 'processing'}">selected</c:if>>Processing</option>
@@ -510,7 +510,7 @@
                         </thead>
                         <tbody>
                             <c:forEach var="g" items="${guest}">
-                                <tr>
+<tr>
                                     <td>${g.guestId}</td>
                                     <td>${g.fullName}</td>
                                     <td>${g.email}</td>
@@ -519,19 +519,19 @@
                                     <td>${g.appliedDate}</td>
                                     <td>${g.status}</td>
                                     <td class="table-actions">
-                                        <c:if test="${g.status eq 'Processing'}">
+                                        <c:if test="${g.status eq 'processing'}">
                                             <form action="${pageContext.request.contextPath}/candidates" method="post" style="display: inline;">
                                                 <input name="action" value="apply" type="hidden">
                                                 <input name="guestId" value="${g.guestId}" type="hidden">
                                                 <button type="submit" class="btn btn-sm btn-success" title="Apply">
-                                                    Apply
+                                                    <i class="material-icons">check_circle</i>
                                                 </button>
                                             </form>
                                             <form action="${pageContext.request.contextPath}/candidates" method="post" style="display: inline;">
                                                 <input name="action" value="reject" type="hidden">
                                                 <input name="guestId" value="${g.guestId}" type="hidden">
                                                 <button type="submit" class="btn btn-sm btn-danger" title="Reject">
-                                                    Reject
+                                                    <i class="material-icons">cancel</i>
                                                 </button>
                                             </form>
                                         </c:if>
@@ -550,102 +550,81 @@
                 </div>
 
                 <!--Phân trang-->
-                <!--Phân trang-->
-                <c:if test="${totalPages > 1}">
-                    <nav aria-label="Page navigation candidate list" class="mt-4">
-                        <ul class="pagination justify-content-center">
-                            <!-- Nút Previous -->
-                            <c:if test="${currentPage > 1}">
-                                <li class="page-item">
-                                    <a class="page-link" href="${pageContext.request.contextPath}/candidates?page=${currentPage - 1}&searchByName=${param.searchByName}&filterStatus=${param.filterStatus}&startDate=${param.startDate}&endDate=${param.endDate}" aria-label="Previous">
-                                        <span aria-hidden="true">&laquo;</span>
-                                    </a>
-                                </li>
-                            </c:if>
+                <nav aria-label="Page navigation candidate list">
+                    <ul class="pagination justify-content-center">
+                        <!-- Nút Previous -->
+                        <li class="page-item <c:if test="${currentPage == 1}">disabled</c:if>">
+<a class="page-link" href="${pageContext.request.contextPath}/candidates?page=${currentPage - 1}&searchByName=${param.searchByName}&filterStatus=${param.filterStatus}&startDate=${param.startDate}&endDate=${param.endDate}" tabindex="-1">Previous</a>
+                        </li>
 
-                            <!-- Các số trang -->
-                            <c:forEach begin="1" end="${totalPages}" var="i">
-                                <c:choose>
-                                    <c:when test="${currentPage == i}">
-                                        <li class="page-item active" aria-current="page">
-                                            <span class="page-link">${i}</span>
-                                        </li>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <li class="page-item">
-                                            <a class="page-link" href="${pageContext.request.contextPath}/candidates?page=${i}&searchByName=${param.searchByName}&filterStatus=${param.filterStatus}&startDate=${param.startDate}&endDate=${param.endDate}">${i}</a>
-                                        </li>
-                                    </c:otherwise>
-                                </c:choose>
-                            </c:forEach>
+                        <!-- Các số trang -->
+                        <c:forEach begin="1" end="${totalPages}" var="i">
+                            <li class="page-item <c:if test="${currentPage == i}">active</c:if>">
+                                <a class="page-link" href="${pageContext.request.contextPath}/candidates?page=${i}&searchByName=${param.searchByName}&filterStatus=${param.filterStatus}&startDate=${param.startDate}&endDate=${param.endDate}">${i}</a>
+                            </li>
+                        </c:forEach>
 
-                            <!-- Nút Next -->
-                            <c:if test="${currentPage < totalPages}">
-                                <li class="page-item">
-                                    <a class="page-link" href="${pageContext.request.contextPath}/candidates?page=${currentPage + 1}&searchByName=${param.searchByName}&filterStatus=${param.filterStatus}&startDate=${param.startDate}&endDate=${param.endDate}" aria-label="Next">
-                                        <span aria-hidden="true">&raquo;</span>
-                                    </a>
-                                </li>
-                            </c:if>
-                        </ul>
-                    </nav>
-                </c:if>
-        </main>
+                        <!-- Nút Next -->
+                        <li class="page-item <c:if test="${currentPage == totalPages}">disabled</c:if>">
+                            <a class="page-link" href="${pageContext.request.contextPath}/candidates?page=${currentPage + 1}&searchByName=${param.searchByName}&filterStatus=${param.filterStatus}&startDate=${param.startDate}&endDate=${param.endDate}">Next</a>
+                        </li>
+                    </ul>
+                </nav>
 
-        <!-- Footer (Giữ nguyên từ home.jsp) -->
-        <footer class="footer">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-4">
-                        <h5 class="footer-title">Human Resources Management</h5>
-                        <p>We are committed to providing the best solutions for customers with professional team and extensive experience.</p>
+                <!-- Footer (Giữ nguyên từ home.jsp) -->
+                <footer class="footer">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-lg-4">
+                                <h5 class="footer-title">Human Resources Management</h5>
+                                <p>We are committed to providing the best solutions for customers with professional team and extensive experience.</p>
+                            </div>
+                            <div class="col-lg-2">
+                                <h6>Quick Links</h6>
+                                <ul class="list-unstyled">
+                                    <li><a href="#about" class="footer-link">About Us</a></li>
+                                    <li><a href="#contact" class="footer-link">Contact</a></li>
+                                </ul>
+                            </div>
+                            <div class="col-lg-3">
+                                <h6>Contact Information</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-phone me-2"></i>0818886875</li>
+                                    <li><i class="fas fa-envelope me-2"></i>ducnvhe180815@gmail.com</li>
+                                    <li><i class="fas fa-map-marker-alt me-2"></i>Hà Nội</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
+                        <div class="row">
+<div class="col-12 text-center">
+                                <p>&copy; 2024 Human Resources Management. All rights reserved.</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-lg-2">
-                        <h6>Quick Links</h6>
-                        <ul class="list-unstyled">
-                            <li><a href="#about" class="footer-link">About Us</a></li>
-                            <li><a href="#contact" class="footer-link">Contact</a></li>
-                        </ul>
-                    </div>
-                    <div class="col-lg-3">
-                        <h6>Contact Information</h6>
-                        <ul class="list-unstyled">
-                            <li><i class="fas fa-phone me-2"></i>0818886875</li>
-                            <li><i class="fas fa-envelope me-2"></i>ducnvhe180815@gmail.com</li>
-                            <li><i class="fas fa-map-marker-alt me-2"></i>Hà Nội</li>
-                        </ul>
-                    </div>
-                </div>
-                <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
-                <div class="row">
-                    <div class="col-12 text-center">
-                        <p>&copy; 2024 Human Resources Management. All rights reserved.</p>
-                    </div>
-                </div>
-            </div>
-        </footer>
+                </footer>
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script>
-                                        // Copy các hàm JS cần thiết từ home.jsp
-                                        function handleLogout() {
-                                            if (confirm('Are you sure you want to logout?')) {
-                                                window.location.href = '${pageContext.request.contextPath}/logout';
-                                            }
-                                        }
-                                        function toggleProfileDropdown() {
-                                            const dropdown = document.getElementById('profileDropdown');
-                                            if (dropdown) {
-                                                dropdown.classList.toggle('show');
-                                            }
-                                        }
-                                        document.addEventListener('click', function (event) {
-                                            const profileDropdown = document.getElementById('profileDropdown');
-                                            const profileAvatar = document.querySelector('.profile-avatar');
-                                            if (profileDropdown && profileAvatar && !profileAvatar.contains(event.target) && !profileDropdown.contains(event.target)) {
-                                                profileDropdown.classList.remove('show');
-                                            }
-                                        });
-        </script>
-    </body>
-</html>
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                <script>
+                                                // Copy các hàm JS cần thiết từ home.jsp
+                                                function handleLogout() {
+                                                    if (confirm('Are you sure you want to logout?')) {
+                                                        window.location.href = '${pageContext.request.contextPath}/logout';
+                                                    }
+                                                }
+                                                function toggleProfileDropdown() {
+                                                    const dropdown = document.getElementById('profileDropdown');
+                                                    if (dropdown) {
+                                                        dropdown.classList.toggle('show');
+                                                    }
+                                                }
+                                                document.addEventListener('click', function (event) {
+                                                    const profileDropdown = document.getElementById('profileDropdown');
+                                                    const profileAvatar = document.querySelector('.profile-avatar');
+                                                    if (profileDropdown && profileAvatar && !profileAvatar.contains(event.target) && !profileDropdown.contains(event.target)) {
+                                                        profileDropdown.classList.remove('show');
+                                                    }
+                                                });
+                </script>
+                </body>
+                </html>
