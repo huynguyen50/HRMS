@@ -32,21 +32,29 @@ public class ChangePassREController extends HttpServlet {
             throws ServletException, IOException {
         String newPass = request.getParameter("newPass");
         String confirmPass = request.getParameter("confirmPass");
-
+        
         HttpSession session = request.getSession();
         String email = (String) session.getAttribute("recoveryEmail");
 
-        if (email == null) {
-            request.setAttribute("mess", "Session expired. Please try again.");
-            request.getRequestDispatcher("/Views/ForgotPassword.jsp").forward(request, response);
+        if(newPass.length()<8 || newPass.length()>16){
+            request.setAttribute("mess", "New password must be between 8 and 16 characters long!");
+            request.getRequestDispatcher("/Views/ChangePasswordRE.jsp").forward(request, response);
             return;
         }
-
+        
+        String allowPattern = "[a-zA-Z0-9]+";
+        if(!newPass.matches(allowPattern)){
+            request.setAttribute("mess", "New password must contain no special characters!");
+            request.getRequestDispatcher("/Views/Login.jsp").forward(request, response);
+            return;
+        }
+        
         if (!newPass.equals(confirmPass)) {
             request.setAttribute("mess", "New password does not match with confirm password!");
             request.getRequestDispatcher("/Views/ChangePasswordRE.jsp").forward(request, response);
             return;
         }
+        
         Employee empID = DAO.getInstance().findEmployeeByEmail(email);
         SystemUser user = DAO.getInstance().findSystemUserByEmpID(empID.getEmployeeId());
 

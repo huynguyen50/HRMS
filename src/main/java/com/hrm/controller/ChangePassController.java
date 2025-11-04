@@ -25,10 +25,23 @@ public class ChangePassController extends HttpServlet {
         String curPass = request.getParameter("curPass");
         String newPass = request.getParameter("newPass");
         String confirmPass = request.getParameter("confirmPass");
-
+        
+        if(newPass.length()<8 && newPass.length()>16){
+            request.setAttribute("mess", "New password must be between 8 and 16 characters long!");
+            request.getRequestDispatcher("/Views/ChangePassword.jsp").forward(request, response);
+            return;
+        }
+        
+        String allowPattern = "[a-zA-Z0-9]+";
+        if(!newPass.matches(allowPattern)){
+            request.setAttribute("mess", "New password must contain no special characters!");
+            request.getRequestDispatcher("/Views/ChangePassword.jsp").forward(request, response);
+            return;
+        }
+        
         HttpSession session = request.getSession();
         if (session == null || session.getAttribute("systemUser") == null) {
-            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp"); // Sửa lại đường dẫn
+            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
             return;
         }
 

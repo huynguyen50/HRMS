@@ -492,7 +492,9 @@
                                     <option value="">All</option>
                                     <option value="New" <c:if test="${param.filterStatus eq 'New'}">selected</c:if>>New</option>
                                     <option value="Waiting" <c:if test="${param.filterStatus eq 'Waiting'}">selected</c:if>>Waiting</option>
-                                    <option value="Closed" <c:if test="${param.filterStatus eq 'Closed'}">selected</c:if>>Closed</option>
+                                    <option value="Rejected" <c:if test="${param.filterStatus eq 'Rejected'}">selected</c:if>>Rejected</option>
+                                    <option value="Applied" <c:if test="${param.filterStatus eq 'Applied'}">selected</c:if>>Applied</option>
+                                    <option value="Deleted" <c:if test="${param.filterStatus eq 'Deleted'}">selected</c:if>>Deleted</option>
                                     </select>
                                 </div>
 
@@ -547,6 +549,11 @@
                                            class="action-btn-custom btn btn-sm btn-outline-success ms-2"
                                            onclick="return confirm('Do you want to send this recruitment? This action cannot be undone.');">
                                             <i class="fas fa-paper-plane me-1"></i> Send
+                                        </a>
+                                        <a href="${pageContext.request.contextPath}/postRecruitments?action=delete&id=${rec.recruitmentId}" 
+                                           class="action-btn-custom btn btn-sm btn-outline-success ms-2"
+                                           onclick="return confirm('Do you want to delete this recruitment? This action cannot be undone.');">
+                                            <i class="fas fa-paper-plane me-1"></i> Delete
                                         </a>
                                     </div>
                                 </div>
