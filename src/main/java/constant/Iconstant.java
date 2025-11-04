@@ -5,7 +5,6 @@
 package constant;
 
 public class Iconstant {
-
     public static final String GOOGLE_REDIRECT_URI = "http://localhost:8080/HRMS/loginByGmail";
 
     public static final String GOOGLE_GRANT_TYPE = "authorization_code";

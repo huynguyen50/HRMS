@@ -36,19 +36,31 @@ public class DetailRecruitment extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        String action = request.getParameter("action");
         String idParam = request.getParameter("id");
 
         try {
             int id = Integer.parseInt(idParam);
+            if ("delete".equals(action)) {
+                int result = DAO.getInstance().deleteRecruitmentById(id);
+
+                if (result > 0) {
+                    response.sendRedirect(request.getContextPath() + "/postRecruitments?mess=deleted");
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/postRecruitments?error=notfound");
+                }
+
+            } else {
                 String title = request.getParameter("Title");
                 String description = request.getParameter("Description");
                 String requirement = request.getParameter("Requirement");
                 String location = request.getParameter("Location");
                 double salary = Double.parseDouble(request.getParameter("Salary"));
-                int applicant = Integer.parseInt(request.getParameter("Applicant"));
+                int applicant = Integer.parseInt("Applicant");
 
-                if (salary <= 0 || applicant<=0) {
-                    request.setAttribute("mess", "Salary and applicant must be a positive number.");
+                if (salary < 0) {
+                    request.setAttribute("mess", "Salary must be a positive number.");
                     Recruitment rec = DAO.getInstance().getRecruitmentById(id);
                     request.setAttribute("rec", rec);
                     request.getRequestDispatcher("Views/hr/DetailRecruitment.jsp").forward(request, response);
@@ -57,7 +69,8 @@ public class DetailRecruitment extends HttpServlet {
 
                 int update = DAO.getInstance().setRecruitmentById(title, description, requirement, location, salary, applicant,id);
                 response.sendRedirect(request.getContextPath() + "/detailRecruitment?id=" + id);
-                
+            }
+
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/postRecruitments?error=invalidformat");
         } catch (Exception e) {
