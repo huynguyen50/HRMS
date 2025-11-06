@@ -292,6 +292,77 @@ public List<Department> searchDepartments(String keyword) throws SQLException {
     }
 
     /**
+     * Get departments filtered by department and status with pagination
+     */
+    public List<Department> getPagedByDepartmentAndStatus(int departmentId, String status, int offset, int limit) {
+        List<Department> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM Department WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+
+        if (departmentId > 0) {
+            sql.append(" AND DepartmentID = ?");
+            params.add(departmentId);
+        }
+        if (status != null && !status.trim().isEmpty() && !"all".equalsIgnoreCase(status)) {
+            sql.append(" AND LOWER(Status) = LOWER(?)");
+            params.add(status);
+        }
+        sql.append(" ORDER BY DeptName LIMIT ? OFFSET ?");
+        params.add(limit);
+        params.add(offset);
+
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Department dept = new Department(
+                        rs.getInt("DepartmentID"),
+                        rs.getString("DeptName"),
+                        rs.getObject("DeptManagerID") != null ? rs.getInt("DeptManagerID") : null
+                    );
+                    list.add(dept);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /**
+     * Count departments filtered by department and status
+     */
+    public int getCountByDepartmentAndStatus(int departmentId, String status) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) as total FROM Department WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+
+        if (departmentId > 0) {
+            sql.append(" AND DepartmentID = ?");
+            params.add(departmentId);
+        }
+        if (status != null && !status.trim().isEmpty() && !"all".equalsIgnoreCase(status)) {
+            sql.append(" AND LOWER(Status) = LOWER(?)");
+            params.add(status);
+        }
+
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
      * Get departments filtered by time range with pagination
      * @param timeRange Time range filter: "today", "week", "month"
      * @param offset Pagination offset

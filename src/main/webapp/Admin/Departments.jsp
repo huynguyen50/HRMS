@@ -6,6 +6,8 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Department Management - HRMS</title>
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/Admin_home.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/unified-layout.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/department.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/department-filters.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/pagination.css">
@@ -315,11 +317,12 @@
                 <div class="sidebar-nav">
                     <a href="${pageContext.request.contextPath}/admin?action=dashboard"
                        class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">🏠 Dashboard</a>
+                          <!-- Employees link removed -->
                     <a href="${pageContext.request.contextPath}/departments?action=departments" 
                        class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
                     <a href="${pageContext.request.contextPath}/admin/users"
                        class="nav-item ${activePage == 'users' ? 'active' : ''}">👤 Users</a>
-                    <a href="${pageContext.request.contextPath}/admin?action=roles"
+                    <a href="${pageContext.request.contextPath}/admin/role/list"
                        class="nav-item ${activePage == 'roles' ? 'active' : ''}">🔐 Roles</a>
                     <a href="${pageContext.request.contextPath}/admin?action=audit-log"
                        class="nav-item ${activePage == 'audit-log' ? 'active' : ''}">📜 Audit Log</a>
@@ -415,19 +418,7 @@
                     </div>
                     <!-- Toast container -->
                     <div id="toast-container"></div>
-
-                    <!-- Toast Script -->
-                    <script>
-                        // JSTL session messages
-                        <c:if test="${not empty successMessage}">
-                        showToast("✓ ${successMessage}", "success");
-                        </c:if>
-                        <c:if test="${not empty errorMessage}">
-                        showToast("✗ ${errorMessage}", "error");
-                        </c:if>
-                    </script>
-
-                    <!-- Departments Table -->
+                   
                     <div class="table-section">
                         <c:choose>
                             <c:when test="${not empty departmentList}">
@@ -706,11 +697,11 @@
             document.getElementById('departmentModal').style.display = 'flex';
         }
 
-        function openEditDepartmentModal(deptId, deptName, managerId) {
+        function openEditDepartmentModal(deptId, deptName, depManagerId) {
             document.getElementById('modalTitle').textContent = 'Edit Department';
             document.getElementById('deptId').value = deptId;
             document.getElementById('deptName').value = deptName;
-            document.getElementById('deptManager').value = managerId || '';
+            document.getElementById('deptManager').value = deptManagerId || '';
             document.getElementById('departmentModal').style.display = 'flex';
         }
 
@@ -788,4 +779,14 @@
             setTimeout(() => toast.remove(), 3500);
         }
     </script>
+     <script>
+                        // JSTL session messages
+                        <c:if test="${not empty successMessage}">
+                        showToast("✓ ${successMessage}", "success");
+                        </c:if>
+                        <c:if test="${not empty errorMessage}">
+                        showToast("✗ ${errorMessage}", "error");
+                        </c:if>
+                    </script>
+
 </html>
