@@ -5,17 +5,23 @@ import com.hrm.model.entity.Role;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.json.JSONObject;
 
 @WebServlet(name = "RoleServlet", urlPatterns = {"/admin/role/*"})
 public class RoleServlet extends HttpServlet {
+    private static final Logger logger = Logger.getLogger(RoleServlet.class.getName());
     private final RoleDAO roleDAO = new RoleDAO();
     private static final int DEFAULT_PAGE_SIZE = 10;
+
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -93,6 +99,21 @@ public class RoleServlet extends HttpServlet {
         String searchQuery = request.getParameter("search");
         String sortBy = request.getParameter("sortBy");
         String sortOrder = request.getParameter("sortOrder");
+        HttpSession session = request.getSession(false); 
+        
+        if (session != null) {
+            String successMessage = (String) session.getAttribute("successMessage");
+            if (successMessage != null) {
+                request.setAttribute("successMessage", successMessage);
+                session.removeAttribute("successMessage"); // Xóa sau khi lấy
+            }
+
+            String errorMessage = (String) session.getAttribute("errorMessage");
+            if (errorMessage != null) {
+                request.setAttribute("errorMessage", errorMessage);
+                session.removeAttribute("errorMessage");
+            }
+        }
         
         int page = 1;
         int pageSize = DEFAULT_PAGE_SIZE; 
@@ -104,6 +125,7 @@ public class RoleServlet extends HttpServlet {
         }
         try {
             pageSize = (pageSizeStr != null && pageSizeStr.matches("\\d+")) ? Integer.parseInt(pageSizeStr) : DEFAULT_PAGE_SIZE;
+            if (pageSize > 100) pageSize = 100;
         } catch (NumberFormatException e) {
             pageSize = DEFAULT_PAGE_SIZE;
         }
@@ -141,65 +163,105 @@ public class RoleServlet extends HttpServlet {
 
     private void handleGetRole(int roleId, HttpServletResponse response)
             throws SQLException, IOException {
-        Role role = roleDAO.getRoleById(roleId);
-        if (role != null) {
-            sendJsonResponse(response, new JSONObject(role).toString());
-        } else {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        try {
+            Role role = roleDAO.getRoleById(roleId);
+            if (role != null) {
+                JSONObject jsonResponse = new JSONObject();
+                jsonResponse.put("roleId", role.getRoleId());
+                jsonResponse.put("roleName", role.getRoleName());
+                sendJsonResponse(response, jsonResponse.toString());
+            } else {
+                sendJsonError(response, HttpServletResponse.SC_NOT_FOUND, "Role not found");
+            }
+        } catch (SQLException e) {
+            handleError(response, e);
         }
     }
 
     private void handleCreateRole(HttpServletRequest request, HttpServletResponse response)
             throws SQLException, IOException {
-        JSONObject jsonRequest = readJsonRequest(request);
-        String roleName = jsonRequest.getString("roleName");
+        try {
+            JSONObject jsonRequest = readJsonRequest(request);
+            
+            if (!jsonRequest.has("roleName") || jsonRequest.getString("roleName").trim().isEmpty()) {
+                sendJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "Role name is required");
+                return;
+            }
 
-        Role role = new Role();
-        role.setRoleName(roleName);
+            String roleName = jsonRequest.getString("roleName").trim();
 
-        if (roleDAO.createRole(role)) {
-            response.setStatus(HttpServletResponse.SC_CREATED);
-            sendJsonResponse(response, new JSONObject().put("message", "Role created successfully").toString());
-        } else {
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to create role");
+            Role role = new Role();
+            role.setRoleName(roleName);
+
+            if (roleDAO.createRole(role)) {
+                request.getSession().setAttribute("successMessage", "Role created successfully");
+                response.setStatus(HttpServletResponse.SC_CREATED);
+                JSONObject successResponse = new JSONObject()
+                    .put("message", "Role created successfully")
+                    .put("status", "success");
+                sendJsonResponse(response, successResponse.toString());
+                logger.log(Level.INFO, "Role created: " + roleName);
+            } else {
+                request.getSession().setAttribute("errorMessage", "Failed to create role");
+                sendJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Failed to create role");
+            }
+        } catch (IllegalArgumentException e) {
+            sendJsonError(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+        } catch (SQLException e) {
+            request.getSession().setAttribute("errorMessage", "Database error: " + e.getMessage());
+            handleError(response, e);
         }
     }
 
     private void handleUpdateRole(int roleId, HttpServletRequest request, HttpServletResponse response)
             throws SQLException, IOException {
-        JSONObject jsonRequest = readJsonRequest(request);
-        String roleName = jsonRequest.getString("roleName");
+        try {
+            JSONObject jsonRequest = readJsonRequest(request);
+            
+            if (!jsonRequest.has("roleName") || jsonRequest.getString("roleName").trim().isEmpty()) {
+                sendJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "Role name is required");
+                return;
+            }
 
-        Role role = new Role();
-        role.setRoleId(roleId);
-        role.setRoleName(roleName);
+            String roleName = jsonRequest.getString("roleName").trim();
 
-        if (roleDAO.updateRole(role)) {
-            sendJsonResponse(response, new JSONObject().put("message", "Role updated successfully").toString());
-        } else {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Role not found or update failed");
+            Role role = new Role();
+            role.setRoleId(roleId);
+            role.setRoleName(roleName);
+
+            if (roleDAO.updateRole(role)) {
+                JSONObject successResponse = new JSONObject()
+                    .put("message", "Role updated successfully")
+                    .put("status", "success");
+                sendJsonResponse(response, successResponse.toString());
+                logger.log(Level.INFO, "Role updated: ID=" + roleId);
+            } else {
+                sendJsonError(response, HttpServletResponse.SC_NOT_FOUND, "Role not found");
+            }
+        } catch (IllegalArgumentException e) {
+            sendJsonError(response, HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+        } catch (SQLException e) {
+            handleError(response, e);
         }
     }
 
     private void handleDeleteRole(int roleId, HttpServletResponse response)
             throws SQLException, IOException {
-        if (roleDAO.deleteRole(roleId)) {
-            sendJsonResponse(response, new JSONObject().put("message", "Role deleted successfully").toString());
-        } else {
-            response.sendError(HttpServletResponse.SC_CONFLICT, "Role is in use or not found");
-        }
-    }
-
-    private int getIntParameter(HttpServletRequest request, String paramName, int defaultValue) {
-        String value = request.getParameter(paramName);
-        if (value != null && !value.isEmpty()) {
-            try {
-                return Integer.parseInt(value);
-            } catch (NumberFormatException e) {
-                return defaultValue;
+        try {
+            if (roleDAO.deleteRole(roleId)) {
+                JSONObject successResponse = new JSONObject()
+                    .put("message", "Role deleted successfully")
+                    .put("status", "success");
+                sendJsonResponse(response, successResponse.toString());
+                logger.log(Level.INFO, "Role deleted: ID=" + roleId);
+            } else {
+                sendJsonError(response, HttpServletResponse.SC_NOT_FOUND, "Role not found");
             }
+        } catch (IllegalArgumentException e) {
+            sendJsonError(response, HttpServletResponse.SC_CONFLICT, e.getMessage());
+        } catch (SQLException e) {
+            handleError(response, e);
         }
-        return defaultValue;
     }
 
     private JSONObject readJsonRequest(HttpServletRequest request) throws IOException {
@@ -213,6 +275,16 @@ public class RoleServlet extends HttpServlet {
         return new JSONObject(sb.toString());
     }
 
+    private void sendJsonError(HttpServletResponse response, int statusCode, String errorMessage) throws IOException {
+        response.setStatus(statusCode);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        JSONObject errorResponse = new JSONObject()
+            .put("status", "error")
+            .put("message", errorMessage);
+        response.getWriter().write(errorResponse.toString());
+    }
+
     private void sendJsonResponse(HttpServletResponse response, String json) throws IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
@@ -223,9 +295,11 @@ public class RoleServlet extends HttpServlet {
         response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        response.getWriter().write(new JSONObject()
-                .put("error", "Internal Server Error")
-                .put("message", e.getMessage())
-                .toString());
+        JSONObject errorResponse = new JSONObject()
+                .put("status", "error")
+                .put("message", "Internal server error")
+                .put("error", e.getMessage());
+        response.getWriter().write(errorResponse.toString());
+        logger.log(Level.SEVERE, "Servlet error", e);
     }
 }

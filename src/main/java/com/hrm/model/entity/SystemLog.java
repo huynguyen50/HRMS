@@ -25,6 +25,7 @@ public class SystemLog implements Serializable {
     private LocalDateTime timestamp;
     private Date timestampDate;
     private String userName;
+    private String fullName;
     
     public SystemLog() {
     }
@@ -110,6 +111,14 @@ public class SystemLog implements Serializable {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+    
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
     @Override

@@ -8,86 +8,53 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 public class RoleDAO {
+    private static final Logger logger = Logger.getLogger(RoleDAO.class.getName());
+    private static final int MAX_ROLE_NAME_LENGTH = 100;
+    private static final String ROLE_NAME_PATTERN = "^[a-zA-Z0-9\\s\\-_]+$"; // Alphanumeric, spaces, hyphens, underscores
 
-    public List<Role> getRoles(int page, int pageSize, String searchKeyword) throws SQLException {
-        List<Role> roles = new ArrayList<>();
-        int offset = (page - 1) * pageSize;
-
-        StringBuilder sql = new StringBuilder("SELECT RoleID, RoleName FROM Role WHERE 1=1");
-        List<Object> params = new ArrayList<>();
-
-        if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
-            sql.append(" AND RoleName LIKE ?");
-            params.add("%" + searchKeyword.trim() + "%");
+    private void validateRoleName(String roleName) throws IllegalArgumentException {
+        if (roleName == null || roleName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Role name cannot be empty");
         }
-
-        sql.append(" ORDER BY RoleID LIMIT ? OFFSET ?");
-        params.add(pageSize);
-        params.add(offset);
-
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
-
-            for (int i = 0; i < params.size(); i++) {
-                stmt.setObject(i + 1, params.get(i));
-            }
-
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Role role = new Role();
-                role.setRoleId(rs.getInt("RoleID"));
-                role.setRoleName(rs.getString("RoleName"));
-                roles.add(role);
-            }
+        
+        String trimmed = roleName.trim();
+        
+        if (trimmed.length() > MAX_ROLE_NAME_LENGTH) {
+            throw new IllegalArgumentException("Role name exceeds maximum length of " + MAX_ROLE_NAME_LENGTH + " characters");
         }
-        return roles;
+        
+        if (!trimmed.matches(ROLE_NAME_PATTERN)) {
+            throw new IllegalArgumentException("Role name contains invalid characters. Only alphanumeric, spaces, hyphens, and underscores are allowed");
+        }
     }
 
-    public int getTotalRoleCount(String searchKeyword) throws SQLException {
-        StringBuilder sql = new StringBuilder("SELECT COUNT(RoleID) FROM Role WHERE 1=1");
-        List<Object> params = new ArrayList<>();
-
-        if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
-            sql.append(" AND (RoleName LIKE ? OR RoleID = ?)");
-            params.add("%" + searchKeyword.trim() + "%");
-
-            // Thử parse RoleID là số để tìm kiếm chính xác ID
-            try {
-                int roleId = Integer.parseInt(searchKeyword.trim());
-                params.add(roleId);
-            } catch (NumberFormatException e) {
-                // Nếu không phải số, đặt giá trị không tồn tại để chỉ tìm kiếm theo tên
-                params.add(-1);
+    private boolean isRoleNameDuplicate(String roleName, int excludeRoleId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM Role WHERE LOWER(RoleName) = LOWER(?) AND RoleID != ?";
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, roleName.trim());
+            stmt.setInt(2, excludeRoleId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
             }
         }
-
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
-
-            for (int i = 0; i < params.size(); i++) {
-                stmt.setObject(i + 1, params.get(i));
-            }
-
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-        }
-        return 0;
+        return false;
     }
 
-    /**
-     * Lấy danh sách Role có phân trang, tìm kiếm và sắp xếp.
-     */
     public List<Role> getPagedRoles(int offset, int limit,
               String searchKeyword, String sortBy, String sortOrder) throws SQLException {
 
         List<Role> roles = new ArrayList<>();
-
         StringBuilder sql = new StringBuilder("SELECT RoleID, RoleName FROM Role WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
-        // 1. Thêm điều kiện tìm kiếm
+
         if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
             sql.append(" AND (RoleName LIKE ? OR RoleID = ?)");
             params.add("%" + searchKeyword.trim() + "%");
@@ -100,10 +67,8 @@ public class RoleDAO {
             }
         }
 
-        // 2. Thêm ORDER BY (Sắp xếp)
         String orderByClause = " ORDER BY ";
 
-        // Mapping cột cho sắp xếp (Mặc định RoleID)
         if (sortBy == null || sortBy.trim().isEmpty()) {
             sortBy = "RoleID";
         }
@@ -118,63 +83,83 @@ public class RoleDAO {
                 break;
         }
 
-        // Mapping thứ tự sắp xếp (Mặc định ASC)
         if (sortOrder == null || sortOrder.trim().isEmpty() || (!sortOrder.equalsIgnoreCase("ASC") && !sortOrder.equalsIgnoreCase("DESC"))) {
             sortOrder = "ASC";
         }
         orderByClause += sortOrder;
 
         sql.append(orderByClause);
-
-        // 3. Thêm LIMIT và OFFSET (Phân trang)
         sql.append(" LIMIT ? OFFSET ?");
 
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
 
             int paramIndex = 1;
-            // Bind các tham số cho WHERE clause
             for (Object param : params) {
                 stmt.setObject(paramIndex++, param);
             }
 
-            // Bind các tham số cho LIMIT và OFFSET
             stmt.setInt(paramIndex++, limit);
             stmt.setInt(paramIndex++, offset);
 
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                Role role = new Role();
-                role.setRoleId(rs.getInt("RoleID"));
-                role.setRoleName(rs.getString("RoleName"));
-                roles.add(role);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Role role = new Role();
+                    role.setRoleId(rs.getInt("RoleID"));
+                    role.setRoleName(rs.getString("RoleName"));
+                    roles.add(role);
+                }
             }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error fetching paged roles", e);
+            throw e;
         }
         return roles;
     }
 
-    public List<Role> getAllRoles() {
-        List<Role> roles = new ArrayList<>();
-        String sql = "SELECT RoleID, RoleName FROM Role";
+    public int getTotalRoleCount(String searchKeyword) throws SQLException {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(RoleID) FROM Role WHERE 1=1");
+        List<Object> params = new ArrayList<>();
 
-        try (Connection conn = DBConnection.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
 
-            while (rs.next()) {
-                Role role = new Role();
-                role.setRoleId(rs.getInt("RoleID"));
-                role.setRoleName(rs.getString("RoleName"));
-                roles.add(role);
+        if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
+            sql.append(" AND (RoleName LIKE ? OR RoleID = ?)");
+            params.add("%" + searchKeyword.trim() + "%");
+
+            try {
+                int roleId = Integer.parseInt(searchKeyword.trim());
+                params.add(roleId);
+            } catch (NumberFormatException e) {
+                params.add(-1);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-        return roles;
+
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error counting roles", e);
+            throw e;
+        }
+        return 0;
     }
 
     public Role getRoleById(int roleId) throws SQLException {
         String sql = "SELECT RoleID, RoleName FROM Role WHERE RoleID = ?";
-        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con != null ? con.prepareStatement(sql) : null) {
+        try (Connection con = DBConnection.getConnection(); 
+             PreparedStatement ps = con != null ? con.prepareStatement(sql) : null) {
 
             if (ps == null) {
+                logger.log(Level.SEVERE, "Database connection failed");
                 return null;
             }
             ps.setInt(1, roleId);
@@ -186,61 +171,110 @@ public class RoleDAO {
                     return role;
                 }
             }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error fetching role by ID: " + roleId, e);
+            throw e;
         }
         return null;
     }
 
-    public boolean createRole(Role role) throws SQLException {
-        String sql = "INSERT INTO Role (RoleName) VALUES (?)";
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+    public boolean createRole(Role role) throws SQLException, IllegalArgumentException {
+        validateRoleName(role.getRoleName());
+        
+        if (isRoleNameDuplicate(role.getRoleName(), -1)) {
+            throw new IllegalArgumentException("A role with this name already exists");
+        }
 
-            stmt.setString(1, role.getRoleName());
-            return stmt.executeUpdate() > 0;
+        String sql = "INSERT INTO Role (RoleName) VALUES (?)";
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, role.getRoleName().trim());
+            int result = stmt.executeUpdate();
+            logger.log(Level.INFO, "Role created: " + role.getRoleName());
+            return result > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error creating role", e);
+            throw e;
         }
     }
 
-    public boolean updateRole(Role role) throws SQLException {
-        String sql = "UPDATE Role SET RoleName = ? WHERE RoleID = ?";
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+    public boolean updateRole(Role role) throws SQLException, IllegalArgumentException {
+        validateRoleName(role.getRoleName());
+        
+        if (isRoleNameDuplicate(role.getRoleName(), role.getRoleId())) {
+            throw new IllegalArgumentException("A role with this name already exists");
+        }
 
-            stmt.setString(1, role.getRoleName());
+        String sql = "UPDATE Role SET RoleName = ? WHERE RoleID = ?";
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, role.getRoleName().trim());
             stmt.setInt(2, role.getRoleId());
-            return stmt.executeUpdate() > 0;
+            int result = stmt.executeUpdate();
+            logger.log(Level.INFO, "Role updated: ID=" + role.getRoleId());
+            return result > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error updating role", e);
+            throw e;
         }
     }
 
     public boolean deleteRole(int roleId) throws SQLException {
-        // First check if role is in use
         if (isRoleInUse(roleId)) {
-            return false;
+            throw new IllegalArgumentException("Cannot delete role because it is assigned to one or more users");
         }
 
         String sql = "DELETE FROM Role WHERE RoleID = ?";
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, roleId);
-            return stmt.executeUpdate() > 0;
+            int result = stmt.executeUpdate();
+            logger.log(Level.INFO, "Role deleted: ID=" + roleId);
+            return result > 0;
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error deleting role", e);
+            throw e;
         }
     }
 
     private boolean isRoleInUse(int roleId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM SystemUser WHERE RoleID = ?";
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, roleId);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
             }
         }
         return false;
     }
 
-    /**
-     * Normalize role name from DB to internal groups used for authorization.
-     * Admin -> admin HR Manager/HR Staff -> hr Dept Manager/Employee ->
-     * employee Others -> guest
-     */
+    public List<Role> getAllRoles() {
+        List<Role> roles = new ArrayList<>();
+        String sql = "SELECT RoleID, RoleName FROM Role ORDER BY RoleName";
+
+        try (Connection conn = DBConnection.getConnection(); 
+             Statement stmt = conn.createStatement(); 
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                Role role = new Role();
+                role.setRoleId(rs.getInt("RoleID"));
+                role.setRoleName(rs.getString("RoleName"));
+                roles.add(role);
+            }
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error fetching all roles", e);
+        }
+        return roles;
+    }
+
     public String normalizeRoleName(String dbRoleName) {
         if (dbRoleName == null) {
             return "guest";

@@ -24,6 +24,8 @@ public class Contract implements Serializable {
     private BigDecimal baseSalary;
     private BigDecimal allowance;
     private String contractType;
+    private String status;
+    private String note;
 
     public Contract() {
     }
@@ -37,6 +39,18 @@ public class Contract implements Serializable {
         this.baseSalary = baseSalary;
         this.allowance = allowance;
         this.contractType = contractType;
+    }
+
+    public Contract(int contractId, Integer employeeId, LocalDate startDate, LocalDate endDate,
+            BigDecimal baseSalary, BigDecimal allowance, String contractType, String status) {
+        this.contractId = contractId;
+        this.employeeId = employeeId;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.baseSalary = baseSalary;
+        this.allowance = allowance;
+        this.contractType = contractType;
+        this.status = status;
     }
 
     public int getContractId() {
@@ -96,9 +110,28 @@ public class Contract implements Serializable {
         this.contractType = contractType;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        if (note != null && note.length() > 1000) {
+            throw new IllegalArgumentException("Notes cannot exceed 1000 characters.");
+        }
+        this.note = note;
+    }
+
     @Override
     public String toString() {
-        return "Contract{" + "contractId=" + contractId + ", employeeId=" + employeeId + ", startDate=" + startDate + ", endDate=" + endDate + ", baseSalary=" + baseSalary + ", allowance=" + allowance + ", contractType=" + contractType + '}';
+        return "Contract{" + "contractId=" + contractId + ", employeeId=" + employeeId + ", startDate=" + startDate + ", endDate=" + endDate + ", baseSalary=" + baseSalary + ", allowance=" + allowance + ", contractType=" + contractType + ", status=" + status + ", note=" + note + '}';
     }
 
 }

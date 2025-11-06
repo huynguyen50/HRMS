@@ -56,6 +56,31 @@
             gap: 0.5rem;
         }
 
+        /* Style for the actual Homepage link used on this page */
+        .btn-homepage {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            color: #ffffff; /* make text/icon white */
+            background: rgba(255, 255, 255, 0.18); /* subtle translucent button */
+            transition: all 0.3s ease;
+        }
+
+        .btn-homepage i {
+            color: inherit; /* keep icon same color as text */
+        }
+
+        .btn-homepage:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            color: #ffffff;
+            text-decoration: none;
+        }
+
         .home-btn:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
@@ -369,7 +394,7 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     <div class="header">
         <div class="container">
             <div class="header-content">
-                <a href="${pageContext.request.contextPath}/Views/Homepage.jsp" class="btn-homepage" title="Back to Homepage">
+                <a href="${pageContext.request.contextPath}/homepage" class="btn-homepage" title="Back to Homepage">
                             <i class="fas fa-home"></i>
                             <span>Homepage</span>
                         </a>

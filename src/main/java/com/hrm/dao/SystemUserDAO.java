@@ -20,8 +20,16 @@ import java.util.List;
 public class SystemUserDAO {
 
     public List<SystemUser> getAllUsers(int page, int pageSize) throws SQLException {
+        return getAllUsers(page, pageSize, "CreatedDate", "DESC");
+    }
+
+    public List<SystemUser> getAllUsers(int page, int pageSize, String sortBy, String sortOrder) throws SQLException {
         List<SystemUser> users = new ArrayList<>();
         int offset = (page - 1) * pageSize;
+
+        // Validate sort field to prevent SQL injection
+        String validSortField = validateSortField(sortBy);
+        String validSortOrder = "DESC".equalsIgnoreCase(sortOrder) ? "DESC" : "ASC";
 
         String sql = "SELECT su.UserID, su.Username, su.RoleID, su.LastLogin, su.IsActive, "
                   + "su.CreatedDate, su.EmployeeID, r.RoleName, e.FullName, d.DeptName "
@@ -29,7 +37,7 @@ public class SystemUserDAO {
                   + "LEFT JOIN Role r ON su.RoleID = r.RoleID "
                   + "LEFT JOIN Employee e ON su.EmployeeID = e.EmployeeID "
                   + "LEFT JOIN Department d ON e.DepartmentID = d.DepartmentID "
-                  + "ORDER BY su.CreatedDate DESC LIMIT ? OFFSET ?";
+                  + "ORDER BY " + validSortField + " " + validSortOrder + " LIMIT ? OFFSET ?";
 
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, pageSize);
@@ -312,8 +320,18 @@ public class SystemUserDAO {
     public List<SystemUser> getUsersWithFilters(int page, int pageSize, Integer roleId,
               Integer status, Integer departmentId,
               String username) throws SQLException {
+        return getUsersWithFilters(page, pageSize, roleId, status, departmentId, username, "CreatedDate", "DESC");
+    }
+
+    public List<SystemUser> getUsersWithFilters(int page, int pageSize, Integer roleId,
+              Integer status, Integer departmentId,
+              String username, String sortBy, String sortOrder) throws SQLException {
         List<SystemUser> users = new ArrayList<>();
         int offset = (page - 1) * pageSize;
+
+        // Validate sort field to prevent SQL injection
+        String validSortField = validateSortField(sortBy);
+        String validSortOrder = "DESC".equalsIgnoreCase(sortOrder) ? "DESC" : "ASC";
 
         StringBuilder sql = new StringBuilder(
                   "SELECT su.UserID, su.Username, su.RoleID, su.LastLogin, su.IsActive, "
@@ -344,7 +362,7 @@ public class SystemUserDAO {
             params.add("%" + username + "%");
         }
 
-        sql.append(" ORDER BY su.CreatedDate DESC LIMIT ? OFFSET ?");
+        sql.append(" ORDER BY " + validSortField + " " + validSortOrder + " LIMIT ? OFFSET ?");
         params.add(pageSize);
         params.add(offset);
 
@@ -361,6 +379,30 @@ public class SystemUserDAO {
         }
         return users;
     }
+
+
+    private String validateSortField(String sortBy) {
+        switch (sortBy != null ? sortBy : "") {
+            case "UserID":
+                return "su.UserID";
+            case "Username":
+                return "su.Username";
+            case "FullName":
+                return "e.FullName";
+            case "DeptName":
+                return "d.DeptName";
+            case "RoleName":
+                return "r.RoleName";
+            case "Status":
+                return "su.IsActive";
+            case "LastLogin":
+                return "su.LastLogin";
+            case "CreatedDate":
+            default:
+                return "su.CreatedDate";
+        }
+    }
+
 
     public int getTotalUserCount() throws SQLException {
         String sql = "SELECT COUNT(*) FROM SystemUser";
