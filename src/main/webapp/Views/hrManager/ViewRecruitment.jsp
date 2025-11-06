@@ -574,7 +574,6 @@
                                 <c:choose>
                                     <c:when test="${currentPage == i}">
                                         <li class="page-item active" aria-current="page">
-                                            <%-- Dùng thẻ <span> thay vì <a> cho trang hiện tại để người dùng không thể click vào nó --%>
                                             <span class="page-link">${i}</span>
                                         </li>
                                     </c:when>

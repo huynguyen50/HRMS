@@ -78,6 +78,12 @@ public class HomepageController extends HttpServlet {
 DashboardAccess dashboardAccess = getDashboardAccess(userRole);
                 request.setAttribute("dashboardAccess", dashboardAccess);
                 
+                // Check roleID first - roleID 3 redirects to deptHome.jsp
+                if (currentUser.getRoleId() == 3) {
+                    response.sendRedirect(request.getContextPath() + "/dept?action=dashboard");
+                    return;
+                }
+                
                 // Redirect to appropriate dashboard based on role
                 String roleName = userRole.getRoleName().toLowerCase();
                 switch (roleName) {

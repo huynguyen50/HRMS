@@ -88,11 +88,11 @@ public class ViewCandidate extends HttpServlet {
 
         int gID = Integer.parseInt(gIDRaw);
         int n = 0;
-        if ("apply".equals(action)) {
-            n = DAO.getInstance().updateCandidateStatus(gID, "Hired");
-        } else if ("reject".equals(action)) {
-            n = DAO.getInstance().updateCandidateStatus(gID, "Rejected");
-        }
+//        if ("apply".equals(action)) {
+//            n = DAO.getInstance().updateCandidateStatus(gID, "Hired");
+//        } else if ("reject".equals(action)) {
+//            n = DAO.getInstance().updateCandidateStatus(gID, "Rejected");
+//        }
         
         // Preserve search parameters when redirecting
         String searchByName = request.getParameter("searchByName");

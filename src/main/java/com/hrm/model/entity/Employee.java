@@ -45,6 +45,19 @@ public class Employee implements Serializable {
         this.systemUser = systemUser;
     }
 
+    public Employee(int employeeId, String fullName, String address, String phone, String email, String position, int departmentId) {
+        this.employeeId = employeeId;
+        this.fullName = fullName;
+        this.address = address;
+        this.phone = phone;
+        this.email = email;
+        this.position = position;
+        this.departmentId = departmentId;
+    }
+    
+    
+    
+
     public int getEmployeeId() {
         return employeeId;
     }

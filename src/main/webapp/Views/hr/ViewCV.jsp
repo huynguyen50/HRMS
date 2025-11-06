@@ -8,53 +8,139 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <style>
             body {
-                background-color: #f0f2f5;
+                background-color: #f8f9fa; /* Nền xám nhạt */
+                font-family: Arial, sans-serif;
             }
             .cv-container {
-                margin-top: 50px;
-                padding: 20px;
+                margin-top: 30px;
+                margin-bottom: 30px; /* Thêm khoảng cách ở dưới cho cân đối */
+                padding: 25px; /* Thêm padding để tạo khoảng cách với các cạnh bên trong */
                 background-color: white;
                 border-radius: 8px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                text-align: center;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Đổ bóng nhẹ để làm nổi bật khung */
+            }
+            .cv-header {
+                padding-bottom: 20px;
+                margin-bottom: 20px;
+                border-bottom: 1px solid #dee2e6;
+            }
+            .cv-image-container {
+                background-color: #e9ecef; /* Nền xám nhạt cho phần ảnh */
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 600px; /* Chiều cao tối thiểu */
+                border-radius: 5px; /* Bo góc cho khung ảnh */
+                overflow: hidden; /* Ảnh không bị tràn ra ngoài khung */
             }
             .cv-image {
                 max-width: 100%;
-                height: auto;
-                border: 1px solid #ddd;
+                max-height: 80vh; /* Giới hạn chiều cao ảnh */
+                object-fit: contain; /* Đảm bảo ảnh hiển thị đầy đủ, không bị méo */
+            }
+            .cv-info-container {
+                display: flex;
+                flex-direction: column;
+                height: 100%; /* Giúp các phần tử con có thể căn chỉnh theo chiều cao */
+            }
+            .info-section p {
+                margin-bottom: 10px;
+                text-align: left;
+            }
+            .info-section strong {
+                color: #495057;
+            }
+            .action-buttons {
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+            .action-buttons form {
+                display: block; /* Hiển thị form dưới dạng khối, mỗi form trên một dòng */
+                margin-bottom: 10px;
+            }
+            .recruitment-info {
+                background-color: #f8f9fa;
+                padding: 15px;
+                border-radius: 5px;
+                margin-top: auto; /* Đẩy phần này xuống dưới cùng của cột phải */
+                text-align: left;
+            }
+            .recruitment-info p {
+                margin-bottom: 5px;
+            }
+            .recruitment-info strong {
+                color: #343a40;
+            }
+            .error-message {
+                background-color: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+                padding: 10px;
                 border-radius: 4px;
+                margin-top: 15px;
+                text-align: center;
             }
         </style>
     </head>
     <body>
         <div class="container">
             <div class="cv-container">
-                <h2>CV's ${g.fullName}</h2>
-                <hr>
-                <img src="${g.cv}" alt="CV Image" class="cv-image">
-                Name: <p>${g.fullName}</p>
-                Email: <p>${g.email}</p>
-                Phone: <p>${g.phone}</p>
-                Status: <p>${g.status}</p>
-                Applied at: <p>${g.appliedDate}</p>
-                <c:if test="${g.status eq 'processing'}">
-                    <form action="${pageContext.request.contextPath}/candidates" method="post" style="display: inline;">
-                        <input name="action" value="apply" type="hidden">
-                        <input nam  e="guestId" value="${g.guestId}" type="hidden">
-                        <button type="submit" class="btn btn-sm btn-success" title="Apply">
-                            Apply
-                        </button>
-                    </form>
-                    <form action="${pageContext.request.contextPath}/candidates" method="post" style="display: inline;">
-                        <input name="action" value="reject" type="hidden">
-                        <input name="guestId" value="${g.guestId}" type="hidden">
-                        <button type="submit" class="btn btn-sm btn-danger" title="Reject">
-                            Reject
-                        </button>
-                    </form>
-                </c:if>
-                <hr>
-                <a href="javascript:history.back()" class="btn btn-secondary">Back</a>
+                <!-- Phần tiêu đề -->
+                <div class="cv-header">
+                    <h1 class="text-center">CV của ${g.fullName}</h1>
+                </div>
+
+                <div class="row g-0"> <!-- g-0 để bỏ khoảng cách giữa 2 cột -->
+                    <!-- Phần bên trái: Ảnh CV (2/3) -->
+                    <div class="col-md-8">
+                        <div class="cv-image-container">
+                            <img src="${g.cv}" alt="CV Image" class="cv-image">
+                        </div>
+                    </div>
+
+                    <!-- Phần bên phải: Thông tin và Nút (1/3) -->
+                    <div class="col-md-4 ps-4"> <!-- ps-4: padding-start để tạo khoảng cách giữa cột ảnh và cột info -->
+                        <div class="cv-info-container">
+                            <div class="info-section">
+                                <p><strong>Họ và tên:</strong> ${g.fullName}</p>
+                                <p><strong>Email:</strong> ${g.email}</p>
+                                <p><strong>Điện thoại:</strong> ${g.phone}</p>
+                                <p><strong>Trạng thái:</strong> ${g.status}</p>
+                                <p><strong>Ngày ứng tuyển:</strong> ${g.appliedDate}</p>
+                            </div>
+
+                            <div class="action-buttons">
+                                <c:if test="${g.status eq 'Processing' and r.applicant > 0}">
+                                    <form action="${pageContext.request.contextPath}/viewCV" method="post">
+                                        <input name="action" value="apply" type="hidden">
+                                        <input name="guestId" value="${g.guestId}" type="hidden">
+                                        <button type="submit" class="btn btn-success w-100">Accept</button>
+                                    </form>
+                                    <form action="${pageContext.request.contextPath}/viewCV" method="post">
+                                        <input name="action" value="reject" type="hidden">
+                                        <input name="guestId" value="${g.guestId}" type="hidden">
+                                        <button type="submit" class="btn btn-danger w-100">Reject</button>
+                                    </form>
+                                </c:if>
+                            </div>
+
+                            <div class="recruitment-info">
+                                <h5>Yêu cầu tuyển dụng: ${r.title}</h5>
+                                <p><strong>Vị trí:</strong> ${r.location}</p>
+                                <p><strong>Lương:</strong> ${r.salary}</p>
+                                <p><strong>Số lượng còn lại:</strong> ${r.applicant}</p>
+                                <p><strong>Yêu cầu:</strong> ${r.requirement}</p>
+                            </div>
+
+                            <c:if test="${not empty mess}">
+                                <div class="error-message">
+                                    <span>${mess}</span>
+                                </div>
+                            </c:if>
+
+                            <a href="${pageContext.request.contextPath}/candidates" class="btn btn-secondary w-100 mt-3">Quay lại</a>                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </body>
