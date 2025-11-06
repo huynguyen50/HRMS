@@ -1213,6 +1213,12 @@ width: 100%;
                                         <span>HR Dashboard</span>
                                     </a>
                                 </c:if>
+                                <c:if test="${dashboardAccess.canAccessHrStaff}">
+                                    <a href="${pageContext.request.contextPath}${dashboardAccess.hrStaffUrl}" class="dashboard-dropdown-item hr">
+                                        <i class="fas fa-user-tie"></i>
+                                        <span>HR Staff Dashboard</span>
+                                    </a>
+                                </c:if>
                                 <c:if test="${dashboardAccess.canAccessEmployee}">
                                     <a href="${pageContext.request.contextPath}${dashboardAccess.employeeUrl}" class="dashboard-dropdown-item employee">
                                         <i class="fas fa-user"></i>
