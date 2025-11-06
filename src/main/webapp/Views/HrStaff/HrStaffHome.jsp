@@ -86,8 +86,8 @@
                 </div>
                 <div class="side-group">
                     <div class="side-title">Recruitment</div>
-                    <a class="side-link neutral" href="#">📢 Post Recruitment</a>
-                    <a class="side-link neutral" href="#">👀 View Candidates</a>
+                    <a class="side-link neutral" href="${pageContext.request.contextPath}/postRecruitments">📢 Post Recruitment</a>
+                    <a class="side-link neutral" href="${pageContext.request.contextPath}/candidates">👀 View Candidates</a>
                     <a class="side-link neutral" href="#">➕ Create Employee</a>
                 </div>
             </aside>
