@@ -73,8 +73,7 @@ public class AdminController extends HttpServlet {
                 break;
 
             case "profile":
-                request.setAttribute("activePage", "profile");
-                request.getRequestDispatcher("Admin/Profile.jsp").forward(request, response);
+                loadProfile(request, response);
                 break;
 
             default:
@@ -427,7 +426,7 @@ public class AdminController extends HttpServlet {
         request.getRequestDispatcher("Admin/Roles.jsp").forward(request, response);
     }
 
-   private void loadAuditLog(HttpServletRequest request, HttpServletResponse response)
+    private void loadAuditLog(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
             int page = 1;
@@ -486,6 +485,76 @@ public class AdminController extends HttpServlet {
         }
 
         request.getRequestDispatcher("Admin/AuditLog.jsp").forward(request, response);
+    }
+
+    private void loadProfile(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        request.setAttribute("activePage", "profile");
+        
+        try {
+            jakarta.servlet.http.HttpSession session = request.getSession();
+            SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
+            
+            if (currentUser == null) {
+                response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+                return;
+            }
+            
+            SystemUser fullUser = userDAO.getUserById(currentUser.getUserId());
+            if (fullUser != null) {
+                // Load employee info if exists
+                if (fullUser.getEmployeeId() != null) {
+                    Employee employee = employeeDAO.getById(fullUser.getEmployeeId());
+                    if (employee != null) {
+                        fullUser.setEmployee(employee);
+                        if (employee.getDepartmentId() > 0) {
+                            Department dept = departmentDAO.getById(employee.getDepartmentId());
+                            fullUser.setDepartment(dept);
+                        }
+                    }
+                }
+                
+                // Convert LocalDateTime to Timestamp for JSP fmt:formatDate compatibility
+                if (fullUser.getCreatedDate() != null) {
+                    request.setAttribute("createdDateTimestamp", 
+                        java.sql.Timestamp.valueOf(fullUser.getCreatedDate()));
+                }
+                if (fullUser.getLastLogin() != null) {
+                    request.setAttribute("lastLoginTimestamp", 
+                        java.sql.Timestamp.valueOf(fullUser.getLastLogin()));
+                }
+                
+                request.setAttribute("currentUser", fullUser);
+            } else {
+                // Convert LocalDateTime to Timestamp for currentUser as well
+                if (currentUser.getCreatedDate() != null) {
+                    request.setAttribute("createdDateTimestamp", 
+                        java.sql.Timestamp.valueOf(currentUser.getCreatedDate()));
+                }
+                if (currentUser.getLastLogin() != null) {
+                    request.setAttribute("lastLoginTimestamp", 
+                        java.sql.Timestamp.valueOf(currentUser.getLastLogin()));
+                }
+                request.setAttribute("currentUser", currentUser);
+            }
+            
+            // Get recent activity logs for this user (limit to 10)
+            List<SystemLog> recentLogs = systemLogDAO.getSystemLogsByUserID(currentUser.getUserId(), 10);
+            // Convert LocalDateTime to Timestamp for each log for JSP compatibility
+            for (SystemLog log : recentLogs) {
+                if (log.getTimestamp() != null) {
+                    log.setTimestampDate(java.util.Date.from(
+                        log.getTimestamp().atZone(java.time.ZoneId.systemDefault()).toInstant()));
+                }
+            }
+            request.setAttribute("recentLogs", recentLogs);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("errorMessage", "Error loading profile: " + e.getMessage());
+        }
+        
+        request.getRequestDispatcher("Admin/Profile.jsp").forward(request, response);
     }
 
     @Override
