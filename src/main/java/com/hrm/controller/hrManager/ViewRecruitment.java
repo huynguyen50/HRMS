@@ -95,7 +95,7 @@ public class ViewRecruitment extends HttpServlet {
         request.setAttribute("startDate", startDate);
         request.setAttribute("endDate", endDate);
 
-        request.getRequestDispatcher("/Views/hrManager/ViewRecruitment.jsp").forward(request, response);
+        request.getRequestDispatcher("/Views/hr/ViewRecruitment.jsp").forward(request, response);
     }
 
     @Override

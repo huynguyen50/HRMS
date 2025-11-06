@@ -75,10 +75,10 @@ public class RecruitmentDAO {
         return null;
     }
 
-    // Chỉ lấy các Recruitment có status Applied (các trạng thái khác không hiển thị)
     public List<Recruitment> getLatestThree() {
         List<Recruitment> list = new ArrayList<>();
         String sql = "SELECT * FROM Recruitment WHERE Status = 'Applied' ORDER BY PostedDate DESC LIMIT 3";
+
         
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql);

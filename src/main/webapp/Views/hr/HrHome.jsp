@@ -784,9 +784,9 @@
                         
                         <div class="nav-section">
                             <h3>Recruitment</h3>
-                            <a href="${pageContext.request.contextPath}/postRecruitments" class="nav-item">
+                            <a href="${pageContext.request.contextPath}/viewRecruitment" class="nav-item">
                                 <i class="fas fa-bullhorn"></i>
-                                <span>Post Recruitment</span>
+                                <span>View Recruitment</span>
                             </a>
                             <a href="${pageContext.request.contextPath}/candidates" class="nav-item">
                                 <i class="fas fa-users"></i>
@@ -886,7 +886,7 @@
                                         <h4>Employment Status</h4>
                                         <p>Update employment status</p>
                                     </a>-->
-                                    <a href="${pageContext.request.contextPath}/Views/hr/PostRecruitment.jsp" class="access-card">
+                                    <a href="${pageContext.request.contextPath}/viewRecruitment" class="access-card">
                                         <i class="fas fa-bullhorn"></i>
                                         <h4>Post Recruitment</h4>
                                         <p>Create job postings</p>

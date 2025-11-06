@@ -505,7 +505,8 @@
                                 <th>CV</th>
                                 <th>Applied at</th>
                                 <th>Status</th>
-                                <th>Action</th>
+                                <th>ID Recruitment</th>
+<!--                                <th>Action</th>-->
                             </tr>
                         </thead>
                         <tbody>
@@ -518,7 +519,8 @@
                                     <td> <a href="${pageContext.request.contextPath}/viewCV?guestId=${g.guestId}">View️</a></td>
                                     <td>${g.appliedDate}</td>
                                     <td>${g.status}</td>
-                                    <td class="table-actions">
+                                    <td>${g.recruitmentId}</td>
+<!--                                    <td class="table-actions">
                                         <c:if test="${g.status eq 'Processing'}">
                                             <form action="${pageContext.request.contextPath}/candidates" method="post" style="display: inline;">
                                                 <input name="action" value="apply" type="hidden">
@@ -535,7 +537,7 @@
                                                 </button>
                                             </form>
                                         </c:if>
-                                    </td>
+                                    </td>-->
                                 </tr>
                             </c:forEach>
                             <c:if test="${not empty mess}">

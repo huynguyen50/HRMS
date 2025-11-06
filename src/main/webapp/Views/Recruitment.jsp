@@ -491,12 +491,14 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                                 <%= recruitment.getPostedDate().format(formatter) %>
                             <% } %>
                         </div>
+
                         <% 
                             // Chỉ hiển thị nút Apply vì chỉ có recruitment có Status = Applied mới được hiển thị
                             String status = recruitment.getStatus();
                             boolean canApply = status != null && status.equals("Applied");
                         %>
                         <% if (canApply) { %>
+
                         <a href="${pageContext.request.contextPath}/RecruitmentController?action=apply&recruitmentId=<%= recruitment.getRecruitmentId() %>" 
                            class="apply-btn">
                             <i class="fas fa-paper-plane"></i> Apply Now
