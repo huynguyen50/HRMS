@@ -430,12 +430,24 @@ public class AdminController extends HttpServlet {
             throws ServletException, IOException {
         try {
             int page = 1;
-            int pageSize = 15;
+            int pageSize = 10; // Default value
             if (request.getParameter("page") != null) {
                 try {
                     page = Integer.parseInt(request.getParameter("page"));
                 } catch (NumberFormatException e) {
                     page = 1;
+                }
+            }
+            // Read pageSize from request parameter
+            if (request.getParameter("pageSize") != null) {
+                try {
+                    pageSize = Integer.parseInt(request.getParameter("pageSize"));
+                    // Validate pageSize to prevent invalid values
+                    if (pageSize < 1) {
+                        pageSize = 10;
+                    }
+                } catch (NumberFormatException e) {
+                    pageSize = 10;
                 }
             }
 

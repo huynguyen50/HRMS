@@ -54,6 +54,8 @@ public class UserController extends HttpServlet {
         try (Connection conn = DBConnection.getConnection()) {
             if ("getUser".equals(action)) {
                 handleGetUser(request, response, conn);
+            } else if ("checkUsername".equals(action)) {
+                handleCheckUsername(request, response, conn);
             } else if ("toggleStatus".equals(action)) {
                 handleToggleStatus(request, response, conn);
             } else if ("delete".equals(action)) {
@@ -212,6 +214,40 @@ public class UserController extends HttpServlet {
 
         PrintWriter out = response.getWriter();
         out.print(gson.toJson(user));
+        out.flush();
+    }
+
+    private void handleCheckUsername(HttpServletRequest request, HttpServletResponse response, Connection conn)
+              throws Exception {
+        String username = request.getParameter("username");
+        String userIdParam = request.getParameter("userId"); // For edit mode
+        
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        PrintWriter out = response.getWriter();
+        
+        if (username == null || username.trim().isEmpty()) {
+            out.write("{\"exists\":false,\"valid\":false,\"message\":\"Username không được để trống.\"}");
+            return;
+        }
+        
+        SystemUserDAO userDAO = new SystemUserDAO();
+        boolean exists;
+        
+        if (userIdParam != null && !userIdParam.isEmpty()) {
+            // Edit mode: check if username exists for other users
+            int userId = Integer.parseInt(userIdParam);
+            exists = userDAO.usernameExistsForOtherUser(username, userId);
+        } else {
+            // Create mode: check if username exists
+            exists = userDAO.usernameExists(username);
+        }
+        
+        if (exists) {
+            out.write("{\"exists\":true,\"valid\":false,\"message\":\"Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.\"}");
+        } else {
+            out.write("{\"exists\":false,\"valid\":true,\"message\":\"Username có thể sử dụng.\"}");
+        }
         out.flush();
     }
 

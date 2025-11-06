@@ -337,20 +337,24 @@
                     <h2 id="modalTitle">Add New User</h2>
                     <button class="close-btn" onclick="closeUserModal()">&times;</button>
                 </div>
-                <form id="userForm" method="POST" action="${pageContext.request.contextPath}/admin/users">
+                <form id="userForm" method="POST" action="${pageContext.request.contextPath}/admin/users" onsubmit="return handleFormSubmit(event)">
                     <input type="hidden" id="userId" name="id">
                     <input type="hidden" id="actionField" name="action" value="save">
 
                     <div class="form-group">
                         <label for="username">Username *</label>
-                        <input type="text" id="username" name="username" required>
-                        <small class="form-hint">Username must be unique and contain 3-50 characters</small>
+                        <input type="text" id="username" name="username" required 
+                               onblur="validateUsername()" oninput="clearUsernameError()">
+                        <small class="form-hint">Username must be unique and contain 3-50 characters (letters, numbers, ., -, _)</small>
+                        <div id="usernameError" class="error-message" style="display: none;"></div>
                     </div>
 
                     <div class="form-group">
                         <label for="password">Password *</label>
-                        <input type="password" id="password" name="password" required>
-                        <small class="form-hint">Password must be at least 8 characters</small>
+                        <input type="password" id="password" name="password" required 
+                               oninput="validatePassword()" onblur="validatePassword()">
+                        <small class="form-hint">Password must be at least 8 characters, including 1 uppercase, 1 lowercase, and 1 number</small>
+                        <div id="passwordError" class="error-message" style="display: none;"></div>
                     </div>
 
                     <div class="form-group">
@@ -380,9 +384,10 @@
                         </label>
                     </div>
 
+                    <div id="formError" class="error-message" style="display: none; margin-top: 10px;"></div>
                     <div class="form-actions">
                         <button type="button" class="btn-cancel" onclick="closeUserModal()">Cancel</button>
-                        <button type="submit" class="btn-submit">Save User</button>
+                        <button type="submit" class="btn-submit" id="submitBtn">Save User</button>
                     </div>
                 </form>
             </div>
@@ -408,6 +413,9 @@
 
         <script>
             let currentResetUserId = null;
+            let usernameCheckTimeout = null;
+            let isEditMode = false;
+            let isUsernameChecking = false;
 
             function openAddUserModal() {
                 document.getElementById('modalTitle').textContent = 'Add New User';
@@ -415,11 +423,156 @@
                 document.getElementById('userId').value = '';
                 document.getElementById('actionField').value = 'save';
                 document.getElementById('password').required = true;
+                clearAllErrors();
+                isEditMode = false;
                 document.getElementById('userModal').classList.add('show');
             }
 
             function closeUserModal() {
                 document.getElementById('userModal').classList.remove('show');
+                clearAllErrors();
+                isEditMode = false;
+            }
+
+            function clearAllErrors() {
+                document.getElementById('usernameError').style.display = 'none';
+                document.getElementById('passwordError').style.display = 'none';
+                document.getElementById('formError').style.display = 'none';
+                document.getElementById('username').classList.remove('error', 'success');
+                document.getElementById('password').classList.remove('error', 'success');
+            }
+
+            function clearUsernameError() {
+                const usernameInput = document.getElementById('username');
+                const errorDiv = document.getElementById('usernameError');
+                usernameInput.classList.remove('error', 'success');
+                errorDiv.style.display = 'none';
+            }
+
+            function showError(fieldId, message) {
+                const errorDiv = document.getElementById(fieldId + 'Error');
+                const input = document.getElementById(fieldId);
+                if (errorDiv && input) {
+                    errorDiv.textContent = message;
+                    errorDiv.style.display = 'block';
+                    input.classList.add('error');
+                    input.classList.remove('success');
+                }
+            }
+
+            function showSuccess(fieldId, message) {
+                const errorDiv = document.getElementById(fieldId + 'Error');
+                const input = document.getElementById(fieldId);
+                if (errorDiv && input) {
+                    errorDiv.textContent = message || '';
+                    errorDiv.style.display = message ? 'block' : 'none';
+                    input.classList.add('success');
+                    input.classList.remove('error');
+                }
+            }
+
+            function clearError(fieldId) {
+                const errorDiv = document.getElementById(fieldId + 'Error');
+                const input = document.getElementById(fieldId);
+                if (errorDiv && input) {
+                    errorDiv.style.display = 'none';
+                    input.classList.remove('error', 'success');
+                }
+            }
+
+            function validateUsername() {
+                const username = document.getElementById('username').value.trim();
+                const userId = document.getElementById('userId').value;
+                const errorDiv = document.getElementById('usernameError');
+                const input = document.getElementById('username');
+
+                // Clear previous timeout
+                if (usernameCheckTimeout) {
+                    clearTimeout(usernameCheckTimeout);
+                }
+
+                // Basic validation
+                if (username.length === 0) {
+                    showError('username', 'Username không được để trống.');
+                    return false;
+                }
+
+                if (username.length < 3 || username.length > 50) {
+                    showError('username', 'Username phải có từ 3–50 ký tự.');
+                    return false;
+                }
+
+                if (!username.match(/^[A-Za-z0-9._-]+$/)) {
+                    showError('username', 'Username chỉ được chứa chữ, số, dấu \'.\', \'-\' hoặc \'_\'.');
+                    return false;
+                }
+
+                // Check username exists (debounced)
+                usernameCheckTimeout = setTimeout(() => {
+                    isUsernameChecking = true;
+                    const url = '${pageContext.request.contextPath}/admin/users?action=checkUsername&username=' + 
+                                encodeURIComponent(username) + 
+                                (userId ? '&userId=' + userId : '');
+                    
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            isUsernameChecking = false;
+                            if (data.exists) {
+                                showError('username', data.message);
+                            } else {
+                                showSuccess('username', '');
+                                clearError('username');
+                            }
+                        })
+                        .catch(error => {
+                            isUsernameChecking = false;
+                            console.error('Error checking username:', error);
+                        });
+                }, 500); // Wait 500ms after user stops typing
+
+                return true;
+            }
+
+            function validatePassword() {
+                const passwordInput = document.getElementById('password');
+                const password = passwordInput.value;
+                const isRequired = passwordInput.required;
+                
+                // If editing and password is not required, skip validation if empty
+                if (!isRequired && password.length === 0) {
+                    clearError('password');
+                    return true;
+                }
+
+                // If password is required but empty
+                if (isRequired && password.length === 0) {
+                    showError('password', 'Password không được để trống.');
+                    return false;
+                }
+
+                // If password is provided, validate format
+                if (password.length > 0) {
+                    if (password.length < 8) {
+                        showError('password', 'Mật khẩu phải có ít nhất 8 ký tự.');
+                        return false;
+                    }
+
+                    if (!password.match(/(?=.*[A-Z])(?=.*[a-z])(?=.*\d).*/)) {
+                        showError('password', 'Mật khẩu phải gồm 1 chữ hoa, 1 chữ thường và 1 số.');
+                        return false;
+                    }
+                }
+
+                // Password is valid
+                if (password.length > 0) {
+                    clearError('password');
+                    passwordInput.classList.add('success');
+                    passwordInput.classList.remove('error');
+                } else {
+                    clearError('password');
+                }
+                return true;
             }
 
             function editUser(userId) {
@@ -435,6 +588,8 @@
                             document.getElementById('roleId').value = data.roleId;
                             document.getElementById('isActive').checked = data.isActive;
                             document.getElementById('actionField').value = 'update';
+                            clearAllErrors();
+                            isEditMode = true;
                             document.getElementById('userModal').classList.add('show');
                         })
                         .catch(error => alert('Error loading user data: ' + error));
@@ -493,6 +648,117 @@
                 window.location.href = '${pageContext.request.contextPath}/admin/users?' + urlParams.toString();
             }
 
+            // Handle form submit with AJAX
+            function handleFormSubmit(event) {
+                event.preventDefault();
+                
+                // Clear previous errors
+                document.getElementById('formError').style.display = 'none';
+                
+                // Basic validation first
+                const username = document.getElementById('username').value.trim();
+                const passwordInput = document.getElementById('password');
+                const password = passwordInput.value;
+                
+                // Validate username format
+                if (username.length === 0) {
+                    showError('username', 'Username không được để trống.');
+                    document.getElementById('formError').textContent = 'Vui lòng sửa lỗi username trước khi tiếp tục.';
+                    document.getElementById('formError').style.display = 'block';
+                    return false;
+                }
+                
+                if (username.length < 3 || username.length > 50) {
+                    showError('username', 'Username phải có từ 3–50 ký tự.');
+                    document.getElementById('formError').textContent = 'Vui lòng sửa lỗi username trước khi tiếp tục.';
+                    document.getElementById('formError').style.display = 'block';
+                    return false;
+                }
+                
+                if (!username.match(/^[A-Za-z0-9._-]+$/)) {
+                    showError('username', 'Username chỉ được chứa chữ, số, dấu \'.\', \'-\' hoặc \'_\'.');
+                    document.getElementById('formError').textContent = 'Vui lòng sửa lỗi username trước khi tiếp tục.';
+                    document.getElementById('formError').style.display = 'block';
+                    return false;
+                }
+                
+                // Validate password
+                const passwordValid = validatePassword();
+                if (!passwordValid) {
+                    document.getElementById('formError').textContent = 'Vui lòng sửa lỗi password trước khi tiếp tục.';
+                    document.getElementById('formError').style.display = 'block';
+                    return false;
+                }
+
+                // Check username exists immediately (synchronous check)
+                const userId = document.getElementById('userId').value;
+                const url = '${pageContext.request.contextPath}/admin/users?action=checkUsername&username=' + 
+                            encodeURIComponent(username) + 
+                            (userId ? '&userId=' + userId : '');
+                
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.exists) {
+                            showError('username', data.message);
+                            document.getElementById('formError').textContent = 'Vui lòng sửa lỗi username trước khi tiếp tục.';
+                            document.getElementById('formError').style.display = 'block';
+                        } else {
+                            // Username is valid, proceed with submit
+                            submitForm();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking username:', error);
+                        // If check fails, still try to submit (server will validate)
+                        submitForm();
+                    });
+                
+                return false;
+            }
+
+            function submitForm() {
+                const form = document.getElementById('userForm');
+                const formData = new FormData(form);
+                const submitBtn = document.getElementById('submitBtn');
+                
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Đang xử lý...';
+                
+                fetch('${pageContext.request.contextPath}/admin/users', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message || 'Thành công!');
+                        closeUserModal();
+                        window.location.reload();
+                    } else {
+                        // Show error message
+                        document.getElementById('formError').textContent = data.message || 'Có lỗi xảy ra. Vui lòng thử lại.';
+                        document.getElementById('formError').style.display = 'block';
+                        
+                        // Try to identify which field has error
+                        if (data.message && data.message.includes('Username')) {
+                            showError('username', data.message);
+                        } else if (data.message && data.message.includes('Mật khẩu')) {
+                            showError('password', data.message);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('formError').textContent = 'Có lỗi xảy ra khi kết nối đến server.';
+                    document.getElementById('formError').style.display = 'block';
+                })
+                .finally(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Save User';
+                });
+            }
+
             // Close modal when clicking outside
             window.onclick = function (event) {
                 const userModal = document.getElementById('userModal');
@@ -500,6 +766,7 @@
 
                 if (event.target == userModal) {
                     userModal.classList.remove('show');
+                    clearAllErrors();
                 }
                 if (event.target == resetModal) {
                     resetModal.classList.remove('show');

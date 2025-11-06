@@ -381,6 +381,7 @@
                                     <select id="pageSizeSelect" onchange="changePageSize(this.value)">
                                         <option value="5" <c:if test="${pageSize == 5}">selected</c:if>>5</option>
                                         <option value="10" <c:if test="${pageSize == 10}">selected</c:if>>10</option>
+                                        <option value="15" <c:if test="${pageSize == 15}">selected</c:if>>15</option>
                                         <option value="20" <c:if test="${pageSize == 20}">selected</c:if>>20</option>
                                         <option value="50" <c:if test="${pageSize == 50}">selected</c:if>>50</option>
                                     </select>
@@ -517,15 +518,45 @@
 
             // HÀM ĐÃ SỬA: Thay đổi Page Size (Giữ lại các bộ lọc hiện tại)
             function changePageSize(newSize) {
-                const urlParams = new URLSearchParams(window.location.search);
+                const urlParams = new URLSearchParams();
+                
+                // Set action và pageSize
                 urlParams.set('action', 'audit-log');
                 urlParams.set('pageSize', newSize);
                 urlParams.set('page', '1'); // Luôn reset về trang 1 khi đổi size
                 
-                // Xóa các tham số không cần thiết để URL gọn hơn
-                if (urlParams.get('search') === '') urlParams.delete('search');
-                if (urlParams.get('filterAction') === 'all') urlParams.delete('filterAction');
-                if (urlParams.get('filterObjectType') === 'all') urlParams.delete('filterObjectType');
+                // Lấy các filter từ form inputs (ưu tiên) hoặc từ URL params
+                const searchInput = document.getElementById('searchQueryInput');
+                const filterActionSelect = document.getElementById('filterAction');
+                const filterObjectTypeSelect = document.getElementById('filterObjectType');
+                
+                const search = searchInput ? searchInput.value.trim() : '';
+                const filterAction = filterActionSelect ? filterActionSelect.value : '';
+                const filterObjectType = filterObjectTypeSelect ? filterObjectTypeSelect.value : '';
+                
+                // Lấy sort parameters từ URL (vì không có form input cho sort)
+                const currentUrlParams = new URLSearchParams(window.location.search);
+                const sortBy = currentUrlParams.get('sortBy') || 'Timestamp';
+                const sortOrder = currentUrlParams.get('sortOrder') || 'DESC';
+                
+                // Thêm các filter nếu có giá trị
+                if (search && search !== '') {
+                    urlParams.set('search', search);
+                }
+                if (filterAction && filterAction !== 'all' && filterAction !== '') {
+                    urlParams.set('filterAction', filterAction);
+                }
+                if (filterObjectType && filterObjectType !== 'all' && filterObjectType !== '') {
+                    urlParams.set('filterObjectType', filterObjectType);
+                }
+                
+                // Thêm sort parameters
+                if (sortBy && sortBy !== '') {
+                    urlParams.set('sortBy', sortBy);
+                }
+                if (sortOrder && sortOrder !== '') {
+                    urlParams.set('sortOrder', sortOrder);
+                }
 
                 window.location.href = '${pageContext.request.contextPath}/admin?' + urlParams.toString();
             }
