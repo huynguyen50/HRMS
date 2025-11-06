@@ -1,11 +1,13 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Department Management - HRMS</title>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/Admin_home.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/unified-layout.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/department.css">
@@ -13,296 +15,498 @@
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/pagination.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/user-menu.css">
 
+        <style>
+            /* Filter styles */
+            .filter-group {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-right: 15px;
+            }
+
+            .filter-select {
+                padding: 6px 12px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                background-color: white;
+                font-size: 13px;
+                min-width: 140px;
+                cursor: pointer;
+            }
+
+            .filter-select:hover {
+                border-color: #5b6ef5;
+            }
+
+            /* User menu styles */
+            .user-menu {
+                position: relative;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 4px 8px;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: background-color 0.2s;
+            }
+
+            .user-menu:hover {
+                background-color: rgba(0, 0, 0, 0.05);
+            }
+
+            .user-menu img {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                object-fit: cover;
+            }
+
+            .username {
+                font-size: 14px;
+                font-weight: 500;
+                color: #333;
+            }
+
+            .user-dropdown {
+                position: absolute;
+                top: 100%;
+                right: 0;
+                width: 200px;
+                background: white;
+                border-radius: 4px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                padding: 8px 0;
+                display: none;
+                z-index: 1000;
+                margin-top: 8px;
+            }
+
+            .user-menu:hover .user-dropdown {
+                display: block;
+            }
+
+            .user-dropdown a {
+                display: flex;
+                align-items: center;
+                padding: 8px 16px;
+                color: #333;
+                text-decoration: none;
+                transition: background-color 0.2s;
+            }
+
+            .user-dropdown a:hover {
+                background-color: #f5f5f5;
+            }
+
+            .user-dropdown a i {
+                margin-right: 8px;
+                width: 16px;
+                text-align: center;
+            }
+
+            .user-dropdown a.logout {
+                color: #dc3545;
+                border-top: 1px solid #eee;
+                margin-top: 4px;
+                padding-top: 8px;
+            }
+
+            .user-dropdown a.logout:hover {
+                background-color: #ffebee;
+            }
+
+            #toast-container {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+            }
+
+            .toast {
+                display: flex;
+                align-items: center;
+                min-width: 260px;
+                padding: 14px 18px;
+                margin-bottom: 10px;
+                border-radius: 8px;
+                color: white;
+                font-size: 14px;
+                font-weight: 500;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+                opacity: 0;
+                transform: translateX(100%);
+                animation: slideIn 0.4s forwards, fadeOut 0.5s 2.8s forwards;
+            }
+
+            .toast-success {
+                background-color: #4CAF50;
+            }
+            .toast-error {
+                background-color: #f44336;
+            }
+
+            @keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: translateX(100%);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+
+            @keyframes fadeOut {
+                from {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateX(100%);
+                }
+            }
+
+            .top-bar .search-form {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+                flex: 1;
+                max-width: 500px;
+                margin-right: 20px;
+            }
+
+            .top-bar .search-form input {
+                flex: 1;
+                min-width: 200px;
+                padding: 6px 10px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 13px;
+                height: 32px;
+            }
+
+            .top-bar .search-form button,
+            .top-bar .search-form a {
+                padding: 6px 12px;
+                background-color: #5b6ef5;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 13px;
+                height: 32px;
+                line-height: 1;
+                white-space: nowrap;
+            }
+
+            .top-bar .search-form button:hover {
+                background-color: #4a5dd8;
+            }
+
+            .top-bar .search-form a {
+                background-color: #6c757d;
+            }
+
+            .top-bar .search-form a:hover {
+                background-color: #5a6268;
+            }
+
+            .top-bar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 12px 20px;
+                min-height: 60px;
+            }
+
+            .top-bar-actions {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+
+            /* pagination styles moved to Admin/css/pagination.css */
+
+            .top-bar select {
+                padding: 6px 10px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 13px;
+                height: 32px;
+                background-color: white;
+                cursor: pointer;
+            }
+
+            .top-bar select:hover {
+                border-color: #5b6ef5;
+            }
+
+            /* Add user menu dropdown styles */
+            .user-menu {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+                position: relative;
+            }
+
+            .user-menu img {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+            }
+
+            .user-menu span {
+                font-size: 14px;
+                font-weight: 500;
+            }
+
+            .user-dropdown {
+                position: absolute;
+                top: 100%;
+                right: 0;
+                background-color: white;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                min-width: 150px;
+                z-index: 1000;
+                display: none;
+                margin-top: 8px;
+            }
+
+            .user-dropdown a {
+                display: block;
+                padding: 10px 16px;
+                color: #333;
+                text-decoration: none;
+                font-size: 14px;
+                border-bottom: 1px solid #f0f0f0;
+                transition: background-color 0.2s;
+            }
+
+            .user-dropdown a:last-child {
+                border-bottom: none;
+            }
+
+            .user-dropdown a:hover {
+                background-color: #f5f5f5;
+            }
+
+            .user-dropdown a.logout {
+                color: #f44336;
+            }
+
+            .user-dropdown a.logout:hover {
+                background-color: #ffebee;
+            }
+
+            /* Add sort header styles */
+            .sort-header {
+                cursor: pointer;
+                user-select: none;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 4px 0;
+                transition: color 0.2s;
+            }
+
+            .sort-header:hover {
+                color: #5b6ef5;
+            }
+
+            .sort-icon {
+                display: inline-block;
+                width: 12px;
+                height: 12px;
+                font-size: 10px;
+                opacity: 0.5;
+            }
+
+            .sort-header.active .sort-icon {
+                opacity: 1;
+                color: #5b6ef5;
+            }
+
+            .sort-header .sort-icon.asc::before {
+                content: "▲";
+            }
+
+            .sort-header .sort-icon.desc::before {
+                content: "▼";
+            }
+
+            /* Updated filter controls section to match Role page style */
+            .filter-controls {
+                display: flex;
+                justify-content: flex-start;
+                align-items: flex-end;
+                margin-bottom: 20px;
+                gap: 20px;
+                flex-wrap: wrap;
+                padding: 15px;
+                background-color: #f8f9fa;
+                border: 1px solid #e9ecef;
+                border-radius: 6px;
+            }
+            .filter-group {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            .filter-group input[type="text"],
+            .filter-group select {
+                padding: 8px 12px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 14px;
+                min-width: 150px;
+                box-sizing: border-box;
+                height: 38px;
+            }
+            .filter-buttons {
+                align-self: flex-end;
+                display: flex;
+                gap: 10px;
+            }
+            .btn-primary, .btn-secondary {
+                padding: 8px 15px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+                line-height: 1.2;
+                height: 38px;
+                box-sizing: border-box;
+                white-space: nowrap;
+            }
+            .btn-primary {
+                background-color: #007bff;
+                color: white;
+            }
+            .btn-secondary {
+                background-color: #6c757d;
+                color: white;
+            }
+            /* Added sortable header styles with arrows */
+            .departments-table th {
+                cursor: pointer;
+                user-select: none;
+            }
+            .sort-arrow {
+                margin-left: 5px;
+                font-size: 0.8em;
+                vertical-align: middle;
+            }
+            .alert {
+                padding: 10px;
+                margin-bottom: 15px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            .alert.error {
+                background-color: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }
+            .alert.success {
+                background-color: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+            }
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                overflow: auto;
+                background-color: rgba(0,0,0,0.4);
+                justify-content: center;
+                align-items: center;
+            }
+            .modal-content {
+                background-color: #fefefe;
+                padding: 20px;
+                border: 1px solid #888;
+                width: 90%;
+                max-width: 500px;
+                border-radius: 8px;
+            }
+            .modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid #eee;
+                padding-bottom: 10px;
+                margin-bottom: 20px;
+            }
+            .close-btn {
+                color: #aaa;
+                font-size: 28px;
+                font-weight: bold;
+                cursor: pointer;
+                background: none;
+                border: none;
+            }
+            .form-group label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+            }
+            .form-group input[type="text"],
+            .form-group select {
+                width: 100%;
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                box-sizing: border-box;
+                margin-bottom: 10px;
+            }
+            .form-actions {
+                margin-top: 20px;
+                text-align: right;
+            }
+            .btn-cancel {
+                background-color: #f4f4f4;
+                color: #333;
+                padding: 10px 15px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                cursor: pointer;
+                margin-right: 10px;
+            }
+            .btn-submit {
+                background-color: #28a745;
+                color: white;
+                padding: 10px 15px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            .btn-danger {
+                background-color: #dc3545;
+                color: white;
+                padding: 10px 15px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+
+        </style>
+
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script>
+        const contextPath = '${pageContext.request.contextPath}';
+        </script>
     </head>
-    <style>
-        /* Filter styles */
-        .filter-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-right: 15px;
-        }
-
-        .filter-select {
-            padding: 6px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: white;
-            font-size: 13px;
-            min-width: 140px;
-            cursor: pointer;
-        }
-
-        .filter-select:hover {
-            border-color: #5b6ef5;
-        }
-
-        /* User menu styles */
-        .user-menu {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .user-menu:hover {
-            background-color: rgba(0, 0, 0, 0.05);
-        }
-
-        .user-menu img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .username {
-            font-size: 14px;
-            font-weight: 500;
-            color: #333;
-        }
-
-        .user-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            width: 200px;
-            background: white;
-            border-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            padding: 8px 0;
-            display: none;
-            z-index: 1000;
-            margin-top: 8px;
-        }
-
-        .user-menu:hover .user-dropdown {
-            display: block;
-        }
-
-        .user-dropdown a {
-            display: flex;
-            align-items: center;
-            padding: 8px 16px;
-            color: #333;
-            text-decoration: none;
-            transition: background-color 0.2s;
-        }
-
-        .user-dropdown a:hover {
-            background-color: #f5f5f5;
-        }
-
-        .user-dropdown a i {
-            margin-right: 8px;
-            width: 16px;
-            text-align: center;
-        }
-
-        .user-dropdown a.logout {
-            color: #dc3545;
-            border-top: 1px solid #eee;
-            margin-top: 4px;
-            padding-top: 8px;
-        }
-
-        .user-dropdown a.logout:hover {
-            background-color: #ffebee;
-        }
-
-        #toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-        }
-
-        .toast {
-            display: flex;
-            align-items: center;
-            min-width: 260px;
-            padding: 14px 18px;
-            margin-bottom: 10px;
-            border-radius: 8px;
-            color: white;
-            font-size: 14px;
-            font-weight: 500;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            opacity: 0;
-            transform: translateX(100%);
-            animation: slideIn 0.4s forwards, fadeOut 0.5s 2.8s forwards;
-        }
-
-        .toast-success {
-            background-color: #4CAF50;
-        }
-        .toast-error {
-            background-color: #f44336;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(100%);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes fadeOut {
-            from {
-                opacity: 1;
-                transform: translateX(0);
-            }
-            to {
-                opacity: 0;
-                transform: translateX(100%);
-            }
-        }
-
-        .top-bar .search-form {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex: 1;
-            max-width: 500px;
-            margin-right: 20px;
-        }
-
-        .top-bar .search-form input {
-            flex: 1;
-            min-width: 200px;
-            padding: 6px 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 13px;
-            height: 32px;
-        }
-
-        .top-bar .search-form button,
-        .top-bar .search-form a {
-            padding: 6px 12px;
-            background-color: #5b6ef5;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 13px;
-            height: 32px;
-            line-height: 1;
-            white-space: nowrap;
-        }
-
-        .top-bar .search-form button:hover {
-            background-color: #4a5dd8;
-        }
-
-        .top-bar .search-form a {
-            background-color: #6c757d;
-        }
-
-        .top-bar .search-form a:hover {
-            background-color: #5a6268;
-        }
-
-        .top-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 20px;
-            min-height: 60px;
-        }
-
-        .top-bar-actions {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        /* pagination styles moved to Admin/css/pagination.css */
-
-        .top-bar select {
-            padding: 6px 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 13px;
-            height: 32px;
-            background-color: white;
-            cursor: pointer;
-        }
-
-        .top-bar select:hover {
-            border-color: #5b6ef5;
-        }
-
-        /* Add user menu dropdown styles */
-        .user-menu {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .user-menu img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-        }
-
-        .user-menu span {
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .user-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background-color: white;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            min-width: 150px;
-            z-index: 1000;
-            display: none;
-            margin-top: 8px;
-        }
-
-        .user-dropdown a {
-            display: block;
-            padding: 10px 16px;
-            color: #333;
-            text-decoration: none;
-            font-size: 14px;
-            border-bottom: 1px solid #f0f0f0;
-            transition: background-color 0.2s;
-        }
-
-        .user-dropdown a:last-child {
-            border-bottom: none;
-        }
-
-        .user-dropdown a:hover {
-            background-color: #f5f5f5;
-        }
-
-        .user-dropdown a.logout {
-            color: #f44336;
-        }
-
-        .user-dropdown a.logout:hover {
-            background-color: #ffebee;
-        }
-    </style>
     <body>
         <div class="dashboard-container">
             <!-- Sidebar -->
@@ -317,8 +521,8 @@
                 <div class="sidebar-nav">
                     <a href="${pageContext.request.contextPath}/admin?action=dashboard"
                        class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">🏠 Dashboard</a>
-                          <!-- Employees link removed -->
-                    <a href="${pageContext.request.contextPath}/departments?action=departments" 
+                    <!-- Employees link removed -->
+                    <a href="${pageContext.request.contextPath}/departments?action=departments"
                        class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
                     <a href="${pageContext.request.contextPath}/admin/users"
                        class="nav-item ${activePage == 'users' ? 'active' : ''}">👤 Users</a>
@@ -331,45 +535,10 @@
                 </div>
             </aside>
 
-            <div class="main-content">
-                <!-- Top Bar -->
+            <main class="main-content">
                 <header class="top-bar">
-                    <form accept-charset="UTF-8" method="GET" action="${pageContext.request.contextPath}/departments" class="search-form" id="filterForm">
-                        <input type="hidden" name="action" value="departments">
 
-                        <!-- Search input -->
-                        <div class="search-input">
-                            <input type="text" name="search" placeholder="Search departments by name..." 
-                                   value="<c:out value="${searchKeyword}"/>" />
-                        </div>
-
-                        <!-- Status filter -->
-                        <div class="filter-group">
-                            <select name="status" id="statusFilter">
-                                <option value="all">All Status</option>
-                                <option value="active" <c:if test="${status == 'active'}">selected</c:if>>Active</option>
-                                <option value="inactive" <c:if test="${status == 'inactive'}">selected</c:if>>Inactive</option>
-                                </select>
-                            </div>
-
-                            <!-- Sort By -->
-                            <div class="filter-group">
-                                <select name="sortBy" id="sortBy">
-                                    <option value="name" <c:if test="${sortBy == 'name' || empty sortBy}">selected</c:if>>Sort by Name</option>
-                                <option value="employees" <c:if test="${sortBy == 'employees'}">selected</c:if>>Sort by Employee Count</option>
-                                <option value="created" <c:if test="${sortBy == 'created'}">selected</c:if>>Sort by Created Date</option>
-                                </select>
-                            </div>
-
-                            <!-- Filter actions -->
-                            <div class="filter-actions">
-                                <button type="submit" class="btn-filter">Apply Filters</button>
-                                <a href="${pageContext.request.contextPath}/departments?action=departments" class="btn-clear">Clear All</a>
-                        </div>
-                    </form>
-
-                    <div class="top-bar-actions">
-
+                    <div class="top-bar-actions" display="end">
                         <!-- User Menu -->
                         <div class="user-menu" onclick="toggleUserMenu()">
                             <div class="user-info">
@@ -386,175 +555,214 @@
                                     <span class="icon">🚪</span> Logout
                                 </a>
                             </div>
-                        </div>                    
-                    </div>
-                    <script>
-                        function toggleUserMenu() {
-                            const userMenu = document.querySelector('.user-menu');
-                            userMenu.classList.toggle('active');
-                        }
-
-                        document.addEventListener('click', function (event) {
-                            if (!event.target.closest('.user-menu')) {
+                        </div>
+                        <script>
+                            function toggleUserMenu() {
                                 const userMenu = document.querySelector('.user-menu');
-                                if (userMenu.classList.contains('active')) {
-                                    userMenu.classList.remove('active');
-                                }
+                                userMenu.classList.toggle('active');
                             }
-                        });
-                    </script>
+
+                            document.addEventListener('click', function (event) {
+                                if (!event.target.closest('.user-menu')) {
+                                    const userMenu = document.querySelector('.user-menu');
+                                    if (userMenu && userMenu.classList.contains('active')) {
+                                        userMenu.classList.remove('active');
+                                    }
+                                }
+                            });
+                        </script>
+                    </div>
                 </header>
 
                 <!-- Main Content -->
-                <div class="dashboard-content">
+                <section class="dashboard-content">
                     <div class="page-header">
-                        <div>
-                            <h1 class="page-title">Department Management</h1>
-                            <p class="page-subtitle">Manage departments, assign managers, and configure permissions</p>
-                        </div>
-                        <button class="btn-primary" onclick="openAddDepartmentModal()">
-                            + Add New Department
-                        </button>
+                        <h1 class="page-title">Department Management</h1>
+                        <button class="btn-primary" onclick="showDepartmentModal()">+ Add New Department</button>
                     </div>
-                    <!-- Toast container -->
-                    <div id="toast-container"></div>
-                   
+
+                    <c:if test="${not empty errorMessage}">
+                        <div class="alert error">${errorMessage}</div>
+                    </c:if>
+
+                    <c:if test="${not empty successMessage}">
+                        <div class="alert success">${successMessage}</div>
+                    </c:if>
+
+                    <div class="filter-section">
+                        <div class="filter-controls">
+                            <div class="filter-group">
+                                <label for="searchQueryInput">Search</label>
+                                <input type="text" id="searchQueryInput" name="search"
+                                       placeholder="Department Name or ID..."
+                                       value="${searchKeyword}" class="filter-input">
+                            </div>
+                            <div class="filter-buttons">
+                                <button type="button" onclick="applyFilters()" class="btn-primary">Apply Filter</button>
+                                <button type="button" onclick="clearAllFilters()" class="btn-secondary">Clear All</button>
+                            </div>
+                        </div>
+                    </div>
+
+
                     <div class="table-section">
-                        <c:choose>
-                            <c:when test="${not empty departmentList}">
-                                <table class="departments-table">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Department Name</th>
-                                            <th>Manager</th>
-                                            <th>Employee Count</th>
-                                            <th>Status</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
+                        <table class="departments-table">
+                            <thead>
+                                <tr>
+                                    <!-- Made headers clickable for sorting with arrow indicators -->
+                                    <th onclick="sortTable('DepartmentID')">Department ID
+                                        <c:if test="${sortBy == 'DepartmentID' || sortBy == ''}">
+                                            <span class="sort-arrow">${sortOrder == 'ASC' ? '▲' : '▼'}</span>
+                                        </c:if>
+                                    </th>
+                                    <th onclick="sortTable('DeptName')">Department Name
+                                        <c:if test="${sortBy == 'DeptName'}">
+                                            <span class="sort-arrow">${sortOrder == 'ASC' ? '▲' : '▼'}</span>
+                                        </c:if>
+                                    </th>
+                                    <th>Manager</th>
+                                    <th onclick="sortTable('EmployeeCount')">Employee Count
+                                        <c:if test="${sortBy == 'EmployeeCount'}">
+                                            <span class="sort-arrow">${sortOrder == 'ASC' ? '▲' : '▼'}</span>
+                                        </c:if>
+                                    </th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="departmentsTableBody">
+                                <c:choose>
+                                    <c:when test="${not empty departmentList}">
                                         <c:forEach var="dept" items="${departmentList}">
                                             <tr>
-                                                <td class="dept-id">${dept.departmentId}</td>
-                                                <td class="dept-name">${dept.deptName}</td>
-                                                <td class="dept-manager">
+                                                <td>${dept.departmentId}</td>
+                                                <td>${dept.deptName}</td>
+                                                <td>
                                                     <c:choose>
                                                         <c:when test="${not empty dept.deptManagerId}">
                                                             Manager ID: ${dept.deptManagerId}
                                                         </c:when>
                                                         <c:otherwise>
-                                                            <span class="badge-unassigned">Unassigned</span>
+                                                            <span style="color: #999;">Unassigned</span>
                                                         </c:otherwise>
                                                     </c:choose>
                                                 </td>
-                                                <td class="dept-count">
-                                                    <span class="badge-count">${dept.employeeCount != null ? dept.employeeCount : 0}</span>
-                                                </td>
-                                                <td class="dept-status">
-                                                    <span class="badge-active">Active</span>
-                                                </td>
-                                                <td class="dept-actions">
-                                                    <button class="btn-icon btn-edit" title="Edit" 
-                                                            onclick="openEditDepartmentModal(${dept.departmentId}, '${dept.deptName}', ${dept.deptManagerId})">
-                                                        ✏️
+                                                <td>${dept.employeeCount != null ? dept.employeeCount : 0}</td>
+                                                <td><span style="background: #d4edda; padding: 4px 8px; border-radius: 4px;">Active</span></td>
+                                                <td>
+                                                    <button class="btn-action edit" onclick="showDepartmentModal(${dept.departmentId}, '${dept.deptName}', ${dept.deptManagerId})">
+                                                        <i class="fa fa-pencil"></i> Edit
                                                     </button>
-                                                    <button class="btn-icon btn-delete" title="Delete"
-                                                            onclick="confirmDelete(${dept.departmentId}, '${dept.deptName}')">
-                                                        🗑️
+                                                    <button class="btn-action delete" onclick="deleteDepartment(${dept.departmentId}, '${dept.deptName}')">
+                                                        <i class="fa fa-trash"></i> Delete
                                                     </button>
                                                 </td>
                                             </tr>
                                         </c:forEach>
-                                    </tbody>
-                                </table>
-                            </c:when>
-                            <c:otherwise>
-                                <div class="empty-state">
-                                    <p>No departments found</p>
-                                    <button class="btn-primary" onclick="openAddDepartmentModal()">Create First Department</button>
-                                </div>
-                            </c:otherwise>
-                        </c:choose>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <tr>
+                                            <td colspan="6" style="text-align: center;">No departments found matching the criteria.</td>
+                                        </tr>
+                                    </c:otherwise>
+                                </c:choose>
+                            </tbody>
+                        </table>
                     </div>
 
-                    <!-- Pagination -->
-                    <!-- Add pagination bar with "Showing X - Y of Z" display -->
+                    <!-- Updated pagination section to match Role page with pageSize selector and JSTL -->
                     <div class="pagination-bar">
                         <div class="pagination-info">
-                            <%
-                                int currentPage = (Integer) request.getAttribute("page");
-                                int pageSize = (Integer) request.getAttribute("pageSize");
-                                int total = (Integer) request.getAttribute("total");
-                                int start = (currentPage - 1) * pageSize + 1;
-                                int end = Math.min(currentPage * pageSize, total);
-                            %>
-                            Showing <%= start %> - <%= end %> of <%= total %>
-                        </div>
-                        <div class="pagination-controls">
-                            <%
-                                int totalPages = (Integer) request.getAttribute("totalPages");
-                                StringBuilder params = new StringBuilder();
-                                String searchParam = request.getParameter("search");
-                                String statusParam = request.getParameter("status");
-                                String sortByParam = request.getParameter("sortBy");
+                            <c:set var="total" value="${total != null ? total : 0}" />
+                            <c:set var="page" value="${page != null ? page : 1}" />
+                            <c:set var="pageSize" value="${pageSize != null ? pageSize : 10}" />
+                            <c:set var="totalPages" value="${totalPages != null ? totalPages : 1}" />
 
-                                if (searchParam != null && !searchParam.isEmpty()) {
-                                    params.append("&search=").append(java.net.URLEncoder.encode(searchParam, "UTF-8"));
-                                }
-                                if (statusParam != null && !statusParam.isEmpty()) {
-                                    params.append("&status=").append(java.net.URLEncoder.encode(statusParam, "UTF-8"));
-                                }
-                                if (sortByParam != null && !sortByParam.isEmpty()) {
-                                    params.append("&sortBy=").append(java.net.URLEncoder.encode(sortByParam, "UTF-8"));
-                                }
-                                
-                                // Calculate range of page numbers to show
-                                int range = 2; // Show 2 pages before and after current page
-                                int start_page = Math.max(1, currentPage - range);
-                                int end_page = Math.min(totalPages, currentPage + range);
-                                
-                                if (currentPage > 1) {
-                            %>
-                            <a href="${pageContext.request.contextPath}/departments?action=departments&page=<%= currentPage - 1 %><%= params.toString() %>">Prev</a>
-                            <% } else { %>
-                            <span class="disabled">Prev</span>
-                            <% } %>
+                            <c:set var="start" value="${total > 0 ? (page - 1) * pageSize + 1 : 0}" />
+                            <c:set var="end" value="${page * pageSize}" />
+                            <c:if test="${end > total}">
+                                <c:set var="end" value="${total}" />
+                            </c:if>
+                            <span>Showing ${start} - ${end} of ${total}</span>
 
-                            <% if (start_page > 1) { %>
-                            <a href="${pageContext.request.contextPath}/departments?action=departments&page=1<%= params.toString() %>">1</a>
-                            <% if (start_page > 2) { %>
-                            <span class="ellipsis">...</span>
-                            <% } %>
-                            <% } %>
+                            <div class="page-size-selector">
+                                <label for="pageSizeSelect">Items per page:</label>
+                                <select id="pageSizeSelect" onchange="changePageSize(this.value)">
+                                    <option value="5" <c:if test="${pageSize == 5}">selected</c:if>>5</option>
+                                    <option value="10" <c:if test="${pageSize == 10}">selected</c:if>>10</option>
+                                    <option value="20" <c:if test="${pageSize == 20}">selected</c:if>>20</option>
+                                    <option value="50" <c:if test="${pageSize == 50}">selected</c:if>>50</option>
+                                    </select>
+                                </div>
+                            </div>
 
-                            <%
-                                for (int i = start_page; i <= end_page; i++) {
-                                    if (i == currentPage) {
-                            %>
-                            <span class="active"><%= i %></span>
-                            <% } else { %>
-                            <a href="${pageContext.request.contextPath}/departments?action=departments&page=<%= i %><%= params.toString() %>"><%= i %></a>
-                            <% } } %>
+                            <div class="pagination-controls">
+                            <c:url var="baseUrl" value="/admin?action=departments">
+                                <c:param name="pageSize" value="${pageSize}" />
+                                <c:param name="search" value="${searchKeyword}" />
+                                <c:param name="sortBy" value="${sortBy}" />
+                                <c:param name="sortOrder" value="${sortOrder}" />
+                            </c:url>
 
-                            <% if (end_page < totalPages) { %>
-                            <% if (end_page < totalPages - 1) { %>
-                            <span class="ellipsis">...</span>
-                            <% } %>
-                            <a href="${pageContext.request.contextPath}/departments?action=departments&page=<%= totalPages %><%= params.toString() %>"><%= totalPages %></a>
-                            <% } %>
+                            <c:choose>
+                                <c:when test="${page > 1}">
+                                    <c:url var="prevUrl" value="${baseUrl}">
+                                        <c:param name="page" value="${page - 1}" />
+                                    </c:url>
+                                    <a href="${prevUrl}" class="btn-pagination">← Prev</a>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="disabled">← Prev</span>
+                                </c:otherwise>
+                            </c:choose>
 
-                            <%
-                                if (currentPage < totalPages) {
-                            %>
-                            <a href="${pageContext.request.contextPath}/departments?action=departments&page=<%= currentPage + 1 %><%= params.toString() %>">Next</a>
-                            <% } else { %>
-                            <span class="disabled">Next</span>
-                            <% } %>
+                            <c:set var="range" value="2" />
+                            <c:set var="start_page" value="${page - range > 1 ? page - range : 1}" />
+                            <c:set var="end_page" value="${page + range < totalPages ? page + range : totalPages}" />
+
+                            <c:if test="${start_page > 1}">
+                                <c:url var="firstPageUrl" value="${baseUrl}"><c:param name="page" value="1" /></c:url>
+                                <a href="${firstPageUrl}" class="btn-pagination">1</a>
+                                <c:if test="${start_page > 2}">
+                                    <span class="ellipsis">...</span>
+                                </c:if>
+                            </c:if>
+
+                            <c:forEach begin="${start_page}" end="${end_page}" var="i">
+                                <c:choose>
+                                    <c:when test="${i == page}">
+                                        <span class="active btn-pagination">${i}</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <c:url var="pageUrl" value="${baseUrl}"><c:param name="page" value="${i}" /></c:url>
+                                        <a href="${pageUrl}" class="btn-pagination">${i}</a>
+                                    </c:otherwise>
+                                </c:choose>
+                            </c:forEach>
+
+                            <c:if test="${end_page < totalPages}">
+                                <c:if test="${end_page < totalPages - 1}">
+                                    <span class="ellipsis">...</span>
+                                </c:if>
+                                <c:url var="lastPageUrl" value="${baseUrl}"><c:param name="page" value="${totalPages}" /></c:url>
+                                <a href="${lastPageUrl}" class="btn-pagination">${totalPages}</a>
+                            </c:if>
+
+                            <c:choose>
+                                <c:when test="${page < totalPages}">
+                                    <c:url var="nextUrl" value="${baseUrl}">
+                                        <c:param name="page" value="${page + 1}" />
+                                    </c:url>
+                                    <a href="${nextUrl}" class="btn-pagination">Next →</a>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="disabled">Next →</span>
+                                </c:otherwise>
+                            </c:choose>
                         </div>
                     </div>
-                </div>
-            </div>
+                </section>
+            </main>
         </div>
 
         <!-- Add/Edit Department Modal -->
@@ -562,20 +770,18 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h2 id="modalTitle">Add New Department</h2>
-                    <button class="modal-close" onclick="closeDepartmentModal()">&times;</button>
+                    <button class="close-btn" onclick="closeDepartmentModal()">&times;</button>
                 </div>
-                <form id="departmentForm" method="POST" action="${pageContext.request.contextPath}/departments">
-                    <input type="hidden" name="action" value="department-save">
-                    <input type="hidden" id="deptId" name="deptId" value="">
-
+                <form id="departmentForm">
+                    <input type="hidden" id="departmentId" name="departmentId">
                     <div class="form-group">
-                        <label for="deptName">Department Name *</label>
-                        <input type="text" id="deptName" name="deptName" required placeholder="Enter department name">
+                        <label for="departmentName">Department Name *</label>
+                        <input type="text" id="departmentName" name="departmentName" required placeholder="e.g., HR, Finance, IT">
                     </div>
 
                     <div class="form-group">
-                        <label for="deptManager">Manager</label>
-                        <select id="deptManager" name="deptManagerId">
+                        <label for="departmentManager">Manager</label>
+                        <select id="departmentManager" name="departmentManager">
                             <option value="">-- Select Manager --</option>
                             <c:forEach var="manager" items="${managers}">
                                 <option value="${manager.employeeId}">${manager.fullName}</option>
@@ -584,145 +790,114 @@
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="btn-primary">Save Department</button>
-                        <button type="button" class="btn-secondary" onclick="closeDepartmentModal()">Cancel</button>
+                        <button type="button" class="btn-cancel" onclick="closeDepartmentModal()">Cancel</button>
+                        <button type="submit" class="btn-submit">Save Department</button>
                     </div>
                 </form>
             </div>
         </div>
 
-
-        <!-- Delete Confirmation Modal -->
+        <!-- Delete Department Modal -->
         <div id="deleteModal" class="modal">
-            <div class="modal-content modal-small">
+            <div class="modal-content" style="max-width: 400px;">
                 <div class="modal-header">
-                    <h2>Confirm Delete</h2>
-                    <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+                    <h2>Confirm Deletion</h2>
+                    <button class="close-btn" onclick="closeDeleteModal()">&times;</button>
                 </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to delete department <strong id="deleteDeptName"></strong>?</p>
-                    <p class="warning-text">This action cannot be undone.</p>
-                </div>
-                <form id="deleteForm" method="POST" action="${pageContext.request.contextPath}/departments">
-                    <input type="hidden" name="action" value="department-delete">
-                    <input type="hidden" id="deleteDeptId" name="deptId" value="">
+                <p>Are you sure you want to delete the department: <strong id="deleteDepartmentName"></strong> (ID: <strong id="deleteDepartmentId"></strong>)?</p>
+                <form id="deleteForm">
+                    <input type="hidden" id="confirmDeleteDepartmentId" name="departmentId">
                     <div class="form-actions">
-                        <button type="submit" class="btn-danger">Delete</button>
-                        <button type="button" class="btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                        <button type="button" class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+                        <button type="submit" class="btn-submit" style="background-color: #dc3545;">Delete</button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- Notifications Modal -->
-        <div id="notificationsModal" class="modal">
-            <div class="modal-content modal-medium">
-                <div class="modal-header">
-                    <h2>Notifications</h2>
-                    <button class="modal-close" onclick="closeNotificationsModal()">&times;</button>
-                </div>
-                <div id="notificationsList" class="notifications-list">
-                    <!-- Notifications will be loaded here -->
-                </div>
-            </div>
-        </div>
-    </body>
-    <script>
-        // Submit form on filter change
-        document.querySelectorAll('#filterForm select').forEach(select => {
-            select.addEventListener('change', () => {
-                document.getElementById('filterForm').submit();
-            });
-        });
+        <div id="toast-container"></div>
 
-        function openNotifications() {
-            document.getElementById('notificationsModal').style.display = 'flex';
-            loadNotifications();
+        <script>
+        const DEPARTMENT_LIST_URL = '${pageContext.request.contextPath}/admin?action=departments';
+        const DEPARTMENT_API_URL = '${pageContext.request.contextPath}/admin/department';
+
+        function applyFilters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const search = document.getElementById('searchQueryInput').value.trim();
+            const pageSizeSelect = document.getElementById('pageSizeSelect');
+            const currentPageSize = pageSizeSelect ? pageSizeSelect.value : '10';
+            const currentSortBy = '${sortBy}';
+            const currentSortOrder = '${sortOrder}';
+
+            urlParams.set('page', '1');
+            urlParams.set('pageSize', currentPageSize);
+
+            if (search !== '') {
+                urlParams.set('search', search);
+            } else {
+                urlParams.delete('search');
+            }
+
+            if (currentSortBy && currentSortOrder) {
+                urlParams.set('sortBy', currentSortBy);
+                urlParams.set('sortOrder', currentSortOrder);
+            }
+
+            window.location.href = DEPARTMENT_LIST_URL + '&' + urlParams.toString();
         }
 
-        function closeNotificationsModal() {
-            document.getElementById('notificationsModal').style.display = 'none';
+        function clearAllFilters() {
+            window.location.href = DEPARTMENT_LIST_URL;
         }
 
-        function loadNotifications() {
-            fetch('${pageContext.request.contextPath}/admin?action=get-notifications')
-                    .then(response => response.json())
-                    .then(data => {
-                        const notificationsList = document.getElementById('notificationsList');
-                        notificationsList.innerHTML = '';
+        function changePageSize(newSize) {
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('pageSize', newSize);
+            urlParams.set('page', '1');
 
-                        if (data.notifications && data.notifications.length > 0) {
-                            data.notifications.forEach(notification => {
-                                const notifDiv = document.createElement('div');
-                                notifDiv.className = 'notification-item';
-                                notifDiv.innerHTML = `
-                                   <div class="notification-content">
-                                       <p class="notification-message">${notification.message}</p>
-                                       <span class="notification-time">${notification.createdAt}</span>
-                                   </div>
-                               `;
-                                notificationsList.appendChild(notifDiv);
-                            });
-                        } else {
-                            notificationsList.innerHTML = '<p class="empty-notification">No notifications</p>';
-                        }
-                    })
-                    .catch(error => console.error('Error loading notifications:', error));
+            if (urlParams.get('search') === '')
+                urlParams.delete('search');
+
+            window.location.href = DEPARTMENT_LIST_URL + '&' + urlParams.toString();
         }
 
-        function loadDepartmentPermissions(deptId) {
-            fetch('${pageContext.request.contextPath}/departments?action=get-permissions&deptId=' + deptId)
-                    .then(response => response.json())
-                    .then(data => {
-                        document.querySelectorAll('#permissionsForm input[type="checkbox"]').forEach(checkbox => {
-                            checkbox.checked = false;
-                        });
+        function sortTable(column) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentSortBy = urlParams.get('sortBy') || 'DepartmentID';
+            const currentSortOrder = urlParams.get('sortOrder') || 'ASC';
+            let newSortOrder = 'ASC';
 
-                        if (data.permissions && data.permissions.length > 0) {
-                            data.permissions.forEach(permission => {
-                                const checkbox = document.querySelector(`input[value="${permission}"]`);
-                                if (checkbox) {
-                                    checkbox.checked = true;
-                                }
-                            });
-                        }
-                    })
-                    .catch(error => console.error('Error loading permissions:', error));
+            if (currentSortBy === column) {
+                newSortOrder = (currentSortOrder === 'ASC') ? 'DESC' : 'ASC';
+            }
+
+            urlParams.set('page', '1');
+            urlParams.set('sortBy', column);
+            urlParams.set('sortOrder', newSortOrder);
+
+            if (urlParams.get('search') === '')
+                urlParams.delete('search');
+
+            window.location.href = DEPARTMENT_LIST_URL + '&' + urlParams.toString();
         }
 
-        function openAddDepartmentModal() {
-            document.getElementById('modalTitle').textContent = 'Add New Department';
-            document.getElementById('departmentForm').reset();
-            document.getElementById('deptId').value = '';
-            document.getElementById('departmentModal').style.display = 'flex';
-        }
-
-        function openEditDepartmentModal(deptId, deptName, depManagerId) {
-            document.getElementById('modalTitle').textContent = 'Edit Department';
-            document.getElementById('deptId').value = deptId;
-            document.getElementById('deptName').value = deptName;
-            document.getElementById('deptManager').value = deptManagerId || '';
-            document.getElementById('departmentModal').style.display = 'flex';
+        function showDepartmentModal(departmentId = null, departmentName = '', departmentManager = '') {
+            const modal = document.getElementById('departmentModal');
+            document.getElementById('departmentId').value = departmentId || '';
+            document.getElementById('departmentName').value = departmentName;
+            document.getElementById('departmentManager').value = departmentManager || '';
+            document.getElementById('modalTitle').textContent = departmentId ? 'Edit Department' : 'Add New Department';
+            modal.style.display = 'flex';
         }
 
         function closeDepartmentModal() {
             document.getElementById('departmentModal').style.display = 'none';
         }
 
-        function openPermissionsModal(deptId, deptName) {
-            document.getElementById('permDeptId').value = deptId;
-            document.getElementById('permDeptName').textContent = deptName;
-            document.getElementById('permissionsModal').style.display = 'flex';
-            loadDepartmentPermissions(deptId);
-        }
-
-        function closePermissionsModal() {
-            document.getElementById('permissionsModal').style.display = 'none';
-        }
-
-        function confirmDelete(deptId, deptName) {
-            document.getElementById('deleteDeptId').value = deptId;
-            document.getElementById('deleteDeptName').textContent = deptName;
+        function deleteDepartment(departmentId, departmentName) {
+            document.getElementById('deleteDepartmentId').textContent = departmentId;
+            document.getElementById('deleteDepartmentName').textContent = departmentName;
+            document.getElementById('confirmDeleteDepartmentId').value = departmentId;
             document.getElementById('deleteModal').style.display = 'flex';
         }
 
@@ -732,42 +907,92 @@
 
         window.onclick = function (event) {
             const departmentModal = document.getElementById('departmentModal');
-            const permissionsModal = document.getElementById('permissionsModal');
             const deleteModal = document.getElementById('deleteModal');
-            const notificationsModal = document.getElementById('notificationsModal');
 
             if (event.target === departmentModal) {
                 departmentModal.style.display = 'none';
             }
-            if (event.target === permissionsModal) {
-                permissionsModal.style.display = 'none';
-            }
             if (event.target === deleteModal) {
                 deleteModal.style.display = 'none';
             }
-            if (event.target === notificationsModal) {
-                notificationsModal.style.display = 'none';
-            }
-            if (!event.target.closest('.user-menu')) {
-                const userMenu = document.querySelector('.user-menu');
-                userMenu.classList.remove('active');
-            }
         };
 
-        function toggleUserMenu() {
-            const userMenu = document.querySelector('.user-menu');
-            userMenu.classList.toggle('active');
-        }
+        document.getElementById('departmentForm').addEventListener('submit', function (e) {
+            e.preventDefault();
 
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function (event) {
-            const userMenu = document.querySelector('.user-menu');
-            const userDropdown = document.getElementById('userDropdown');
-            if (userMenu && !userMenu.contains(event.target)) {
-                if (userDropdown) {
-                    userDropdown.style.display = 'none';
-                }
+            const departmentId = document.getElementById('departmentId').value;
+            const departmentName = document.getElementById('departmentName').value;
+            const departmentManager = document.getElementById('departmentManager').value;
+
+            // Validate required fields
+            if (departmentName.trim() === '') {
+                alert('Department Name is required.');
+                return;
             }
+
+            // Create a hidden form to submit via POST
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '${pageContext.request.contextPath}/departments';
+
+            // Add action parameter
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'department-save';
+            form.appendChild(actionInput);
+
+            // Add department ID (empty for new, set for edit)
+            const idInput = document.createElement('input');
+            idInput.type = 'hidden';
+            idInput.name = 'deptId';
+            idInput.value = departmentId;
+            form.appendChild(idInput);
+
+            // Add department name
+            const nameInput = document.createElement('input');
+            nameInput.type = 'hidden';
+            nameInput.name = 'deptName';
+            nameInput.value = departmentName.trim();
+            form.appendChild(nameInput);
+
+            // Add department manager
+            const managerInput = document.createElement('input');
+            managerInput.type = 'hidden';
+            managerInput.name = 'deptManagerId';
+            managerInput.value = departmentManager;
+            form.appendChild(managerInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        });
+
+        document.getElementById('deleteForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const departmentId = document.getElementById('confirmDeleteDepartmentId').value;
+
+            // Create a hidden form to submit via POST
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '${pageContext.request.contextPath}/departments';
+
+            // Add action parameter
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'department-delete';
+            form.appendChild(actionInput);
+
+            // Add department ID
+            const idInput = document.createElement('input');
+            idInput.type = 'hidden';
+            idInput.name = 'deptId';
+            idInput.value = departmentId;
+            form.appendChild(idInput);
+
+            document.body.appendChild(form);
+            form.submit();
         });
 
         function showToast(message, type = "success") {
@@ -778,15 +1003,15 @@
             container.appendChild(toast);
             setTimeout(() => toast.remove(), 3500);
         }
-    </script>
-     <script>
-                        // JSTL session messages
-                        <c:if test="${not empty successMessage}">
-                        showToast("✓ ${successMessage}", "success");
-                        </c:if>
-                        <c:if test="${not empty errorMessage}">
-                        showToast("✗ ${errorMessage}", "error");
-                        </c:if>
-                    </script>
+        </script>
+        <script>
+            // JSTL session messages
+            <c:if test="${not empty successMessage}">
+            showToast("✓ ${successMessage}", "success");
+            </c:if>
+            <c:if test="${not empty errorMessage}">
+            showToast("✗ ${errorMessage}", "error");
+            </c:if>
+        </script>
 
 </html>

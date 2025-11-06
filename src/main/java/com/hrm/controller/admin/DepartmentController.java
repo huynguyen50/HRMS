@@ -4,8 +4,8 @@ import com.hrm.dao.*;
 import com.hrm.model.entity.*;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.logging.Level;
@@ -68,7 +68,7 @@ public class DepartmentController extends HttpServlet {
         }
     }
 
-  private void listDepartments(HttpServletRequest request, HttpServletResponse response)
+    private void listDepartments(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setAttribute("activePage", "departments");
 
@@ -88,13 +88,13 @@ public class DepartmentController extends HttpServlet {
         }
 
         String searchKeyword = request.getParameter("search");
-        String status = request.getParameter("status");
         String sortBy = request.getParameter("sortBy");
-
-        // Convert status parameter
-        String effectiveStatus = (status != null && !status.isEmpty()) ? status : "all";
+        String sortOrder = request.getParameter("sortOrder");
         
-        List<Department> departmentList;
+        // Validate and sanitize sortOrder
+        if (sortOrder == null || (!sortOrder.equals("ASC") && !sortOrder.equals("DESC"))) {
+            sortOrder = "ASC";
+        }
 
         int page = 1;
         int pageSize = 10;
@@ -102,110 +102,119 @@ public class DepartmentController extends HttpServlet {
             String pageStr = request.getParameter("page");
             String sizeStr = request.getParameter("pageSize");
             if (pageStr != null) page = Math.max(1, Integer.parseInt(pageStr));
-            if (sizeStr != null) pageSize = Math.max(1, Integer.parseInt(sizeStr));
+            if (sizeStr != null) {
+                pageSize = Integer.parseInt(sizeStr);
+                if (pageSize < 1) pageSize = 1;
+                if (pageSize > 100) pageSize = 100;
+            }
         } catch (NumberFormatException ignore) {}
 
         try {
             int total = 0;
             int offset = (page - 1) * pageSize;
             
-            // Build the SQL query based on filters
+            List<Department> departmentList = new ArrayList<>();
+            
+            // Build base SQL with proper parameter binding
             StringBuilder sqlCount = new StringBuilder(
-                "SELECT COUNT(*) as total FROM department d WHERE 1=1"
+                "SELECT COUNT(*) as total FROM Department WHERE 1=1"
             );
-            
             StringBuilder sql = new StringBuilder(
-                "SELECT d.*, COUNT(e.EmployeeID) as emp_count " +
-                "FROM department d " +
-                "LEFT JOIN employee e ON d.DepartmentID = e.DepartmentID " +
-                "WHERE 1=1"
+                "SELECT DepartmentID, DeptName, DeptManagerID FROM Department WHERE 1=1"
             );
             
-            // Add status filter
-            if (!"all".equals(effectiveStatus)) {
-                String statusCondition = " AND d.Status = '" + effectiveStatus + "'";
-                sqlCount.append(statusCondition);
-                sql.append(statusCondition);
-            }
+            List<Object> params = new ArrayList<>();
+            List<Object> countParams = new ArrayList<>();
             
-            // Add search filter
+            // Add search filter - search in both DeptName and DepartmentID
             if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
-                String searchCondition = " AND d.DeptName LIKE '%" + searchKeyword.trim() + "%'";
+                String searchCondition = " AND (DeptName LIKE ? OR DepartmentID = ?)";
                 sqlCount.append(searchCondition);
                 sql.append(searchCondition);
+                
+                countParams.add("%" + searchKeyword.trim() + "%");
+                countParams.add(searchKeyword.trim()); // For ID search
+                
+                params.add("%" + searchKeyword.trim() + "%");
+                params.add(searchKeyword.trim());
             }
             
-            sql.append(" GROUP BY d.DepartmentID ");
-            
-            // Add sorting
+            // Add sorting - whitelist sortBy values for security
             sql.append(" ORDER BY ");
-            if (sortBy != null && !sortBy.isEmpty()) {
-                switch (sortBy) {
+            String sortColumn = "DeptName"; // default
+            if (sortBy != null) {
+                switch(sortBy.toLowerCase()) {
+                    case "id":
+                        sortColumn = "DepartmentID";
+                        break;
                     case "name":
-                        sql.append("d.DeptName ASC");
+                        sortColumn = "DeptName";
                         break;
-                    case "employees":
-                        sql.append("emp_count DESC");
-                        break;
-                    case "created":
-                        sql.append("d.CreatedAt DESC");
+                    case "manager":
+                        sortColumn = "DeptManagerID";
                         break;
                     default:
-                        sql.append("d.DeptName ASC");
+                        sortColumn = "DeptName";
                 }
-            } else {
-                sql.append("d.DeptName ASC");
             }
+            sql.append(sortColumn).append(" ").append(sortOrder);
             
             // Add pagination
-            sql.append(" LIMIT ").append(pageSize).append(" OFFSET ").append(offset);
+            sql.append(" LIMIT ? OFFSET ?");
+            params.add(pageSize);
+            params.add(offset);
             
             Connection conn = null;
-            Statement stCount = null;
-            Statement st = null;
-            ResultSet rsCount = null;
-            ResultSet rs = null;
-            
             try {
                 conn = DBConnection.getConnection();
                 if (conn == null) {
                     throw new SQLException("Cannot connect to database");
                 }
                 
-                // Get total count
-                stCount = conn.createStatement();
-                rsCount = stCount.executeQuery(sqlCount.toString());
-                if (rsCount.next()) {
-                    total = rsCount.getInt("total");
+                // Get total count using PreparedStatement
+                try (PreparedStatement psCount = conn.prepareStatement(sqlCount.toString())) {
+                    for (int i = 0; i < countParams.size(); i++) {
+                        psCount.setObject(i + 1, countParams.get(i));
+                    }
+                    try (ResultSet rsCount = psCount.executeQuery()) {
+                        if (rsCount.next()) {
+                            total = rsCount.getInt("total");
+                        }
+                    }
                 }
                 
-                // Get department list
+                // Get paged departments using PreparedStatement
                 departmentList = new ArrayList<>();
-                st = conn.createStatement();
-                rs = st.executeQuery(sql.toString());
-                
-                while (rs.next()) {
-                    Department dept = new Department(
-                        rs.getInt("DepartmentID"),
-                        rs.getString("DeptName"),
-                        rs.getObject("DeptManagerID") != null ? rs.getInt("DeptManagerID") : null
-                    );
-                    dept.setEmployeeCount(rs.getInt("emp_count"));
-                    departmentList.add(dept);
+                try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+                    for (int i = 0; i < params.size(); i++) {
+                        ps.setObject(i + 1, params.get(i));
+                    }
+                    try (ResultSet rs = ps.executeQuery()) {
+                        while (rs.next()) {
+                            Department dept = new Department(
+                                rs.getInt("DepartmentID"),
+                                rs.getString("DeptName"),
+                                rs.getObject("DeptManagerID") != null ? rs.getInt("DeptManagerID") : null
+                            );
+                            
+                            // Get employee count for this department
+                            try {
+                                int count = employeeDAO.getEmployeeCountByDepartment(dept.getDepartmentId());
+                                dept.setEmployeeCount(count);
+                            } catch (Exception ignore) {}
+                            
+                            departmentList.add(dept);
+                        }
+                    }
                 }
             } catch (SQLException e) {
                 throw new ServletException("Database error: " + e.getMessage(), e);
             } finally {
-                // Đóng tất cả các resources theo thứ tự ngược lại
                 try {
-                    if (rs != null) rs.close();
-                    if (st != null) st.close();
-                    if (rsCount != null) rsCount.close();
-                    if (stCount != null) stCount.close();
                     if (conn != null) conn.close();
                 } catch (SQLException e) {
                     Logger.getLogger(DepartmentController.class.getName())
-                          .log(Level.SEVERE, "Error closing database resources", e);
+                          .log(Level.SEVERE, "Error closing database connection", e);
                 }
             }
             
@@ -213,15 +222,16 @@ public class DepartmentController extends HttpServlet {
             if (totalPages == 0) totalPages = 1;
             if (page > totalPages) page = totalPages;
             
+            request.setAttribute("departmentList", departmentList);
             request.setAttribute("total", total);
             request.setAttribute("totalPages", totalPages);
+            
         } catch (Exception e) {
-            // Fallback to loading all departments if filtering/query fails
-            departmentList = departmentDAO.getAll();
+            // Fallback
+            List<Department> departmentList = departmentDAO.getAll();
+            request.setAttribute("departmentList", departmentList);
             request.setAttribute("errorMessage", "Search failed, showing all departments: " + e.getMessage());
-            e.printStackTrace();
-
-            // Ensure pagination attributes exist to avoid NPE in JSP
+            
             int totalFallback = departmentList != null ? departmentList.size() : 0;
             int totalPagesFallback = (int) Math.ceil(totalFallback / (double) pageSize);
             if (totalPagesFallback == 0) totalPagesFallback = 1;
@@ -229,30 +239,19 @@ public class DepartmentController extends HttpServlet {
             request.setAttribute("totalPages", totalPagesFallback);
         }
 
-        // Ensure employeeCount is accurate for each department
-        if (departmentList != null) {
-            for (Department d : departmentList) {
-                try {
-                    int count = employeeDAO.getEmployeeCountByDepartment(d.getDepartmentId());
-                    d.setEmployeeCount(count);
-                } catch (Exception ignore) {}
-            }
-        }
-
         List<Employee> managers = employeeDAO.getManagerList();
         List<Department> allDepartments = departmentDAO.getAll();
 
-        request.setAttribute("departmentList", departmentList);
         request.setAttribute("allDepartments", allDepartments);
         request.setAttribute("managers", managers);
         request.setAttribute("searchKeyword", searchKeyword);
         request.setAttribute("sortBy", sortBy);
+        request.setAttribute("sortOrder", sortOrder);
         request.setAttribute("page", page);
         request.setAttribute("pageSize", pageSize);
 
         request.getRequestDispatcher("Admin/Departments.jsp").forward(request, response);
     }
-
 
     private void saveDepartment(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
