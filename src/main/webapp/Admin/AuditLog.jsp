@@ -7,10 +7,10 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>Audit Log</title>
+        <title>Audit Log - HRMS</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/Admin_home.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/unified-layout.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/user-menu.css">
-        <%-- Đảm bảo bạn có file CSS này (lấy từ Departments.jsp) --%>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/pagination.css">
 
 <style>
@@ -248,30 +248,29 @@
                 </header>
 
                 <section class="dashboard-content">
-                    <h1 class="page-title">📜 System Audit Log</h1>
+                    <div class="page-header">
+                        <h1 class="page-title">📜 System Audit Log</h1>
+                    </div>
 
-                    <div class="log-container">
-                        <h2>Activity History</h2>
-                        
-                        <c:if test="${not empty errorMessage}">
-                            <div style="color: red; margin-bottom: 10px;">
-                                <strong>Error:</strong> <c:out value="${errorMessage}"/>
-                            </div>
-                        </c:if>
+                    <c:if test="${not empty errorMessage}">
+                        <div class="alert error">
+                            <strong>Error:</strong> <c:out value="${errorMessage}"/>
+                        </div>
+                    </c:if>
 
+                    <div class="filter-section">
                         <div class="filter-controls">
-                            
                             <div class="filter-group">
-                                <label for="searchQueryInput">Search:</label>
+                                <label for="searchQueryInput">Search</label>
                                 <input type="text" id="searchQueryInput" name="search" 
                                        placeholder="LogID, User, Action, Object..." 
-                                       value="${searchQuery}" style="min-width: 200px;">
+                                       value="${searchQuery}" class="filter-input">
                             </div>
 
                             <div class="filter-group">
-                                <label for="filterAction">Action Type:</label>
-                                <select id="filterAction" name="filterAction">
-                                    <option value="all">-- All Actions --</option>
+                                <label for="filterAction">Action Type</label>
+                                <select id="filterAction" name="filterAction" class="filter-select">
+                                    <option value="all">All Actions</option>
                                     <c:forEach var="action" items="${distinctActions}">
                                         <option value="${action}" <c:if test="${filterAction == action}">selected</c:if>>
                                             ${action}
@@ -281,9 +280,9 @@
                             </div>
 
                             <div class="filter-group">
-                                <label for="filterObjectType">Object Type:</label>
-                                <select id="filterObjectType" name="filterObjectType">
-                                    <option value="all">-- All Objects --</option>
+                                <label for="filterObjectType">Object Type</label>
+                                <select id="filterObjectType" name="filterObjectType" class="filter-select">
+                                    <option value="all">All Objects</option>
                                     <c:forEach var="objectType" items="${distinctObjectTypes}">
                                         <option value="${objectType}" <c:if test="${filterObjectType == objectType}">selected</c:if>>
                                             ${objectType}
@@ -296,8 +295,10 @@
                                 <button type="button" onclick="applyFilters()" class="btn-primary">Apply Filter</button>
                                 <button type="button" onclick="clearAllFilters()" class="btn-secondary">Clear All</button>
                             </div>
-
                         </div>
+                    </div>
+
+                    <div class="table-section">
                         <table class="log-table">
                             <thead>
                                 <tr>
@@ -363,8 +364,9 @@
                                 </c:choose>
                             </tbody>
                         </table>
+                    </div>
                         
-                        <div class="pagination-bar">
+                    <div class="pagination-bar">
                             <div class="pagination-info">
                                 <%-- Tính toán hiển thị --%>
                                 <c:set var="start" value="${total > 0 ? (page - 1) * pageSize + 1 : 0}" />
@@ -454,7 +456,6 @@
                                     </c:otherwise>
                                 </c:choose>
                             </div>
-                        </div>
                         </div>
 
                 </section>

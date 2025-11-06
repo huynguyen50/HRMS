@@ -188,11 +188,8 @@ public class DepartmentController extends HttpServlet {
                     Department dept = new Department(
                         rs.getInt("DepartmentID"),
                         rs.getString("DeptName"),
-                        rs.getObject("ManagerID") != null ? rs.getInt("ManagerID") : null,
-                        rs.getString("Status"),
-                        rs.getTimestamp("CreatedAt")
+                        rs.getObject("DeptManagerID") != null ? rs.getInt("DeptManagerID") : null
                     );
-                    // Lấy số lượng nhân viên từ kết quả JOIN
                     dept.setEmployeeCount(rs.getInt("emp_count"));
                     departmentList.add(dept);
                 }
@@ -232,6 +229,16 @@ public class DepartmentController extends HttpServlet {
             request.setAttribute("totalPages", totalPagesFallback);
         }
 
+        // Ensure employeeCount is accurate for each department
+        if (departmentList != null) {
+            for (Department d : departmentList) {
+                try {
+                    int count = employeeDAO.getEmployeeCountByDepartment(d.getDepartmentId());
+                    d.setEmployeeCount(count);
+                } catch (Exception ignore) {}
+            }
+        }
+
         List<Employee> managers = employeeDAO.getManagerList();
         List<Department> allDepartments = departmentDAO.getAll();
 
@@ -239,7 +246,6 @@ public class DepartmentController extends HttpServlet {
         request.setAttribute("allDepartments", allDepartments);
         request.setAttribute("managers", managers);
         request.setAttribute("searchKeyword", searchKeyword);
-        request.setAttribute("status", effectiveStatus);
         request.setAttribute("sortBy", sortBy);
         request.setAttribute("page", page);
         request.setAttribute("pageSize", pageSize);
