@@ -105,7 +105,7 @@ public class RoleServlet extends HttpServlet {
             String successMessage = (String) session.getAttribute("successMessage");
             if (successMessage != null) {
                 request.setAttribute("successMessage", successMessage);
-                session.removeAttribute("successMessage"); // Xóa sau khi lấy
+                session.removeAttribute("successMessage"); 
             }
 
             String errorMessage = (String) session.getAttribute("errorMessage");

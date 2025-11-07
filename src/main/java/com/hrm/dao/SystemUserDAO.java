@@ -1,7 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package com.hrm.dao;
 
 import com.hrm.model.entity.Department;
@@ -13,10 +10,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- * @author Hask
- */
+
 public class SystemUserDAO {
 
     public List<SystemUser> getAllUsers(int page, int pageSize) throws SQLException {
@@ -27,7 +21,6 @@ public class SystemUserDAO {
         List<SystemUser> users = new ArrayList<>();
         int offset = (page - 1) * pageSize;
 
-        // Validate sort field to prevent SQL injection
         String validSortField = validateSortField(sortBy);
         String validSortOrder = "DESC".equalsIgnoreCase(sortOrder) ? "DESC" : "ASC";
 
@@ -52,7 +45,6 @@ public class SystemUserDAO {
         return users;
     }
 
-    // Lấy SystemUser theo ID
     public SystemUser getById(int userId) {
         String sql = """
             SELECT su.*, r.RoleName 
@@ -78,7 +70,6 @@ public class SystemUserDAO {
                               ? rs.getTimestamp("CreatedDate").toLocalDateTime() : null);
                     user.setEmployeeId(rs.getObject("EmployeeID", Integer.class));
 
-                    // Set Role information
                     Role role = new Role();
                     role.setRoleId(rs.getInt("RoleID"));
                     role.setRoleName(rs.getString("RoleName"));
@@ -93,7 +84,6 @@ public class SystemUserDAO {
         return null;
     }
 
-    // Lấy SystemUser theo username
     public SystemUser getByUsername(String username) {
         String sql = """
             SELECT su.*, r.RoleName 
@@ -119,7 +109,6 @@ public class SystemUserDAO {
                               ? rs.getTimestamp("CreatedDate").toLocalDateTime() : null);
                     user.setEmployeeId(rs.getObject("EmployeeID", Integer.class));
 
-                    // Set Role information
                     Role role = new Role();
                     role.setRoleId(rs.getInt("RoleID"));
                     role.setRoleName(rs.getString("RoleName"));
@@ -134,7 +123,6 @@ public class SystemUserDAO {
         return null;
     }
 
-    // Lấy SystemUser theo EmployeeID
     public SystemUser getByEmployeeId(int employeeId) {
         String sql = """
             SELECT su.*, r.RoleName 
@@ -160,7 +148,6 @@ public class SystemUserDAO {
                               ? rs.getTimestamp("CreatedDate").toLocalDateTime() : null);
                     user.setEmployeeId(rs.getObject("EmployeeID", Integer.class));
 
-                    // Set Role information
                     Role role = new Role();
                     role.setRoleId(rs.getInt("RoleID"));
                     role.setRoleName(rs.getString("RoleName"));
@@ -175,7 +162,6 @@ public class SystemUserDAO {
         return null;
     }
 
-    // Thêm SystemUser mới
     public boolean insert(SystemUser user) {
         String sql = """
             INSERT INTO SystemUser (Username, Password, RoleID, IsActive, CreatedDate, EmployeeID)
@@ -199,7 +185,6 @@ public class SystemUserDAO {
         return false;
     }
 
-    // Cập nhật SystemUser
     public boolean update(SystemUser user) {
         String sql = """
             UPDATE SystemUser SET Username=?, Password=?, RoleID=?, IsActive=?, 
@@ -225,7 +210,6 @@ public class SystemUserDAO {
         return false;
     }
 
-    // Xóa SystemUser
     public boolean delete(int userId) {
         String sql = "DELETE FROM SystemUser WHERE UserID=?";
 
@@ -239,7 +223,6 @@ public class SystemUserDAO {
         return false;
     }
 
-    // Cập nhật password
     public boolean changePassword(String username, String newPassword) {
         String sql = "UPDATE SystemUser SET Password=? WHERE Username=?";
 
@@ -254,7 +237,6 @@ public class SystemUserDAO {
         return false;
     }
 
-    // Cập nhật last login
     public boolean updateLastLogin(int userId, LocalDateTime lastLogin) {
         String sql = "UPDATE SystemUser SET LastLogin=? WHERE UserID=?";
 
@@ -269,7 +251,6 @@ public class SystemUserDAO {
         return false;
     }
 
-    // Cập nhật trạng thái active
     public boolean updateActiveStatus(int userId, boolean isActive) {
         String sql = "UPDATE SystemUser SET IsActive=? WHERE UserID=?";
 
@@ -284,7 +265,6 @@ public class SystemUserDAO {
         return false;
     }
 
-    // Kiểm tra username có tồn tại không
     public boolean isUsernameExists(String username) {
         String sql = "SELECT COUNT(*) FROM SystemUser WHERE Username=?";
 
@@ -302,7 +282,6 @@ public class SystemUserDAO {
         return false;
     }
 
-    // Đếm tổng số SystemUser
     public int getTotalCount() {
         String sql = "SELECT COUNT(*) FROM SystemUser";
 
@@ -329,7 +308,6 @@ public class SystemUserDAO {
         List<SystemUser> users = new ArrayList<>();
         int offset = (page - 1) * pageSize;
 
-        // Validate sort field to prevent SQL injection
         String validSortField = validateSortField(sortBy);
         String validSortOrder = "DESC".equalsIgnoreCase(sortOrder) ? "DESC" : "ASC";
 
@@ -592,17 +570,15 @@ public class SystemUserDAO {
     }
 
    private String buildFilterQuery(StringBuilder sql, List<Object> params, Integer roleId, Integer status, Integer departmentId, String username) {
-        // Lưu ý: Nếu username/roleId/status/departmentId là null hoặc giá trị 'all' (ví dụ: -1), thì không thêm điều kiện
         
         if (roleId != null && roleId > 0) {
             sql.append(" AND su.RoleID = ?");
             params.add(roleId);
         }
         
-        // Giả sử status: 1=Active, 0=Inactive. Cần đảm bảo status khác null và khác giá trị 'all' (ví dụ: -1)
         if (status != null && status != -1) { 
             sql.append(" AND su.IsActive = ?");
-            params.add(status == 1); // Sử dụng boolean cho SQL
+            params.add(status == 1); 
         }
         
         if (username != null && !username.trim().isEmpty()) {
@@ -617,12 +593,8 @@ public class SystemUserDAO {
         return sql.toString();
     }
     
-    // PHƯƠNG THỨC MỚI: Ánh xạ ResultSet đầy đủ thông tin Employee và Department
     private SystemUser mapResultSetToSystemUserWithEmployeeInfo(ResultSet rs) throws SQLException {
-        // Phương thức này cần được bạn định nghĩa trong file gốc
-        // Đây là ví dụ dựa trên cấu trúc CSDL bạn gửi:
         SystemUser user = new SystemUser();
-        // Ánh xạ SystemUser
         user.setUserId(rs.getInt("UserID"));
         user.setUsername(rs.getString("Username"));
         user.setLastLogin(rs.getTimestamp("LastLogin") != null 
@@ -638,21 +610,17 @@ public class SystemUserDAO {
             user.setEmployeeId(employeeId);
         }
 
-        // Ánh xạ Role
         Role role = new Role();
         role.setRoleId(rs.getInt("RoleID"));
         role.setRoleName(rs.getString("RoleName"));
         user.setRole(role);
         
-        // Ánh xạ Employee và Department (Nếu có EmployeeID)
         if (user.getEmployeeId() != null) {
             Employee employee = new Employee();
             employee.setEmployeeId(user.getEmployeeId());
-            // Lấy FullName từ bảng Employee (e)
             employee.setFullName(rs.getString("FullName")); 
             
             Department department = new Department();
-            // Lấy DeptName từ bảng Department (d)
             department.setDeptName(rs.getString("DeptName")); 
             
             employee.setDepartment(department); 
@@ -662,13 +630,11 @@ public class SystemUserDAO {
     }
 
 
-    // PHƯƠNG THỨC MỚI: Lấy tổng số người dùng có áp dụng bộ lọc (để tính TotalPages)
     public int getTotalFilteredUsers(Integer roleId, Integer status, Integer departmentId, String username) throws SQLException {
         int total = 0;
         List<Object> params = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT COUNT(su.UserID) ");
         sql.append("FROM SystemUser su ");
-        // Phải JOIN để lọc theo Department và Employee
         sql.append("LEFT JOIN Employee e ON su.EmployeeID = e.EmployeeID "); 
 
         buildFilterQuery(sql, params, roleId, status, departmentId, username);
@@ -689,7 +655,6 @@ public class SystemUserDAO {
         return total;
     }
 
-    // SỬA ĐỔI PHƯƠNG THỨC getAllUsers: Thêm tham số lọc và phân trang
     public List<SystemUser> getFilteredUsers(int page, int pageSize, Integer roleId, Integer status, Integer departmentId, String username) throws SQLException {
         List<SystemUser> users = new ArrayList<>();
         int offset = (page - 1) * pageSize;
@@ -704,7 +669,6 @@ public class SystemUserDAO {
         
         StringBuilder sql = new StringBuilder(baseSelect);
 
-        // Thêm mệnh đề WHERE từ hàm tiện ích
         buildFilterQuery(sql, params, roleId, status, departmentId, username);
 
         sql.append(" ORDER BY su.CreatedDate DESC LIMIT ? OFFSET ?");

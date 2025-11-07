@@ -14,7 +14,7 @@ import java.util.logging.Level;
 public class RoleDAO {
     private static final Logger logger = Logger.getLogger(RoleDAO.class.getName());
     private static final int MAX_ROLE_NAME_LENGTH = 100;
-    private static final String ROLE_NAME_PATTERN = "^[a-zA-Z0-9\\s\\-_]+$"; // Alphanumeric, spaces, hyphens, underscores
+    private static final String ROLE_NAME_PATTERN = "^[a-zA-Z0-9\\s\\-_]+$";  
 
     private void validateRoleName(String roleName) throws IllegalArgumentException {
         if (roleName == null || roleName.trim().isEmpty()) {

@@ -1,7 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package com.hrm.dao;
 
 import com.hrm.model.entity.Department;
@@ -10,10 +7,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- * @author Hask
- */
+
 
 public class DepartmentDAO {
 
@@ -263,11 +257,7 @@ public List<Department> searchDepartments(String keyword) throws SQLException {
         return list;
     }
 
-    /**
-     * Get count of departments filtered by department ID
-     * @param departmentId Department ID to filter by (0 = all)
-     * @return Total count
-     */
+
     public int getCountByDepartment(int departmentId) {
         String sql = departmentId > 0 
             ? "SELECT COUNT(*) as total FROM Department WHERE DepartmentID = ?"
@@ -291,9 +281,7 @@ public List<Department> searchDepartments(String keyword) throws SQLException {
         return 0;
     }
 
-    /**
-     * Get departments filtered by department and status with pagination
-     */
+
     public List<Department> getPagedByDepartmentAndStatus(int departmentId, String status, int offset, int limit) {
         List<Department> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM Department WHERE 1=1");
@@ -331,9 +319,7 @@ public List<Department> searchDepartments(String keyword) throws SQLException {
         return list;
     }
 
-    /**
-     * Count departments filtered by department and status
-     */
+
     public int getCountByDepartmentAndStatus(int departmentId, String status) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) as total FROM Department WHERE 1=1");
         List<Object> params = new ArrayList<>();
@@ -362,18 +348,11 @@ public List<Department> searchDepartments(String keyword) throws SQLException {
         return 0;
     }
 
-    /**
-     * Get departments filtered by time range with pagination
-     * @param timeRange Time range filter: "today", "week", "month"
-     * @param offset Pagination offset
-     * @param limit Pagination limit
-     * @return List of filtered departments
-     */
+
     public List<Department> getPagedByTimeRange(String timeRange, int offset, int limit) {
         List<Department> list = new ArrayList<>();
         String sql = "SELECT * FROM Department WHERE 1=1";
         
-        // Add time range filter if table has CreatedAt column
         if (timeRange != null && !timeRange.isEmpty()) {
             switch (timeRange.toLowerCase()) {
                 case "today":

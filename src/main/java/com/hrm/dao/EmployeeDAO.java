@@ -41,7 +41,6 @@ public class EmployeeDAO {
                 e.setStatus(rs.getString("Status"));
                 e.setEmploymentPeriod(rs.getString("EmploymentPeriod"));
 
-                // Set SystemUser information if exists
                 if (rs.getInt("UserID") != 0) {
                     SystemUser systemUser = new SystemUser();
                     systemUser.setUserId(rs.getInt("UserID"));
@@ -253,7 +252,6 @@ public class EmployeeDAO {
                     employee.setStatus(rs.getString("Status"));
                     employee.setEmploymentPeriod(rs.getString("EmploymentPeriod"));
 
-                    // Populate Department
                     if (rs.getInt("DepartmentID") != 0) {
                         Department department = new Department();
                         department.setDepartmentId(rs.getInt("DepartmentID"));
@@ -261,7 +259,6 @@ public class EmployeeDAO {
                         employee.setDepartment(department);
                     }
 
-                    // Populate SystemUser and Role
                     SystemUser systemUser = new SystemUser();
                     systemUser.setUsername(rs.getString("Username"));
                     Timestamp lastLoginTimestamp = rs.getTimestamp("LastLogin");

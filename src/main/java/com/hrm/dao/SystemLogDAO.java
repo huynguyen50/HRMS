@@ -1,7 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package com.hrm.dao;
 
 import com.hrm.model.entity.SystemLog;
@@ -15,17 +12,11 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * @author Hask
- */
+
 public class SystemLogDAO {
 
     private static final Logger logger = Logger.getLogger(SystemLogDAO.class.getName());
 
-    /**
-     * Insert a new system log entry
-     */
     public boolean insertSystemLog(SystemLog systemLog) {
         String query = "INSERT INTO SystemLog (UserID, Action, ObjectType, OldValue, NewValue, Timestamp) VALUES (?, ?, ?, ?, ?, ?)";
 
@@ -49,9 +40,7 @@ public class SystemLogDAO {
         return false;
     }
 
-    /**
-     * Insert a new system log entry with current timestamp
-     */
+
     public boolean insertSystemLog(int userID, String action, String objectType, String oldValue, String newValue) {
         String query = "INSERT INTO SystemLog (UserID, Action, ObjectType, OldValue, NewValue, Timestamp) VALUES (?, ?, ?, ?, ?, NOW())";
 
@@ -74,9 +63,6 @@ public class SystemLogDAO {
         return false;
     }
 
-    /**
-     * Get system logs by user ID
-     */
     public List<SystemLog> getSystemLogsByUserID(int userID) {
         List<SystemLog> logs = new ArrayList<>();
         String query = "SELECT * FROM SystemLog WHERE UserID = ? ORDER BY Timestamp DESC";
@@ -99,9 +85,6 @@ public class SystemLogDAO {
         return logs;
     }
 
-    /**
-     * Get system logs by user ID with limit
-     */
     public List<SystemLog> getSystemLogsByUserID(int userID, int limit) {
         List<SystemLog> logs = new ArrayList<>();
         String query = "SELECT * FROM SystemLog WHERE UserID = ? ORDER BY Timestamp DESC LIMIT ?";
