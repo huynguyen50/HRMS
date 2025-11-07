@@ -206,7 +206,6 @@
                         <div class="referrals-card">
                             <h3>Quick Actions</h3>
                             <div class="referrals-list">
-                                <!-- Manage Employees quick action removed -->
                                 <a href="${pageContext.request.contextPath}/admin?action=departments" class="referral-item">
                                     <span class="referral-name">Manage Departments</span>
                                     <span class="referral-count">→</span>

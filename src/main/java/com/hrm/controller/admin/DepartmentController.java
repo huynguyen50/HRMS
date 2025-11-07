@@ -91,7 +91,6 @@ public class DepartmentController extends HttpServlet {
         String sortBy = request.getParameter("sortBy");
         String sortOrder = request.getParameter("sortOrder");
         
-        // Validate and sanitize sortOrder
         if (sortOrder == null || (!sortOrder.equals("ASC") && !sortOrder.equals("DESC"))) {
             sortOrder = "ASC";
         }
@@ -115,7 +114,6 @@ public class DepartmentController extends HttpServlet {
             
             List<Department> departmentList = new ArrayList<>();
             
-            // Build base SQL with proper parameter binding
             StringBuilder sqlCount = new StringBuilder(
                 "SELECT COUNT(*) as total FROM Department WHERE 1=1"
             );
@@ -126,22 +124,20 @@ public class DepartmentController extends HttpServlet {
             List<Object> params = new ArrayList<>();
             List<Object> countParams = new ArrayList<>();
             
-            // Add search filter - search in both DeptName and DepartmentID
             if (searchKeyword != null && !searchKeyword.trim().isEmpty()) {
                 String searchCondition = " AND (DeptName LIKE ? OR DepartmentID = ?)";
                 sqlCount.append(searchCondition);
                 sql.append(searchCondition);
                 
                 countParams.add("%" + searchKeyword.trim() + "%");
-                countParams.add(searchKeyword.trim()); // For ID search
+                countParams.add(searchKeyword.trim()); 
                 
                 params.add("%" + searchKeyword.trim() + "%");
                 params.add(searchKeyword.trim());
             }
             
-            // Add sorting - whitelist sortBy values for security
             sql.append(" ORDER BY ");
-            String sortColumn = "DeptName"; // default
+            String sortColumn = "DeptName"; 
             if (sortBy != null) {
                 switch(sortBy.toLowerCase()) {
                     case "id":
@@ -159,7 +155,6 @@ public class DepartmentController extends HttpServlet {
             }
             sql.append(sortColumn).append(" ").append(sortOrder);
             
-            // Add pagination
             sql.append(" LIMIT ? OFFSET ?");
             params.add(pageSize);
             params.add(offset);
@@ -171,7 +166,6 @@ public class DepartmentController extends HttpServlet {
                     throw new SQLException("Cannot connect to database");
                 }
                 
-                // Get total count using PreparedStatement
                 try (PreparedStatement psCount = conn.prepareStatement(sqlCount.toString())) {
                     for (int i = 0; i < countParams.size(); i++) {
                         psCount.setObject(i + 1, countParams.get(i));
@@ -183,7 +177,6 @@ public class DepartmentController extends HttpServlet {
                     }
                 }
                 
-                // Get paged departments using PreparedStatement
                 departmentList = new ArrayList<>();
                 try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
                     for (int i = 0; i < params.size(); i++) {
@@ -197,7 +190,6 @@ public class DepartmentController extends HttpServlet {
                                 rs.getObject("DeptManagerID") != null ? rs.getInt("DeptManagerID") : null
                             );
                             
-                            // Get employee count for this department
                             try {
                                 int count = employeeDAO.getEmployeeCountByDepartment(dept.getDepartmentId());
                                 dept.setEmployeeCount(count);
@@ -227,7 +219,6 @@ public class DepartmentController extends HttpServlet {
             request.setAttribute("totalPages", totalPages);
             
         } catch (Exception e) {
-            // Fallback
             List<Department> departmentList = departmentDAO.getAll();
             request.setAttribute("departmentList", departmentList);
             request.setAttribute("errorMessage", "Search failed, showing all departments: " + e.getMessage());

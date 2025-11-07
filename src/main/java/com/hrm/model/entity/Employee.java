@@ -18,7 +18,7 @@ public class Employee implements Serializable {
     private String departmentName; 
     private LocalDate hireDate;    
     private double salary;
-    private boolean active;        // trạng thái làm việc
+    private boolean active;       
     private Department department;
     private String employmentPeriod;
     private String status;

@@ -33,10 +33,9 @@ public class UserController extends HttpServlet {
 
     private static final int PAGE_SIZE = 10;
     private static final String TEMP_PASS_CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
-    private static final int TEMP_PASS_LENGTH = 10; // Đặt độ dài mật khẩu tạm thời là 10 ký tự
+    private static final int TEMP_PASS_LENGTH = 10; 
     private static final SecureRandom random = new SecureRandom();
 
-    // Hàm tiện ích tạo mật khẩu tạm thời ngẫu nhiên
     private String generateTempPassword() {
         StringBuilder sb = new StringBuilder(TEMP_PASS_LENGTH);
         for (int i = 0; i < TEMP_PASS_LENGTH; i++) {
@@ -89,7 +88,6 @@ public class UserController extends HttpServlet {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            // Sử dụng SC_INTERNAL_SERVER_ERROR (500) khi có ngoại lệ không lường trước
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
@@ -185,7 +183,6 @@ public class UserController extends HttpServlet {
         request.setAttribute("departments", departments);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
-        // Unified pagination attrs (like Roles/Audit Log)
         request.setAttribute("page", page);
         request.setAttribute("pageSize", pageSize);
         request.setAttribute("total", totalCount);
@@ -220,7 +217,7 @@ public class UserController extends HttpServlet {
     private void handleCheckUsername(HttpServletRequest request, HttpServletResponse response, Connection conn)
               throws Exception {
         String username = request.getParameter("username");
-        String userIdParam = request.getParameter("userId"); // For edit mode
+        String userIdParam = request.getParameter("userId");
         
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
@@ -235,11 +232,9 @@ public class UserController extends HttpServlet {
         boolean exists;
         
         if (userIdParam != null && !userIdParam.isEmpty()) {
-            // Edit mode: check if username exists for other users
             int userId = Integer.parseInt(userIdParam);
             exists = userDAO.usernameExistsForOtherUser(username, userId);
         } else {
-            // Create mode: check if username exists
             exists = userDAO.usernameExists(username);
         }
         
@@ -264,49 +259,43 @@ public class UserController extends HttpServlet {
         String empParam = request.getParameter("employeeId");
         boolean isActive = request.getParameter("isActive") != null;
 
-        // 1. Validation: Username length
         if (username == null || username.trim().length() < 3 || username.trim().length() > 50) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
             out.write("{\"success\":false,\"message\":\"Username phải có từ 3–50 ký tự.\"}");
             return;
         }
 
-        // 2. Validation: Username characters
         if (!username.matches("^[A-Za-z0-9._-]+$")) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
             out.write("{\"success\":false,\"message\":\"Username chỉ được chứa chữ, số, dấu '.', '-' hoặc '_'.\"}");
             return;
         }
 
-        // 3. Validation: Username exists
         SystemUserDAO userDAO = new SystemUserDAO();
         if (userDAO.usernameExists(username)) {
-            response.setStatus(HttpServletResponse.SC_CONFLICT); // 409
+            response.setStatus(HttpServletResponse.SC_CONFLICT);
             out.write("{\"success\":false,\"message\":\"Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.\"}");
             return;
         }
 
-        // 4. Validation: Password format
         if (password == null || password.length() < 8
                   || !password.matches("(?=.*[A-Z])(?=.*[a-z])(?=.*\\d).*")) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
             out.write("{\"success\":false,\"message\":\"Mật khẩu phải có ít nhất 8 ký tự, gồm 1 chữ hoa, 1 chữ thường và 1 số.\"}");
             return;
         }
 
-        // 5. Validation: Role ID
         if (roleIdStr == null || roleIdStr.isEmpty()) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
             out.write("{\"success\":false,\"message\":\"Vui lòng chọn vai trò.\"}");
             return;
         }
 
-        // 6. Validation: Employee ID
         Integer employeeId = null;
         if (empParam != null && !empParam.isEmpty()) {
             employeeId = Integer.parseInt(empParam);
         } else {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
             out.write("{\"success\":false,\"message\":\"Vui lòng chọn nhân viên.\"}");
             return;
         }
@@ -323,7 +312,7 @@ public class UserController extends HttpServlet {
         if (userDAO.createUser(user)) {
             out.write("{\"success\":true,\"message\":\"Tạo người dùng thành công.\"}");
         } else {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); 
             out.write("{\"success\":false,\"message\":\"Không thể tạo người dùng.\"}");
         }
     }
@@ -339,7 +328,7 @@ public class UserController extends HttpServlet {
 
             String idParam = request.getParameter("id");
             String username = request.getParameter("username");
-            String password = request.getParameter("password"); // Có thể rỗng
+            String password = request.getParameter("password"); 
             String roleIdParam = request.getParameter("roleId");
             String empParam = request.getParameter("employeeId");
             boolean isActive = request.getParameter("isActive") != null;
@@ -351,7 +340,7 @@ public class UserController extends HttpServlet {
             try {
                 userId = Integer.parseInt(idParam);
             } catch (NumberFormatException e) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
                 out.write("{\"success\":false,\"message\":\"ID người dùng không hợp lệ.\"}");
                 return;
             }
@@ -359,7 +348,7 @@ public class UserController extends HttpServlet {
             try {
                 roleId = Integer.parseInt(roleIdParam);
             } catch (NumberFormatException e) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
                 out.write("{\"success\":false,\"message\":\"Vui lòng chọn vai trò.\"}");
                 return;
             }
@@ -368,32 +357,31 @@ public class UserController extends HttpServlet {
                 if (empParam != null && !empParam.isEmpty()) {
                     employeeId = Integer.parseInt(empParam);
                 } else {
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
                     out.write("{\"success\":false,\"message\":\"Vui lòng chọn nhân viên.\"}");
                     return;
                 }
             } catch (NumberFormatException e) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
                 out.write("{\"success\":false,\"message\":\"ID nhân viên không hợp lệ.\"}");
                 return;
             }
 
             if (username == null || username.trim().length() < 3 || username.trim().length() > 50) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
                 out.write("{\"success\":false,\"message\":\"Username phải có từ 3–50 ký tự.\"}");
                 return;
             }
             if (!username.matches("^[A-Za-z0-9._-]+$")) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
                 out.write("{\"success\":false,\"message\":\"Username chỉ được chứa chữ, số, dấu '.', '-' hoặc '_'.\"}");
                 return;
             }
 
             SystemUserDAO userDAO = new SystemUserDAO();
 
-            // Check if username exists for other users (Conflict)
             if (userDAO.usernameExistsForOtherUser(username, userId)) {
-                response.setStatus(HttpServletResponse.SC_CONFLICT); // 409
+                response.setStatus(HttpServletResponse.SC_CONFLICT); 
                 out.write("{\"success\":false,\"message\":\"Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.\"}");
                 return;
             }
@@ -408,15 +396,13 @@ public class UserController extends HttpServlet {
             boolean basicUpdateSuccess = userDAO.updateUser(user);
 
             if (!basicUpdateSuccess) {
-                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); 
                 out.write("{\"success\":false,\"message\":\"Không thể cập nhật thông tin người dùng.\"}");
                 return;
             }
 
             if (password != null && !password.isEmpty()) {
                 if (password.length() < 8 || !password.matches("(?=.*[A-Z])(?=.*[a-z])(?=.*\\d).*")) {
-                    // Nếu mật khẩu mới không hợp lệ, vẫn trả về 200 vì thông tin cơ bản đã được lưu
-                    // và chỉ cảnh báo về mật khẩu.
                     out.write("{\"success\":true,\"message\":\"Thông tin người dùng đã được cập nhật thành công, NHƯNG mật khẩu mới không hợp lệ (yêu cầu 8 ký tự, 1 hoa, 1 thường, 1 số) và KHÔNG được lưu.\"}");
                     return;
                 }
@@ -427,7 +413,7 @@ public class UserController extends HttpServlet {
 
         } catch (Exception e) {
             e.printStackTrace();
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); 
             out.write("{\"success\":false,\"message\":\"Lỗi xử lý phía server: " + e.getMessage() + "\"}");
         }
     }
@@ -440,27 +426,25 @@ public class UserController extends HttpServlet {
 
         String idParam = request.getParameter("id");
         if (idParam == null) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST); // 400
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
             out.write("{\"success\":false,\"message\":\"Thiếu ID người dùng.\"}");
             return;
         }
 
         int userId = Integer.parseInt(idParam);
-        String tempPassword = generateTempPassword(); // Sử dụng hàm tạo mật khẩu ngẫu nhiên
+        String tempPassword = generateTempPassword(); 
 
         SystemUserDAO userDAO = new SystemUserDAO();
         if (userDAO.updatePassword(userId, tempPassword)) {
-            // Trả về JSON, bao gồm mật khẩu tạm thời để người quản trị thông báo cho người dùng
             out.write("{\"success\":true,\"message\":\"Đặt lại mật khẩu thành công. Mật khẩu tạm thời: " + tempPassword + "\"}");
         } else {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); // 500
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); 
             out.write("{\"success\":false,\"message\":\"Không thể đặt lại mật khẩu.\"}");
         }
     }
 
     private void handleToggleStatus(HttpServletRequest request, HttpServletResponse response, Connection conn)
               throws Exception {
-        // Hàm này vẫn đang dùng redirect, nên được giữ nguyên logic ban đầu của bạn.
         int userId = Integer.parseInt(request.getParameter("id"));
         SystemUserDAO userDAO = new SystemUserDAO();
 
@@ -473,7 +457,6 @@ public class UserController extends HttpServlet {
 
     private void handleDeleteUser(HttpServletRequest request, HttpServletResponse response, Connection conn)
               throws Exception {
-        // Hàm này vẫn đang dùng redirect, nên được giữ nguyên logic ban đầu của bạn.
         int userId = Integer.parseInt(request.getParameter("id"));
         SystemUserDAO userDAO = new SystemUserDAO();
 

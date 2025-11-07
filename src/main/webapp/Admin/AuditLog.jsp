@@ -14,7 +14,6 @@
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/pagination.css">
 
 <style>
-            /* log-table styles (Dòng 2-9) */
             .log-table {
                 width: 100%;
                 border-collapse: collapse;
@@ -87,21 +86,20 @@
                 cursor: pointer;
             }
             
-            /* BẮT ĐẦU KHỐI CSS ĐÃ SỬA LỖI LAYOUT (Dòng 29 trở đi) */
             .filter-controls {
                 display: flex;
-                justify-content: flex-start; /* [cite: 29] */
-                align-items: flex-end; /* Quan trọng: Căn chỉnh tất cả các phần tử con theo đáy  */
+                justify-content: flex-start;
+                align-items: flex-end; 
                 margin-bottom: 20px;
-                gap: 20px; /* [cite: 31] */
+                gap: 20px;
                 flex-wrap: wrap;
             }
 
             .filter-group {
                 display: flex;
-                flex-direction: column; /* Quan trọng: Xếp nhãn và input theo cột  */
+                flex-direction: column; 
                 align-items: flex-start;
-                gap: 5px; /* [cite: 34] */
+                gap: 5px; 
             }
 
             .filter-group input[type="text"],
@@ -126,10 +124,10 @@
                 border: none;
                 border-radius: 4px;
                 cursor: pointer;
-                font-size: 14px; /* [cite: 39] */
+                font-size: 14px; 
                 line-height: 1.2;
-                height: 38px; /* Thiết lập chiều cao bằng với input [cite: 40] */
-                box-sizing: border-box; /* [cite: 41] */
+                height: 38px; 
+                box-sizing: border-box;
             }
 
             .btn-primary {
@@ -138,20 +136,19 @@
             }
             .btn-secondary {
                 background-color: #6c757d;
-                color: white; /* [cite: 42] */
+                color: white; 
             }
 
             .log-table th {
                 cursor: pointer;
-                user-select: none; /* [cite: 43] */
+                user-select: none; 
             }
             .sort-arrow {
                 margin-left: 5px;
                 font-size: 0.8em;
-                vertical-align: middle; /* [cite: 44] */
+                vertical-align: middle; 
             }
 
-            /* CSS cho bộ chọn page size (từ Departments.jsp) */
             .pagination-info {
                 display: flex;
                 align-items: center;
@@ -368,7 +365,6 @@
                         
                     <div class="pagination-bar">
                             <div class="pagination-info">
-                                <%-- Tính toán hiển thị --%>
                                 <c:set var="start" value="${total > 0 ? (page - 1) * pageSize + 1 : 0}" />
                                 <c:set var="end" value="${page * pageSize}" />
                                 <c:if test="${end > total}">
@@ -477,31 +473,25 @@
         </div>
 
         <script>
-            // HÀM MỚI: Apply Filter (Lọc song song)
             function applyFilters() {
                 const urlParams = new URLSearchParams();
                 
-                // Lấy các tham số filter/search từ form
                 const search = document.getElementById('searchQueryInput').value.trim();
                 const action = document.getElementById('filterAction').value;
                 const objectType = document.getElementById('filterObjectType').value;
                 
-                // Lấy trạng thái phân trang và sắp xếp hiện tại
                 const currentPageSize = document.getElementById('pageSizeSelect').value || '10';
                 const currentSortBy = '${sortBy}';
                 const currentSortOrder = '${sortOrder}';
                 
-                // Đặt các tham số bắt buộc và phân trang
                 urlParams.set('action', 'audit-log');
-                urlParams.set('page', '1'); // Luôn reset về trang 1 khi lọc
+                urlParams.set('page', '1'); 
                 urlParams.set('pageSize', currentPageSize);
                 
-                // Thêm các tham số lọc/tìm kiếm (lọc song song)
                 if (search !== '') urlParams.set('search', search);
                 if (action !== 'all') urlParams.set('filterAction', action);
                 if (objectType !== 'all') urlParams.set('filterObjectType', objectType);
                 
-                // Giữ lại trạng thái sắp xếp
                 if (currentSortBy && currentSortOrder) {
                     urlParams.set('sortBy', currentSortBy);
                     urlParams.set('sortOrder', currentSortOrder);
@@ -510,22 +500,17 @@
                 window.location.href = '${pageContext.request.contextPath}/admin?' + urlParams.toString();
             }
             
-            // HÀM MỚI: Clear All Filters
             function clearAllFilters() {
-                // Chỉ cần điều hướng lại trang với action mặc định để Controller áp dụng các giá trị mặc định
                 window.location.href = '${pageContext.request.contextPath}/admin?action=audit-log';
             }
 
-            // HÀM ĐÃ SỬA: Thay đổi Page Size (Giữ lại các bộ lọc hiện tại)
             function changePageSize(newSize) {
                 const urlParams = new URLSearchParams();
                 
-                // Set action và pageSize
                 urlParams.set('action', 'audit-log');
                 urlParams.set('pageSize', newSize);
-                urlParams.set('page', '1'); // Luôn reset về trang 1 khi đổi size
+                urlParams.set('page', '1'); 
                 
-                // Lấy các filter từ form inputs (ưu tiên) hoặc từ URL params
                 const searchInput = document.getElementById('searchQueryInput');
                 const filterActionSelect = document.getElementById('filterAction');
                 const filterObjectTypeSelect = document.getElementById('filterObjectType');
@@ -534,12 +519,10 @@
                 const filterAction = filterActionSelect ? filterActionSelect.value : '';
                 const filterObjectType = filterObjectTypeSelect ? filterObjectTypeSelect.value : '';
                 
-                // Lấy sort parameters từ URL (vì không có form input cho sort)
                 const currentUrlParams = new URLSearchParams(window.location.search);
                 const sortBy = currentUrlParams.get('sortBy') || 'Timestamp';
                 const sortOrder = currentUrlParams.get('sortOrder') || 'DESC';
                 
-                // Thêm các filter nếu có giá trị
                 if (search && search !== '') {
                     urlParams.set('search', search);
                 }
@@ -550,7 +533,6 @@
                     urlParams.set('filterObjectType', filterObjectType);
                 }
                 
-                // Thêm sort parameters
                 if (sortBy && sortBy !== '') {
                     urlParams.set('sortBy', sortBy);
                 }
@@ -561,7 +543,6 @@
                 window.location.href = '${pageContext.request.contextPath}/admin?' + urlParams.toString();
             }
 
-            // HÀM SẮP XẾP (Đã cập nhật để giữ lại bộ lọc)
             function sortTable(column) {
                 const urlParams = new URLSearchParams(window.location.search);
                 const currentSortBy = urlParams.get('sortBy') || 'Timestamp';
@@ -577,7 +558,6 @@
                 urlParams.set('sortBy', column);
                 urlParams.set('sortOrder', newSortOrder);
 
-                // Xóa các tham số không cần thiết để URL gọn hơn
                 if (urlParams.get('search') === '') urlParams.delete('search');
                 if (urlParams.get('filterAction') === 'all') urlParams.delete('filterAction');
                 if (urlParams.get('filterObjectType') === 'all') urlParams.delete('filterObjectType');
@@ -585,7 +565,6 @@
                 window.location.href = '${pageContext.request.contextPath}/admin?' + urlParams.toString();
             }
 
-            // Hàm để hiển thị modal chi tiết log (Giữ nguyên)
             function showLogDetails(logId, oldValue, newValue, action, objectType) {
                 document.getElementById('modalLogId').innerText = logId;
                 document.getElementById('modalAction').innerText = action;
@@ -595,7 +574,6 @@
                     if (!value || value.trim() === 'null' || value.trim() === '') {
                         return 'N/A or Empty';
                     }
-                    // Bỏ escape HTML/XML và thay thế chuỗi '\n' thành ký tự ngắt dòng thực tế
                     let decodedValue = new DOMParser().parseFromString(value, 'text/html').documentElement.textContent;
                     return decodedValue.replace(/\\n/g, '\n').replace(/\\r/g, '\r');
                 };

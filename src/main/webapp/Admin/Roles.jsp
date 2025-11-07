@@ -84,7 +84,6 @@
             vertical-align: middle;
         }
 
-        /* CSS cho Modal (Đảm bảo các popup hoạt động) */
         .modal {
             display: none; 
             position: fixed; 
@@ -170,7 +169,6 @@
             color: #155724;
             border: 1px solid #c3e6cb;
         }
-        /* Kết thúc Khối CSS đã sửa lỗi layout */
     </style>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -460,38 +458,30 @@
     </div>
 
     <script>
-        // URL base cho RoleServlet để xử lý list
-        // Cần đảm bảo RoleServlet có endpoint /admin/role/list
         const ROLE_LIST_URL = '${pageContext.request.contextPath}/admin/role/list';
         const ROLE_API_URL = '${pageContext.request.contextPath}/admin/role';
 
-        // --- HÀM XỬ LÝ LỌC/PHÂN TRANG ---
 
         function applyFilters() {
             const urlParams = new URLSearchParams(window.location.search);
             
-            // Lấy giá trị từ ô tìm kiếm
             const search = document.getElementById('searchQueryInput').value.trim();
             
-            // Lấy giá trị PageSize hiện tại (hoặc mặc định là 10)
             const pageSizeSelect = document.getElementById('pageSizeSelect');
             const currentPageSize = pageSizeSelect ? pageSizeSelect.value : '10';
 
-            // Lấy trạng thái sắp xếp hiện tại (được set bởi Servlet)
             const currentSortBy = '${sortBy}';
             const currentSortOrder = '${sortOrder}';
             
-            urlParams.set('page', '1'); // Luôn reset về trang 1 khi lọc
+            urlParams.set('page', '1');
             urlParams.set('pageSize', currentPageSize);
             
-            // Cập nhật tham số tìm kiếm
             if (search !== '') {
                 urlParams.set('search', search);
             } else {
                 urlParams.delete('search');
             }
             
-            // Giữ lại trạng thái sắp xếp
             if (currentSortBy && currentSortOrder) {
                 urlParams.set('sortBy', currentSortBy);
                 urlParams.set('sortOrder', currentSortOrder);
@@ -501,7 +491,6 @@
         }
         
         function clearAllFilters() {
-            // Xóa tất cả tham số và reset về trang 1, pageSize mặc định
             window.location.href = ROLE_LIST_URL;
         }
 
@@ -509,9 +498,8 @@
             const urlParams = new URLSearchParams(window.location.search);
             
             urlParams.set('pageSize', newSize);
-            urlParams.set('page', '1'); // Luôn reset về trang 1 khi đổi size
+            urlParams.set('page', '1');
             
-            // Dọn dẹp các tham số không cần thiết (nếu có)
             if (urlParams.get('search') === '') urlParams.delete('search');
 
             window.location.href = ROLE_LIST_URL + '?' + urlParams.toString();
@@ -524,7 +512,6 @@
             let newSortOrder = 'ASC';
 
             if (currentSortBy === column) {
-                // Đảo ngược thứ tự sắp xếp nếu click vào cột đang được sắp xếp
                 newSortOrder = (currentSortOrder === 'ASC') ? 'DESC' : 'ASC';
             }
             
@@ -537,9 +524,6 @@
             window.location.href = ROLE_LIST_URL + '?' + urlParams.toString();
         }
 
-        // --- HÀM XỬ LÝ MODAL (CRUD) ---
-        
-        // Thay thế openAddRoleModal() trong HTML cũ
         function showRoleModal(roleId = null, roleName = '') {
             const modal = document.getElementById('roleModal');
             document.getElementById('roleId').value = roleId || '';
@@ -563,7 +547,6 @@
             document.getElementById('deleteModal').style.display = 'none';
         }
 
-        // Xử lý đóng modal khi click ra ngoài
         window.onclick = function (event) {
             const roleModal = document.getElementById('roleModal');
             const deleteModal = document.getElementById('deleteModal');
@@ -577,18 +560,12 @@
         };
 
 
-        // --- HÀM XỬ LÝ AJAX (CRUD) ---
-
-        // Xử lý Form Submit (Add/Edit)
-        // Xử lý Form Submit (Add/Edit)
         document.getElementById('roleForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // ... (code lấy 'roleId', 'roleName', 'isEdit', 'method', 'url' giữ nguyên) ...
             const roleId = document.getElementById('roleId').value;
             const roleName = document.getElementById('roleNameInput').value;
             
-            // (validation của bạn)
             if (roleName.trim() === "") {
                 alert('Role name is required.');
                 return;
@@ -597,10 +574,7 @@
             const isEdit = roleId !== '';
             const method = isEdit ? 'PUT' : 'POST';
             const url = isEdit ? (ROLE_API_URL + '/' + roleId) : ROLE_API_URL;
-
-            // --- BẮT ĐẦU SỬA Ở ĐÂY ---
-
-            console.log('Đang gửi fetch:', method, url); // THÊM VÀO
+            console.log('Đang gửi fetch:', method, url); 
 
             fetch(url, {
                 method: method,
@@ -610,44 +584,34 @@
                 body: JSON.stringify({ roleName: roleName })
             })
             .then(response => {
-                console.log('Đã nhận response từ server. Status:', response.status); // THÊM VÀO
+                console.log('Đã nhận response từ server. Status:', response.status);
 
                 if (!response.ok) {
-                    console.log('Response KHÔNG OK (lỗi 4xx/5xx). Đang đọc JSON lỗi...'); // THÊM VÀO
+                    console.log('Response KHÔNG OK (lỗi 4xx/5xx). Đang đọc JSON lỗi...'); 
                     
-                    // Thử đọc JSON và ném lỗi
                     return response.json().then(err => { 
-                        console.log('Đã đọc JSON lỗi:', err); // THÊM VÀO
-                        // Ném lỗi để nhảy xuống khối .catch
-                        throw new Error(err.message || response.statusText); 
+                        console.log('Đã đọc JSON lỗi:', err);
+ư                        throw new Error(err.message || response.statusText); 
                     });
                 }
                 
-                console.log('Response OK (2xx). Đang đọc JSON thành công...'); // THÊM VÀO
+                console.log('Response OK (2xx). Đang đọc JSON thành công...'); 
                 return response.json();
             })
             .then(data => {
-                console.log('Fetch thành công, data:', data); // THÊM VÀO
+                console.log('Fetch thành công, data:', data); 
                 closeRoleModal();
-                // alert(data.message || ...); // Dòng này bạn đã vô hiệu hóa, rất tốt
                 
                 window.location.href = ROLE_LIST_URL + window.location.search;
             })
             .catch(error => {
-                // Đây là nơi quan trọng nhất
-                console.error('--- ĐÃ VÀO KHỐI CATCH ---'); // THÊM VÀO
-                console.error('Thông báo lỗi:', error.message); // THÊM VÀO
+                console.error('--- ĐÃ VÀO KHỐI CATCH ---'); 
+                console.error('Thông báo lỗi:', error.message); 
                 
-                // Bây giờ chúng ta sẽ không dùng alert, mà hiển thị lỗi trong modal
-                // (Sẽ làm ở bước sau, giờ chỉ cần log ra)
-                
-                // alert('Error: ' + error.message); // Giữ nguyên vô hiệu hóa dòng này
             });
             
-            // --- KẾT THÚC SỬA Ở ĐÂY ---
         });
         
-        // Xử lý Form Delete
         document.getElementById('deleteForm').addEventListener('submit', function(e) {
             e.preventDefault(); 
             
@@ -658,8 +622,7 @@
                 method: 'DELETE'
             })
             .then(response => {
-                 // Xử lý lỗi HTTP và trả về JSON
-                 if (!response.ok) {
+\                 if (!response.ok) {
                     return response.json().then(err => { throw new Error(err.message || response.statusText); });
                 }
                 return response.json();
@@ -667,7 +630,6 @@
             .then(data => {
                 closeDeleteModal();
                 alert(data.message || 'Role deleted successfully!');
-                // Tải lại trang với các tham số phân trang/lọc hiện tại
                 window.location.href = ROLE_LIST_URL + window.location.search; 
             })
             .catch(error => {

@@ -159,14 +159,12 @@ public class AdminController extends HttpServlet {
             List<SystemLog> recentActivity = dashboardDAO.getRecentActivity(5);
             List<ActivityStats> activityLast7Days = dashboardDAO.getActivityLast7Days();
 
-            // Build JSON response
             StringBuilder json = new StringBuilder();
             json.append("{");
             json.append("\"totalEmployees\": ").append(totalEmployees).append(",");
             json.append("\"activeEmployees\": ").append(activeEmployees).append(",");
             json.append("\"inactiveEmployees\": ").append(inactiveEmployees).append(",");
 
-            // Employee by department
             json.append("\"employeeByDepartment\": [");
             for (int i = 0; i < employeeByDept.size(); i++) {
                 DepartmentStats dept = employeeByDept.get(i);
@@ -178,7 +176,6 @@ public class AdminController extends HttpServlet {
             }
             json.append("],");
 
-            // Status distribution
             json.append("\"statusDistribution\": [");
             for (int i = 0; i < statusDistribution.size(); i++) {
                 StatusDistribution status = statusDistribution.get(i);
@@ -190,7 +187,6 @@ public class AdminController extends HttpServlet {
             }
             json.append("],");
 
-            // Recent activity
             json.append("\"recentActivity\": [");
             for (int i = 0; i < recentActivity.size(); i++) {
                 SystemLog activity = recentActivity.get(i);
@@ -203,7 +199,6 @@ public class AdminController extends HttpServlet {
             }
             json.append("],");
 
-            // Activity last 7 days
             json.append("\"activityLast7Days\": [");
             for (int i = 0; i < activityLast7Days.size(); i++) {
                 ActivityStats activity = activityLast7Days.get(i);
@@ -430,7 +425,7 @@ public class AdminController extends HttpServlet {
             throws ServletException, IOException {
         try {
             int page = 1;
-            int pageSize = 10; // Default value
+            int pageSize = 10; 
             if (request.getParameter("page") != null) {
                 try {
                     page = Integer.parseInt(request.getParameter("page"));
@@ -438,11 +433,9 @@ public class AdminController extends HttpServlet {
                     page = 1;
                 }
             }
-            // Read pageSize from request parameter
             if (request.getParameter("pageSize") != null) {
                 try {
                     pageSize = Integer.parseInt(request.getParameter("pageSize"));
-                    // Validate pageSize to prevent invalid values
                     if (pageSize < 1) {
                         pageSize = 10;
                     }
@@ -514,7 +507,6 @@ public class AdminController extends HttpServlet {
             
             SystemUser fullUser = userDAO.getUserById(currentUser.getUserId());
             if (fullUser != null) {
-                // Load employee info if exists
                 if (fullUser.getEmployeeId() != null) {
                     Employee employee = employeeDAO.getById(fullUser.getEmployeeId());
                     if (employee != null) {
@@ -526,7 +518,6 @@ public class AdminController extends HttpServlet {
                     }
                 }
                 
-                // Convert LocalDateTime to Timestamp for JSP fmt:formatDate compatibility
                 if (fullUser.getCreatedDate() != null) {
                     request.setAttribute("createdDateTimestamp", 
                         java.sql.Timestamp.valueOf(fullUser.getCreatedDate()));
@@ -538,7 +529,6 @@ public class AdminController extends HttpServlet {
                 
                 request.setAttribute("currentUser", fullUser);
             } else {
-                // Convert LocalDateTime to Timestamp for currentUser as well
                 if (currentUser.getCreatedDate() != null) {
                     request.setAttribute("createdDateTimestamp", 
                         java.sql.Timestamp.valueOf(currentUser.getCreatedDate()));
@@ -550,9 +540,7 @@ public class AdminController extends HttpServlet {
                 request.setAttribute("currentUser", currentUser);
             }
             
-            // Get recent activity logs for this user (limit to 10)
             List<SystemLog> recentLogs = systemLogDAO.getSystemLogsByUserID(currentUser.getUserId(), 10);
-            // Convert LocalDateTime to Timestamp for each log for JSP compatibility
             for (SystemLog log : recentLogs) {
                 if (log.getTimestamp() != null) {
                     log.setTimestampDate(java.util.Date.from(

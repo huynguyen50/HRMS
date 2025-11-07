@@ -228,7 +228,6 @@
                 gap: 15px;
             }
 
-            /* pagination styles moved to Admin/css/pagination.css */
 
             .top-bar select {
                 padding: 6px 10px;
@@ -244,7 +243,6 @@
                 border-color: #5b6ef5;
             }
 
-            /* Add user menu dropdown styles */
             .user-menu {
                 display: flex;
                 align-items: center;
@@ -304,7 +302,6 @@
                 background-color: #ffebee;
             }
 
-            /* Add sort header styles */
             .sort-header {
                 cursor: pointer;
                 user-select: none;
@@ -393,7 +390,6 @@
                 background-color: #6c757d;
                 color: white;
             }
-            /* Added sortable header styles with arrows */
             .departments-table th {
                 cursor: pointer;
                 user-select: none;
@@ -609,7 +605,6 @@
                         <table class="departments-table">
                             <thead>
                                 <tr>
-                                    <!-- Made headers clickable for sorting with arrow indicators -->
                                     <th onclick="sortTable('DepartmentID')">Department ID
                                         <c:if test="${sortBy == 'DepartmentID' || sortBy == ''}">
                                             <span class="sort-arrow">${sortOrder == 'ASC' ? '▲' : '▼'}</span>
@@ -670,7 +665,6 @@
                         </table>
                     </div>
 
-                    <!-- Updated pagination section to match Role page with pageSize selector and JSTL -->
                     <div class="pagination-bar">
                         <div class="pagination-info">
                             <c:set var="total" value="${total != null ? total : 0}" />
@@ -924,13 +918,11 @@
             const departmentName = document.getElementById('departmentName').value;
             const departmentManager = document.getElementById('departmentManager').value;
 
-            // Validate required fields
             if (departmentName.trim() === '') {
                 alert('Department Name is required.');
                 return;
             }
 
-            // Create a hidden form to submit via POST
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '${pageContext.request.contextPath}/departments';
@@ -942,21 +934,18 @@
             actionInput.value = 'department-save';
             form.appendChild(actionInput);
 
-            // Add department ID (empty for new, set for edit)
             const idInput = document.createElement('input');
             idInput.type = 'hidden';
             idInput.name = 'deptId';
             idInput.value = departmentId;
             form.appendChild(idInput);
 
-            // Add department name
             const nameInput = document.createElement('input');
             nameInput.type = 'hidden';
             nameInput.name = 'deptName';
             nameInput.value = departmentName.trim();
             form.appendChild(nameInput);
 
-            // Add department manager
             const managerInput = document.createElement('input');
             managerInput.type = 'hidden';
             managerInput.name = 'deptManagerId';
@@ -972,19 +961,16 @@
 
             const departmentId = document.getElementById('confirmDeleteDepartmentId').value;
 
-            // Create a hidden form to submit via POST
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '${pageContext.request.contextPath}/departments';
 
-            // Add action parameter
             const actionInput = document.createElement('input');
             actionInput.type = 'hidden';
             actionInput.name = 'action';
             actionInput.value = 'department-delete';
             form.appendChild(actionInput);
 
-            // Add department ID
             const idInput = document.createElement('input');
             idInput.type = 'hidden';
             idInput.name = 'deptId';

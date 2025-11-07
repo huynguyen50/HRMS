@@ -262,9 +262,8 @@ body {
 }
 
 .btn-secondary {
-    background: white;
-    color: #667eea;
-    border: 2px solid #667eea;
+    background: #6c757d;
+    color: white;
     border-radius: 8px;
     padding: 10px 20px;
     font-size: 14px;
@@ -277,9 +276,8 @@ body {
 }
 
 .btn-secondary:hover {
-    background: #f3f4f6;
-    border-color: #764ba2;
-    color: #764ba2;
+    background: #A9A9A9;
+    color: white;
 }
 
 /* ===== TABLE SECTION ===== */

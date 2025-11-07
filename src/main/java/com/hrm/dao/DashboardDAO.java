@@ -78,7 +78,6 @@ public class DashboardDAO {
                     Timestamp ts = rs.getTimestamp("Timestamp");
                     if (ts != null) {
                         log.setTimestamp(ts.toLocalDateTime());
-                        // Convert LocalDateTime to java.util.Date for JSP compatibility
                         log.setTimestampDate(java.util.Date.from(ts.toLocalDateTime().atZone(java.time.ZoneId.systemDefault()).toInstant()));
                     } else {
                         log.setTimestamp(null);
