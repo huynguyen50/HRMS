@@ -1,7 +1,11 @@
 package com.hrm.controller.admin;
 
 import com.hrm.dao.RoleDAO;
+import com.hrm.dao.EmployeeDAO;
+import com.hrm.dao.SystemUserDAO;
 import com.hrm.model.entity.Role;
+import com.hrm.model.entity.SystemUser;
+import com.hrm.model.entity.Employee;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
@@ -19,6 +23,8 @@ import org.json.JSONObject;
 public class RoleServlet extends HttpServlet {
     private static final Logger logger = Logger.getLogger(RoleServlet.class.getName());
     private final RoleDAO roleDAO = new RoleDAO();
+    private final EmployeeDAO employeeDAO = new EmployeeDAO();
+    private final SystemUserDAO userDAO = new SystemUserDAO();
     private static final int DEFAULT_PAGE_SIZE = 10;
 
 
@@ -93,6 +99,9 @@ public class RoleServlet extends HttpServlet {
 
     private void handleListRoles(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException, SQLException {
+        
+        // Set current user info for display
+        setCurrentUserInfo(request);
         
         String pageStr = request.getParameter("page");
         String pageSizeStr = request.getParameter("pageSize");
@@ -301,5 +310,48 @@ public class RoleServlet extends HttpServlet {
                 .put("error", e.getMessage());
         response.getWriter().write(errorResponse.toString());
         logger.log(Level.SEVERE, "Servlet error", e);
+    }
+
+    /**
+     * Helper method to set current user info from session to request attribute
+     * This allows all admin pages to access the current user's information
+     */
+    private void setCurrentUserInfo(HttpServletRequest request) {
+        try {
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
+                if (currentUser != null) {
+                    // Get full user info from database
+                    SystemUser fullUser = userDAO.getUserById(currentUser.getUserId());
+                    if (fullUser != null) {
+                        // Get employee info if exists
+                        if (fullUser.getEmployeeId() != null) {
+                            Employee employee = employeeDAO.getById(fullUser.getEmployeeId());
+                            if (employee != null) {
+                                fullUser.setEmployee(employee);
+                                // Set employee name for display
+                                String employeeName = employee.getFullName();
+                                if (employeeName != null && !employeeName.trim().isEmpty()) {
+                                    request.setAttribute("currentUserName", employeeName.trim());
+                                }
+                            }
+                        }
+                        // If no employee, use username
+                        if (request.getAttribute("currentUserName") == null) {
+                            request.setAttribute("currentUserName", fullUser.getUsername());
+                        }
+                        request.setAttribute("currentUser", fullUser);
+                    } else {
+                        // Fallback to session user
+                        request.setAttribute("currentUserName", currentUser.getUsername());
+                        request.setAttribute("currentUser", currentUser);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Silently fail - user info is optional for display
+            logger.log(Level.WARNING, "Failed to set current user info", e);
+        }
     }
 }

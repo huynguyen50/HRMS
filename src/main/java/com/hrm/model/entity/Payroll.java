@@ -20,6 +20,7 @@ public class Payroll implements Serializable {
     private BigDecimal bonus;
     private BigDecimal deduction;
     private BigDecimal netSalary;
+    private String status;
     private Integer approvedBy;
     private LocalDate approvedDate;
 
@@ -121,8 +122,16 @@ public class Payroll implements Serializable {
         this.approvedDate = approvedDate;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     @Override
     public String toString() {
-        return "Payroll{" + "payrollId=" + payrollId + ", employeeId=" + employeeId + ", payPeriod=" + payPeriod + ", baseSalary=" + baseSalary + ", allowance=" + allowance + ", bonus=" + bonus + ", deduction=" + deduction + ", netSalary=" + netSalary + ", approvedBy=" + approvedBy + ", approvedDate=" + approvedDate + '}';
+        return "Payroll{" + "payrollId=" + payrollId + ", employeeId=" + employeeId + ", payPeriod=" + payPeriod + ", baseSalary=" + baseSalary + ", allowance=" + allowance + ", bonus=" + bonus + ", deduction=" + deduction + ", netSalary=" + netSalary + ", status=" + status + ", approvedBy=" + approvedBy + ", approvedDate=" + approvedDate + '}';
     }
 }

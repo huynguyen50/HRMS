@@ -332,11 +332,16 @@
                 <!-- Top Bar -->
                 <header class="top-bar">
                     <div class="top-bar-actions">
-                        <div class="user-menu" onclick="toggleUserMenu()" role="button" tabindex="0" onkeypress="if(event.key==='Enter'||event.key===' ') toggleUserMenu()">
+                        <div class="user-menu" onclick="toggleUserMenu()">
                             <div class="user-info">
-                                <img src="https://i.pravatar.cc/32" alt="User">
-                                <span>Admin</span>
-                                <span class="dropdown-arrow">▼</span>
+                                <div class="user-name-display">
+                                    <img src="https://i.pravatar.cc/32" alt="User">
+                                    <div class="user-name-text">
+                                        <span class="name">${currentUserName != null ? fn:escapeXml(currentUserName) : 'Admin'}</span>
+                                        <span class="role">(admin)</span>
+                                    </div>
+                                    <span class="dropdown-arrow">▼</span>
+                                </div>
                             </div>
                             <div class="dropdown-menu" id="userDropdown">
                                 <a href="${pageContext.request.contextPath}/admin?action=profile" class="dropdown-item">

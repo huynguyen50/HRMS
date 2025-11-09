@@ -126,42 +126,15 @@ body {
 .top-bar {
   background: white;
   border-bottom: 1px solid #e5e7eb;
-  padding: 16px 24px;
+  padding: 12px 24px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 100;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.search-box {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 8px 12px;
-  width: 300px;
-}
-
-.search-icon {
-  color: #9ca3af;
-}
-
-.search-box input {
-  background: none;
-  border: none;
-  outline: none;
-  color: #1f2937;
-  width: 100%;
-  font-size: 14px;
-}
-
-.search-box input::placeholder {
-  color: #9ca3af;
+  min-height: 60px;
 }
 
 .top-bar-actions {

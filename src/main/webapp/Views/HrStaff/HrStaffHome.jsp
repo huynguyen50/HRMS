@@ -80,7 +80,7 @@
                 </div>
                 <div class="side-group">
                     <div class="side-title">Salary & Contracts</div>
-                    <a class="side-link neutral" href="#">💰 Payroll</a>
+                    <a class="side-link neutral" href="<%=request.getContextPath()%>/hrstaff/payroll">💰 Payroll</a>
                     <a class="side-link neutral" href="<%=request.getContextPath()%>/hrstaff/contracts/create">📝 Create Contract</a>
                     <a class="side-link neutral" href="<%=request.getContextPath()%>/hrstaff/contracts">📄 Contracts List</a>
                 </div>

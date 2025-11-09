@@ -93,22 +93,33 @@ public class DashboardDAO {
     }
 
     public List<ActivityStats> getActivityLast7Days() {
+        return getActivityByDays(7);
+    }
+
+    /**
+     * Get activity statistics for the last N days
+     * @param days Number of days to retrieve (7, 14, 30, etc.)
+     * @return List of ActivityStats with date and count
+     */
+    public List<ActivityStats> getActivityByDays(int days) {
         List<ActivityStats> result = new ArrayList<>();
         String sql = "SELECT DATE(Timestamp) as date, COUNT(*) as count " +
                      "FROM SystemLog " +
-                     "WHERE Timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY) " +
+                     "WHERE Timestamp >= DATE_SUB(NOW(), INTERVAL ? DAY) " +
                      "GROUP BY DATE(Timestamp) " +
                      "ORDER BY date ASC";
 
         try (Connection conn = getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            while (rs.next()) {
-                LocalDate date = rs.getDate("date").toLocalDate();
-                int count = rs.getInt("count");
-                ActivityStats stats = new ActivityStats(date, count);
-                result.add(stats);
+            pstmt.setInt(1, days);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    LocalDate date = rs.getDate("date").toLocalDate();
+                    int count = rs.getInt("count");
+                    ActivityStats stats = new ActivityStats(date, count);
+                    result.add(stats);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();

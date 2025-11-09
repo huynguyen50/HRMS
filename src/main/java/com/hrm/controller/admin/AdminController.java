@@ -31,6 +31,9 @@ public class AdminController extends HttpServlet {
             action = "dashboard";
         }
 
+        // Set current user info for all admin pages
+        setCurrentUserInfo(request);
+
         switch (action) {
             case "dashboard":
                 loadDashboard(request, response);
@@ -38,6 +41,10 @@ public class AdminController extends HttpServlet {
 
             case "dashboard-data":
                 getDashboardData(request, response);
+                break;
+
+            case "activity-data":
+                getActivityData(request, response);
                 break;
 
             case "departments":
@@ -81,6 +88,49 @@ public class AdminController extends HttpServlet {
         }
     }
 
+    /**
+     * Helper method to set current user info from session to request attribute
+     * This allows all admin pages to access the current user's information
+     */
+    private void setCurrentUserInfo(HttpServletRequest request) {
+        try {
+            jakarta.servlet.http.HttpSession session = request.getSession(false);
+            if (session != null) {
+                SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
+                if (currentUser != null) {
+                    // Get full user info from database
+                    SystemUser fullUser = userDAO.getUserById(currentUser.getUserId());
+                    if (fullUser != null) {
+                        // Get employee info if exists
+                        if (fullUser.getEmployeeId() != null) {
+                            Employee employee = employeeDAO.getById(fullUser.getEmployeeId());
+                            if (employee != null) {
+                                fullUser.setEmployee(employee);
+                                // Set employee name for display
+                                String employeeName = employee.getFullName();
+                                if (employeeName != null && !employeeName.trim().isEmpty()) {
+                                    request.setAttribute("currentUserName", employeeName.trim());
+                                }
+                            }
+                        }
+                        // If no employee, use username
+                        if (request.getAttribute("currentUserName") == null) {
+                            request.setAttribute("currentUserName", fullUser.getUsername());
+                        }
+                        request.setAttribute("currentUser", fullUser);
+                    } else {
+                        // Fallback to session user
+                        request.setAttribute("currentUserName", currentUser.getUsername());
+                        request.setAttribute("currentUser", currentUser);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Silently fail - user info is optional for display
+            e.printStackTrace();
+        }
+    }
+
     private void loadDashboard(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
         request.setAttribute("activePage", "dashboard");
@@ -121,13 +171,33 @@ public class AdminController extends HttpServlet {
         statusJson.append("}");
         request.setAttribute("employeeStatusJson", statusJson.toString());
 
-        List<ActivityStats> activityLast7 = dashboardDAO.getActivityLast7Days();
+        // Get activity days parameter from request, default to 7
+        int activityDays = 7;
+        String daysParam = request.getParameter("days");
+        if (daysParam != null && !daysParam.trim().isEmpty()) {
+            try {
+                activityDays = Integer.parseInt(daysParam);
+                // Validate: only allow 7, 14, or 30 days
+                if (activityDays != 7 && activityDays != 14 && activityDays != 30) {
+                    activityDays = 7;
+                }
+            } catch (NumberFormatException e) {
+                activityDays = 7;
+            }
+        }
+        
+        // Set selected days as request attribute for JSP
+        request.setAttribute("selectedActivityDays", activityDays);
+        
+        // Load activity data for the specified number of days
+        List<ActivityStats> activityData = dashboardDAO.getActivityByDays(activityDays);
         StringBuilder activityJson = new StringBuilder("[");
-        for (int i = 0; i < activityLast7.size(); i++) {
-            ActivityStats activity = activityLast7.get(i);
-            activityJson.append("{\"date\":\"").append(activity.getDate())
+        for (int i = 0; i < activityData.size(); i++) {
+            ActivityStats activity = activityData.get(i);
+            String dateStr = activity.getDate() != null ? activity.getDate().toString() : "";
+            activityJson.append("{\"date\":\"").append(dateStr)
                        .append("\",\"count\":").append(activity.getCount()).append("}");
-            if (i < activityLast7.size() - 1) {
+            if (i < activityData.size() - 1) {
                 activityJson.append(",");
             }
         }
@@ -137,7 +207,7 @@ public class AdminController extends HttpServlet {
         List<SystemLog> recentActivity = dashboardDAO.getRecentActivity(5);
         request.setAttribute("recentActivity", recentActivity);
 
-        System.out.println("Dashboard counts -> total=" + totalEmployees + ", active=" + activeEmployees + ", depts=" + totalDepartments + ", user=" + totalUser);
+        System.out.println("Dashboard counts -> total=" + totalEmployees + ", active=" + activeEmployees + ", depts=" + totalDepartments + ", user=" + totalUser + ", activityDays=" + activityDays);
 
         request.getRequestDispatcher("Admin/AdminHome.jsp").forward(request, response);
     }
@@ -222,6 +292,61 @@ public class AdminController extends HttpServlet {
     }
 
 
+
+    /**
+     * Get activity data for specified number of days
+     * Endpoint: /admin?action=activity-data&days=7
+     */
+    private void getActivityData(HttpServletRequest request, HttpServletResponse response)
+              throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        try {
+            DashboardDAO dashboardDAO = new DashboardDAO();
+            
+            // Get days parameter, default to 7
+            int days = 7;
+            String daysParam = request.getParameter("days");
+            if (daysParam != null && !daysParam.trim().isEmpty()) {
+                try {
+                    days = Integer.parseInt(daysParam);
+                    // Validate: only allow 7, 14, or 30 days
+                    if (days != 7 && days != 14 && days != 30) {
+                        days = 7;
+                    }
+                } catch (NumberFormatException e) {
+                    days = 7;
+                }
+            }
+
+            List<ActivityStats> activityData = dashboardDAO.getActivityByDays(days);
+
+            StringBuilder json = new StringBuilder();
+            json.append("{");
+            json.append("\"days\": ").append(days).append(",");
+            json.append("\"activityData\": [");
+            
+            for (int i = 0; i < activityData.size(); i++) {
+                ActivityStats activity = activityData.get(i);
+                // Format date as YYYY-MM-DD for consistent JavaScript parsing
+                String dateStr = activity.getDate() != null ? activity.getDate().toString() : "";
+                json.append("{\"date\": \"").append(dateStr).append("\", ");
+                json.append("\"count\": ").append(activity.getCount()).append("}");
+                if (i < activityData.size() - 1) {
+                    json.append(",");
+                }
+            }
+            json.append("]");
+            json.append("}");
+
+            response.getWriter().write(json.toString());
+
+        } catch (Exception e) {
+            response.getWriter().write("{\"error\": \"" + escapeJson(e.getMessage()) + "\"}");
+            e.printStackTrace();
+        }
+    }
 
     private String escapeJson(String str) {
         if (str == null) {
