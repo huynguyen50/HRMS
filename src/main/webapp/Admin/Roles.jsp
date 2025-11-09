@@ -209,16 +209,17 @@
 
         <main class="main-content">
             <header class="top-bar">
-                <div class="search-box">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" id="searchInput" placeholder="Search roles...">
-                </div>
                 <div class="top-bar-actions">
                     <div class="user-menu" onclick="toggleUserMenu()">
                         <div class="user-info">
-                            <img src="https://i.pravatar.cc/32" alt="User">
-                            <span>Admin</span>
-                            <span class="dropdown-arrow">▼</span>
+                            <div class="user-name-display">
+                                <img src="https://i.pravatar.cc/32" alt="User">
+                                <div class="user-name-text">
+                                    <span class="name">${currentUserName != null ? fn:escapeXml(currentUserName) : 'Admin'}</span>
+                                    <span class="role">(admin)</span>
+                                </div>
+                                <span class="dropdown-arrow">▼</span>
+                            </div>
                         </div>
                         <div class="dropdown-menu" id="userDropdown">
                             <a href="${pageContext.request.contextPath}/admin?action=profile" class="dropdown-item">
@@ -229,22 +230,7 @@
                                 <span class="icon">🚪</span> Logout
                             </a>
                         </div>
-                    </div>                    
-                    <script>
-                        function toggleUserMenu() {
-                            const userMenu = document.querySelector('.user-menu');
-                            userMenu.classList.toggle('active');
-                        }
-
-                        document.addEventListener('click', function (event) {
-                            if (!event.target.closest('.user-menu')) {
-                                const userMenu = document.querySelector('.user-menu');
-                                if (userMenu && userMenu.classList.contains('active')) {
-                                    userMenu.classList.remove('active');
-                                }
-                            }
-                        });
-                    </script>
+                    </div>
                 </div>
             </header>
 
@@ -461,6 +447,19 @@
         const ROLE_LIST_URL = '${pageContext.request.contextPath}/admin/role/list';
         const ROLE_API_URL = '${pageContext.request.contextPath}/admin/role';
 
+        // Allow Enter key to trigger search from filter input
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterSearchInput = document.getElementById('searchQueryInput');
+            
+            if (filterSearchInput) {
+                filterSearchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        applyFilters();
+                    }
+                });
+            }
+        });
 
         function applyFilters() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -564,7 +563,7 @@
             e.preventDefault();
             
             const roleId = document.getElementById('roleId').value;
-            const roleName = document.getElementById('roleNameInput').value;
+            const roleName = document.getElementById('roleName').value;
             
             if (roleName.trim() === "") {
                 alert('Role name is required.');
@@ -591,7 +590,7 @@
                     
                     return response.json().then(err => { 
                         console.log('Đã đọc JSON lỗi:', err);
-ư                        throw new Error(err.message || response.statusText); 
+                        throw new Error(err.message || response.statusText); 
                     });
                 }
                 
@@ -607,7 +606,7 @@
             .catch(error => {
                 console.error('--- ĐÃ VÀO KHỐI CATCH ---'); 
                 console.error('Thông báo lỗi:', error.message); 
-                
+                alert('Error: ' + error.message);
             });
             
         });
@@ -622,7 +621,7 @@
                 method: 'DELETE'
             })
             .then(response => {
-\                 if (!response.ok) {
+                if (!response.ok) {
                     return response.json().then(err => { throw new Error(err.message || response.statusText); });
                 }
                 return response.json();
@@ -635,6 +634,22 @@
             .catch(error => {
                 alert('Error: ' + error.message);
             });
+        });
+
+        // User menu toggle function
+        function toggleUserMenu() {
+            const userMenu = document.querySelector('.user-menu');
+            userMenu.classList.toggle('active');
+        }
+
+        // Close user menu when clicking outside
+        document.addEventListener('click', function (event) {
+            if (!event.target.closest('.user-menu')) {
+                const userMenu = document.querySelector('.user-menu');
+                if (userMenu && userMenu.classList.contains('active')) {
+                    userMenu.classList.remove('active');
+                }
+            }
         });
     </script>
 </body>

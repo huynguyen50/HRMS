@@ -101,51 +101,16 @@ body {
 /* ===== TOP BAR ===== */
 .top-bar {
     background: white;
-    padding: 16px 24px;
+    padding: 12px 24px;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     border-bottom: 1px solid #e5e7eb;
     position: sticky;
     top: 0;
-    z-index: 10;
-}
-
-.search-box {
-    display: flex;
-    align-items: center;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 8px 12px;
-    flex: 1;
-    max-width: 400px;
-    gap: 8px;
-    transition: all 0.2s;
-}
-
-.search-box:focus-within {
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.search-icon {
-    font-size: 16px;
-    color: #9ca3af;
-}
-
-.search-box input {
-    border: none;
-    background: transparent;
-    outline: none;
-    width: 100%;
-    font-size: 14px;
-    color: #1f2937;
-}
-
-.search-box input::placeholder {
-    color: #9ca3af;
+    z-index: 100;
+    min-height: 60px;
 }
 
 .top-bar-actions {

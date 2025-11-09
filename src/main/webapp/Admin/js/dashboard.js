@@ -120,15 +120,53 @@ function initializeStatusChart() {
   })
 }
 
+// Global variable to store activity chart instance
+let activityChartInstance = null;
+
 function initializeActivityChart() {
   const ctx = document.getElementById("activityChart")
   if (!ctx) return
 
+  // Get data from server (already loaded with correct days parameter)
   const data = window.dashboardData.activityData || []
-  const labels = data.map(item => item.date)
+  
+  // Get selected days from dropdown (set by JSP based on URL parameter)
+  const activityChartRange = document.getElementById("activityChartRange")
+  const selectedDays = activityChartRange ? parseInt(activityChartRange.value) : 7
+  
+  // Use data from server (already filtered by backend)
+  updateActivityChart(data)
+  
+  // Calculate and display statistics
+  calculateActivityStatistics(data)
+  
+  console.log('[Activity] Initialized with', selectedDays, 'days of data from server')
+}
+
+function updateActivityChart(data) {
+  const ctx = document.getElementById("activityChart")
+  if (!ctx) return
+
+  const labels = data.map(item => {
+    // Parse date string (YYYY-MM-DD format) and format to readable format (e.g., "Jan 15")
+    // Parse date safely to avoid timezone issues
+    const dateParts = item.date.split('-')
+    const year = parseInt(dateParts[0])
+    const month = parseInt(dateParts[1]) - 1 // Month is 0-indexed in JavaScript
+    const day = parseInt(dateParts[2])
+    const date = new Date(year, month, day)
+    
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    return `${monthNames[date.getMonth()]} ${date.getDate()}`
+  })
   const values = data.map(item => item.count)
 
-  new Chart(ctx, {
+  // Destroy existing chart if it exists
+  if (activityChartInstance) {
+    activityChartInstance.destroy()
+  }
+
+  activityChartInstance = new Chart(ctx, {
     type: "line",
     data: {
       labels: labels,
@@ -203,6 +241,107 @@ function initializeActivityChart() {
   })
 }
 
+function calculateActivityStatistics(data) {
+  if (!data || data.length === 0) {
+    document.getElementById("totalActivities").textContent = "0"
+    document.getElementById("avgActivities").textContent = "0"
+    document.getElementById("peakDay").textContent = "-"
+    return
+  }
+
+  // Calculate total activities
+  const totalActivities = data.reduce((sum, item) => sum + item.count, 0)
+  
+  // Calculate average per day
+  const avgActivities = data.length > 0 ? (totalActivities / data.length).toFixed(1) : 0
+  
+  // Find peak day (day with maximum activities)
+  let peakDay = null
+  let peakCount = 0
+  data.forEach(item => {
+    if (item.count > peakCount) {
+      peakCount = item.count
+      peakDay = item.date
+    }
+  })
+  
+  // Format peak day
+  let peakDayFormatted = "-"
+  if (peakDay) {
+    // Parse date string (YYYY-MM-DD format) safely to avoid timezone issues
+    const dateParts = peakDay.split('-')
+    const year = parseInt(dateParts[0])
+    const month = parseInt(dateParts[1]) - 1 // Month is 0-indexed in JavaScript
+    const day = parseInt(dateParts[2])
+    const date = new Date(year, month, day)
+    
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    peakDayFormatted = `${monthNames[date.getMonth()]} ${date.getDate()}`
+  }
+  
+  // Update UI
+  document.getElementById("totalActivities").textContent = totalActivities.toString()
+  document.getElementById("avgActivities").textContent = avgActivities.toString()
+  document.getElementById("peakDay").textContent = peakDayFormatted
+}
+
+function loadActivityData(days) {
+  // Use adminBaseUrl from JSP if available, otherwise construct from contextPath
+  let url
+  if (window.adminBaseUrl) {
+    url = `${window.adminBaseUrl}?action=activity-data&days=${days}`
+  } else {
+    // Fallback: construct URL from contextPath
+    const contextPath = window.contextPath || ''
+    const adminPath = contextPath ? `${contextPath}/admin` : '/admin'
+    url = `${adminPath}?action=activity-data&days=${days}`
+  }
+  
+  console.log('[Activity] Loading activity data for', days, 'days from:', url)
+  console.log('[Activity] Admin base URL:', window.adminBaseUrl)
+  
+  fetch(url)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Failed to fetch activity data: ' + response.status)
+      }
+      return response.json()
+    })
+    .then(data => {
+      console.log('[Activity] Received data:', data)
+      
+      if (data.error) {
+        console.error('Error loading activity data:', data.error)
+        alert('Error loading activity data: ' + data.error)
+        return
+      }
+      
+      // Update chart
+      if (data.activityData && Array.isArray(data.activityData)) {
+        updateActivityChart(data.activityData)
+        calculateActivityStatistics(data.activityData)
+        
+        // Update chart info text
+        const activityChartCard = document.querySelector('#activityChart').closest('.chart-card')
+        if (activityChartCard) {
+          const chartInfo = activityChartCard.querySelector('.chart-info')
+          if (chartInfo) {
+            chartInfo.textContent = `Last ${days} days`
+          }
+        }
+      } else {
+        console.warn('[Activity] No activity data received')
+        // Set empty data
+        updateActivityChart([])
+        calculateActivityStatistics([])
+      }
+    })
+    .catch(error => {
+      console.error('Error loading activity data:', error)
+      alert('Error loading activity data. Please check the console for details.')
+    })
+}
+
 function setupEventListeners() {
   // Search functionality
   const searchInputs = document.querySelectorAll(".search-input")
@@ -211,6 +350,23 @@ function setupEventListeners() {
       console.log("[v0] Search query:", e.target.value)
     })
   })
+
+  // Activity chart range selector
+  const activityChartRange = document.getElementById("activityChartRange")
+  if (activityChartRange) {
+    activityChartRange.addEventListener("change", (e) => {
+      const days = parseInt(e.target.value)
+      console.log("[Activity] Range changed to:", days, "days")
+      
+      // Update URL without reloading page
+      const url = new URL(window.location)
+      url.searchParams.set('days', days.toString())
+      window.history.pushState({}, '', url)
+      
+      // Load new data
+      loadActivityData(days)
+    })
+  }
 
   // Time filter functionality
   const timeFilter = document.querySelector(".time-selector")

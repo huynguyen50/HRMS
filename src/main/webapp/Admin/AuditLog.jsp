@@ -206,16 +206,17 @@
 
             <main class="main-content">
                 <header class="top-bar">
-                    <div class="search-box">
-                        <span class="search-icon"> </span>
-                        <input type="text" placeholder="Search...">
-                    </div>
                     <div class="top-bar-actions">
                         <div class="user-menu" onclick="toggleUserMenu()">
                             <div class="user-info">
-                                <img src="https://i.pravatar.cc/32" alt="User">
-                                <span>Admin</span>
-                                <span class="dropdown-arrow">▼</span>
+                                <div class="user-name-display">
+                                    <img src="https://i.pravatar.cc/32" alt="User">
+                                    <div class="user-name-text">
+                                        <span class="name">${currentUserName != null ? fn:escapeXml(currentUserName) : 'Admin'}</span>
+                                        <span class="role">(admin)</span>
+                                    </div>
+                                    <span class="dropdown-arrow">▼</span>
+                                </div>
                             </div>
                             <div class="dropdown-menu" id="userDropdown">
                                 <a href="${pageContext.request.contextPath}/admin?action=profile" class="dropdown-item">
@@ -227,20 +228,6 @@
                                 </a>
                             </div>
                         </div>
-                        <script>
-                            function toggleUserMenu() {
-                                const userMenu = document.querySelector('.user-menu');
-                                userMenu.classList.toggle('active');
-                            }
-                            document.addEventListener('click', function (event) {
-                                if (!event.target.closest('.user-menu')) {
-                                    const userMenu = document.querySelector('.user-menu');
-                                    if (userMenu.classList.contains('active')) {
-                                        userMenu.classList.remove('active');
-                                    }
-                                }
-                            });
-                        </script>
                     </div>
                 </header>
 
@@ -582,6 +569,23 @@
                 document.getElementById('modalNewValue').innerText = formatValue(newValue);
                 document.getElementById('logDetailsModal').style.display = 'block';
             }
+        </script>
+        <script>
+            // User menu toggle function
+            function toggleUserMenu() {
+                const userMenu = document.querySelector('.user-menu');
+                userMenu.classList.toggle('active');
+            }
+
+            // Close user menu when clicking outside
+            document.addEventListener('click', function (event) {
+                if (!event.target.closest('.user-menu')) {
+                    const userMenu = document.querySelector('.user-menu');
+                    if (userMenu && userMenu.classList.contains('active')) {
+                        userMenu.classList.remove('active');
+                    }
+                }
+            });
         </script>
     </body>
 </html>
