@@ -7,10 +7,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Role Management</title>
+    <title>Role Management - HRMS</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <link href="css/user-menu.css" rel="stylesheet" type="text/css"/>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/Admin_home.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/unified-layout.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/roles.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/pagination.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/user-menu.css">
@@ -84,7 +84,6 @@
             vertical-align: middle;
         }
 
-        /* CSS cho Modal (Đảm bảo các popup hoạt động) */
         .modal {
             display: none; 
             position: fixed; 
@@ -170,7 +169,6 @@
             color: #155724;
             border: 1px solid #c3e6cb;
         }
-        /* Kết thúc Khối CSS đã sửa lỗi layout */
     </style>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -211,16 +209,17 @@
 
         <main class="main-content">
             <header class="top-bar">
-                <div class="search-box">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" id="searchInput" placeholder="Search roles...">
-                </div>
                 <div class="top-bar-actions">
                     <div class="user-menu" onclick="toggleUserMenu()">
                         <div class="user-info">
-                            <img src="https://i.pravatar.cc/32" alt="User">
-                            <span>Admin</span>
-                            <span class="dropdown-arrow">▼</span>
+                            <div class="user-name-display">
+                                <img src="https://i.pravatar.cc/32" alt="User">
+                                <div class="user-name-text">
+                                    <span class="name">${currentUserName != null ? fn:escapeXml(currentUserName) : 'Admin'}</span>
+                                    <span class="role">(admin)</span>
+                                </div>
+                                <span class="dropdown-arrow">▼</span>
+                            </div>
                         </div>
                         <div class="dropdown-menu" id="userDropdown">
                             <a href="${pageContext.request.contextPath}/admin?action=profile" class="dropdown-item">
@@ -231,22 +230,7 @@
                                 <span class="icon">🚪</span> Logout
                             </a>
                         </div>
-                    </div>                    
-                    <script>
-                        function toggleUserMenu() {
-                            const userMenu = document.querySelector('.user-menu');
-                            userMenu.classList.toggle('active');
-                        }
-
-                        document.addEventListener('click', function (event) {
-                            if (!event.target.closest('.user-menu')) {
-                                const userMenu = document.querySelector('.user-menu');
-                                if (userMenu && userMenu.classList.contains('active')) {
-                                    userMenu.classList.remove('active');
-                                }
-                            }
-                        });
-                    </script>
+                    </div>
                 </div>
             </header>
 
@@ -264,20 +248,19 @@
                     <div class="alert success">${successMessage}</div>
                 </c:if>
 
-                <div class="filter-controls">
-                    
-                    <div class="filter-group">
-                        <label for="searchQueryInput">Search:</label>
-                        <input type="text" id="searchQueryInput" name="search" 
-                               placeholder="Role Name or ID..." 
-                               value="${searchQuery}" style="min-width: 200px;">
+                <div class="filter-section">
+                    <div class="filter-controls">
+                        <div class="filter-group">
+                            <label for="searchQueryInput">Search</label>
+                            <input type="text" id="searchQueryInput" name="search" 
+                                   placeholder="Role Name or ID..." 
+                                   value="${searchQuery}" class="filter-input">
+                        </div>
+                        <div class="filter-buttons">
+                            <button type="button" onclick="applyFilters()" class="btn-primary">Apply Filter</button>
+                            <button type="button" onclick="clearAllFilters()" class="btn-secondary">Clear All</button>
+                        </div>
                     </div>
-
-                    <div class="filter-buttons">
-                        <button type="button" onclick="applyFilters()" class="btn-primary">Apply Filter</button>
-                        <button type="button" onclick="clearAllFilters()" class="btn-secondary">Clear All</button>
-                    </div>
-
                 </div>
                 <div class="table-section">
                     <table class="roles-table">
@@ -461,38 +444,43 @@
     </div>
 
     <script>
-        // URL base cho RoleServlet để xử lý list
-        // Cần đảm bảo RoleServlet có endpoint /admin/role/list
         const ROLE_LIST_URL = '${pageContext.request.contextPath}/admin/role/list';
         const ROLE_API_URL = '${pageContext.request.contextPath}/admin/role';
 
-        // --- HÀM XỬ LÝ LỌC/PHÂN TRANG ---
+        // Allow Enter key to trigger search from filter input
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterSearchInput = document.getElementById('searchQueryInput');
+            
+            if (filterSearchInput) {
+                filterSearchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        applyFilters();
+                    }
+                });
+            }
+        });
 
         function applyFilters() {
             const urlParams = new URLSearchParams(window.location.search);
             
-            // Lấy giá trị từ ô tìm kiếm
             const search = document.getElementById('searchQueryInput').value.trim();
             
-            // Lấy giá trị PageSize hiện tại (hoặc mặc định là 10)
             const pageSizeSelect = document.getElementById('pageSizeSelect');
             const currentPageSize = pageSizeSelect ? pageSizeSelect.value : '10';
 
-            // Lấy trạng thái sắp xếp hiện tại (được set bởi Servlet)
             const currentSortBy = '${sortBy}';
             const currentSortOrder = '${sortOrder}';
             
-            urlParams.set('page', '1'); // Luôn reset về trang 1 khi lọc
+            urlParams.set('page', '1');
             urlParams.set('pageSize', currentPageSize);
             
-            // Cập nhật tham số tìm kiếm
             if (search !== '') {
                 urlParams.set('search', search);
             } else {
                 urlParams.delete('search');
             }
             
-            // Giữ lại trạng thái sắp xếp
             if (currentSortBy && currentSortOrder) {
                 urlParams.set('sortBy', currentSortBy);
                 urlParams.set('sortOrder', currentSortOrder);
@@ -502,7 +490,6 @@
         }
         
         function clearAllFilters() {
-            // Xóa tất cả tham số và reset về trang 1, pageSize mặc định
             window.location.href = ROLE_LIST_URL;
         }
 
@@ -510,9 +497,8 @@
             const urlParams = new URLSearchParams(window.location.search);
             
             urlParams.set('pageSize', newSize);
-            urlParams.set('page', '1'); // Luôn reset về trang 1 khi đổi size
+            urlParams.set('page', '1');
             
-            // Dọn dẹp các tham số không cần thiết (nếu có)
             if (urlParams.get('search') === '') urlParams.delete('search');
 
             window.location.href = ROLE_LIST_URL + '?' + urlParams.toString();
@@ -525,7 +511,6 @@
             let newSortOrder = 'ASC';
 
             if (currentSortBy === column) {
-                // Đảo ngược thứ tự sắp xếp nếu click vào cột đang được sắp xếp
                 newSortOrder = (currentSortOrder === 'ASC') ? 'DESC' : 'ASC';
             }
             
@@ -538,9 +523,6 @@
             window.location.href = ROLE_LIST_URL + '?' + urlParams.toString();
         }
 
-        // --- HÀM XỬ LÝ MODAL (CRUD) ---
-        
-        // Thay thế openAddRoleModal() trong HTML cũ
         function showRoleModal(roleId = null, roleName = '') {
             const modal = document.getElementById('roleModal');
             document.getElementById('roleId').value = roleId || '';
@@ -564,7 +546,6 @@
             document.getElementById('deleteModal').style.display = 'none';
         }
 
-        // Xử lý đóng modal khi click ra ngoài
         window.onclick = function (event) {
             const roleModal = document.getElementById('roleModal');
             const deleteModal = document.getElementById('deleteModal');
@@ -578,53 +559,58 @@
         };
 
 
-        // --- HÀM XỬ LÝ AJAX (CRUD) ---
-
-        // Xử lý Form Submit (Add/Edit)
         document.getElementById('roleForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            
             const roleId = document.getElementById('roleId').value;
             const roleName = document.getElementById('roleName').value;
             
-            if (roleName.trim() === '') {
-                alert('Role Name is required.');
+            if (roleName.trim() === "") {
+                alert('Role name is required.');
                 return;
             }
 
             const isEdit = roleId !== '';
             const method = isEdit ? 'PUT' : 'POST';
-            const url = ROLE_API_URL + (isEdit ? '/' + roleId : '');
+            const url = isEdit ? (ROLE_API_URL + '/' + roleId) : ROLE_API_URL;
+            console.log('Đang gửi fetch:', method, url); 
 
             fetch(url, {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    roleId: roleId,
-                    roleName: roleName
-                })
+                body: JSON.stringify({ roleName: roleName })
             })
             .then(response => {
-                // Xử lý lỗi HTTP và trả về JSON
+                console.log('Đã nhận response từ server. Status:', response.status);
+
                 if (!response.ok) {
-                    // Nếu lỗi 4xx/5xx, cố gắng đọc message lỗi từ body
-                    return response.json().then(err => { throw new Error(err.message || response.statusText); });
+                    console.log('Response KHÔNG OK (lỗi 4xx/5xx). Đang đọc JSON lỗi...'); 
+                    
+                    return response.json().then(err => { 
+                        console.log('Đã đọc JSON lỗi:', err);
+                        throw new Error(err.message || response.statusText); 
+                    });
                 }
+                
+                console.log('Response OK (2xx). Đang đọc JSON thành công...'); 
                 return response.json();
             })
             .then(data => {
+                console.log('Fetch thành công, data:', data); 
                 closeRoleModal();
-                alert(data.message || (isEdit ? 'Role updated successfully!' : 'Role created successfully!'));
-                // Tải lại trang với các tham số phân trang/lọc hiện tại
+                
                 window.location.href = ROLE_LIST_URL + window.location.search;
             })
             .catch(error => {
+                console.error('--- ĐÃ VÀO KHỐI CATCH ---'); 
+                console.error('Thông báo lỗi:', error.message); 
                 alert('Error: ' + error.message);
             });
+            
         });
         
-        // Xử lý Form Delete
         document.getElementById('deleteForm').addEventListener('submit', function(e) {
             e.preventDefault(); 
             
@@ -635,8 +621,7 @@
                 method: 'DELETE'
             })
             .then(response => {
-                 // Xử lý lỗi HTTP và trả về JSON
-                 if (!response.ok) {
+                if (!response.ok) {
                     return response.json().then(err => { throw new Error(err.message || response.statusText); });
                 }
                 return response.json();
@@ -644,12 +629,27 @@
             .then(data => {
                 closeDeleteModal();
                 alert(data.message || 'Role deleted successfully!');
-                // Tải lại trang với các tham số phân trang/lọc hiện tại
                 window.location.href = ROLE_LIST_URL + window.location.search; 
             })
             .catch(error => {
                 alert('Error: ' + error.message);
             });
+        });
+
+        // User menu toggle function
+        function toggleUserMenu() {
+            const userMenu = document.querySelector('.user-menu');
+            userMenu.classList.toggle('active');
+        }
+
+        // Close user menu when clicking outside
+        document.addEventListener('click', function (event) {
+            if (!event.target.closest('.user-menu')) {
+                const userMenu = document.querySelector('.user-menu');
+                if (userMenu && userMenu.classList.contains('active')) {
+                    userMenu.classList.remove('active');
+                }
+            }
         });
     </script>
 </body>

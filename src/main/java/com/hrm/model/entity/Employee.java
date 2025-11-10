@@ -18,7 +18,7 @@ public class Employee implements Serializable {
     private String departmentName; 
     private LocalDate hireDate;    
     private double salary;
-    private boolean active;        // trạng thái làm việc
+    private boolean active;       
     private Department department;
     private String employmentPeriod;
     private String status;
@@ -44,6 +44,19 @@ public class Employee implements Serializable {
         this.status = status;
         this.systemUser = systemUser;
     }
+
+    public Employee(int employeeId, String fullName, String address, String phone, String email, String position, int departmentId) {
+        this.employeeId = employeeId;
+        this.fullName = fullName;
+        this.address = address;
+        this.phone = phone;
+        this.email = email;
+        this.position = position;
+        this.departmentId = departmentId;
+    }
+    
+    
+    
 
     public int getEmployeeId() {
         return employeeId;

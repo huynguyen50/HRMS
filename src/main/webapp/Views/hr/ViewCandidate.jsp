@@ -12,16 +12,16 @@
         <link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/7.2.3/css/flag-icons.min.css" rel="stylesheet">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <style>
-            /* Sao chép toàn bộ style từ home.jsp để giữ giao diện nhất quán */
+            /* HR Dashboard Styles - Đồng bộ với các trang HR khác */
             :root {
-                --primary-color: #2563eb;
-                --secondary-color: #1e40af;
+                --primary-color: #667eea;
+                --secondary-color: #764ba2;
                 --accent-color: #3b82f6;
                 --success-color: #10b981;
                 --warning-color: #f59e0b;
                 --danger-color: #ef4444;
                 --dark-color: #1f2937;
-                --light-color: #f8fafc;
+                --light-color: #f8f9fa;
                 --text-color: #374151;
                 --text-muted: #6b7280;
             }
@@ -33,415 +33,341 @@
             }
 
             body {
-                font-family: 'Inter', sans-serif;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                 line-height: 1.6;
                 color: var(--text-color);
                 background-color: var(--light-color);
             }
-
-            /* Top Functional Bar */
-            .top-bar {
-                background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-                color: white;
-                padding: 0.75rem 0;
-                font-size: 0.875rem;
-                border-bottom: 1px solid rgba(255,255,255,0.1);
-                position: relative;
-                z-index: 1000;
+            
+            /* HR Dashboard Container */
+            .hr-dashboard-container {
+                min-height: 100vh;
+                background-color: var(--light-color);
             }
-
-            .top-bar::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.05) 50%, transparent 100%);
-                pointer-events: none;
-            }
-
-            .top-bar .container {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                position: relative;
-                z-index: 1;
-            }
-
-            .top-nav {
-                display: flex;
-                align-items: center;
-                gap: 2.5rem;
-            }
-
-            .top-nav a {
-                color: rgba(255, 255, 255, 0.85);
-                text-decoration: none;
-                font-weight: 500;
-                font-size: 0.9rem;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                padding: 0.5rem 1rem;
-                border-radius: 8px;
-                position: relative;
-            }
-
-            .top-nav a::before {
-                content: '';
-                position: absolute;
-                bottom: -2px;
-                left: 50%;
-                width: 0;
-                height: 2px;
-                background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-                transition: all 0.3s ease;
-                transform: translateX(-50%);
-            }
-
-            .top-nav a:hover {
-                color: white;
-                background: rgba(255, 255, 255, 0.1);
-                transform: translateY(-1px);
-            }
-
-            .top-nav a:hover::before {
-                width: 80%;
-            }
-
-            .social-icons {
-                display: flex;
-                align-items: center;
-                gap: 1.25rem;
-            }
-
-            .social-icons a {
-                color: rgba(255, 255, 255, 0.75);
-                font-size: 1.1rem;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                text-decoration: none;
-                padding: 0.5rem;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 36px;
-                height: 36px;
-            }
-
-            .social-icons a:hover {
-                color: white;
-                background: rgba(255, 255, 255, 0.15);
-                transform: translateY(-2px) scale(1.1);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            }
-
-            .search-container {
-                display: flex;
-                align-items: center;
-                background: rgba(255, 255, 255, 0.1);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 30px;
-                padding: 0.5rem 1.25rem;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                backdrop-filter: blur(10px);
-                position: relative;
-                overflow: hidden;
-            }
-
-            .search-container::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: -100%;
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-                transition: left 0.5s ease;
-            }
-
-            .search-container:hover {
-                background: rgba(255, 255, 255, 0.15);
-                border-color: rgba(255, 255, 255, 0.3);
-                transform: translateY(-1px);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            }
-
-            .search-container:hover::before {
-                left: 100%;
-            }
-
-            .search-container input {
-                background: transparent;
-                border: none;
-                color: white;
-                outline: none;
-                width: 220px;
-                padding: 0.25rem 0.75rem;
-                font-size: 0.9rem;
-                font-weight: 400;
-            }
-
-            .search-container input::placeholder {
-                color: rgba(255, 255, 255, 0.6);
-                font-weight: 400;
-            }
-
-            .search-container button {
-                background: none;
-                border: none;
-                color: rgba(255, 255, 255, 0.8);
-                cursor: pointer;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                padding: 0.25rem;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 32px;
-                height: 32px;
-            }
-
-            .search-container button:hover {
-                color: white;
-                background: rgba(255, 255, 255, 0.1);
-                transform: scale(1.1);
-            }
-
+            
             /* Header */
-            .header {
+            .hr-header {
                 background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
                 color: white;
                 padding: 1rem 0;
                 box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             }
-
-            .navbar-brand {
-                font-size: 1.5rem;
-                font-weight: 700;
-                color: white !important;
+            
+            .header-content {
+                max-width: 1400px;
+                margin: 0 auto;
+                padding: 0 2rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
             }
-
-            .nav-link {
-                color: rgba(255, 255, 255, 0.9) !important;
-                font-weight: 500;
-                transition: all 0.3s ease;
+            
+            .logo-section {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
             }
-
-            .nav-link:hover {
-                color: white !important;
-                transform: translateY(-1px);
+            
+            .logo-section i {
+                font-size: 2rem;
             }
-
-            /* Profile Dropdown Styles */
-            .profile-dropdown {
+            
+            .logo-section h1 {
+                font-size: 1.8rem;
+                font-weight: 600;
+                margin: 0;
+            }
+            
+            .header-actions {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+            
+            .search-box {
+                display: flex;
+                align-items: center;
+                background: rgba(255,255,255,0.2);
+                border-radius: 25px;
+                padding: 0.5rem 1rem;
+                gap: 0.5rem;
+            }
+            
+            .search-box input {
+                background: transparent;
+                border: none;
+                color: white;
+                outline: none;
+                font-size: 0.9rem;
+                width: 200px;
+            }
+            
+            .search-box input::placeholder {
+                color: rgba(255, 255, 255, 0.7);
+            }
+            
+            .notification-bell {
                 position: relative;
-                display: inline-block;
-            }
-
-            .profile-avatar {
-                width: 35px;
-                height: 35px;
+                background: rgba(255,255,255,0.2);
                 border-radius: 50%;
-                background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+                width: 40px;
+                height: 40px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                color: white;
-                font-weight: 600;
-                font-size: 14px;
                 cursor: pointer;
                 transition: all 0.3s ease;
-                border: 2px solid rgba(255, 255, 255, 0.2);
             }
-
-            .profile-avatar:hover {
-                transform: scale(1.1);
-                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            
+            .notification-bell:hover {
+                background: rgba(255,255,255,0.3);
             }
-
-            .profile-dropdown-menu {
+            
+            .notification-count {
                 position: absolute;
-                top: 100%;
-                right: 0;
-                background: white;
-                border-radius: 12px;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-                min-width: 200px;
-                z-index: 1000;
-                opacity: 0;
-                visibility: hidden;
-                transform: translateY(-10px);
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                border: 1px solid rgba(0, 0, 0, 0.1);
-            }
-
-            .profile-dropdown-menu.show {
-                opacity: 1;
-                visibility: visible;
-                transform: translateY(0);
-            }
-
-            .profile-dropdown-item {
+                top: -5px;
+                right: -5px;
+                background: var(--danger-color);
+                color: white;
+                border-radius: 50%;
+                width: 20px;
+                height: 20px;
+                font-size: 0.7rem;
                 display: flex;
                 align-items: center;
-                padding: 12px 16px;
-                color: #374151;
-                text-decoration: none;
-                transition: all 0.2s ease;
-                border-bottom: 1px solid #f3f4f6;
+                justify-content: center;
+                font-weight: 600;
             }
-
-            .profile-dropdown-item:last-child {
-                border-bottom: none;
+            
+            .user-profile {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                background: rgba(255,255,255,0.2);
+                padding: 0.5rem 1rem;
+                border-radius: 25px;
+                cursor: pointer;
+                transition: all 0.3s ease;
             }
-
-            .profile-dropdown-item:hover {
-                background: #f8fafc;
-                color: #1f2937;
-                text-decoration: none;
+            
+            .user-profile:hover {
+                background: rgba(255,255,255,0.3);
             }
-
-            .profile-dropdown-item i {
-                margin-right: 10px;
-                width: 16px;
-                text-align: center;
+            
+            .user-profile img {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
             }
-
-            .profile-dropdown-item.logout {
-                color: #dc2626;
-            }
-
-            .profile-dropdown-item.logout:hover {
-                background: #fef2f2;
-                color: #b91c1c;
-            }
-
-            /* Footer */
-            .footer {
-                background: var(--dark-color);
+            
+            .btn-homepage {
+                background: rgba(255,255,255,0.2);
                 color: white;
-                padding: 40px 0 20px;
+                padding: 0.5rem 1rem;
+                border-radius: 25px;
+                text-decoration: none;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                transition: all 0.3s ease;
+                border: 1px solid rgba(255,255,255,0.3);
             }
-
-            .footer-title {
-                font-size: 1.5rem;
-                font-weight: 700;
+            
+            .btn-homepage:hover {
+                background: rgba(255,255,255,0.3);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                color: white;
+            }
+            
+            /* Main Content Layout */
+            .hr-main-content {
+                display: flex;
+                max-width: 1400px;
+                margin: 0 auto;
+                padding: 2rem;
+                gap: 2rem;
+            }
+            
+            /* Sidebar */
+            .hr-sidebar {
+                width: 280px;
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                padding: 1.5rem;
+                height: fit-content;
+            }
+            
+            .nav-section {
+                margin-bottom: 2rem;
+            }
+            
+            .nav-section h3 {
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
                 margin-bottom: 1rem;
             }
-
-            .footer-link {
-                color: rgba(255, 255, 255, 0.8);
+            
+            .nav-item {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 0.75rem 1rem;
+                border-radius: 8px;
                 text-decoration: none;
-                transition: color 0.3s ease;
+                color: var(--text-muted);
+                transition: all 0.3s ease;
+                font-weight: 500;
+                margin-bottom: 0.5rem;
             }
-
-            .footer-link:hover {
+            
+            .nav-item:hover {
+                background: #f1f5f9;
+                color: var(--primary-color);
+                transform: translateX(4px);
+                text-decoration: none;
+            }
+            
+            .nav-item.active {
+                background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
                 color: white;
+                box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
             }
-
-            /* Custom style for the main content area */
-            .main-content-area {
-                min-height: 60vh;
-                padding: 40px 0;
+            
+            .nav-item i {
+                font-size: 1.1rem;
+                width: 20px;
+                text-align: center;
             }
+            
+            /* Content Area */
+            .hr-content-area {
+                flex: 1;
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                padding: 2rem;
+                min-height: 600px;
+            }
+            
             .table-actions a {
                 text-decoration: none;
                 margin-right: 10px;
             }
+            
             .table-actions .material-icons {
                 vertical-align: middle;
+            }
+            
+            /* Responsive Design */
+            @media (max-width: 768px) {
+                .hr-main-content {
+                    flex-direction: column;
+                    padding: 1rem;
+                }
+                
+                .hr-sidebar {
+                    width: 100%;
+                    margin-bottom: 1rem;
+                }
+                
+                .header-content {
+                    flex-direction: column;
+                    gap: 1rem;
+                    padding: 0 1rem;
+                }
+                
+                .header-actions {
+                    flex-wrap: wrap;
+                    justify-content: center;
+                }
+                
+                .search-box input {
+                    width: 150px;
+                }
             }
         </style>
     </head>
     <body>
-        <!-- Top Functional Bar (Giữ nguyên từ home.jsp) -->
-        <div class="top-bar">
-            <div class="container">
-                <nav class="top-nav" role="navigation" aria-label="Top navigation">
-                    <a href="${pageContext.request.contextPath}/home.jsp" aria-label="Go to Home section">
-                        <i class="fas fa-home" aria-hidden="true"></i>
-                        <span>Home</span>
-                    </a>
-                    <a href="${pageContext.request.contextPath}/candidates" aria-label="Go to Candidate List">
-                        <i class="fas fa-users" aria-hidden="true"></i>
-                        <span>ViewCandidate</span>
-                    </a>
-                </nav>
-                <aside class="social-icons" aria-label="Social media links">
-                    <a href="https://www.facebook.com/ucvan.254010" target="_blank" rel="noopener noreferrer" title="Follow us on Facebook" aria-label="Facebook">
-                        <i class="fab fa-facebook-f" aria-hidden="true"></i>
-                    </a>
-                    <a href="https://www.linkedin.com/in/%C4%91%E1%BB%A9c-v%C4%83n-46045537b/" target="_blank" rel="noopener noreferrer" title="Connect with us on LinkedIn" aria-label="LinkedIn">
-                        <i class="fab fa-linkedin-in" aria-hidden="true"></i>
-                    </a>
-                    <a href="https://www.instagram.com/ducvan04/" target="_blank" rel="noopener noreferrer" title="Follow us on Instagram" aria-label="Instagram">
-                        <i class="fab fa-instagram" aria-hidden="true"></i>
-                    </a>
-                </aside>
-                <div class="search-container" role="search" aria-label="Search the website">
-                    <label for="searchInput" class="sr-only">Search the website</label>
-                    <input type="text" id="searchInput" placeholder="Search..." aria-label="Search the website" autocomplete="off" spellcheck="false">
-                    <button type="button" onclick="performSearch()" aria-label="Search" title="Search">
-                        <i class="fas fa-search" aria-hidden="true"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Header (Giữ nguyên từ home.jsp) -->
-        <header class="header">
-            <nav class="navbar navbar-expand-lg" aria-label="Main navigation">
-                <div class="container">
-                    <a class="navbar-brand" href="#">
-                        <i class="fas fa-users-cog me-2"></i>Human Resources Management
-                    </a>
-                    <div class="collapse navbar-collapse" id="navbarNav">
-                        <ul class="navbar-nav ms-auto">
-                            <li class="nav-item">
-                                <a class="nav-link" href="mailto:ducnvhe180815@gmail.com">
-                                    <i class="fas fa-envelope me-1"></i>ducnvhe180815@gmail.com
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="tel:0123456789">
-                                    <i class="fas fa-phone me-1"></i>0818886875
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <c:if test="${not empty sessionScope.systemUser}">
-                                    <div class="profile-dropdown">
-                                        <div class="profile-avatar" onclick="toggleProfileDropdown()" title="Profile Menu">
-                                            <i class="fas fa-user"></i>
-                                        </div>
-                                        <div class="profile-dropdown-menu" id="profileDropdown">
-                                            <a href="${pageContext.request.contextPath}/profilepage" class="profile-dropdown-item">
-                                                <i class="fas fa-user"></i> Profile
-                                            </a>
-                                            <a href="${pageContext.request.contextPath}/Admin/AdminHome.jsp" class="profile-dropdown-item">
-                                                <i class="fas fa-tachometer-alt"></i> Dashboard
-                                            </a>
-                                            <a href="${pageContext.request.contextPath}/Views/ChangePassword.jsp" class="profile-dropdown-item">
-                                                <i class="fas fa-key"></i> Change Password
-                                            </a>
-                                            <a href="javascript:void(0)" onclick="handleLogout()" class="profile-dropdown-item logout">
-                                                <i class="fas fa-sign-out-alt"></i> Logout
-                                            </a>
-                                        </div>
-                                    </div>
-                                </c:if>
-                            </li>
-                        </ul>
+        <div class="hr-dashboard-container">
+            <!-- Header -->
+            <header class="hr-header">
+                <div class="header-content">
+                    <div class="logo-section">
+                        <i class="fas fa-users-cog"></i>
+                        <h1>Candidate List</h1>
+                    </div>
+                    <div class="header-actions">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" placeholder="Search candidates...">
+                        </div>
+                        <div class="notification-bell">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-count">3</span>
+                        </div>
+                        <div class="user-profile">
+                            <img src="https://i.pravatar.cc/40" alt="HR User">
+                            <span>HR Manager</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <a href="${pageContext.request.contextPath}/Views/hr/HrHome.jsp" class="btn-homepage" title="Back to HR Dashboard">
+                            <i class="fas fa-home"></i>
+                            <span>HR Dashboard</span>
+                        </a>
                     </div>
                 </div>
-            </nav>
-        </header>
+            </header>
 
-        <!-- MAIN CONTENT AREA -->
-        <main class="main-content-area">
-            <div class="container">
+            <!-- Main Content -->
+            <main class="hr-main-content">
+                <!-- Sidebar -->
+                <aside class="hr-sidebar">
+                    <nav class="hr-nav">
+                        <div class="nav-section">
+                            <h3>Navigation</h3>
+                            <a href="${pageContext.request.contextPath}/Views/hr/HrHome.jsp" class="nav-item">
+                                <i class="fas fa-home"></i>
+                                <span>HR Dashboard</span>
+                            </a>
+                            <a href="${pageContext.request.contextPath}/ProfileManagementController" class="nav-item">
+                                <i class="fas fa-user-edit"></i>
+                                <span>Profile Management</span>
+                            </a>
+                            <a href="${pageContext.request.contextPath}/hr/employee-list" class="nav-item">
+                                <i class="fas fa-users"></i>
+                                <span>Employee List</span>
+                            </a>
+                        </div>
+                        
+                        <div class="nav-section">
+                            <h3>Recruitment</h3>
+                            <a href="${pageContext.request.contextPath}/postRecruitments" class="nav-item">
+                                <i class="fas fa-bullhorn"></i>
+                                <span>Post Recruitment</span>
+                            </a>
+                            <a href="${pageContext.request.contextPath}/viewRecruitment" class="nav-item">
+                                <i class="fas fa-eye"></i>
+                                <span>View Recruitment</span>
+                            </a>
+                            <a href="${pageContext.request.contextPath}/candidates" class="nav-item active">
+                                <i class="fas fa-user-plus"></i>
+                                <span>View Candidates</span>
+                            </a>
+                            <a href="${pageContext.request.contextPath}/hr/create-employee" class="nav-item">
+                                <i class="fas fa-user-plus"></i>
+                                <span>Create Employee</span>
+                            </a>
+                        </div>
+                    </nav>
+                </aside>
+
+                <!-- Content Area -->
+                <div class="hr-content-area">
 
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h1 class="h2">Candidate List</h1>
@@ -505,7 +431,8 @@
                                 <th>CV</th>
                                 <th>Applied at</th>
                                 <th>Status</th>
-                                <th>Action</th>
+                                <th>ID Recruitment</th>
+<!--                                <th>Action</th>-->
                             </tr>
                         </thead>
                         <tbody>
@@ -518,7 +445,8 @@
                                     <td> <a href="${pageContext.request.contextPath}/viewCV?guestId=${g.guestId}">View️</a></td>
                                     <td>${g.appliedDate}</td>
                                     <td>${g.status}</td>
-                                    <td class="table-actions">
+                                    <td>${g.recruitmentId}</td>
+<!--                                    <td class="table-actions">
                                         <c:if test="${g.status eq 'Processing'}">
                                             <form action="${pageContext.request.contextPath}/candidates" method="post" style="display: inline;">
                                                 <input name="action" value="apply" type="hidden">
@@ -535,7 +463,7 @@
                                                 </button>
                                             </form>
                                         </c:if>
-                                    </td>
+                                    </td>-->
                                 </tr>
                             </c:forEach>
                             <c:if test="${not empty mess}">
@@ -590,62 +518,18 @@
                         </ul>
                     </nav>
                 </c:if>
-        </main>
-
-        <!-- Footer (Giữ nguyên từ home.jsp) -->
-        <footer class="footer">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-4">
-                        <h5 class="footer-title">Human Resources Management</h5>
-                        <p>We are committed to providing the best solutions for customers with professional team and extensive experience.</p>
-                    </div>
-                    <div class="col-lg-2">
-                        <h6>Quick Links</h6>
-                        <ul class="list-unstyled">
-                            <li><a href="#about" class="footer-link">About Us</a></li>
-                            <li><a href="#contact" class="footer-link">Contact</a></li>
-                        </ul>
-                    </div>
-                    <div class="col-lg-3">
-                        <h6>Contact Information</h6>
-                        <ul class="list-unstyled">
-                            <li><i class="fas fa-phone me-2"></i>0818886875</li>
-                            <li><i class="fas fa-envelope me-2"></i>ducnvhe180815@gmail.com</li>
-                            <li><i class="fas fa-map-marker-alt me-2"></i>Hà Nội</li>
-                        </ul>
-                    </div>
                 </div>
-                <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
-                <div class="row">
-                    <div class="col-12 text-center">
-                        <p>&copy; 2024 Human Resources Management. All rights reserved.</p>
-                    </div>
-                </div>
-            </div>
-        </footer>
+            </main>
+        </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-                                        // Copy các hàm JS cần thiết từ home.jsp
-                                        function handleLogout() {
-                                            if (confirm('Are you sure you want to logout?')) {
-                                                window.location.href = '${pageContext.request.contextPath}/logout';
-                                            }
-                                        }
-                                        function toggleProfileDropdown() {
-                                            const dropdown = document.getElementById('profileDropdown');
-                                            if (dropdown) {
-                                                dropdown.classList.toggle('show');
-                                            }
-                                        }
-                                        document.addEventListener('click', function (event) {
-                                            const profileDropdown = document.getElementById('profileDropdown');
-                                            const profileAvatar = document.querySelector('.profile-avatar');
-                                            if (profileDropdown && profileAvatar && !profileAvatar.contains(event.target) && !profileDropdown.contains(event.target)) {
-                                                profileDropdown.classList.remove('show');
-                                            }
-                                        });
+            function performSearch() {
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput) {
+                    alert('Search functionality for "' + searchInput.value + '" is not yet implemented.');
+                }
+            }
         </script>
     </body>
 </html>

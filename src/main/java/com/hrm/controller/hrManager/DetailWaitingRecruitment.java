@@ -28,7 +28,7 @@ public class DetailWaitingRecruitment extends HttpServlet {
             int id = Integer.parseInt(request.getParameter("id"));
             Recruitment rec = DAO.getInstance().getRecruitmentById(id);
             request.setAttribute("rec", rec);
-            request.getRequestDispatcher("Views/hrManager/DetailWaitingRecruitment.jsp").forward(request, response);
+            request.getRequestDispatcher("Views/hr/DetailWaitingRecruitment.jsp").forward(request, response);
         } catch (NumberFormatException e) {
             System.out.println(e.getMessage());
         }
@@ -51,7 +51,7 @@ public class DetailWaitingRecruitment extends HttpServlet {
                     request.setAttribute("mess", "Salary and applicant must be a positive number.");
                     Recruitment rec = DAO.getInstance().getRecruitmentById(id);
                     request.setAttribute("rec", rec);
-                    request.getRequestDispatcher("Views/hrManager/DetailWaitingRecruitment.jsp").forward(request, response);
+                    request.getRequestDispatcher("Views/hr/DetailWaitingRecruitment.jsp").forward(request, response);
                     return;
                 }
 

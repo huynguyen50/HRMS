@@ -1,33 +1,19 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>User Management</title>
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/Admin_home.css">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/users.css">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/pagination.css">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/user-menu.css">
+    <title>User Management - HRMS</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/Admin_home.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/unified-layout.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/users.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/pagination.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/user-menu.css">
     </head>
-    <style>
-        .error-text {
-            color: #dc2626;
-            font-size: 13px;
-            font-weight: 500;
-            margin-top: 5px;
-            display: block;
-        }
-
-        .input-error {
-
-            border: 2px solid #ef4444 !important;
-            background-color: #fef2f2;
-            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
-        }
-    </style>
     <body>
         <div class="dashboard-container">
             <!-- Sidebar -->
@@ -42,6 +28,7 @@
                 <div class="sidebar-nav">
                     <a href="${pageContext.request.contextPath}/admin?action=dashboard"
                        class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">🏠 Dashboard</a>
+                          <!-- Employees link removed -->
                     <a href="${pageContext.request.contextPath}/admin?action=departments"
                        class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
                     <a href="${pageContext.request.contextPath}/admin/users"
@@ -59,14 +46,17 @@
             <main class="main-content">
                 <!-- Top Bar -->
                 <header class="top-bar">
-
                     <div class="top-bar-actions">
-
                         <div class="user-menu" onclick="toggleUserMenu()">
                             <div class="user-info">
-                                <img src="https://i.pravatar.cc/32" alt="User">
-                                <span>Admin</span>
-                                <span class="dropdown-arrow">▼</span>
+                                <div class="user-name-display">
+                                    <img src="https://i.pravatar.cc/32" alt="User">
+                                    <div class="user-name-text">
+                                        <span class="name">${currentUserName != null ? fn:escapeXml(currentUserName) : 'Admin'}</span>
+                                        <span class="role">(admin)</span>
+                                    </div>
+                                    <span class="dropdown-arrow">▼</span>
+                                </div>
                             </div>
                             <div class="dropdown-menu" id="userDropdown">
                                 <a href="${pageContext.request.contextPath}/admin?action=profile" class="dropdown-item">
@@ -85,43 +75,60 @@
                 <section class="dashboard-content">
                     <div class="page-header">
                         <h1 class="page-title">User Management</h1>
+                        <button class="btn-primary" type="button" onclick="openAddUserModal()">+ Add New User</button>
                     </div>
 
                     <!-- Filter Section -->
-                    <div class="filter-section" style="width:100%;">
-                        <form id="filterForm" method="GET" action="${pageContext.request.contextPath}/admin/users" style="display: flex; gap: 15px; flex-wrap: wrap; width: 100%; align-items: center; justify-content: space-between;">
-                            <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
-                                <select name="roleFilter" class="filter-select">
-                                    <option value="">All Roles</option>
-                                    <c:forEach var="role" items="${roles}">
-                                        <option value="${role.roleId}" ${param.roleFilter == role.roleId ? 'selected' : ''}>${role.roleName}</option>
-                                    </c:forEach>
-                                </select>
-                                <select name="statusFilter" class="filter-select">
-                                    <option value="">All Status</option>
-                                    <option value="1" ${param.statusFilter == '1' ? 'selected' : ''}>Active</option>
-                                    <option value="0" ${param.statusFilter == '0' ? 'selected' : ''}>Inactive</option>
-                                </select>
-                                <select name="departmentFilter" class="filter-select">
-                                    <option value="">All Departments</option>
-                                    <c:forEach var="dept" items="${departments}">
-                                        <option value="${dept.departmentId}" ${param.departmentFilter == dept.departmentId ? 'selected' : ''}>${dept.deptName}</option>
-                                    </c:forEach>
-                                </select>
-                                <input type="text" name="usernameFilter" value="${param.usernameFilter}" placeholder="Filter by username..." class="filter-input">
-                                <button type="submit" class="btn-primary" style="height: 40px;">Apply Filters</button>
-                                <button type="button" class="btn-secondary" style="height: 40px;" onclick="resetFilters()">Clear All</button>
+                    <div class="filter-section">
+                        <form id="filterForm" method="GET" action="${pageContext.request.contextPath}/admin/users">
+                            <div class="filter-controls">
+                                <div class="filter-group">
+                                    <label for="roleFilter">Role</label>
+                                    <select name="roleFilter" id="roleFilter" class="filter-select">
+                                        <option value="">All Roles</option>
+                                        <c:forEach var="role" items="${roles}">
+                                            <option value="${role.roleId}" ${param.roleFilter == role.roleId ? 'selected' : ''}>${role.roleName}</option>
+                                        </c:forEach>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="statusFilter">Status</label>
+                                    <select name="statusFilter" id="statusFilter" class="filter-select">
+                                        <option value="">All Status</option>
+                                        <option value="1" ${param.statusFilter == '1' ? 'selected' : ''}>Active</option>
+                                        <option value="0" ${param.statusFilter == '0' ? 'selected' : ''}>Inactive</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="departmentFilter">Department</label>
+                                    <select name="departmentFilter" id="departmentFilter" class="filter-select">
+                                        <option value="">All Departments</option>
+                                        <c:forEach var="dept" items="${departments}">
+                                            <option value="${dept.departmentId}" ${param.departmentFilter == dept.departmentId ? 'selected' : ''}>${dept.deptName}</option>
+                                        </c:forEach>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="usernameFilter">Username</label>
+                                    <input type="text" name="usernameFilter" id="usernameFilter" value="${param.usernameFilter}" placeholder="Search username..." class="filter-input">
+                                </div>
+                                <!-- Add hidden sort parameters to preserve sort state during filter -->
+                                <input type="hidden" name="sortField" value="${sortField}">
+                                <input type="hidden" name="sortOrder" value="${sortOrder}">
+                                <div class="filter-buttons">
+                                    <button type="submit" class="btn-primary">Apply Filters</button>
+                                    <button type="button" class="btn-secondary" onclick="resetFilters()">Clear All</button>
+                                </div>
                             </div>
-                            <button class="btn-primary" type="button" onclick="openAddUserModal()">+ Add New User</button>
                         </form>
                         <script>
-                            function resetFilters() {
-                                document.querySelector('select[name=roleFilter]').selectedIndex = 0;
-                                document.querySelector('select[name=statusFilter]').selectedIndex = 0;
-                                document.querySelector('select[name=departmentFilter]').selectedIndex = 0;
-                                document.querySelector('input[name=usernameFilter]').value = '';
-                                document.getElementById('filterForm').submit();
-                            }
+                        function resetFilters() {
+                            document.querySelector('select[name=roleFilter]').selectedIndex = 0;
+                            document.querySelector('select[name=statusFilter]').selectedIndex = 0;
+                            document.querySelector('select[name=departmentFilter]').selectedIndex = 0;
+                            document.querySelector('input[name=usernameFilter]').value = '';
+                            document.getElementById('filterForm').submit();
+                        }
                         </script>
                     </div>
 
@@ -130,14 +137,46 @@
                         <table class="users-table">
                             <thead>
                                 <tr>
-                                    <th>User ID</th>
-                                    <th>Username</th>
-                                    <th>Employee Name</th>
-                                    <th>Department</th>
-                                    <th>Role</th>
-                                    <th>Status</th>
-                                    <th>Last Login</th>
-                                    <th>Created Date</th>
+                                    <th onclick="sortTable('UserID')">User ID
+                                        <c:if test="${sortField == 'UserID'}">
+                                            <span class="sort-arrow">${sortOrder == 'ASC' ? '▲' : '▼'}</span>
+                                        </c:if>
+                                    </th>
+                                    <th onclick="sortTable('Username')">Username
+                                        <c:if test="${sortField == 'Username'}">
+                                            <span class="sort-arrow">${sortOrder == 'ASC' ? '▲' : '▼'}</span>
+                                        </c:if>
+                                    </th>
+                                    <th onclick="sortTable('FullName')">Employee Name
+                                        <c:if test="${sortField == 'FullName'}">
+                                            <span class="sort-arrow">${sortOrder == 'ASC' ? '▲' : '▼'}</span>
+                                        </c:if>
+                                    </th>
+                                    <th onclick="sortTable('DeptName')">Department
+                                        <c:if test="${sortField == 'DeptName'}">
+                                            <span class="sort-arrow">${sortOrder == 'ASC' ? '▲' : '▼'}</span>
+                                        </c:if>
+                                    </th>
+                                    <th onclick="sortTable('RoleName')">Role
+                                        <c:if test="${sortField == 'RoleName'}">
+                                            <span class="sort-arrow">${sortOrder == 'ASC' ? '▲' : '▼'}</span>
+                                        </c:if>
+                                    </th>
+                                    <th onclick="sortTable('Status')">Status
+                                        <c:if test="${sortField == 'Status'}">
+                                            <span class="sort-arrow">${sortOrder == 'ASC' ? '▲' : '▼'}</span>
+                                        </c:if>
+                                    </th>
+                                    <th onclick="sortTable('LastLogin')">Last Login
+                                        <c:if test="${sortField == 'LastLogin'}">
+                                            <span class="sort-arrow">${sortOrder == 'ASC' ? '▲' : '▼'}</span>
+                                        </c:if>
+                                    </th>
+                                    <th onclick="sortTable('CreatedDate')">Created Date
+                                        <c:if test="${sortField == 'CreatedDate' || sortField == ''}">
+                                            <span class="sort-arrow">${sortOrder == 'ASC' ? '▲' : '▼'}</span>
+                                        </c:if>
+                                    </th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -148,9 +187,9 @@
                                             <tr>
                                                 <td>${user.userId}</td>
                                                 <td><strong>${user.username}</strong></td>
-                                                <td>${empty user.employee ? 'N/A' : user.employee.fullName}</td>
-                                                <td>${empty user.department ? 'N/A' : user.department.deptName}</td>
-                                                <td>${empty user.role ? 'N/A' : user.role.roleName}</td>
+                                                <td>${user.employee != null ? user.employee.fullName : 'N/A'}</td>
+                                                <td>${user.department != null ? user.department.deptName : 'N/A'}</td>
+                                                <td>${user.role.roleName}</td>
                                                 <td>
                                                     <span class="status-badge ${user.isActive ? 'active' : 'inactive'}">
                                                         ${user.isActive ? 'Active' : 'Inactive'}
@@ -159,7 +198,7 @@
                                                 <td>
                                                     <c:choose>
                                                         <c:when test="${not empty user.lastLogin}">
-                                                            ${user.lastLogin}
+                                                            ${user.lastLogin.toString()}
                                                         </c:when>
                                                         <c:otherwise><span class="text-muted">Never</span></c:otherwise>
                                                     </c:choose>
@@ -168,7 +207,7 @@
                                                 <td>
                                                     <c:choose>
                                                         <c:when test="${not empty user.createdDate}">
-                                                            ${user.createdDate}
+                                                            ${user.createdDate.toString()}
                                                         </c:when>
                                                         <c:otherwise><span class="text-muted">N/A</span></c:otherwise>
                                                     </c:choose>
@@ -201,52 +240,96 @@
                         </table>
                     </div>
 
-                    <!-- Pagination -->
                     <div class="pagination-bar">
-                        <%-- Build base URL with all filter parameters --%>
-                        <c:url var="baseUrl" value="/admin/users">
-                            <c:if test="${not empty param.roleFilter}">
+                        <div class="pagination-info">
+                            <%-- Tính toán hiển thị --%>
+                            <c:set var="start" value="${total > 0 ? (page - 1) * pageSize + 1 : 0}" />
+                            <c:set var="end" value="${page * pageSize}" />
+                            <c:if test="${end > total}">
+                                <c:set var="end" value="${total}" />
+                            </c:if>
+                            <span>Showing ${start} - ${end} of ${total}</span>
+                            
+                            <div class="page-size-selector">
+                                <label for="pageSizeSelect">Items per page:</label>
+                                <select id="pageSizeSelect" onchange="changePageSize(this.value)">
+                                    <option value="5" <c:if test="${pageSize == 5}">selected</c:if>>5</option>
+                                    <option value="10" <c:if test="${pageSize == 10}">selected</c:if>>10</option>
+                                    <option value="20" <c:if test="${pageSize == 20}">selected</c:if>>20</option>
+                                    <option value="50" <c:if test="${pageSize == 50}">selected</c:if>>50</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="pagination-controls">
+                            
+                            <c:url var="baseUrl" value="/admin/users">
+                                <c:param name="pageSize" value="${pageSize}" />
+                                <%-- Thêm các tham số filter/sort để đảm bảo liên kết giữ trạng thái --%>
                                 <c:param name="roleFilter" value="${param.roleFilter}" />
-                            </c:if>
-                            <c:if test="${not empty param.statusFilter}">
                                 <c:param name="statusFilter" value="${param.statusFilter}" />
-                            </c:if>
-                            <c:if test="${not empty param.departmentFilter}">
                                 <c:param name="departmentFilter" value="${param.departmentFilter}" />
-                            </c:if>
-                            <c:if test="${not empty param.usernameFilter}">
                                 <c:param name="usernameFilter" value="${param.usernameFilter}" />
-                            </c:if>
-                        </c:url>
+                                <c:param name="sortField" value="${sortField}" />
+                                <c:param name="sortOrder" value="${sortOrder}" />
+                            </c:url>
 
-                        <!-- First and Previous Buttons -->
-                        <c:if test="${currentPage > 1}">
-                            <c:url var="firstPageUrl" value="${baseUrl}"><c:param name="page" value="1" /></c:url>
-                            <a href="${firstPageUrl}">First</a>
-                            <c:url var="prevPageUrl" value="${baseUrl}"><c:param name="page" value="${currentPage - 1}" /></c:url>
-                            <a href="${prevPageUrl}">Previous</a>
-                        </c:if>
-
-                        <!-- Page Numbers -->
-                        <c:forEach var="i" begin="1" end="${totalPages}">
                             <c:choose>
-                                <c:when test="${i == currentPage}">
-                                    <span class="active">${i}</span>
+                                <c:when test="${page > 1}">
+                                    <c:url var="prevUrl" value="${baseUrl}">
+                                        <c:param name="page" value="${page - 1}" />
+                                    </c:url>
+                                    <a href="${prevUrl}" class="btn-pagination">← Prev</a>
                                 </c:when>
                                 <c:otherwise>
-                                    <c:url var="pageUrl" value="${baseUrl}"><c:param name="page" value="${i}" /></c:url>
-                                    <a href="${pageUrl}">${i}</a>
+                                    <span class="disabled">← Prev</span>
                                 </c:otherwise>
                             </c:choose>
-                        </c:forEach>
 
-                        <!-- Next and Last Buttons -->
-                        <c:if test="${currentPage < totalPages}">
-                            <c:url var="nextPageUrl" value="${baseUrl}"><c:param name="page" value="${currentPage + 1}" /></c:url>
-                            <a href="${nextPageUrl}">Next</a>
-                            <c:url var="lastPageUrl" value="${baseUrl}"><c:param name="page" value="${totalPages}" /></c:url>
-                            <a href="${lastPageUrl}">Last</a>
-                        </c:if>
+                            <c:set var="range" value="2" />
+                            <c:set var="start_page" value="${page - range > 1 ? page - range : 1}" />
+                            <c:set var="end_page" value="${page + range < totalPages ? page + range : totalPages}" />
+
+                            <c:if test="${start_page > 1}">
+                                <c:url var="firstPageUrl" value="${baseUrl}"><c:param name="page" value="1" /></c:url>
+                                <a href="${firstPageUrl}" class="btn-pagination">1</a>
+                                <c:if test="${start_page > 2}">
+                                    <span class="ellipsis">...</span>
+                                </c:if>
+                            </c:if>
+
+                            <c:forEach begin="${start_page}" end="${end_page}" var="i">
+                                <c:choose>
+                                    <c:when test="${i == page}">
+                                        <span class="active btn-pagination">${i}</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <c:url var="pageUrl" value="${baseUrl}"><c:param name="page" value="${i}" /></c:url>
+                                        <a href="${pageUrl}" class="btn-pagination">${i}</a>
+                                    </c:otherwise>
+                                </c:choose>
+                            </c:forEach>
+
+                            <c:if test="${end_page < totalPages}">
+                                <c:if test="${end_page < totalPages - 1}">
+                                    <span class="ellipsis">...</span>
+                                </c:if>
+                                <c:url var="lastPageUrl" value="${baseUrl}"><c:param name="page" value="${totalPages}" /></c:url>
+                                <a href="${lastPageUrl}" class="btn-pagination">${totalPages}</a>
+                            </c:if>
+
+                            <c:choose>
+                                <c:when test="${page < totalPages}">
+                                    <c:url var="nextUrl" value="${baseUrl}">
+                                        <c:param name="page" value="${page + 1}" />
+                                    </c:url>
+                                    <a href="${nextUrl}" class="btn-pagination">Next →</a>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="disabled">Next →</span>
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
                     </div>
                 </section>
             </main>
@@ -258,22 +341,24 @@
                     <h2 id="modalTitle">Add New User</h2>
                     <button class="close-btn" onclick="closeUserModal()">&times;</button>
                 </div>
-                <form id="userForm" >
+                <form id="userForm" method="POST" action="${pageContext.request.contextPath}/admin/users" onsubmit="return handleFormSubmit(event)">
                     <input type="hidden" id="userId" name="id">
                     <input type="hidden" id="actionField" name="action" value="save">
 
                     <div class="form-group">
                         <label for="username">Username *</label>
-                        <input type="text" id="username" name="username" required>
-                        <small class="form-hint">Username must be unique and contain 3-50 characters</small>
-                        <small class="error-text" id="error-username"></small>
+                        <input type="text" id="username" name="username" required 
+                               onblur="validateUsername()" oninput="clearUsernameError()">
+                        <small class="form-hint">Username must be unique and contain 3-50 characters (letters, numbers, ., -, _)</small>
+                        <div id="usernameError" class="error-message" style="display: none;"></div>
                     </div>
 
                     <div class="form-group">
                         <label for="password">Password *</label>
-                        <input type="password" id="password" name="password" required **autocomplete="new-password"**>
-                        <small class="form-hint">Password must be at least 8 characters</small>
-                        <small class="error-text" id="error-password"></small>
+                        <input type="password" id="password" name="password" required 
+                               oninput="validatePassword()" onblur="validatePassword()">
+                        <small class="form-hint">Password must be at least 8 characters, including 1 uppercase, 1 lowercase, and 1 number</small>
+                        <div id="passwordError" class="error-message" style="display: none;"></div>
                     </div>
 
                     <div class="form-group">
@@ -284,7 +369,6 @@
                                 <option value="${employee.employeeId}">${employee.fullName}</option>
                             </c:forEach>
                         </select>
-                        <small class="error-text" id="error-employee"></small>
                     </div>
 
                     <div class="form-group">
@@ -295,7 +379,6 @@
                                 <option value="${role.roleId}">${role.roleName}</option>
                             </c:forEach>
                         </select>
-                        <small class="error-text" id="error-role"></small>
                     </div>
 
                     <div class="form-group checkbox-group">
@@ -305,9 +388,10 @@
                         </label>
                     </div>
 
+                    <div id="formError" class="error-message" style="display: none; margin-top: 10px;"></div>
                     <div class="form-actions">
                         <button type="button" class="btn-cancel" onclick="closeUserModal()">Cancel</button>
-                        <button type="submit" class="btn-submit">Save User</button>
+                        <button type="submit" class="btn-submit" id="submitBtn">Save User</button>
                     </div>
                 </form>
             </div>
@@ -333,6 +417,9 @@
 
         <script>
             let currentResetUserId = null;
+            let usernameCheckTimeout = null;
+            let isEditMode = false;
+            let isUsernameChecking = false;
 
             function openAddUserModal() {
                 document.getElementById('modalTitle').textContent = 'Add New User';
@@ -340,11 +427,150 @@
                 document.getElementById('userId').value = '';
                 document.getElementById('actionField').value = 'save';
                 document.getElementById('password').required = true;
+                clearAllErrors();
+                isEditMode = false;
                 document.getElementById('userModal').classList.add('show');
             }
 
             function closeUserModal() {
                 document.getElementById('userModal').classList.remove('show');
+                clearAllErrors();
+                isEditMode = false;
+            }
+
+            function clearAllErrors() {
+                document.getElementById('usernameError').style.display = 'none';
+                document.getElementById('passwordError').style.display = 'none';
+                document.getElementById('formError').style.display = 'none';
+                document.getElementById('username').classList.remove('error', 'success');
+                document.getElementById('password').classList.remove('error', 'success');
+            }
+
+            function clearUsernameError() {
+                const usernameInput = document.getElementById('username');
+                const errorDiv = document.getElementById('usernameError');
+                usernameInput.classList.remove('error', 'success');
+                errorDiv.style.display = 'none';
+            }
+
+            function showError(fieldId, message) {
+                const errorDiv = document.getElementById(fieldId + 'Error');
+                const input = document.getElementById(fieldId);
+                if (errorDiv && input) {
+                    errorDiv.textContent = message;
+                    errorDiv.style.display = 'block';
+                    input.classList.add('error');
+                    input.classList.remove('success');
+                }
+            }
+
+            function showSuccess(fieldId, message) {
+                const errorDiv = document.getElementById(fieldId + 'Error');
+                const input = document.getElementById(fieldId);
+                if (errorDiv && input) {
+                    errorDiv.textContent = message || '';
+                    errorDiv.style.display = message ? 'block' : 'none';
+                    input.classList.add('success');
+                    input.classList.remove('error');
+                }
+            }
+
+            function clearError(fieldId) {
+                const errorDiv = document.getElementById(fieldId + 'Error');
+                const input = document.getElementById(fieldId);
+                if (errorDiv && input) {
+                    errorDiv.style.display = 'none';
+                    input.classList.remove('error', 'success');
+                }
+            }
+
+            function validateUsername() {
+                const username = document.getElementById('username').value.trim();
+                const userId = document.getElementById('userId').value;
+                const errorDiv = document.getElementById('usernameError');
+                const input = document.getElementById('username');
+
+                if (usernameCheckTimeout) {
+                    clearTimeout(usernameCheckTimeout);
+                }
+
+                if (username.length === 0) {
+                    showError('username', 'Username không được để trống.');
+                    return false;
+                }
+
+                if (username.length < 3 || username.length > 50) {
+                    showError('username', 'Username phải có từ 3–50 ký tự.');
+                    return false;
+                }
+
+                if (!username.match(/^[A-Za-z0-9._-]+$/)) {
+                    showError('username', 'Username chỉ được chứa chữ, số, dấu \'.\', \'-\' hoặc \'_\'.');
+                    return false;
+                }
+
+                usernameCheckTimeout = setTimeout(() => {
+                    isUsernameChecking = true;
+                    const url = '${pageContext.request.contextPath}/admin/users?action=checkUsername&username=' + 
+                                encodeURIComponent(username) + 
+                                (userId ? '&userId=' + userId : '');
+                    
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            isUsernameChecking = false;
+                            if (data.exists) {
+                                showError('username', data.message);
+                            } else {
+                                showSuccess('username', '');
+                                clearError('username');
+                            }
+                        })
+                        .catch(error => {
+                            isUsernameChecking = false;
+                            console.error('Error checking username:', error);
+                        });
+                }, 500);
+
+                return true;
+            }
+
+            function validatePassword() {
+                const passwordInput = document.getElementById('password');
+                const password = passwordInput.value;
+                const isRequired = passwordInput.required;
+                
+                if (!isRequired && password.length === 0) {
+                    clearError('password');
+                    return true;
+                }
+
+                if (isRequired && password.length === 0) {
+                    showError('password', 'Password không được để trống.');
+                    return false;
+                }
+
+                if (password.length > 0) {
+                    if (password.length < 8) {
+                        showError('password', 'Mật khẩu phải có ít nhất 8 ký tự.');
+                        return false;
+                    }
+
+                    if (!password.match(/(?=.*[A-Z])(?=.*[a-z])(?=.*\d).*/)) {
+                        showError('password', 'Mật khẩu phải gồm 1 chữ hoa, 1 chữ thường và 1 số.');
+                        return false;
+                    }
+                }
+
+                // Password is valid
+                if (password.length > 0) {
+                    clearError('password');
+                    passwordInput.classList.add('success');
+                    passwordInput.classList.remove('error');
+                } else {
+                    clearError('password');
+                }
+                return true;
             }
 
             function editUser(userId) {
@@ -360,59 +586,166 @@
                             document.getElementById('roleId').value = data.roleId;
                             document.getElementById('isActive').checked = data.isActive;
                             document.getElementById('actionField').value = 'update';
+                            clearAllErrors();
+                            isEditMode = true;
                             document.getElementById('userModal').classList.add('show');
                         })
                         .catch(error => alert('Error loading user data: ' + error));
             }
 
             function resetPassword(userId) {
-                if (confirm("Bạn có chắc muốn đặt lại mật khẩu không? Mật khẩu tạm thời mới sẽ được tạo ngẫu nhiên.")) {
-                    // 💡 Gửi request POST
-                    fetch('${pageContext.request.contextPath}/admin/users', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded'
-                        },
-                        // Thêm action=resetPassword vào body
-                        body: 'action=resetPassword&id=' + userId
-                    }).then(async res => {
-                        const data = await res.json();
+                currentResetUserId = userId;
+                document.getElementById('resetPasswordModal').classList.add('show');
+            }
 
-                        if (res.ok) { // Kiểm tra status code 200-299
-                            // Thành công: Hiển thị mật khẩu tạm thời mới từ server
-                            alert("Đặt lại mật khẩu thành công!\n" + data.message);
-                            // Không cần reload toàn bộ trang, nhưng nên cập nhật lại danh sách nếu cần
-                            // Ở đây, tôi chọn reload để đồng bộ nhanh chóng
-                            window.location.reload();
-                        } else { // Xử lý lỗi (ví dụ: 400, 500)
-                            alert("Lỗi: " + data.message);
-                        }
-                    }).catch(err => {
-                        alert('Lỗi kết nối hoặc xử lý dữ liệu: ' + err.message);
-                    });
+            function closeResetPasswordModal() {
+                document.getElementById('resetPasswordModal').classList.remove('show');
+                currentResetUserId = null;
+            }
+
+            function confirmResetPassword() {
+                if (currentResetUserId) {
+                    window.location.href = '${pageContext.request.contextPath}/admin/users?action=resetPassword&id=' + currentResetUserId;
                 }
             }
 
-
-
             function toggleUserStatus(userId) {
-                if (confirm('Bạn có chắc muốn thay đổi trạng thái tài khoản này không?')) {
+                if (confirm('Are you sure you want to toggle this user\'s status?')) {
                     window.location.href = '${pageContext.request.contextPath}/admin/users?action=toggleStatus&id=' + userId;
                 }
             }
 
-
-
             function deleteUser(userId) {
-                if (confirm('Are you sure you want to delete this user?')) {
-                    fetch('${pageContext.request.contextPath}/admin/users', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                        body: 'action=delete&id=' + userId
-                    }).then(() => window.location.reload());
+                if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+                    window.location.href = '${pageContext.request.contextPath}/admin/users?action=delete&id=' + userId;
                 }
             }
 
+            function sortTable(column) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const currentSortField = urlParams.get('sortField') || 'CreatedDate';
+                const currentSortOrder = urlParams.get('sortOrder') || 'DESC';
+                let newSortOrder = 'ASC';
+
+                if (currentSortField === column) {
+                    newSortOrder = (currentSortOrder === 'ASC') ? 'DESC' : 'ASC';
+                }
+                
+                urlParams.set('sortField', column);
+                urlParams.set('sortOrder', newSortOrder);
+                urlParams.set('page', '1');
+
+                window.location.href = '${pageContext.request.contextPath}/admin/users?' + urlParams.toString();
+            }
+
+            function changePageSize(newSize) {
+                const urlParams = new URLSearchParams(window.location.search);
+                urlParams.set('pageSize', newSize);
+                urlParams.set('page', '1');
+
+                window.location.href = '${pageContext.request.contextPath}/admin/users?' + urlParams.toString();
+            }
+
+            function handleFormSubmit(event) {
+                event.preventDefault();
+                
+                document.getElementById('formError').style.display = 'none';
+                
+                const username = document.getElementById('username').value.trim();
+                const passwordInput = document.getElementById('password');
+                const password = passwordInput.value;
+                
+                if (username.length === 0) {
+                    showError('username', 'Username không được để trống.');
+                    document.getElementById('formError').textContent = 'Vui lòng sửa lỗi username trước khi tiếp tục.';
+                    document.getElementById('formError').style.display = 'block';
+                    return false;
+                }
+                
+                if (username.length < 3 || username.length > 50) {
+                    showError('username', 'Username phải có từ 3–50 ký tự.');
+                    document.getElementById('formError').textContent = 'Vui lòng sửa lỗi username trước khi tiếp tục.';
+                    document.getElementById('formError').style.display = 'block';
+                    return false;
+                }
+                
+                if (!username.match(/^[A-Za-z0-9._-]+$/)) {
+                    showError('username', 'Username chỉ được chứa chữ, số, dấu \'.\', \'-\' hoặc \'_\'.');
+                    document.getElementById('formError').textContent = 'Vui lòng sửa lỗi username trước khi tiếp tục.';
+                    document.getElementById('formError').style.display = 'block';
+                    return false;
+                }
+                
+                const passwordValid = validatePassword();
+                if (!passwordValid) {
+                    document.getElementById('formError').textContent = 'Vui lòng sửa lỗi password trước khi tiếp tục.';
+                    document.getElementById('formError').style.display = 'block';
+                    return false;
+                }
+
+                const userId = document.getElementById('userId').value;
+                const url = '${pageContext.request.contextPath}/admin/users?action=checkUsername&username=' + 
+                            encodeURIComponent(username) + 
+                            (userId ? '&userId=' + userId : '');
+                
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.exists) {
+                            showError('username', data.message);
+                            document.getElementById('formError').textContent = 'Vui lòng sửa lỗi username trước khi tiếp tục.';
+                            document.getElementById('formError').style.display = 'block';
+                        } else {
+                            submitForm();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking username:', error);
+                        submitForm();
+                    });
+                
+                return false;
+            }
+
+            function submitForm() {
+                const form = document.getElementById('userForm');
+                const formData = new FormData(form);
+                const submitBtn = document.getElementById('submitBtn');
+                
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Đang xử lý...';
+                
+                fetch('${pageContext.request.contextPath}/admin/users', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message || 'Thành công!');
+                        closeUserModal();
+                        window.location.reload();
+                    } else {
+                        document.getElementById('formError').textContent = data.message || 'Có lỗi xảy ra. Vui lòng thử lại.';
+                        document.getElementById('formError').style.display = 'block';
+                        
+                        if (data.message && data.message.includes('Username')) {
+                            showError('username', data.message);
+                        } else if (data.message && data.message.includes('Mật khẩu')) {
+                            showError('password', data.message);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('formError').textContent = 'Có lỗi xảy ra khi kết nối đến server.';
+                    document.getElementById('formError').style.display = 'block';
+                })
+                .finally(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Save User';
+                });
+            }
 
             window.onclick = function (event) {
                 const userModal = document.getElementById('userModal');
@@ -420,6 +753,7 @@
 
                 if (event.target == userModal) {
                     userModal.classList.remove('show');
+                    clearAllErrors();
                 }
                 if (event.target == resetModal) {
                     resetModal.classList.remove('show');
@@ -432,7 +766,7 @@
                 userMenu.classList.toggle('active');
             }
 
-            document.addEventListener('click', function (event) {
+            document.addEventListener('click', function(event) {
                 if (!event.target.closest('.user-menu')) {
                     const userMenu = document.querySelector('.user-menu');
                     if (userMenu.classList.contains('active')) {
@@ -441,56 +775,5 @@
                 }
             });
         </script>
-        <script>
-            document.addEventListener("DOMContentLoaded", () => {
-                const userForm = document.getElementById("userForm");
-                if (!userForm)
-                    return;
-
-                userForm.addEventListener("submit", async (event) => {
-                    event.preventDefault(); // chặn reload GET
-
-                    const formData = new FormData(userForm);
-
-                    try {
-                        const formData = new FormData(userForm);
-                        // 💡 BIẾN ĐỔI: Chuyển FormData thành URLSearchParams
-                        const urlEncodedData = new URLSearchParams(formData);
-
-                        const res = await fetch("${pageContext.request.contextPath}/admin/users", {
-                            method: "POST",
-                            // 💡 BIẾN ĐỔI: Chỉ định Content-Type
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded'
-                            },
-                            // 💡 BIẾN ĐỔI: Gửi dữ liệu đã được mã hóa
-                            body: urlEncodedData
-                        });
-
-                        const text = await res.text();
-                        if (!text.trim())
-                            throw new Error("Empty response from server");
-
-                        let data;
-                        try {
-                            data = JSON.parse(text);
-                        } catch (e) {
-                            throw new Error("Invalid JSON: " + text);
-                        }
-
-                        if (!data.success) {
-                            alert(data.message);
-                        } else {
-                            alert(data.message);
-                            window.location.reload();
-                        }
-                    } catch (err) {
-                        alert("Lỗi gửi dữ liệu: " + err.message);
-                    }
-                });
-            });
-        </script>
-
-
     </body>
 </html>

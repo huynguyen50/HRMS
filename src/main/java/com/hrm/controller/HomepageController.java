@@ -78,6 +78,12 @@ public class HomepageController extends HttpServlet {
 DashboardAccess dashboardAccess = getDashboardAccess(userRole);
                 request.setAttribute("dashboardAccess", dashboardAccess);
                 
+                // Check roleID first - roleID 3 redirects to deptHome.jsp
+                if (currentUser.getRoleId() == 3) {
+                    response.sendRedirect(request.getContextPath() + "/dept?action=dashboard");
+                    return;
+                }
+                
                 // Redirect to appropriate dashboard based on role
                 String roleName = userRole.getRoleName().toLowerCase();
                 switch (roleName) {
@@ -214,25 +220,32 @@ stats.setTotalProjects(rs.getInt("total"));
         
         // Normalize DB role names (e.g., "HR Manager", "HR Staff") to internal groups
         String roleName = roleDAO.normalizeRoleName(userRole.getRoleName());
+        String dbRoleName = userRole.getRoleName() != null ? userRole.getRoleName().trim().toLowerCase() : "";
         
         switch (roleName) {
             case "admin":
                 access.setCanAccessAdmin(true);
-access.setCanAccessHR(true);
+                access.setCanAccessHR(true);
                 access.setCanAccessEmployee(true);
                 access.setCanAccessGuest(true);
                 access.setAdminUrl("/admin?action=dashboard");
                 access.setHrUrl("/Views/hr/HrHome.jsp");
+                access.setCanAccessHrStaff(true);
+                access.setHrStaffUrl("/hrstaff");
                 access.setEmployeeUrl("/Views/Employee/EmployeeHome.jsp");
                 access.setGuestUrl("/Views/Homepage.jsp");
                 break;
                 
             case "hr":
                 access.setCanAccessAdmin(false);
-                access.setCanAccessHR(true);
+                // Distinguish HR Manager vs HR Staff by original DB role name
+                boolean isHrStaff = dbRoleName.contains("staff");
+                access.setCanAccessHR(!isHrStaff);
+                access.setCanAccessHrStaff(isHrStaff);
                 access.setCanAccessEmployee(true);
                 access.setCanAccessGuest(true);
                 access.setHrUrl("/Views/hr/HrHome.jsp");
+                access.setHrStaffUrl("/hrstaff");
                 access.setEmployeeUrl("/Views/Employee/EmployeeHome.jsp");
                 access.setGuestUrl("/Views/Homepage.jsp");
                 break;
@@ -272,10 +285,12 @@ access.setCanAccessHR(true);
     public static class DashboardAccess {
         private boolean canAccessAdmin = false;
         private boolean canAccessHR = false;
+        private boolean canAccessHrStaff = false;
         private boolean canAccessEmployee = false;
         private boolean canAccessGuest = false;
         private String adminUrl;
         private String hrUrl;
+        private String hrStaffUrl;
         private String employeeUrl;
         private String guestUrl;
         
@@ -286,6 +301,9 @@ access.setCanAccessHR(true);
         public boolean isCanAccessHR() { return canAccessHR; }
         public void setCanAccessHR(boolean canAccessHR) { this.canAccessHR = canAccessHR; }
         
+        public boolean isCanAccessHrStaff() { return canAccessHrStaff; }
+        public void setCanAccessHrStaff(boolean canAccessHrStaff) { this.canAccessHrStaff = canAccessHrStaff; }
+
         public boolean isCanAccessEmployee() { return canAccessEmployee; }
         public void setCanAccessEmployee(boolean canAccessEmployee) { this.canAccessEmployee = canAccessEmployee; }
         
@@ -298,6 +316,9 @@ public void setCanAccessGuest(boolean canAccessGuest) { this.canAccessGuest = ca
         public String getHrUrl() { return hrUrl; }
         public void setHrUrl(String hrUrl) { this.hrUrl = hrUrl; }
         
+        public String getHrStaffUrl() { return hrStaffUrl; }
+        public void setHrStaffUrl(String hrStaffUrl) { this.hrStaffUrl = hrStaffUrl; }
+
         public String getEmployeeUrl() { return employeeUrl; }
         public void setEmployeeUrl(String employeeUrl) { this.employeeUrl = employeeUrl; }
         

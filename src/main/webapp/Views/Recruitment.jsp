@@ -56,6 +56,31 @@
             gap: 0.5rem;
         }
 
+        /* Style for the actual Homepage link used on this page */
+        .btn-homepage {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            color: #ffffff; /* make text/icon white */
+            background: rgba(255, 255, 255, 0.18); /* subtle translucent button */
+            transition: all 0.3s ease;
+        }
+
+        .btn-homepage i {
+            color: inherit; /* keep icon same color as text */
+        }
+
+        .btn-homepage:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            color: #ffffff;
+            text-decoration: none;
+        }
+
         .home-btn:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
@@ -171,6 +196,13 @@ color: #2c3e50;
             color: #27ae60;
             font-weight: 600;
             font-size: 1.1rem;
+        }
+
+        .job-applicant {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-top: 0.5rem;
         }
 
         .job-status {
@@ -362,7 +394,7 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     <div class="header">
         <div class="container">
             <div class="header-content">
-                <a href="${pageContext.request.contextPath}/Views/Homepage.jsp" class="btn-homepage" title="Back to Homepage">
+                <a href="${pageContext.request.contextPath}/homepage" class="btn-homepage" title="Back to Homepage">
                             <i class="fas fa-home"></i>
                             <span>Homepage</span>
                         </a>
@@ -420,9 +452,12 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                             <i class="fas fa-money-bill-wave"></i> <%= String.format("%,.0f", recruitment.getSalary()) %> VNĐ
                         </div>
                         <% } %>
+                        <div class="job-applicant">
+                            <i class="fas fa-users"></i> Number of vacancies: <%= recruitment.getApplicant() %> People
+                        </div>
                         <% if (recruitment.getStatus() != null && "Applied".equals(recruitment.getStatus())) { %>
                         <div class="job-status status-applied">
-                            <i class="fas fa-info-circle"></i> Đã có ứng viên
+                            <i class="fas fa-info-circle"></i> Available
                         </div>
                         <% } %>
                     </div>
@@ -456,12 +491,14 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                                 <%= recruitment.getPostedDate().format(formatter) %>
                             <% } %>
                         </div>
+
                         <% 
                             // Chỉ hiển thị nút Apply vì chỉ có recruitment có Status = Applied mới được hiển thị
                             String status = recruitment.getStatus();
                             boolean canApply = status != null && status.equals("Applied");
                         %>
                         <% if (canApply) { %>
+
                         <a href="${pageContext.request.contextPath}/RecruitmentController?action=apply&recruitmentId=<%= recruitment.getRecruitmentId() %>" 
                            class="apply-btn">
                             <i class="fas fa-paper-plane"></i> Apply Now
