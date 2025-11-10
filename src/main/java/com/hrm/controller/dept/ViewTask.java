@@ -40,6 +40,7 @@ public class ViewTask extends HttpServlet {
         Employee emp = DAO.getInstance().getEmp(sys.getEmployeeId());
         
         int taskID = Integer.parseInt(request.getParameter("id"));
+        
         Task task = DAO.getInstance().getTaskById(taskID);
         List<Employee> employeeList = DAO.getInstance().loadEmpFollowDepartment(emp.getDepartmentId());
         List<Integer> assignedEmpIds = DAO.getInstance().getEmployeeIdsByTaskId(taskID);
