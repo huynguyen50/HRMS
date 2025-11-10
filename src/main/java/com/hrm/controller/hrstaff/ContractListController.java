@@ -8,10 +8,14 @@ package com.hrm.controller.hrstaff;
 import com.hrm.controller.EmailSender;
 import com.hrm.dao.ContractDAO;
 import com.hrm.dao.EmployeeDAO;
+import com.hrm.dao.SystemLogDAO;
 import com.hrm.model.entity.Contract;
 import com.hrm.model.entity.Employee;
+import com.hrm.model.entity.SystemUser;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.Locale;
 import java.time.LocalDate;
 import java.util.List;
 import jakarta.servlet.ServletException;
@@ -19,6 +23,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 /**
  *
@@ -290,10 +295,34 @@ public class ContractListController extends HttpServlet {
             }
             
             // Check if important fields changed (BaseSalary)
+            // If contract is already Pending_Approval, compare with the last Active contract (original salary)
+            // Otherwise, compare with current contract value
             boolean importantFieldChanged = false;
-            if (existingContract.getBaseSalary() != null && 
-                !existingContract.getBaseSalary().equals(baseSalary)) {
-                importantFieldChanged = true;
+            BigDecimal oldSalary = null;
+            BigDecimal currentContractSalary = existingContract.getBaseSalary();
+            
+            // If contract is Pending_Approval, get the original salary from Active contract
+            if (STATUS_PENDING.equals(currentStatus)) {
+                Contract previousActiveContract = contractDAO.getPreviousActiveContract(employeeId, contractId);
+                if (previousActiveContract != null && previousActiveContract.getBaseSalary() != null) {
+                    // Compare new salary with original active contract salary
+                    if (!previousActiveContract.getBaseSalary().equals(baseSalary)) {
+                        importantFieldChanged = true;
+                        oldSalary = previousActiveContract.getBaseSalary(); // Use original salary from Active contract
+                    }
+                } else {
+                    // No previous active contract, compare with current contract value
+                    if (currentContractSalary != null && !currentContractSalary.equals(baseSalary)) {
+                        importantFieldChanged = true;
+                        oldSalary = currentContractSalary;
+                    }
+                }
+            } else {
+                // Contract is Draft or Active, compare with current contract value
+                if (currentContractSalary != null && !currentContractSalary.equals(baseSalary)) {
+                    importantFieldChanged = true;
+                    oldSalary = currentContractSalary;
+                }
             }
             
             // Create updated contract
@@ -308,32 +337,78 @@ public class ContractListController extends HttpServlet {
             contract.setNote(note != null ? note.trim() : null);
             
             // Set status: if important field changed, set to Pending_Approval
+            // If contract is already Pending_Approval and salary changed, keep it as Pending_Approval
             if (importantFieldChanged) {
                 contract.setStatus(STATUS_PENDING);
             } else {
                 // Keep existing status
                 contract.setStatus(existingContract.getStatus());
+                // However, if contract is already Pending_Approval and we're editing it,
+                // keep it as Pending_Approval even if no salary change detected
+                // (this handles cases where salary was already changed but we're editing other fields)
+                if (STATUS_PENDING.equals(currentStatus)) {
+                    contract.setStatus(STATUS_PENDING);
+                }
             }
             
             // Update contract
             boolean success = contractDAO.updateContract(contract);
             
             if (success) {
+                // Log salary change to SystemLog if salary was changed
+                if (importantFieldChanged && oldSalary != null) {
+                    try {
+                        HttpSession session = request.getSession(false);
+                        if (session != null) {
+                            SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
+                            if (currentUser != null) {
+                                SystemLogDAO systemLogDAO = new SystemLogDAO();
+                                NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
+                                String oldValue = "Contract ID: " + contractId + ", Old Salary: " + nf.format(oldSalary) + " VND";
+                                String newValue = "Contract ID: " + contractId + ", New Salary: " + nf.format(baseSalary) + " VND";
+                                
+                                systemLogDAO.insertSystemLog(
+                                    currentUser.getUserId(),
+                                    "Update Salary",
+                                    "Contract",
+                                    oldValue,
+                                    newValue
+                                );
+                            }
+                        }
+                    } catch (Exception e) {
+                        // Log error but don't fail the update
+                        System.err.println("Error logging salary change: " + e.getMessage());
+                    }
+                }
+                
                 // Send notification to HR Manager if status changed to Pending_Approval
                 if (importantFieldChanged) {
                     try {
                         String hrManagerEmail = contractDAO.getHrManagerEmail();
                         if (hrManagerEmail != null && !hrManagerEmail.trim().isEmpty()) {
+                            NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
                             String subject = "Contract Requires Approval - Contract ID: " + contractId;
+                            String salaryChangeInfo = "";
+                            if (oldSalary != null) {
+                                salaryChangeInfo = String.format(
+                                    "\nSalary Change:\n" +
+                                    "- Old Salary: %s VND\n" +
+                                    "- New Salary: %s VND\n",
+                                    nf.format(oldSalary),
+                                    nf.format(baseSalary)
+                                );
+                            }
                             String content = String.format(
                                 "Contract with ID %d has been modified and requires approval.\n\n" +
                                 "Contract Information:\n" +
                                 "- ID: %d\n" +
                                 "- Employee ID: %d\n" +
-                                "- Base Salary: %s\n" +
+                                "- Base Salary: %s VND\n" +
+                                "%s" +
                                 "- Status: Pending_Approval\n\n" +
                                 "Please log in to the system to approve the contract.",
-                                contractId, contractId, employeeId, baseSalary.toString()
+                                contractId, contractId, employeeId, nf.format(baseSalary), salaryChangeInfo
                             );
                             EmailSender.sendEmail(hrManagerEmail, subject, content);
                         }

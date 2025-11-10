@@ -7,8 +7,11 @@ package com.hrm.controller.hr;
 
 import com.hrm.dao.EmployeeDAO;
 import com.hrm.dao.DepartmentDAO;
+import com.hrm.dao.SystemUserDAO;
 import com.hrm.model.entity.Employee;
 import com.hrm.model.entity.Department;
+import com.hrm.model.entity.SystemUser;
+import com.hrm.util.PermissionUtil;
 import java.io.IOException;
 import java.util.List;
 import jakarta.servlet.ServletException;
@@ -16,6 +19,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 /**
  *
@@ -26,6 +30,7 @@ public class EmployeeListController extends HttpServlet {
    
     private EmployeeDAO employeeDAO = new EmployeeDAO();
     private DepartmentDAO departmentDAO = new DepartmentDAO();
+    private SystemUserDAO systemUserDAO = new SystemUserDAO();
     
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -36,6 +41,20 @@ public class EmployeeListController extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        // Kiểm tra quyền xem employees
+        HttpSession session = request.getSession();
+        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
+        
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+            return;
+        }
+        
+        if (!PermissionUtil.hasPermission(currentUser, "VIEW_EMPLOYEES")) {
+            PermissionUtil.redirectToAccessDenied(request, response, "VIEW_EMPLOYEES", "View Employees");
+            return;
+        }
+        
         try {
             // Fixed page size
             final int pageSize = 5;
@@ -95,7 +114,7 @@ public class EmployeeListController extends HttpServlet {
             request.setAttribute("searchKeyword", searchKeyword != null ? searchKeyword : "");
             
             // Check for success/error messages in session
-            jakarta.servlet.http.HttpSession session = request.getSession(false);
+          
             if (session != null) {
                 String successMessage = (String) session.getAttribute("success");
                 String errorMessage = (String) session.getAttribute("error");
@@ -167,6 +186,8 @@ public class EmployeeListController extends HttpServlet {
                 handleStatusUpdate(request, response);
             } else if ("editEmployee".equals(action)) {
                 handleEmployeeEdit(request, response);
+            } else if ("deleteEmployee".equals(action)) {
+                handleEmployeeDelete(request, response);
             } else {
                 System.out.println("Unknown action: " + action);
                 processRequest(request, response);
@@ -180,6 +201,15 @@ public class EmployeeListController extends HttpServlet {
     
     private void handleStatusUpdate(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        // Kiểm tra quyền chỉnh sửa employee
+        HttpSession session = request.getSession();
+        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
+        
+        if (currentUser == null || !PermissionUtil.hasPermission(currentUser, "EDIT_EMPLOYEE")) {
+            PermissionUtil.redirectToAccessDenied(request, response, "EDIT_EMPLOYEE", "Edit Employee");
+            return;
+        }
+        
         try {
             int employeeId = Integer.parseInt(request.getParameter("employeeId"));
             String newStatus = request.getParameter("status");
@@ -187,7 +217,6 @@ public class EmployeeListController extends HttpServlet {
             System.out.println("Updating status for employee ID: " + employeeId + " to: " + newStatus);
             boolean success = employeeDAO.updateEmployeeStatus(employeeId, newStatus);
             
-            jakarta.servlet.http.HttpSession session = request.getSession();
             if (success) {
                 session.setAttribute("success", "Employee status updated successfully!");
                 System.out.println("Status update successful");
@@ -200,7 +229,6 @@ public class EmployeeListController extends HttpServlet {
             
         } catch (Exception e) {
             e.printStackTrace();
-            jakarta.servlet.http.HttpSession session = request.getSession();
             session.setAttribute("error", "Error updating employee status: " + e.getMessage());
             response.sendRedirect(request.getContextPath() + "/hr/employee-list");
         }
@@ -208,12 +236,20 @@ public class EmployeeListController extends HttpServlet {
     
     private void handleEmployeeEdit(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        // Kiểm tra quyền chỉnh sửa employee
+        HttpSession session = request.getSession();
+        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
+        
+        if (currentUser == null || !PermissionUtil.hasPermission(currentUser, "EDIT_EMPLOYEE")) {
+            PermissionUtil.redirectToAccessDenied(request, response, "EDIT_EMPLOYEE", "Edit Employee");
+            return;
+        }
+        
         try {
             String employeeIdStr = request.getParameter("employeeId");
             System.out.println("Received employeeId parameter: " + employeeIdStr);
             
             if (employeeIdStr == null || employeeIdStr.trim().isEmpty()) {
-                jakarta.servlet.http.HttpSession session = request.getSession();
                 session.setAttribute("error", "Employee ID is missing!");
                 response.sendRedirect(request.getContextPath() + "/hr/employee-list");
                 return;
@@ -255,7 +291,6 @@ public class EmployeeListController extends HttpServlet {
                 boolean success = employeeDAO.updateEmployeeInfo(employee);
                 System.out.println("EmployeeDAO.updateEmployeeInfo result: " + success);
                 
-                jakarta.servlet.http.HttpSession session = request.getSession();
                 if (success) {
                     session.setAttribute("success", "Employee information updated successfully!");
                     System.out.println("Success message set in session");
@@ -264,7 +299,6 @@ public class EmployeeListController extends HttpServlet {
                     System.out.println("Error message set in session");
                 }
             } else {
-                jakarta.servlet.http.HttpSession session = request.getSession();
                 session.setAttribute("error", "Employee not found!");
                 System.out.println("Employee not found for ID: " + employeeId);
             }
@@ -273,8 +307,63 @@ public class EmployeeListController extends HttpServlet {
             
         } catch (Exception e) {
             e.printStackTrace();
-            jakarta.servlet.http.HttpSession session = request.getSession();
             session.setAttribute("error", "Error updating employee: " + e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/hr/employee-list");
+        }
+    }
+    
+    private void handleEmployeeDelete(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
+        // Kiểm tra quyền xóa employee
+        HttpSession session = request.getSession();
+        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
+        
+        if (currentUser == null || !PermissionUtil.hasPermission(currentUser, "DELETE_EMPLOYEE")) {
+            PermissionUtil.redirectToAccessDenied(request, response, "DELETE_EMPLOYEE", "Delete Employee");
+            return;
+        }
+        
+        try {
+            String employeeIdStr = request.getParameter("employeeId");
+            
+            if (employeeIdStr == null || employeeIdStr.trim().isEmpty()) {
+                session.setAttribute("error", "Employee ID is missing!");
+                response.sendRedirect(request.getContextPath() + "/hr/employee-list");
+                return;
+            }
+            
+            int employeeId = Integer.parseInt(employeeIdStr);
+            
+            // Get employee to get name for success message
+            Employee employee = employeeDAO.getById(employeeId);
+            String employeeName = employee != null ? employee.getFullName() : "Employee";
+            
+            // First, delete SystemUser if exists (to maintain referential integrity)
+            SystemUser systemUser = systemUserDAO.getByEmployeeId(employeeId);
+            if (systemUser != null) {
+                boolean userDeleted = systemUserDAO.delete(systemUser.getUserId());
+                if (!userDeleted) {
+                    System.out.println("Warning: Failed to delete SystemUser for employee ID: " + employeeId);
+                }
+            }
+            
+            // Then delete the employee
+            boolean success = employeeDAO.delete(employeeId);
+            
+            if (success) {
+                session.setAttribute("success", "Employee '" + employeeName + "' deleted successfully!");
+            } else {
+                session.setAttribute("error", "Failed to delete employee!");
+            }
+            
+            response.sendRedirect(request.getContextPath() + "/hr/employee-list");
+            
+        } catch (NumberFormatException e) {
+            session.setAttribute("error", "Invalid employee ID format!");
+            response.sendRedirect(request.getContextPath() + "/hr/employee-list");
+        } catch (Exception e) {
+            e.printStackTrace();
+            session.setAttribute("error", "Error deleting employee: " + e.getMessage());
             response.sendRedirect(request.getContextPath() + "/hr/employee-list");
         }
     }

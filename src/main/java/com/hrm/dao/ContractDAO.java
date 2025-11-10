@@ -595,4 +595,106 @@ public class ContractDAO {
             return false;
         }
     }
+
+    /**
+     * Get contracts by status with employee information
+     */
+    public List<Map<String, Object>> getContractsByStatus(String status) {
+        List<Map<String, Object>> results = new ArrayList<>();
+        String sql = """
+            SELECT c.ContractID, c.EmployeeID, e.FullName, e.Email,
+                   c.StartDate, c.EndDate, c.BaseSalary, c.Allowance, 
+                   c.ContractType, c.Status, c.Notes
+            FROM Contract c
+            LEFT JOIN Employee e ON c.EmployeeID = e.EmployeeID
+            WHERE c.Status = ?
+            ORDER BY c.ContractID DESC
+        """;
+
+        try (Connection con = DBConnection.getConnection(); 
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, status);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> row = new HashMap<>();
+                    row.put("contractId", rs.getInt("ContractID"));
+                    row.put("employeeId", rs.getInt("EmployeeID"));
+                    row.put("employeeName", rs.getString("FullName"));
+                    row.put("employeeEmail", rs.getString("Email"));
+                    row.put("startDate", rs.getDate("StartDate"));
+                    row.put("endDate", rs.getDate("EndDate"));
+                    row.put("baseSalary", rs.getBigDecimal("BaseSalary"));
+                    row.put("allowance", rs.getBigDecimal("Allowance"));
+                    row.put("contractType", rs.getString("ContractType"));
+                    row.put("status", rs.getString("Status"));
+                    row.put("note", rs.getString("Notes"));
+                    results.add(row);
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return results;
+    }
+
+    /**
+     * Get previous active contract for an employee (to compare changes)
+     */
+    public Contract getPreviousActiveContract(int employeeId, int currentContractId) {
+        String sql = """
+            SELECT ContractID, EmployeeID, StartDate, EndDate, 
+                   BaseSalary, Allowance, ContractType, Status, Notes
+            FROM Contract
+            WHERE EmployeeID = ?
+              AND ContractID != ?
+              AND (Status = 'Active' OR Status = 'Expired')
+            ORDER BY StartDate DESC
+            LIMIT 1
+        """;
+
+        try (Connection con = DBConnection.getConnection(); 
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, employeeId);
+            ps.setInt(2, currentContractId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Contract contract = new Contract();
+                    contract.setContractId(rs.getInt("ContractID"));
+                    contract.setEmployeeId(rs.getInt("EmployeeID"));
+                    contract.setStartDate(rs.getDate("StartDate") != null ? 
+                        rs.getDate("StartDate").toLocalDate() : null);
+                    contract.setEndDate(rs.getDate("EndDate") != null ? 
+                        rs.getDate("EndDate").toLocalDate() : null);
+                    contract.setBaseSalary(rs.getBigDecimal("BaseSalary"));
+                    contract.setAllowance(rs.getBigDecimal("Allowance"));
+                    contract.setContractType(rs.getString("ContractType"));
+                    contract.setStatus(rs.getString("Status"));
+                    contract.setNote(rs.getString("Notes"));
+                    return contract;
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Count contracts by status
+     */
+    public int countContractsByStatus(String status) {
+        String sql = "SELECT COUNT(*) as total FROM Contract WHERE Status = ?";
+        try (Connection con = DBConnection.getConnection(); 
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, status);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("total");
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return 0;
+    }
 }

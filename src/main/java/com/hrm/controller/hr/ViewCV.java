@@ -9,6 +9,8 @@ import com.hrm.controller.EmailSender;
 import com.hrm.dao.DAO;
 import com.hrm.model.entity.Guest;
 import com.hrm.model.entity.Recruitment;
+import com.hrm.model.entity.SystemUser;
+import com.hrm.util.PermissionUtil;
 import jakarta.mail.MessagingException; // Import MessagingException
 import java.io.IOException;
 import jakarta.servlet.ServletException;
@@ -16,6 +18,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 /**
  *
@@ -27,6 +30,20 @@ public class ViewCV extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        // Kiểm tra quyền quản lý ứng viên
+        HttpSession session = request.getSession();
+        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
+        
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+            return;
+        }
+        
+        if (!PermissionUtil.hasPermission(currentUser, "MANAGE_APPLICANTS")) {
+            PermissionUtil.redirectToAccessDenied(request, response, "MANAGE_APPLICANTS", "Manage Applicants");
+            return;
+        }
+        
         int gId = Integer.parseInt(request.getParameter("guestId"));
         Guest g = DAO.getInstance().getCandidateById(gId);
         if(g != null){
@@ -44,6 +61,15 @@ public class ViewCV extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        // Kiểm tra quyền quản lý ứng viên
+        HttpSession session = request.getSession();
+        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
+        
+        if (currentUser == null || !PermissionUtil.hasPermission(currentUser, "MANAGE_APPLICANTS")) {
+            PermissionUtil.redirectToAccessDenied(request, response, "MANAGE_APPLICANTS", "Manage Applicants");
+            return;
+        }
+        
         String action = request.getParameter("action");
         String gIDRaw = request.getParameter("guestId");
         

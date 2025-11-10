@@ -5,15 +5,21 @@ import com.hrm.model.dto.ActivityStats;
 import com.hrm.model.dto.DepartmentStats;
 import com.hrm.model.dto.StatusDistribution;
 import com.hrm.model.entity.*;
+import com.hrm.util.PermissionUtil;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 @WebServlet(name = "AdminController", urlPatterns = {"/admin"})
 public class AdminController extends HttpServlet {
@@ -31,9 +37,6 @@ public class AdminController extends HttpServlet {
             action = "dashboard";
         }
 
-        // Set current user info for all admin pages
-        setCurrentUserInfo(request);
-
         switch (action) {
             case "dashboard":
                 loadDashboard(request, response);
@@ -43,11 +46,10 @@ public class AdminController extends HttpServlet {
                 getDashboardData(request, response);
                 break;
 
-            case "activity-data":
-                getActivityData(request, response);
-                break;
-
             case "departments":
+                if (!checkPermission(request, response, "VIEW_DEPARTMENTS", "View Departments")) {
+                    return;
+                }
                 loadDepartments(request, response);
                 break;
 
@@ -68,6 +70,9 @@ public class AdminController extends HttpServlet {
                 break;
 
             case "users":
+                if (!checkPermission(request, response, "VIEW_USERS", "View Users")) {
+                    return;
+                }
                 loadUsers(request, response);
                 break;
 
@@ -76,6 +81,9 @@ public class AdminController extends HttpServlet {
                 break;
 
             case "audit-log":
+                if (!checkPermission(request, response, "VIEW_AUDIT_LOG", "View Audit Log")) {
+                    return;
+                }
                 loadAuditLog(request, response);
                 break;
 
@@ -83,56 +91,30 @@ public class AdminController extends HttpServlet {
                 loadProfile(request, response);
                 break;
 
+            case "get-user-permissions":
+                getUserPermissions(request, response);
+                break;
+
             default:
                 response.sendRedirect("Admin/Login.jsp");
         }
     }
 
-    /**
-     * Helper method to set current user info from session to request attribute
-     * This allows all admin pages to access the current user's information
-     */
-    private void setCurrentUserInfo(HttpServletRequest request) {
-        try {
-            jakarta.servlet.http.HttpSession session = request.getSession(false);
-            if (session != null) {
-                SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
-                if (currentUser != null) {
-                    // Get full user info from database
-                    SystemUser fullUser = userDAO.getUserById(currentUser.getUserId());
-                    if (fullUser != null) {
-                        // Get employee info if exists
-                        if (fullUser.getEmployeeId() != null) {
-                            Employee employee = employeeDAO.getById(fullUser.getEmployeeId());
-                            if (employee != null) {
-                                fullUser.setEmployee(employee);
-                                // Set employee name for display
-                                String employeeName = employee.getFullName();
-                                if (employeeName != null && !employeeName.trim().isEmpty()) {
-                                    request.setAttribute("currentUserName", employeeName.trim());
-                                }
-                            }
-                        }
-                        // If no employee, use username
-                        if (request.getAttribute("currentUserName") == null) {
-                            request.setAttribute("currentUserName", fullUser.getUsername());
-                        }
-                        request.setAttribute("currentUser", fullUser);
-                    } else {
-                        // Fallback to session user
-                        request.setAttribute("currentUserName", currentUser.getUsername());
-                        request.setAttribute("currentUser", currentUser);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            // Silently fail - user info is optional for display
-            e.printStackTrace();
-        }
-    }
-
     private void loadDashboard(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
+        // Kiểm tra quyền
+        HttpSession session = request.getSession();
+        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+            return;
+        }
+        
+        if (!PermissionUtil.hasPermission(currentUser, "VIEW_DASHBOARD")) {
+            PermissionUtil.redirectToAccessDenied(request, response, "VIEW_DASHBOARD", "View Dashboard");
+            return;
+        }
+        
         request.setAttribute("activePage", "dashboard");
 
         int totalEmployees = employeeDAO.getTotalEmployees();
@@ -171,33 +153,13 @@ public class AdminController extends HttpServlet {
         statusJson.append("}");
         request.setAttribute("employeeStatusJson", statusJson.toString());
 
-        // Get activity days parameter from request, default to 7
-        int activityDays = 7;
-        String daysParam = request.getParameter("days");
-        if (daysParam != null && !daysParam.trim().isEmpty()) {
-            try {
-                activityDays = Integer.parseInt(daysParam);
-                // Validate: only allow 7, 14, or 30 days
-                if (activityDays != 7 && activityDays != 14 && activityDays != 30) {
-                    activityDays = 7;
-                }
-            } catch (NumberFormatException e) {
-                activityDays = 7;
-            }
-        }
-        
-        // Set selected days as request attribute for JSP
-        request.setAttribute("selectedActivityDays", activityDays);
-        
-        // Load activity data for the specified number of days
-        List<ActivityStats> activityData = dashboardDAO.getActivityByDays(activityDays);
+        List<ActivityStats> activityLast7 = dashboardDAO.getActivityLast7Days();
         StringBuilder activityJson = new StringBuilder("[");
-        for (int i = 0; i < activityData.size(); i++) {
-            ActivityStats activity = activityData.get(i);
-            String dateStr = activity.getDate() != null ? activity.getDate().toString() : "";
-            activityJson.append("{\"date\":\"").append(dateStr)
+        for (int i = 0; i < activityLast7.size(); i++) {
+            ActivityStats activity = activityLast7.get(i);
+            activityJson.append("{\"date\":\"").append(activity.getDate())
                        .append("\",\"count\":").append(activity.getCount()).append("}");
-            if (i < activityData.size() - 1) {
+            if (i < activityLast7.size() - 1) {
                 activityJson.append(",");
             }
         }
@@ -207,7 +169,43 @@ public class AdminController extends HttpServlet {
         List<SystemLog> recentActivity = dashboardDAO.getRecentActivity(5);
         request.setAttribute("recentActivity", recentActivity);
 
-        System.out.println("Dashboard counts -> total=" + totalEmployees + ", active=" + activeEmployees + ", depts=" + totalDepartments + ", user=" + totalUser + ", activityDays=" + activityDays);
+        // Load users and permissions for permission manager
+        try {
+            List<SystemUser> allUsers = userDAO.getAllUsers(1, 1000); // Get all users
+            for (SystemUser user : allUsers) {
+                if (user.getEmployeeId() != null) {
+                    Employee emp = employeeDAO.getById(user.getEmployeeId());
+                    if (emp != null) {
+                        user.setEmployee(emp);
+                        if (emp.getDepartmentId() > 0) {
+                            Department dept = departmentDAO.getById(emp.getDepartmentId());
+                            emp.setDepartment(dept);
+                        }
+                    }
+                }
+            }
+            request.setAttribute("allUsers", allUsers);
+            
+            PermissionDAO permissionDAO = new PermissionDAO();
+            List<Permission> allPermissions = permissionDAO.getAllPermissions();
+            request.setAttribute("allPermissions", allPermissions);
+            
+            // Get unique categories
+            Set<String> categories = new HashSet<>();
+            for (Permission perm : allPermissions) {
+                if (perm.getCategory() != null && !perm.getCategory().isEmpty()) {
+                    categories.add(perm.getCategory());
+                }
+            }
+            request.setAttribute("permissionCategories", new ArrayList<>(categories));
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("allUsers", new ArrayList<>());
+            request.setAttribute("allPermissions", new ArrayList<>());
+            request.setAttribute("permissionCategories", new ArrayList<>());
+        }
+
+        System.out.println("Dashboard counts -> total=" + totalEmployees + ", active=" + activeEmployees + ", depts=" + totalDepartments + ", user=" + totalUser);
 
         request.getRequestDispatcher("Admin/AdminHome.jsp").forward(request, response);
     }
@@ -229,12 +227,14 @@ public class AdminController extends HttpServlet {
             List<SystemLog> recentActivity = dashboardDAO.getRecentActivity(5);
             List<ActivityStats> activityLast7Days = dashboardDAO.getActivityLast7Days();
 
+            // Build JSON response
             StringBuilder json = new StringBuilder();
             json.append("{");
             json.append("\"totalEmployees\": ").append(totalEmployees).append(",");
             json.append("\"activeEmployees\": ").append(activeEmployees).append(",");
             json.append("\"inactiveEmployees\": ").append(inactiveEmployees).append(",");
 
+            // Employee by department
             json.append("\"employeeByDepartment\": [");
             for (int i = 0; i < employeeByDept.size(); i++) {
                 DepartmentStats dept = employeeByDept.get(i);
@@ -246,6 +246,7 @@ public class AdminController extends HttpServlet {
             }
             json.append("],");
 
+            // Status distribution
             json.append("\"statusDistribution\": [");
             for (int i = 0; i < statusDistribution.size(); i++) {
                 StatusDistribution status = statusDistribution.get(i);
@@ -257,6 +258,7 @@ public class AdminController extends HttpServlet {
             }
             json.append("],");
 
+            // Recent activity
             json.append("\"recentActivity\": [");
             for (int i = 0; i < recentActivity.size(); i++) {
                 SystemLog activity = recentActivity.get(i);
@@ -269,6 +271,7 @@ public class AdminController extends HttpServlet {
             }
             json.append("],");
 
+            // Activity last 7 days
             json.append("\"activityLast7Days\": [");
             for (int i = 0; i < activityLast7Days.size(); i++) {
                 ActivityStats activity = activityLast7Days.get(i);
@@ -292,61 +295,6 @@ public class AdminController extends HttpServlet {
     }
 
 
-
-    /**
-     * Get activity data for specified number of days
-     * Endpoint: /admin?action=activity-data&days=7
-     */
-    private void getActivityData(HttpServletRequest request, HttpServletResponse response)
-              throws IOException {
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        try {
-            DashboardDAO dashboardDAO = new DashboardDAO();
-            
-            // Get days parameter, default to 7
-            int days = 7;
-            String daysParam = request.getParameter("days");
-            if (daysParam != null && !daysParam.trim().isEmpty()) {
-                try {
-                    days = Integer.parseInt(daysParam);
-                    // Validate: only allow 7, 14, or 30 days
-                    if (days != 7 && days != 14 && days != 30) {
-                        days = 7;
-                    }
-                } catch (NumberFormatException e) {
-                    days = 7;
-                }
-            }
-
-            List<ActivityStats> activityData = dashboardDAO.getActivityByDays(days);
-
-            StringBuilder json = new StringBuilder();
-            json.append("{");
-            json.append("\"days\": ").append(days).append(",");
-            json.append("\"activityData\": [");
-            
-            for (int i = 0; i < activityData.size(); i++) {
-                ActivityStats activity = activityData.get(i);
-                // Format date as YYYY-MM-DD for consistent JavaScript parsing
-                String dateStr = activity.getDate() != null ? activity.getDate().toString() : "";
-                json.append("{\"date\": \"").append(dateStr).append("\", ");
-                json.append("\"count\": ").append(activity.getCount()).append("}");
-                if (i < activityData.size() - 1) {
-                    json.append(",");
-                }
-            }
-            json.append("]");
-            json.append("}");
-
-            response.getWriter().write(json.toString());
-
-        } catch (Exception e) {
-            response.getWriter().write("{\"error\": \"" + escapeJson(e.getMessage()) + "\"}");
-            e.printStackTrace();
-        }
-    }
 
     private String escapeJson(String str) {
         if (str == null) {
@@ -550,7 +498,7 @@ public class AdminController extends HttpServlet {
             throws ServletException, IOException {
         try {
             int page = 1;
-            int pageSize = 10; 
+            int pageSize = 10; // Default value
             if (request.getParameter("page") != null) {
                 try {
                     page = Integer.parseInt(request.getParameter("page"));
@@ -558,9 +506,11 @@ public class AdminController extends HttpServlet {
                     page = 1;
                 }
             }
+            // Read pageSize from request parameter
             if (request.getParameter("pageSize") != null) {
                 try {
                     pageSize = Integer.parseInt(request.getParameter("pageSize"));
+                    // Validate pageSize to prevent invalid values
                     if (pageSize < 1) {
                         pageSize = 10;
                     }
@@ -632,6 +582,7 @@ public class AdminController extends HttpServlet {
             
             SystemUser fullUser = userDAO.getUserById(currentUser.getUserId());
             if (fullUser != null) {
+                // Load employee info if exists
                 if (fullUser.getEmployeeId() != null) {
                     Employee employee = employeeDAO.getById(fullUser.getEmployeeId());
                     if (employee != null) {
@@ -643,6 +594,7 @@ public class AdminController extends HttpServlet {
                     }
                 }
                 
+                // Convert LocalDateTime to Timestamp for JSP fmt:formatDate compatibility
                 if (fullUser.getCreatedDate() != null) {
                     request.setAttribute("createdDateTimestamp", 
                         java.sql.Timestamp.valueOf(fullUser.getCreatedDate()));
@@ -654,6 +606,7 @@ public class AdminController extends HttpServlet {
                 
                 request.setAttribute("currentUser", fullUser);
             } else {
+                // Convert LocalDateTime to Timestamp for currentUser as well
                 if (currentUser.getCreatedDate() != null) {
                     request.setAttribute("createdDateTimestamp", 
                         java.sql.Timestamp.valueOf(currentUser.getCreatedDate()));
@@ -665,7 +618,9 @@ public class AdminController extends HttpServlet {
                 request.setAttribute("currentUser", currentUser);
             }
             
+            // Get recent activity logs for this user (limit to 10)
             List<SystemLog> recentLogs = systemLogDAO.getSystemLogsByUserID(currentUser.getUserId(), 10);
+            // Convert LocalDateTime to Timestamp for each log for JSP compatibility
             for (SystemLog log : recentLogs) {
                 if (log.getTimestamp() != null) {
                     log.setTimestampDate(java.util.Date.from(
@@ -682,10 +637,178 @@ public class AdminController extends HttpServlet {
         request.getRequestDispatcher("Admin/Profile.jsp").forward(request, response);
     }
 
+    private void getUserPermissions(HttpServletRequest request, HttpServletResponse response)
+              throws ServletException, IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        
+        try {
+            String userIdStr = request.getParameter("userId");
+            if (userIdStr == null || userIdStr.isEmpty()) {
+                response.getWriter().write("{\"error\": \"User ID is required\"}");
+                return;
+            }
+            
+            int userId = Integer.parseInt(userIdStr);
+            UserPermissionDAO userPermissionDAO = new UserPermissionDAO();
+            PermissionDAO permissionDAO = new PermissionDAO();
+            
+            // Get all permissions
+            List<Permission> allPermissions = permissionDAO.getAllPermissions();
+            
+            // Get user permissions
+            List<UserPermission> userPermissions = userPermissionDAO.getUserPermissions(userId);
+            
+            // Build response
+            JsonObject jsonResponse = new JsonObject();
+            
+            // All permissions
+            JsonArray permissionsArray = new JsonArray();
+            for (Permission perm : allPermissions) {
+                JsonObject permObj = new JsonObject();
+                permObj.addProperty("permissionId", perm.getPermissionId());
+                permObj.addProperty("permissionCode", perm.getPermissionCode());
+                permObj.addProperty("permissionName", perm.getPermissionName());
+                permObj.addProperty("category", perm.getCategory() != null ? perm.getCategory() : "");
+                permObj.addProperty("description", perm.getDescription() != null ? perm.getDescription() : "");
+                permissionsArray.add(permObj);
+            }
+            jsonResponse.add("allPermissions", permissionsArray);
+            
+            // User permissions as map
+            JsonObject userPermsObj = new JsonObject();
+            for (UserPermission userPerm : userPermissions) {
+                JsonObject upObj = new JsonObject();
+                upObj.addProperty("userPermissionId", userPerm.getUserPermissionId());
+                upObj.addProperty("userId", userPerm.getUserId());
+                upObj.addProperty("permissionId", userPerm.getPermissionId());
+                upObj.addProperty("isGranted", userPerm.isIsGranted()); // Using isIsGranted() as per entity
+                upObj.addProperty("scope", userPerm.getScope() != null ? userPerm.getScope() : "ALL");
+                upObj.addProperty("scopeValue", userPerm.getScopeValue() != null ? userPerm.getScopeValue() : 0);
+                userPermsObj.add(String.valueOf(userPerm.getPermissionId()), upObj);
+            }
+            jsonResponse.add("userPermissions", userPermsObj);
+            
+            response.getWriter().write(new Gson().toJson(jsonResponse));
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.getWriter().write("{\"error\": \"" + e.getMessage() + "\"}");
+        }
+    }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
-        doGet(request, response);
+        String action = request.getParameter("action");
+        if ("save-user-permissions".equals(action)) {
+            saveUserPermissions(request, response);
+        } else {
+            doGet(request, response);
+        }
+    }
+    
+    private void saveUserPermissions(HttpServletRequest request, HttpServletResponse response)
+              throws ServletException, IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        
+        try {
+            // Read JSON from request body
+            StringBuilder jsonBuilder = new StringBuilder();
+            String line;
+            while ((line = request.getReader().readLine()) != null) {
+                jsonBuilder.append(line);
+            }
+            String jsonString = jsonBuilder.toString();
+            
+            Gson gson = new Gson();
+            JsonObject jsonObject = gson.fromJson(jsonString, JsonObject.class);
+            JsonArray changesArray = jsonObject.getAsJsonArray("changes");
+            
+            UserPermissionDAO userPermissionDAO = new UserPermissionDAO();
+            SystemUser currentUser = (SystemUser) request.getSession().getAttribute("systemUser");
+            int createdBy = currentUser != null ? currentUser.getUserId() : 1;
+            
+            int successCount = 0;
+            int failCount = 0;
+            
+            for (int i = 0; i < changesArray.size(); i++) {
+                JsonObject change = changesArray.get(i).getAsJsonObject();
+                try {
+                    UserPermission userPerm = new UserPermission();
+                    userPerm.setUserId(change.get("userId").getAsInt());
+                    userPerm.setPermissionId(change.get("permissionId").getAsInt());
+                    userPerm.setIsGranted(change.get("isGranted").getAsBoolean());
+                    userPerm.setScope(change.has("scope") && !change.get("scope").isJsonNull() 
+                        ? change.get("scope").getAsString() : "ALL");
+                    if (change.has("scopeValue") && !change.get("scopeValue").isJsonNull()) {
+                        int scopeValue = change.get("scopeValue").getAsInt();
+                        userPerm.setScopeValue(scopeValue > 0 ? scopeValue : null);
+                    } else {
+                        userPerm.setScopeValue(null);
+                    }
+                    userPerm.setCreatedBy(createdBy);
+                    
+                    // Check if exists
+                    UserPermission existing = userPermissionDAO.getUserPermission(
+                        userPerm.getUserId(), userPerm.getPermissionId(), 
+                        userPerm.getScope(), userPerm.getScopeValue());
+                    
+                    if (existing != null) {
+                        // Update
+                        userPerm.setUserPermissionId(existing.getUserPermissionId());
+                        userPermissionDAO.updateUserPermission(userPerm);
+                    } else {
+                        // Insert
+                        userPermissionDAO.createUserPermission(userPerm);
+                    }
+                    successCount++;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    failCount++;
+                }
+            }
+            
+            JsonObject result = new JsonObject();
+            result.addProperty("success", failCount == 0);
+            result.addProperty("successCount", successCount);
+            result.addProperty("failCount", failCount);
+            result.addProperty("message", failCount == 0 
+                ? "All permissions saved successfully" 
+                : "Saved " + successCount + " permissions, " + failCount + " failed");
+            
+            response.getWriter().write(gson.toJson(result));
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            JsonObject error = new JsonObject();
+            error.addProperty("success", false);
+            error.addProperty("message", "Error: " + e.getMessage());
+            response.getWriter().write(new Gson().toJson(error));
+        }
+    }
+
+    /**
+     * Helper method để kiểm tra quyền
+     */
+    private boolean checkPermission(HttpServletRequest request, HttpServletResponse response, 
+                                   String permissionCode, String permissionName) 
+            throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
+        
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+            return false;
+        }
+        
+        if (!PermissionUtil.hasPermission(currentUser, permissionCode)) {
+            PermissionUtil.redirectToAccessDenied(request, response, permissionCode, permissionName);
+            return false;
+        }
+        
+        return true;
     }
 
     @Override

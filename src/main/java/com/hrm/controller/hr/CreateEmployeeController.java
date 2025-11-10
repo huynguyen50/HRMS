@@ -13,18 +13,24 @@ import com.hrm.dao.GuestDAO;
 import com.hrm.model.entity.Department;
 import com.hrm.model.entity.Employee;
 import com.hrm.model.entity.Guest;
+import com.hrm.model.entity.SystemUser;
+import com.hrm.util.PermissionUtil;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 /**
  *
@@ -51,15 +57,47 @@ public class CreateEmployeeController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        // Kiểm tra quyền tạo employee
+        HttpSession session = request.getSession();
+        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
+        
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+            return;
+        }
+        
+        if (!PermissionUtil.hasPermission(currentUser, "CREATE_EMPLOYEE")) {
+            PermissionUtil.redirectToAccessDenied(request, response, "CREATE_EMPLOYEE", "Create Employee");
+            return;
+        }
+        
         try {
-            // Get all guests that haven't been converted to employees yet
-            List<Guest> guests = dao.getAllCandidates();
+            // Get only guests with HIRED status
+            // Try both "Hired" and "HIRED" to handle different case variations
+            List<Guest> hiredGuests = new ArrayList<>();
+            hiredGuests.addAll(guestDAO.getByStatus("Hired"));
+            hiredGuests.addAll(guestDAO.getByStatus("HIRED"));
             
-            // Get all departments for the dropdown
-            List<Department> departments = departmentDAO.getAll();
+            // Remove duplicates based on guestId
+            Map<Integer, Guest> uniqueGuests = new LinkedHashMap<>();
+            for (Guest guest : hiredGuests) {
+                uniqueGuests.put(guest.getGuestId(), guest);
+            }
+            hiredGuests = new ArrayList<>(uniqueGuests.values());
+            
+            // Get all departments for the dropdown, excluding Human Resources
+            // (This page is for creating regular employees, not HR staff)
+            List<Department> allDepartments = departmentDAO.getAll();
+            List<Department> departments = new ArrayList<>();
+            for (Department dept : allDepartments) {
+                // Exclude Human Resources department
+                if (dept.getDeptName() != null && !dept.getDeptName().equalsIgnoreCase("Human Resources")) {
+                    departments.add(dept);
+                }
+            }
             
             // Set attributes for JSP
-            request.setAttribute("guests", guests);
+            request.setAttribute("guests", hiredGuests);
             request.setAttribute("departments", departments);
             
             // Forward to the create employee page
@@ -108,6 +146,14 @@ public class CreateEmployeeController extends HttpServlet {
     
     private void createEmployee(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        // Kiểm tra quyền tạo employee
+        HttpSession session = request.getSession();
+        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
+        
+        if (currentUser == null || !PermissionUtil.hasPermission(currentUser, "CREATE_EMPLOYEE")) {
+            PermissionUtil.redirectToAccessDenied(request, response, "CREATE_EMPLOYEE", "Create Employee");
+            return;
+        }
         
         try {
             // Get form parameters
@@ -123,6 +169,8 @@ public class CreateEmployeeController extends HttpServlet {
             String status = request.getParameter("status");
             String username = request.getParameter("username");
             String password = request.getParameter("password");
+            String hireDateStr = request.getParameter("hireDate");
+            String endDateStr = request.getParameter("endDate");
             
             // Validate required fields
             if (guestIdStr == null || guestIdStr.trim().isEmpty() ||
@@ -131,7 +179,8 @@ public class CreateEmployeeController extends HttpServlet {
                 departmentIdStr == null || departmentIdStr.trim().isEmpty() ||
                 status == null || status.trim().isEmpty() ||
                 username == null || username.trim().isEmpty() ||
-                password == null || password.trim().isEmpty()) {
+                password == null || password.trim().isEmpty() ||
+                hireDateStr == null || hireDateStr.trim().isEmpty()) {
                 
                 request.setAttribute(ERROR_ATTRIBUTE, "Please fill in all required fields.");
                 doGet(request, response);
@@ -142,6 +191,24 @@ public class CreateEmployeeController extends HttpServlet {
             int guestId = Integer.parseInt(guestIdStr);
             int departmentId = Integer.parseInt(departmentIdStr);
             LocalDate dob = dobStr != null && !dobStr.trim().isEmpty() ? LocalDate.parse(dobStr) : null;
+            LocalDate hireDate = LocalDate.parse(hireDateStr); // Required field, already validated
+            LocalDate endDate = endDateStr != null && !endDateStr.trim().isEmpty() ? LocalDate.parse(endDateStr) : null;
+            
+            // Validate end date is after start date if both are provided
+            if (endDate != null && endDate.isBefore(hireDate)) {
+                request.setAttribute(ERROR_ATTRIBUTE, "End date must be after or equal to start date.");
+                doGet(request, response);
+                return;
+            }
+            
+            // Create employment period from start date and end date
+            String employmentPeriod = "";
+            if (hireDateStr != null && !hireDateStr.trim().isEmpty()) {
+                employmentPeriod = hireDateStr;
+                if (endDateStr != null && !endDateStr.trim().isEmpty()) {
+                    employmentPeriod += " - " + endDateStr;
+                }
+            }
             
             // Check if username already exists
             if (dao.getAccountByUsername(username) != null) {
@@ -168,7 +235,8 @@ public class CreateEmployeeController extends HttpServlet {
             employee.setEmail(email.trim());
             employee.setDepartmentId(departmentId);
             employee.setPosition(position != null ? position : "Employee");
-            employee.setEmploymentPeriod("Full-time"); // Default employment period
+            employee.setHireDate(hireDate);
+            employee.setEmploymentPeriod(employmentPeriod); // Set from start date and end date
             employee.setStatus(status);
             
             // Insert employee into database

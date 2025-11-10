@@ -216,6 +216,7 @@
                                                 <td>
                                                     <div class="action-buttons">
                                                         <button class="btn-edit" onclick="editUser(<c:out value='${user.userId}'/>)" title="Edit user">Edit</button>
+                                                        <button class="btn-permissions" onclick="managePermissions(<c:out value='${user.userId}'/>)" title="Manage permissions">🔑 Permissions</button>
                                                         <button class="btn-reset" onclick="resetPassword(<c:out value='${user.userId}'/>)" title="Reset password">Reset</button>
                                                         <button class="btn-toggle ${user.isActive ? 'btn-lock' : 'btn-unlock'}" 
                                                                 onclick="toggleUserStatus(<c:out value='${user.userId}'/>)" 
@@ -619,6 +620,10 @@
                 if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
                     window.location.href = '${pageContext.request.contextPath}/admin/users?action=delete&id=' + userId;
                 }
+            }
+
+            function managePermissions(userId) {
+                window.location.href = '${pageContext.request.contextPath}/admin/permissions?userId=' + userId;
             }
 
             function sortTable(column) {

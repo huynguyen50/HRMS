@@ -13,8 +13,6 @@
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     </head>
     <body>
-
-
         <div class="dashboard-container">
             <!-- Sidebar -->
             <aside class="sidebar">
@@ -24,12 +22,12 @@
                         <span>Admin Panel</span>
                     </div>
                 </div>
-
+                
                 <div class="sidebar-nav">
                     <a href="${pageContext.request.contextPath}/admin?action=dashboard"
                        class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">🏠 Dashboard</a>
 
-                    <!-- Employees link removed -->
+                          <!-- Employees link removed -->
 
                     <a href="${pageContext.request.contextPath}/admin?action=departments"
                        class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
@@ -52,17 +50,17 @@
             <main class="main-content">
                 <!-- Top Bar -->
                 <header class="top-bar">
+                    <div class="search-box">
+                        <span class="search-icon"> </span>
+                        <input type="text" placeholder="Search...">
+                    </div>
                     <div class="top-bar-actions">
+                      
                         <div class="user-menu" onclick="toggleUserMenu()">
                             <div class="user-info">
-                                <div class="user-name-display">
-                                    <img src="https://i.pravatar.cc/32" alt="User">
-                                    <div class="user-name-text">
-                                        <span class="name">${currentUserName != null ? fn:escapeXml(currentUserName) : 'Admin'}</span>
-                                        <span class="role">(admin)</span>
-                                    </div>
-                                    <span class="dropdown-arrow">▼</span>
-                                </div>
+                                <img src="https://i.pravatar.cc/32" alt="User">
+                                <span>Admin</span>
+                                <span class="dropdown-arrow">▼</span>
                             </div>
                             <div class="dropdown-menu" id="userDropdown">
                                 <a href="${pageContext.request.contextPath}/admin?action=profile" class="dropdown-item">
@@ -73,7 +71,23 @@
                                     <span class="icon">🚪</span> Logout
                                 </a>
                             </div>
-                        </div>
+                        </div>                    
+                   
+                    <script>
+                        function toggleUserMenu() {
+                            const userMenu = document.querySelector('.user-menu');
+                            userMenu.classList.toggle('active');
+                        }
+
+                        document.addEventListener('click', function (event) {
+                            if (!event.target.closest('.user-menu')) {
+                                const userMenu = document.querySelector('.user-menu');
+                                if (userMenu.classList.contains('active')) {
+                                    userMenu.classList.remove('active');
+                                }
+                            }
+                        });
+                    </script>
                     </div>
                 </header>
 
@@ -137,12 +151,12 @@
                         <div class="chart-card">
                             <div class="chart-header">
                                 <h3>System Activity</h3>
-                                <div class="chart-info">Last <c:out value="${selectedActivityDays != null ? selectedActivityDays : 7}" /> days</div>
+                                <div class="chart-info">Last 7 days</div>
                                 <div class="chart-controls">
                                     <select id="activityChartRange" class="chart-range-selector">
-                                        <option value="7" <c:if test="${selectedActivityDays == 7}">selected</c:if>>Last 7 days</option>
-                                        <option value="14" <c:if test="${selectedActivityDays == 14}">selected</c:if>>Last 14 days</option>
-                                        <option value="30" <c:if test="${selectedActivityDays == 30}">selected</c:if>>Last 30 days</option>
+                                        <option value="7">Last 7 days</option>
+                                        <option value="14">Last 14 days</option>
+                                        <option value="30">Last 30 days</option>
                                     </select>
                                 </div>
                             </div>
@@ -173,12 +187,12 @@
                             <div class="activity-list">
                                 <c:choose>
                                     <c:when test="${not empty recentActivity}">
-                                        <c:forEach var="activity" items="${recentActivity}">
-                                            <div class="activity-item">
-                                                <span class="activity-time">${activity.timestamp.month} ${activity.timestamp.dayOfMonth}, ${String.format('%02d', activity.timestamp.hour)}:${String.format('%02d', activity.timestamp.minute)}</span>
-                                                <span class="activity-text">${activity.action} - ${activity.objectType}: ${activity.newValue}</span>
-                                            </div>
-                                        </c:forEach>
+                                                <c:forEach var="activity" items="${recentActivity}">
+                                                    <div class="activity-item">
+                                                            <span class="activity-time">${activity.timestamp.month} ${activity.timestamp.dayOfMonth}, ${String.format('%02d', activity.timestamp.hour)}:${String.format('%02d', activity.timestamp.minute)}</span>
+                                                        <span class="activity-text">${activity.action} - ${activity.objectType}: ${activity.newValue}</span>
+                                                    </div>
+                                                </c:forEach>
                                     </c:when>
                                     <c:otherwise>
                                         <div class="activity-item">
@@ -192,6 +206,7 @@
                         <div class="referrals-card">
                             <h3>Quick Actions</h3>
                             <div class="referrals-list">
+                                <!-- Manage Employees quick action removed -->
                                 <a href="${pageContext.request.contextPath}/admin?action=departments" class="referral-item">
                                     <span class="referral-name">Manage Departments</span>
                                     <span class="referral-count">→</span>
@@ -202,6 +217,10 @@
                                 </a>
                                 <a href="${pageContext.request.contextPath}/admin?action=audit-log" class="referral-item">
                                     <span class="referral-name">View Audit Log</span>
+                                    <span class="referral-count">→</span>
+                                </a>
+                                <a href="#" class="referral-item" onclick="openPermissionManager(); return false;">
+                                    <span class="referral-name">🔐 Manage Permissions</span>
                                     <span class="referral-count">→</span>
                                 </a>
                             </div>
@@ -217,30 +236,73 @@
                 employeeStatus: <c:out value="${employeeStatusJson}" escapeXml="false" />,
                 activityData: <c:out value="${activityDataJson}" escapeXml="false" />
             };
-            // Set context path and admin URL for API calls
-            window.contextPath = '${pageContext.request.contextPath}';
-            window.adminBaseUrl = '${pageContext.request.contextPath}/admin';
         </script>
 
 
         <script src="${pageContext.request.contextPath}/Admin/js/dashboard.js"></script>
 
-        <script>
-            // User menu toggle function
-            function toggleUserMenu() {
-                const userMenu = document.querySelector('.user-menu');
-                userMenu.classList.toggle('active');
-            }
+        <!-- Permission Manager Modal -->
+        <div id="permissionModal" class="permission-modal">
+            <div class="permission-modal-content">
+                <div class="permission-modal-header">
+                    <h2>🔐 Quản lý Phân quyền Động</h2>
+                    <span class="permission-modal-close" onclick="closePermissionManager()">&times;</span>
+                </div>
+                <div class="permission-modal-body">
+                    <div class="permission-filters">
+                        <div class="filter-group">
+                            <label>Chọn User:</label>
+                            <select id="userSelect" class="permission-select" onchange="loadUserPermissions()">
+                                <option value="">-- Chọn User --</option>
+                                <c:forEach var="user" items="${allUsers}">
+                                    <option value="${user.userId}">${user.username} 
+                                        <c:if test="${not empty user.employee}">(${user.employee.fullName})</c:if>
+                                        <c:if test="${not empty user.role}"> - ${user.role.roleName}</c:if>
+                                    </option>
+                                </c:forEach>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Lọc theo Category:</label>
+                            <select id="categoryFilter" class="permission-select" onchange="filterPermissions()">
+                                <option value="">Tất cả</option>
+                                <c:forEach var="category" items="${permissionCategories}">
+                                    <option value="${category}">${category}</option>
+                                </c:forEach>
+                            </select>
+                        </div>
+                    </div>
 
-            // Close user menu when clicking outside
-            document.addEventListener('click', function (event) {
-                if (!event.target.closest('.user-menu')) {
-                    const userMenu = document.querySelector('.user-menu');
-                    if (userMenu && userMenu.classList.contains('active')) {
-                        userMenu.classList.remove('active');
-                    }
-                }
-            });
-        </script>
+                    <div class="permission-table-container">
+                        <table class="permission-table">
+                            <thead>
+                                <tr>
+                                    <th>Permission</th>
+                                    <th>Category</th>
+                                    <th>Status</th>
+                                    <th>Scope</th>
+                                    <th>Scope Value</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="permissionTableBody">
+                                <tr>
+                                    <td colspan="6" class="no-data">Vui lòng chọn user để xem phân quyền</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="permission-modal-actions">
+                        <button class="btn-permission btn-primary" onclick="saveAllPermissions()">💾 Lưu Tất Cả Thay Đổi</button>
+                        <button class="btn-permission btn-secondary" onclick="closePermissionManager()">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/permission-manager.css">
+        <script src="${pageContext.request.contextPath}/Admin/js/permission-manager.js"></script>
+
     </body>
 </html>
