@@ -19,7 +19,7 @@ import java.util.Map;
  * Handles POST /hrstaff/payroll - Create/Update payroll
  * @author admin
  */
-@WebServlet(name = "PayrollManagementController", urlPatterns = {"/hrstaff/payroll", "/hrstaff/payroll/delete", "/hrstaff/payroll/submit"})
+@WebServlet(name = "PayrollManagementController", urlPatterns = {"/hrstaff/payroll", "/hrstaff/payroll/delete", "/hrstaff/payroll/submit", "/hrstaff/payroll/generate-all"})
 public class PayrollManagementController extends HttpServlet {
 
     private final EmployeeDAO employeeDAO = new EmployeeDAO();
@@ -41,25 +41,41 @@ public class PayrollManagementController extends HttpServlet {
                 String payrollIdStr = request.getParameter("payrollId");
                 String employeeIdStr = request.getParameter("employeeId");
                 String payPeriod = request.getParameter("payPeriod");
+                // Note: baseSalary is contract base salary (for reference)
+                // actualBaseSalary is the calculated actual base salary (based on attendance)
                 String baseSalaryStr = request.getParameter("baseSalary");
+                String actualBaseSalaryStr = request.getParameter("actualBaseSalary");
+                String otSalaryStr = request.getParameter("otSalary");
                 String allowanceStr = request.getParameter("allowance");
-                String bonusStr = request.getParameter("bonus");
                 String deductionStr = request.getParameter("deduction");
                 String netSalaryStr = request.getParameter("netSalary");
 
                 // Validate required fields
-                if (employeeIdStr == null || payPeriod == null || baseSalaryStr == null) {
+                if (employeeIdStr == null || payPeriod == null) {
                     request.setAttribute("error", "Missing required fields");
                     doGet(request, response);
                     return;
                 }
 
                 int employeeId = Integer.parseInt(employeeIdStr);
-                BigDecimal baseSalary = new BigDecimal(baseSalaryStr);
-                BigDecimal allowance = new BigDecimal(allowanceStr != null ? allowanceStr : "0");
-                BigDecimal bonus = new BigDecimal(bonusStr != null ? bonusStr : "0");
-                BigDecimal deduction = new BigDecimal(deductionStr != null ? deductionStr : "0");
-                BigDecimal netSalary = new BigDecimal(netSalaryStr != null ? netSalaryStr : "0");
+                // Use actualBaseSalary if provided, otherwise fall back to baseSalary
+                BigDecimal actualBaseSalary = (actualBaseSalaryStr != null && !actualBaseSalaryStr.trim().isEmpty()) 
+                    ? new BigDecimal(actualBaseSalaryStr) 
+                    : (baseSalaryStr != null && !baseSalaryStr.trim().isEmpty() 
+                        ? new BigDecimal(baseSalaryStr) 
+                        : BigDecimal.ZERO);
+                BigDecimal otSalary = (otSalaryStr != null && !otSalaryStr.trim().isEmpty()) 
+                    ? new BigDecimal(otSalaryStr) 
+                    : BigDecimal.ZERO;
+                BigDecimal allowance = (allowanceStr != null && !allowanceStr.trim().isEmpty()) 
+                    ? new BigDecimal(allowanceStr) 
+                    : BigDecimal.ZERO;
+                BigDecimal deduction = (deductionStr != null && !deductionStr.trim().isEmpty()) 
+                    ? new BigDecimal(deductionStr) 
+                    : BigDecimal.ZERO;
+                BigDecimal netSalary = (netSalaryStr != null && !netSalaryStr.trim().isEmpty()) 
+                    ? new BigDecimal(netSalaryStr) 
+                    : BigDecimal.ZERO;
 
                 Payroll payroll = new Payroll();
                 
@@ -85,9 +101,11 @@ public class PayrollManagementController extends HttpServlet {
 
                 payroll.setEmployeeId(employeeId);
                 payroll.setPayPeriod(payPeriod);
-                payroll.setBaseSalary(baseSalary);
+                // Store actualBaseSalary in BaseSalary field (as per stored procedure logic)
+                payroll.setBaseSalary(actualBaseSalary);
                 payroll.setAllowance(allowance);
-                payroll.setBonus(bonus);
+                // Store otSalary in Bonus field (as per stored procedure logic)
+                payroll.setBonus(otSalary);
                 payroll.setDeduction(deduction);
                 payroll.setNetSalary(netSalary);
 
@@ -137,14 +155,28 @@ public class PayrollManagementController extends HttpServlet {
             handleDelete(request, response);
         } else if (path != null && path.contains("/submit")) {
             handleSubmit(request, response);
+        } else if (path != null && path.contains("/generate-all")) {
+            handleGenerateAll(request, response);
         } else {
             handleGet(request, response);
         }
     }
     
+    private static final int DEFAULT_PAGE_SIZE = 10;
+    
     private void handleGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
+            // Get tab parameter (default to 'allowance')
+            String tab = request.getParameter("tab");
+            if (tab == null || tab.trim().isEmpty()) {
+                tab = "allowance";
+            }
+            // Validate tab value
+            if (!tab.matches("^(allowance|deduction|attendance|payroll)$")) {
+                tab = "allowance";
+            }
+            
             // Get filter parameters
             String employeeFilter = request.getParameter("employeeFilter");
             String statusFilter = request.getParameter("statusFilter");
@@ -179,8 +211,69 @@ public class PayrollManagementController extends HttpServlet {
                 employeeId, deductionMonth
             );
             
-            // Load payrolls (with filters)
-            List<Map<String, Object>> payrolls = payrollDAO.getAll(employeeId, statusFilter);
+            // Load payrolls with pagination (only for payroll tab)
+            List<Map<String, Object>> payrolls;
+            int totalPayrolls = 0;
+            int totalPages = 1;
+            int page = 1;
+            int pageSize = DEFAULT_PAGE_SIZE;
+            String sortBy = "PayPeriod";
+            String sortOrder = "DESC";
+            
+            if ("payroll".equals(tab)) {
+                // Get pagination parameters
+                String pageStr = request.getParameter("page");
+                String pageSizeStr = request.getParameter("pageSize");
+                String sortByParam = request.getParameter("sortBy");
+                String sortOrderParam = request.getParameter("sortOrder");
+                
+                try {
+                    page = (pageStr != null && pageStr.matches("\\d+")) ? Integer.parseInt(pageStr) : 1;
+                } catch (NumberFormatException e) {
+                    page = 1;
+                }
+                try {
+                    pageSize = (pageSizeStr != null && pageSizeStr.matches("\\d+")) ? Integer.parseInt(pageSizeStr) : DEFAULT_PAGE_SIZE;
+                    if (pageSize > 100) pageSize = 100;
+                } catch (NumberFormatException e) {
+                    pageSize = DEFAULT_PAGE_SIZE;
+                }
+                
+                if (sortByParam != null && !sortByParam.trim().isEmpty()) {
+                    sortBy = sortByParam;
+                }
+                if (sortOrderParam != null && !sortOrderParam.trim().isEmpty()) {
+                    sortOrder = sortOrderParam;
+                }
+                
+                // Get total count
+                totalPayrolls = payrollDAO.getTotalPayrollCount(employeeId, statusFilter);
+                
+                // Calculate total pages
+                totalPages = (int) Math.ceil((double) totalPayrolls / pageSize);
+                if (page < 1) page = 1;
+                if (page > totalPages && totalPages > 0) page = totalPages;
+                
+                // Calculate offset
+                int offset = (page - 1) * pageSize;
+                
+                // Get paged payrolls
+                payrolls = payrollDAO.getPagedPayrolls(offset, pageSize, employeeId, statusFilter, sortBy, sortOrder);
+                
+                // Set pagination attributes
+                request.setAttribute("page", page);
+                request.setAttribute("pageSize", pageSize);
+                request.setAttribute("total", totalPayrolls);
+                request.setAttribute("totalPages", totalPages);
+                request.setAttribute("sortBy", sortBy);
+                request.setAttribute("sortOrder", sortOrder);
+            } else {
+                // For other tabs, load all payrolls without pagination
+                payrolls = payrollDAO.getAll(employeeId, statusFilter);
+            }
+            
+            // Load attendance month filter
+            String attendanceMonth = request.getParameter("attendanceMonth");
 
             // Set attributes
             request.setAttribute("employees", employees);
@@ -193,6 +286,8 @@ public class PayrollManagementController extends HttpServlet {
             request.setAttribute("statusFilter", statusFilter);
             request.setAttribute("allowanceMonth", allowanceMonth);
             request.setAttribute("deductionMonth", deductionMonth);
+            request.setAttribute("attendanceMonth", attendanceMonth);
+            request.setAttribute("currentTab", tab); // Set current tab
 
             // Forward to JSP
             request.getRequestDispatcher("/Views/HrStaff/PayrollManagement.jsp").forward(request, response);
@@ -204,13 +299,49 @@ public class PayrollManagementController extends HttpServlet {
         }
     }
     
+    /**
+     * Build redirect URL with pagination parameters preserved
+     */
+    private String buildPayrollRedirectUrl(HttpServletRequest request) {
+        StringBuilder url = new StringBuilder(request.getContextPath() + "/hrstaff/payroll?tab=payroll");
+        
+        // Preserve pagination parameters
+        String page = request.getParameter("page");
+        String pageSize = request.getParameter("pageSize");
+        String sortBy = request.getParameter("sortBy");
+        String sortOrder = request.getParameter("sortOrder");
+        String employeeFilter = request.getParameter("employeeFilter");
+        String statusFilter = request.getParameter("statusFilter");
+        
+        if (page != null && !page.trim().isEmpty()) {
+            url.append("&page=").append(page);
+        }
+        if (pageSize != null && !pageSize.trim().isEmpty()) {
+            url.append("&pageSize=").append(pageSize);
+        }
+        if (sortBy != null && !sortBy.trim().isEmpty()) {
+            url.append("&sortBy=").append(sortBy);
+        }
+        if (sortOrder != null && !sortOrder.trim().isEmpty()) {
+            url.append("&sortOrder=").append(sortOrder);
+        }
+        if (employeeFilter != null && !employeeFilter.trim().isEmpty()) {
+            url.append("&employeeFilter=").append(employeeFilter);
+        }
+        if (statusFilter != null && !statusFilter.trim().isEmpty()) {
+            url.append("&statusFilter=").append(statusFilter);
+        }
+        
+        return url.toString();
+    }
+    
     private void handleDelete(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
             String payrollIdStr = request.getParameter("payrollId");
             if (payrollIdStr == null) {
                 request.getSession().setAttribute("error", "Missing payroll ID");
-                response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=payroll");
+                response.sendRedirect(buildPayrollRedirectUrl(request));
                 return;
             }
             
@@ -223,11 +354,11 @@ public class PayrollManagementController extends HttpServlet {
                 request.getSession().setAttribute("error", "Failed to delete payroll. Only Draft payrolls can be deleted.");
             }
             
-            response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=payroll");
+            response.sendRedirect(buildPayrollRedirectUrl(request));
         } catch (Exception e) {
             e.printStackTrace();
             request.getSession().setAttribute("error", "Error deleting payroll: " + e.getMessage());
-            response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=payroll");
+            response.sendRedirect(buildPayrollRedirectUrl(request));
         }
     }
     
@@ -237,7 +368,7 @@ public class PayrollManagementController extends HttpServlet {
             String payrollIdStr = request.getParameter("payrollId");
             if (payrollIdStr == null) {
                 request.getSession().setAttribute("error", "Missing payroll ID");
-                response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=payroll");
+                response.sendRedirect(buildPayrollRedirectUrl(request));
                 return;
             }
             
@@ -246,13 +377,13 @@ public class PayrollManagementController extends HttpServlet {
             
             if (payroll == null) {
                 request.getSession().setAttribute("error", "Payroll not found.");
-                response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=payroll");
+                response.sendRedirect(buildPayrollRedirectUrl(request));
                 return;
             }
             
             if (payroll.getStatus() == null || !"Draft".equals(payroll.getStatus())) {
                 request.getSession().setAttribute("error", "Only Draft payrolls can be submitted.");
-                response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=payroll");
+                response.sendRedirect(buildPayrollRedirectUrl(request));
                 return;
             }
             
@@ -264,11 +395,74 @@ public class PayrollManagementController extends HttpServlet {
                 request.getSession().setAttribute("error", "Failed to submit payroll.");
             }
             
-            response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=payroll");
+            response.sendRedirect(buildPayrollRedirectUrl(request));
         } catch (Exception e) {
             e.printStackTrace();
             request.getSession().setAttribute("error", "Error submitting payroll: " + e.getMessage());
-            response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=payroll");
+            response.sendRedirect(buildPayrollRedirectUrl(request));
+        }
+    }
+    
+    /**
+     * Handle generate payroll for all employees using stored procedure
+     */
+    private void handleGenerateAll(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            String period = request.getParameter("period");
+            if (period == null || period.trim().isEmpty()) {
+                request.getSession().setAttribute("error", "Missing pay period parameter");
+                response.sendRedirect(buildPayrollRedirectUrl(request));
+                return;
+            }
+            
+            // Call stored procedure sp_GeneratePayroll
+            boolean success = callStoredProcedureGeneratePayroll(period);
+            
+            if (success) {
+                request.getSession().setAttribute("success", 
+                    "Payroll generated successfully for all active employees for period " + period + " using stored procedure sp_GeneratePayrollImproved!\n" +
+                    "The system has automatically calculated:\n" +
+                    "- Actual working days and paid leave days\n" +
+                    "- Actual base salary based on attendance\n" +
+                    "- Overtime salary\n" +
+                    "- Insurance (BHXH, BHYT, BHTN)\n" +
+                    "- Personal income tax (TNCN)\n" +
+                    "- Net salary\n" +
+                    "All payroll records have been created/updated in PayrollAudit and Payroll tables.");
+            } else {
+                request.getSession().setAttribute("error", "Failed to generate payroll using stored procedure. Please check the logs for details.");
+            }
+            
+            response.sendRedirect(buildPayrollRedirectUrl(request));
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.getSession().setAttribute("error", "Error generating payroll: " + e.getMessage());
+            response.sendRedirect(buildPayrollRedirectUrl(request));
+        }
+    }
+    
+    /**
+     * Call stored procedure sp_GeneratePayrollImproved
+     * Parameters: p_pay_period, p_mode ('CREATE'), p_calculated_by (optional)
+     */
+    private boolean callStoredProcedureGeneratePayroll(String period) {
+        String sql = "CALL sp_GeneratePayrollImproved(?, ?, ?)";
+        
+        try (var con = com.hrm.dao.DBConnection.getConnection();
+             var cs = con.prepareCall(sql)) {
+            
+            cs.setString(1, period); // p_pay_period
+            cs.setString(2, "CREATE"); // p_mode
+            // Get current user ID if available from session
+            // For now, set to NULL (will be handled by stored procedure)
+            cs.setNull(3, java.sql.Types.INTEGER); // p_calculated_by
+            
+            cs.execute();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
     }
 }

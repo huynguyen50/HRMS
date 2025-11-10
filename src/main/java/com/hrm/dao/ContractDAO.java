@@ -544,6 +544,45 @@ public class ContractDAO {
         }
         return null;
     }
+    
+    /**
+     * Get the most recent contract for an employee (any status, as fallback)
+     */
+    public Contract getContractByEmployeeId(int employeeId) {
+        String sql = """
+            SELECT ContractID, EmployeeID, StartDate, EndDate, 
+                   BaseSalary, Allowance, ContractType, Status, Notes
+            FROM Contract
+            WHERE EmployeeID = ?
+            ORDER BY StartDate DESC
+            LIMIT 1
+        """;
+
+        try (Connection con = DBConnection.getConnection(); 
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, employeeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Contract contract = new Contract();
+                    contract.setContractId(rs.getInt("ContractID"));
+                    contract.setEmployeeId(rs.getInt("EmployeeID"));
+                    contract.setStartDate(rs.getDate("StartDate") != null ? 
+                        rs.getDate("StartDate").toLocalDate() : null);
+                    contract.setEndDate(rs.getDate("EndDate") != null ? 
+                        rs.getDate("EndDate").toLocalDate() : null);
+                    contract.setBaseSalary(rs.getBigDecimal("BaseSalary"));
+                    contract.setAllowance(rs.getBigDecimal("Allowance"));
+                    contract.setContractType(rs.getString("ContractType"));
+                    contract.setStatus(rs.getString("Status"));
+                    contract.setNote(rs.getString("Notes"));
+                    return contract;
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
 
     /**
      * Expire a contract by setting its status to 'Expired'
