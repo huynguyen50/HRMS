@@ -136,6 +136,145 @@ public class PayrollDAO {
     }
     
     /**
+     * Get total count of payrolls with filters (for pagination)
+     */
+    public int getTotalPayrollCount(Integer employeeId, String status) {
+        StringBuilder sql = new StringBuilder("""
+            SELECT COUNT(*)
+            FROM Payroll p
+            JOIN Employee e ON p.EmployeeID = e.EmployeeID
+            WHERE 1=1
+        """);
+        
+        List<Object> params = new ArrayList<>();
+        
+        if (employeeId != null) {
+            sql.append(" AND p.EmployeeID = ?");
+            params.add(employeeId);
+        }
+        
+        if (status != null && !status.trim().isEmpty()) {
+            sql.append(" AND p.Status = ?");
+            params.add(status);
+        }
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql.toString())) {
+            
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    
+    /**
+     * Get paged payrolls with filters and sorting (for pagination)
+     */
+    public List<Map<String, Object>> getPagedPayrolls(int offset, int pageSize, 
+            Integer employeeId, String status, String sortBy, String sortOrder) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("""
+            SELECT p.*, e.FullName
+            FROM Payroll p
+            JOIN Employee e ON p.EmployeeID = e.EmployeeID
+            WHERE 1=1
+        """);
+        
+        List<Object> params = new ArrayList<>();
+        
+        if (employeeId != null) {
+            sql.append(" AND p.EmployeeID = ?");
+            params.add(employeeId);
+        }
+        
+        if (status != null && !status.trim().isEmpty()) {
+            sql.append(" AND p.Status = ?");
+            params.add(status);
+        }
+        
+        // Validate and set sortBy and sortOrder
+        if (sortBy == null || sortBy.trim().isEmpty()) {
+            sortBy = "PayPeriod";
+        }
+        // Validate sortBy column to prevent SQL injection
+        String[] allowedColumns = {"PayrollID", "EmployeeID", "FullName", "PayPeriod", 
+            "BaseSalary", "Allowance", "Bonus", "Deduction", "NetSalary", "Status", 
+            "ApprovedDate"};
+        boolean isValidColumn = false;
+        for (String col : allowedColumns) {
+            if (col.equals(sortBy)) {
+                isValidColumn = true;
+                break;
+            }
+        }
+        if (!isValidColumn) {
+            sortBy = "PayPeriod";
+        }
+        
+        // Map sortBy to actual column names
+        if ("FullName".equals(sortBy)) {
+            sql.append(" ORDER BY e.FullName");
+        } else {
+            sql.append(" ORDER BY p.").append(sortBy);
+        }
+        
+        if (sortOrder == null || sortOrder.trim().isEmpty() || 
+            (!"ASC".equalsIgnoreCase(sortOrder) && !"DESC".equalsIgnoreCase(sortOrder))) {
+            sortOrder = "DESC";
+        }
+        sql.append(" ").append(sortOrder);
+        
+        // Add secondary sort
+        if (!"FullName".equals(sortBy)) {
+            sql.append(", e.FullName ASC");
+        }
+        
+        // Add pagination
+        sql.append(" LIMIT ? OFFSET ?");
+        params.add(pageSize);
+        params.add(offset);
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql.toString())) {
+            
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("payrollId", rs.getInt("PayrollID"));
+                    item.put("employeeId", rs.getInt("EmployeeID"));
+                    item.put("employeeName", rs.getString("FullName"));
+                    item.put("payPeriod", rs.getString("PayPeriod"));
+                    item.put("baseSalary", rs.getBigDecimal("BaseSalary"));
+                    item.put("allowance", rs.getBigDecimal("Allowance"));
+                    item.put("bonus", rs.getBigDecimal("Bonus"));
+                    item.put("deduction", rs.getBigDecimal("Deduction"));
+                    item.put("netSalary", rs.getBigDecimal("NetSalary"));
+                    item.put("status", rs.getString("Status"));
+                    item.put("approvedBy", rs.getObject("ApprovedBy"));
+                    item.put("approvedDate", rs.getDate("ApprovedDate"));
+                    list.add(item);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    
+    /**
      * Update payroll
      */
     public boolean update(Payroll payroll) {

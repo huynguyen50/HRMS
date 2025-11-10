@@ -81,5 +81,29 @@ public class DeductionTypeDAO {
         }
         return false;
     }
+    
+    /**
+     * Get deduction type ID by name
+     * @param deductionName Name of deduction type (e.g., "Social Insurance", "Personal Income Tax")
+     * @return DeductionTypeID or -1 if not found
+     */
+    public int getIdByName(String deductionName) {
+        String sql = "SELECT DeductionTypeID FROM DeductionType WHERE DeductionName = ?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, deductionName);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("DeductionTypeID");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
 }
+
 
