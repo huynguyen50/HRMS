@@ -39,7 +39,7 @@
                 color: var(--text-color);
                 background-color: var(--light-color);
             }
-            
+
             /* HR Dashboard Container */
             .hr-dashboard-container {
                 min-height: 100vh;
@@ -53,7 +53,7 @@
                 padding: 1rem 0;
                 box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             }
-            
+
             .header-content {
                 max-width: 1400px;
                 margin: 0 auto;
@@ -62,29 +62,29 @@
                 justify-content: space-between;
                 align-items: center;
             }
-            
+
             .logo-section {
                 display: flex;
                 align-items: center;
                 gap: 1rem;
             }
-            
+
             .logo-section i {
                 font-size: 2rem;
             }
-            
+
             .logo-section h1 {
                 font-size: 1.8rem;
                 font-weight: 600;
                 margin: 0;
             }
-            
+
             .header-actions {
                 display: flex;
                 align-items: center;
                 gap: 1rem;
             }
-            
+
             .search-box {
                 display: flex;
                 align-items: center;
@@ -93,7 +93,7 @@
                 padding: 0.5rem 1rem;
                 gap: 0.5rem;
             }
-            
+
             .search-box input {
                 background: transparent;
                 border: none;
@@ -102,11 +102,11 @@
                 font-size: 0.9rem;
                 width: 200px;
             }
-            
+
             .search-box input::placeholder {
                 color: rgba(255, 255, 255, 0.7);
             }
-            
+
             .notification-bell {
                 position: relative;
                 background: rgba(255,255,255,0.2);
@@ -119,11 +119,11 @@
                 cursor: pointer;
                 transition: all 0.3s ease;
             }
-            
+
             .notification-bell:hover {
                 background: rgba(255,255,255,0.3);
             }
-            
+
             .notification-count {
                 position: absolute;
                 top: -5px;
@@ -139,7 +139,7 @@
                 justify-content: center;
                 font-weight: 600;
             }
-            
+
             .user-profile {
                 display: flex;
                 align-items: center;
@@ -150,17 +150,17 @@
                 cursor: pointer;
                 transition: all 0.3s ease;
             }
-            
+
             .user-profile:hover {
                 background: rgba(255,255,255,0.3);
             }
-            
+
             .user-profile img {
                 width: 32px;
                 height: 32px;
                 border-radius: 50%;
             }
-            
+
             .btn-homepage {
                 background: rgba(255,255,255,0.2);
                 color: white;
@@ -173,14 +173,14 @@
                 transition: all 0.3s ease;
                 border: 1px solid rgba(255,255,255,0.3);
             }
-            
+
             .btn-homepage:hover {
                 background: rgba(255,255,255,0.3);
                 transform: translateY(-2px);
                 box-shadow: 0 4px 15px rgba(0,0,0,0.2);
                 color: white;
             }
-            
+
             /* Main Content Layout */
             .hr-main-content {
                 display: flex;
@@ -189,7 +189,7 @@
                 padding: 2rem;
                 gap: 2rem;
             }
-            
+
             /* Sidebar */
             .hr-sidebar {
                 width: 280px;
@@ -199,11 +199,11 @@
                 padding: 1.5rem;
                 height: fit-content;
             }
-            
+
             .nav-section {
                 margin-bottom: 2rem;
             }
-            
+
             .nav-section h3 {
                 font-size: 0.8rem;
                 font-weight: 600;
@@ -212,7 +212,7 @@
                 letter-spacing: 0.5px;
                 margin-bottom: 1rem;
             }
-            
+
             .nav-item {
                 display: flex;
                 align-items: center;
@@ -225,26 +225,26 @@
                 font-weight: 500;
                 margin-bottom: 0.5rem;
             }
-            
+
             .nav-item:hover {
                 background: #f1f5f9;
                 color: var(--primary-color);
                 transform: translateX(4px);
                 text-decoration: none;
             }
-            
+
             .nav-item.active {
                 background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
                 color: white;
                 box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
             }
-            
+
             .nav-item i {
                 font-size: 1.1rem;
                 width: 20px;
                 text-align: center;
             }
-            
+
             /* Content Area */
             .hr-content-area {
                 flex: 1;
@@ -284,30 +284,40 @@
                 text-decoration: none;
                 transform: translateY(-1px);
             }
-            
+
+            /* Thêm style cho trạng thái rejected */
+            .status-rejected {
+                background-color: #ffebee !important;
+            }
+
+            /* Thêm style cho trạng thái deleted - làm mờ */
+            .status-deleted {
+                opacity: 0.5 !important;
+            }
+
             /* Responsive Design */
             @media (max-width: 768px) {
                 .hr-main-content {
                     flex-direction: column;
                     padding: 1rem;
                 }
-                
+
                 .hr-sidebar {
                     width: 100%;
                     margin-bottom: 1rem;
                 }
-                
+
                 .header-content {
                     flex-direction: column;
                     gap: 1rem;
                     padding: 0 1rem;
                 }
-                
+
                 .header-actions {
                     flex-wrap: wrap;
                     justify-content: center;
                 }
-                
+
                 .search-box input {
                     width: 150px;
                 }
@@ -365,7 +375,7 @@
                                 <span>Employee List</span>
                             </a>
                         </div>
-                        
+
                         <div class="nav-section">
                             <h3>Recruitment</h3>
                             <a href="${pageContext.request.contextPath}/postRecruitments" class="nav-item active">
@@ -390,156 +400,175 @@
 
                 <!-- Content Area -->
                 <div class="hr-content-area">
-                <!-- Tiêu đề trang -->
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="h2">Manage Recruitment Posts</h1>
-                    <a href="${pageContext.request.contextPath}/Views/hr/CreateNewRecruitment.jsp" class="btn btn-success">
-                        <i class="fas fa-plus-circle me-1"></i> Create New
-                    </a>
-                </div>
+                    <!-- Tiêu đề trang -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h1 class="h2">Manage Recruitment Posts</h1>
+                        <a href="${pageContext.request.contextPath}/Views/hr/CreateNewRecruitment.jsp" class="btn btn-success">
+                            <i class="fas fa-plus-circle me-1"></i> Create New
+                        </a>
+                    </div>
 
-                <!-- FORM TÌM KIẾM VÀ LỌC -->
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <form action="${pageContext.request.contextPath}/postRecruitments" method="GET" class="row g-3 align-items-end">
-                            <!-- Cột tìm kiếm theo Title -->
-                            <div class="col-md-3">
-                                <label class="form-label">Search by Title</label>
-                                <input type="text" class="form-control" name="searchByTitle" placeholder="Enter title..." value="${param.searchByTitle}">
-                            </div>
-
-                            <!-- Cột lọc theo trạng thái -->
-                            <div class="col-md-2">
-                                <label class="form-label">Status</label>
-                                <select class="form-select" id="filterStatus" name="filterStatus">
-                                    <option value="">All</option>
-                                    <option value="New" <c:if test="${param.filterStatus eq 'New'}">selected</c:if>>New</option>
-                                    <option value="Waiting" <c:if test="${param.filterStatus eq 'Waiting'}">selected</c:if>>Waiting</option>
-                                    <option value="Rejected" <c:if test="${param.filterStatus eq 'Rejected'}">selected</c:if>>Rejected</option>
-                                    <option value="Applied" <c:if test="${param.filterStatus eq 'Applied'}">selected</c:if>>Applied</option>
-                                    <option value="Deleted" <c:if test="${param.filterStatus eq 'Deleted'}">selected</c:if>>Deleted</option>
-                                    </select>
+                    <!-- FORM TÌM KIẾM VÀ LỌC -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <form action="${pageContext.request.contextPath}/postRecruitments" method="GET" class="row g-3 align-items-end">
+                                <!-- Cột tìm kiếm theo Title -->
+                                <div class="col-md-3">
+                                    <label class="form-label">Search by Title</label>
+                                    <input type="text" class="form-control" name="searchByTitle" placeholder="Enter title..." value="${param.searchByTitle}">
                                 </div>
 
-                                <!-- Cột ngày bắt đầu -->
+                                <!-- Cột lọc theo trạng thái -->
                                 <div class="col-md-2">
-                                    <label class="form-label">Start Date</label>
-                                    <input type="date" class="form-control" id="startDate" name="startDate" value="${param.startDate}">
-                            </div>
-
-                            <!-- Cột ngày kết thúc -->
-                            <div class="col-md-2">
-                                <label class="form-label">End Date</label>
-                                <input type="date" class="form-control" id="endDate" name="endDate" value="${param.endDate}">
-                            </div>
-
-                            <!-- Cột nút Apply -->
-                            <div class="col-md-auto d-flex gap-2">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-filter me-1"></i> Apply Filter
-                                </button>
-                                <!-- Nút Clear dùng thẻ a -->
-                                <a href="${pageContext.request.contextPath}/postRecruitments" class="btn btn-secondary">
-                                    <i class="fas fa-times me-1"></i> Clear
-                                </a>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                <!-- KẾT THÚC FORM -->
-
-                <!-- DANH SÁCH TUYỂN DỤNG -->
-                <c:if test="${not empty recruitment}">
-                    <c:forEach var="rec" items="${recruitment}">
-                        <div class="card mb-3 recruitment-list-item">
-                            <div class="card-body">
-                                <div class="row align-items-center">
-                                    <div class="col-md-8">
-                                        <h5 class="card-title recruitment-title">${rec.title}</h5>
-                                        <p class="card-text recruitment-meta">
-                                            <i class="far fa-calendar-alt me-1"></i> Posted on: value="${rec.postedDate}"
-                                            <span class="mx-2">|</span>
-                                            <i class="fas fa-info-circle me-1"></i> Status: <span class="badge bg-info text-dark">${rec.status}</span>
-                                            <span class="mx-2">|</span>
-                                            <i class="fas fa-users me-1"></i> Applicants: ${rec.applicant}
-                                        </p>
+                                    <label class="form-label">Status</label>
+                                    <select class="form-select" id="filterStatus" name="filterStatus">
+                                        <option value="">All</option>
+                                        <option value="New" <c:if test="${param.filterStatus eq 'New'}">selected</c:if>>New</option>
+                                        <option value="Waiting" <c:if test="${param.filterStatus eq 'Waiting'}">selected</c:if>>Waiting</option>
+                                        <option value="Rejected" <c:if test="${param.filterStatus eq 'Rejected'}">selected</c:if>>Rejected</option>
+                                        <option value="Applied" <c:if test="${param.filterStatus eq 'Applied'}">selected</c:if>>Applied</option>
+                                        <option value="Deleted" <c:if test="${param.filterStatus eq 'Deleted'}">selected</c:if>>Deleted</option>
+                                        </select>
                                     </div>
-                                    <div class="col-md-4 text-end">
-                                        <a href="${pageContext.request.contextPath}/detailRecruitment?id=${rec.recruitmentId}" class="action-btn-custom btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye me-1"></i> View
-                                        </a>
-                                        <a href="${pageContext.request.contextPath}/postRecruitments?action=send&id=${rec.recruitmentId}" 
-                                           class="action-btn-custom btn btn-sm btn-outline-success ms-2"
-                                           onclick="return confirm('Do you want to send this recruitment? This action cannot be undone.');">
-                                            <i class="fas fa-paper-plane me-1"></i> Send
-                                        </a>
-                                        <a href="${pageContext.request.contextPath}/postRecruitments?action=delete&id=${rec.recruitmentId}" 
-                                           class="action-btn-custom btn btn-sm btn-outline-success ms-2"
-                                           onclick="return confirm('Do you want to delete this recruitment? This action cannot be undone.');">
-                                            <i class="fas fa-paper-plane me-1"></i> Delete
-                                        </a>
+
+                                    <!-- Cột ngày bắt đầu -->
+                                    <div class="col-md-2">
+                                        <label class="form-label">Start Date</label>
+                                        <input type="date" class="form-control" id="startDate" name="startDate" value="${param.startDate}">
+                                </div>
+
+                                <!-- Cột ngày kết thúc -->
+                                <div class="col-md-2">
+                                    <label class="form-label">End Date</label>
+                                    <input type="date" class="form-control" id="endDate" name="endDate" value="${param.endDate}">
+                                </div>
+
+                                <!-- Cột nút Apply -->
+                                <div class="col-md-auto d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-filter me-1"></i> Apply Filter
+                                    </button>
+                                    <!-- Nút Clear dùng thẻ a -->
+                                    <a href="${pageContext.request.contextPath}/postRecruitments" class="btn btn-secondary">
+                                        <i class="fas fa-times me-1"></i> Clear
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <!-- KẾT THÚC FORM -->
+
+                    <!-- DANH SÁCH TUYỂN DỤNG -->
+                    <c:if test="${not empty recruitment}">
+                        <c:forEach var="rec" items="${recruitment}">
+                            <!-- Xác định class cho card dựa trên status -->
+                            <c:set var="cardClass" value="card mb-3 recruitment-list-item" />
+                            <c:if test="${rec.status eq 'Rejected'}">
+                                <c:set var="cardClass" value="${cardClass} status-rejected" />
+                            </c:if>
+                            <c:if test="${rec.status eq 'Deleted'}">
+                                <c:set var="cardClass" value="${cardClass} status-deleted" />
+                            </c:if>
+
+                            <div class="${cardClass}">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-8">
+                                            <h5 class="card-title recruitment-title">${rec.title}</h5>
+                                            <p class="card-text recruitment-meta">
+                                                <i class="far fa-calendar-alt me-1"></i> Posted on: value="${rec.postedDate}"
+                                                <span class="mx-2">|</span>
+                                                <i class="fas fa-info-circle me-1"></i> Status: <span class="badge bg-info text-dark">${rec.status}</span>
+                                                <span class="mx-2">|</span>
+                                                <i class="fas fa-users me-1"></i> Applicants: ${rec.applicant}
+                                            </p>
+                                        </div>
+                                        <div class="col-md-4 text-end">
+                                            <a href="${pageContext.request.contextPath}/detailRecruitment?id=${rec.recruitmentId}" class="action-btn-custom btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye me-1"></i> View
+                                            </a>
+
+                                            <c:if test="${rec.status ne 'Deleted' and rec.status ne 'Waiting'}">
+                                                <a href="${pageContext.request.contextPath}/postRecruitments?action=send&id=${rec.recruitmentId}" 
+                                                   class="action-btn-custom btn btn-sm btn-outline-success ms-2"
+                                                   onclick="return confirm('Do you want to send this recruitment? This action cannot be undone.');">
+                                                    <i class="fas fa-paper-plane me-1"></i> Send
+                                                </a>
+                                                <a href="${pageContext.request.contextPath}/postRecruitments?action=delete&id=${rec.recruitmentId}" 
+                                                   class="action-btn-custom btn btn-sm btn-outline-danger ms-2"
+                                                   onclick="return confirm('Do you want to delete this recruitment? This action cannot be undone.');">
+                                                    <i class="fas fa-times me-1"></i> Delete
+                                                </a>
+                                            </c:if>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                        </c:forEach>
+                    </c:if>
+
+                    <c:if test="${not empty mess}">
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>${mess}</span>
                         </div>
-                    </c:forEach>
-                </c:if>
+                    </c:if>
 
-                <c:if test="${empty recruitment}">
-                    <div class="alert alert-warning text-center" role="alert">
-                        <i class="fas fa-exclamation-triangle me-2"></i> No recruitment posts found.
-                    </div>
-                </c:if>
+                    <c:if test="${empty recruitment}">
+                        <div class="alert alert-warning text-center" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i> No recruitment posts found.
+                        </div>
+                    </c:if>
 
-                <!-- PHÂN TRANG -->
-                <c:if test="${totalPages > 1}">
-                    <nav aria-label="Page navigation" class="mt-4">
-                        <ul class="pagination justify-content-center">
-                            <c:if test="${currentPage > 1}">
-                                <li class="page-item">
-                                    <a class="page-link" href="${pageContext.request.contextPath}/postRecruitments?page=${currentPage - 1}&searchByTitle=${searchByTitle}&filterStatus=${filterStatus}&startDate=${startDate}&endDate=${endDate}" aria-label="Previous">
-                                        <span aria-hidden="true">&laquo;</span>
-                                    </a>
-                                </li>
-                            </c:if>
+                    <!-- PHÂN TRANG -->
+                    <c:if test="${totalPages > 1}">
+                        <nav aria-label="Page navigation" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                <c:if test="${currentPage > 1}">
+                                    <li class="page-item">
+                                        <a class="page-link" href="${pageContext.request.contextPath}/postRecruitments?page=${currentPage - 1}&searchByTitle=${searchByTitle}&filterStatus=${filterStatus}&startDate=${startDate}&endDate=${endDate}" aria-label="Previous">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                </c:if>
 
-                            <c:forEach begin="1" end="${totalPages}" var="i">
-                                <c:choose>
-                                    <c:when test="${currentPage == i}">
-                                        <li class="page-item active" aria-current="page">
-                                            <span class="page-link">${i}</span>
-                                        </li>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <li class="page-item">
-                                            <a class="page-link" href="${pageContext.request.contextPath}/postRecruitments?page=${i}&searchByTitle=${searchByTitle}&filterStatus=${filterStatus}&startDate=${startDate}&endDate=${endDate}">${i}</a>
-                                        </li>
-                                    </c:otherwise>
-                                </c:choose>
-                            </c:forEach>
+                                <c:forEach begin="1" end="${totalPages}" var="i">
+                                    <c:choose>
+                                        <c:when test="${currentPage == i}">
+                                            <li class="page-item active" aria-current="page">
+                                                <span class="page-link">${i}</span>
+                                            </li>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <li class="page-item">
+                                                <a class="page-link" href="${pageContext.request.contextPath}/postRecruitments?page=${i}&searchByTitle=${searchByTitle}&filterStatus=${filterStatus}&startDate=${startDate}&endDate=${endDate}">${i}</a>
+                                            </li>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </c:forEach>
 
-                            <c:if test="${currentPage < totalPages}">
-                                <li class="page-item">
-                                    <a class="page-link" href="${pageContext.request.contextPath}/postRecruitments?page=${currentPage + 1}&searchByTitle=${searchByTitle}&filterStatus=${filterStatus}&startDate=${startDate}&endDate=${endDate}" aria-label="Next">
-                                        <span aria-hidden="true">&raquo;</span>
-                                    </a>
-                                </li>
-                            </c:if>
-                        </ul>
-                    </nav>
-                </c:if>
+                                <c:if test="${currentPage < totalPages}">
+                                    <li class="page-item">
+                                        <a class="page-link" href="${pageContext.request.contextPath}/postRecruitments?page=${currentPage + 1}&searchByTitle=${searchByTitle}&filterStatus=${filterStatus}&startDate=${startDate}&endDate=${endDate}" aria-label="Next">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                </c:if>
+                            </ul>
+                        </nav>
+                    </c:if>
                 </div>
             </main>
         </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-            function performSearch() {
-                const searchInput = document.getElementById('searchInput');
-                if (searchInput) {
-                    alert('Search functionality for "' + searchInput.value + '" is not yet implemented.');
-                }
-            }
+                                                       function performSearch() {
+                                                           const searchInput = document.getElementById('searchInput');
+                                                           if (searchInput) {
+                                                               alert('Search functionality for "' + searchInput.value + '" is not yet implemented.');
+                                                           }
+                                                       }
         </script>
     </body>
 </html>

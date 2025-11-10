@@ -6,6 +6,7 @@
 package com.hrm.controller.hr;
 
 import com.hrm.dao.DAO;
+import com.hrm.model.entity.Recruitment;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -39,8 +40,26 @@ throws ServletException, IOException {
         double salary = Double.parseDouble(salaryStr);
         int applicant = Integer.parseInt(applicantStr);
         
-        if(salary<=0 || applicant<=0){
-            request.setAttribute("mess", "Salary and applicant must be a positive number!");
+        if(salary<=0){
+            request.setAttribute("mess", "Salary must be a positive number!");
+            request.setAttribute("title", title);
+            request.setAttribute("description",description);
+            request.setAttribute("requirement", requirement);
+            request.setAttribute("location", location);
+            request.setAttribute("salary", salary);
+            request.setAttribute("applicant", applicant);
+            request.getRequestDispatcher("/Views/hr/CreateNewRecruitment.jsp").forward(request, response);
+            return;
+        }
+        
+        if(applicant<=0){
+            request.setAttribute("mess", "Applicant must be a positive number!");
+            request.setAttribute("title", title);
+            request.setAttribute("description",description);
+            request.setAttribute("requirement", requirement);
+            request.setAttribute("location", location);
+            request.setAttribute("salary", salary);
+            request.setAttribute("applicant", applicant);
             request.getRequestDispatcher("/Views/hr/CreateNewRecruitment.jsp").forward(request, response);
             return;
         }

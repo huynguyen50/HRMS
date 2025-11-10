@@ -32,13 +32,11 @@ public class ViewRecruitment extends HttpServlet {
                 int recruitmentId = Integer.parseInt(idStr);
 
                 DAO.getInstance().updateRecruitmentStatus(recruitmentId,"Applied");
-                response.sendRedirect(request.getContextPath() + "/viewRecruitment");
-                return;
-
+                request.setAttribute("mess", "Apply recruitment successfully!");
             } catch (Exception e) {
                 e.printStackTrace();
                 response.sendRedirect(request.getContextPath() + "/viewRecruitment");
-                return;
+
             }
         }else if("reject".equals(action)){
             try {
@@ -46,9 +44,7 @@ public class ViewRecruitment extends HttpServlet {
                 int recruitmentId = Integer.parseInt(idStr);
 
                 DAO.getInstance().updateRecruitmentStatus(recruitmentId,"Rejected");
-                response.sendRedirect(request.getContextPath() + "/viewRecruitment");
-                return;
-
+                request.setAttribute("mess", "Reject recruitment successfully!");
             } catch (Exception e) {
                 e.printStackTrace();
                 response.sendRedirect(request.getContextPath() + "/viewRecruitment");

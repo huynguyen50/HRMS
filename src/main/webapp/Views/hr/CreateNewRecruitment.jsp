@@ -458,33 +458,32 @@
 
                             <div class="mb-3">
                                 <label for="titleInput" class="form-label">Title</label>
-                                <input type="text" class="form-control" id="titleInput" name="Title" value="" placeholder="Enter recruitment title" maxlength="50" required>
+                                <input type="text" class="form-control" id="titleInput" name="Title" value="${title}" placeholder="Enter recruitment title" maxlength="50" required>
                             </div>
 
                             <div class="mb-3">
                                 <label for="descriptionInput" class="form-label">Description</label>
-                                <textarea class="form-control" id="descriptionInput" name="Description" placeholder="Enter detailed description" maxlength="1000" rows="5" required></textarea>
-                            </div>
+                                <textarea class="form-control" id="descriptionInput" name="Description" placeholder="Enter detailed description" maxlength="1000" rows="5" required>${description}</textarea>                            </div>
 
                             <div class="mb-3">
                                 <label for="requirementInput" class="form-label">Requirement</label>
-                                <input type="text" class="form-control" id="requirementInput" name="Requirement" value="" placeholder="Enter key requirements" maxlength="50" required>
+                                <input type="text" class="form-control" id="requirementInput" name="Requirement" value="${requirement}" placeholder="Enter key requirements" maxlength="50" required>
                             </div>
 
                             <div class="mb-3">
                                 <label for="locationInput" class="form-label">Location</label>
-                                <input type="text" class="form-control" id="locationInput" name="Location" value="" placeholder="Enter job location" maxlength="50" required>
+                                <input type="text" class="form-control" id="locationInput" name="Location" value="${location}" placeholder="Enter job location" maxlength="50" required>
                             </div>
-                            
+
                             <div class="mb-3">
                                 <label for="locationInput" class="form-label">Applicant</label>
-                                <input type="number" class="form-control" id="applicantInput" name="Applicant" value="" placeholder="Enter job applicant" step="1" required>
+                                <input type="number" class="form-control" id="applicantInput" name="Applicant" value="${applicant}" placeholder="Enter job applicant" step="1" required>
                             </div>
 
                             <div class="mb-3">
                                 <label for="salaryInput" class="form-label">Salary</label>
                                 <div class="input-group">
-                                    <input type="number" class="form-control" id="salaryInput" name="Salary" value="" placeholder="Enter salary" step="10000" required>
+                                    <input type="number" class="form-control" id="salaryInput" name="Salary" value="${salary}" placeholder="Enter salary" required>
                                     <span class="input-group-text">đ</span>
                                 </div>
                             </div>
@@ -537,25 +536,25 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-                    // Copy các hàm JS cần thiết từ trang mẫu
-                    function handleLogout() {
-                        if (confirm('Are you sure you want to logout?')) {
-                            window.location.href = '${pageContext.request.contextPath}/logout';
-                        }
-                    }
-                    function toggleProfileDropdown() {
-                        const dropdown = document.getElementById('profileDropdown');
-                        if (dropdown) {
-                            dropdown.classList.toggle('show');
-                        }
-                    }
-                    document.addEventListener('click', function (event) {
-                        const profileDropdown = document.getElementById('profileDropdown');
-                        const profileAvatar = document.querySelector('.profile-avatar');
-                        if (profileDropdown && profileAvatar && !profileAvatar.contains(event.target) && !profileDropdown.contains(event.target)) {
-                            profileDropdown.classList.remove('show');
-                        }
-                    });
+                                                // Copy các hàm JS cần thiết từ trang mẫu
+                                                function handleLogout() {
+                                                    if (confirm('Are you sure you want to logout?')) {
+                                                        window.location.href = '${pageContext.request.contextPath}/logout';
+                                                    }
+                                                }
+                                                function toggleProfileDropdown() {
+                                                    const dropdown = document.getElementById('profileDropdown');
+                                                    if (dropdown) {
+                                                        dropdown.classList.toggle('show');
+                                                    }
+                                                }
+                                                document.addEventListener('click', function (event) {
+                                                    const profileDropdown = document.getElementById('profileDropdown');
+                                                    const profileAvatar = document.querySelector('.profile-avatar');
+                                                    if (profileDropdown && profileAvatar && !profileAvatar.contains(event.target) && !profileDropdown.contains(event.target)) {
+                                                        profileDropdown.classList.remove('show');
+                                                    }
+                                                });
         </script>
     </body>
 </html>

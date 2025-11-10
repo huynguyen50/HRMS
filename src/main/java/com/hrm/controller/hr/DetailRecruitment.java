@@ -47,8 +47,16 @@ public class DetailRecruitment extends HttpServlet {
                 double salary = Double.parseDouble(request.getParameter("Salary"));
                 int applicant = Integer.parseInt(request.getParameter("Applicant"));
 
-                if (salary <= 0 || applicant<=0) {
-                    request.setAttribute("mess", "Salary and applicant must be a positive number.");
+                if (salary <= 0) {
+                    request.setAttribute("mess", "Salary must be a positive number!");
+                    Recruitment rec = DAO.getInstance().getRecruitmentById(id);
+                    request.setAttribute("rec", rec);
+                    request.getRequestDispatcher("Views/hr/DetailRecruitment.jsp").forward(request, response);
+                    return;
+                }
+                
+                if (applicant <= 0) {
+                    request.setAttribute("mess", "Applicant must be a positive number!");
                     Recruitment rec = DAO.getInstance().getRecruitmentById(id);
                     request.setAttribute("rec", rec);
                     request.getRequestDispatcher("Views/hr/DetailRecruitment.jsp").forward(request, response);
@@ -56,7 +64,10 @@ public class DetailRecruitment extends HttpServlet {
                 }
 
                 int update = DAO.getInstance().setRecruitmentById(title, description, requirement, location, salary, applicant,id);
-                response.sendRedirect(request.getContextPath() + "/detailRecruitment?id=" + id);
+                request.setAttribute("mess", "Save recruitment successfully!");
+                Recruitment rec = DAO.getInstance().getRecruitmentById(id);
+                request.setAttribute("rec", rec);
+                request.getRequestDispatcher("Views/hr/DetailRecruitment.jsp").forward(request, response);
                 
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/postRecruitments?error=invalidformat");

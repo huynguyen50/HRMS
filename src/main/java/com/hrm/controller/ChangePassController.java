@@ -46,7 +46,7 @@ public class ChangePassController extends HttpServlet {
         }
 
         SystemUser sys = (SystemUser) session.getAttribute("systemUser");
-        if (!sys.getPassword().equals(curPass)) {
+        if (!DAO.getInstance().checkPassword(curPass, sys.getPassword())) {
             request.setAttribute("mess", "Wrong current password!!!");
             request.getRequestDispatcher("/Views/ChangePassword.jsp").forward(request, response); // Sửa lại đường dẫn
             return;
@@ -57,12 +57,12 @@ public class ChangePassController extends HttpServlet {
         }
         int r = DAO.getInstance().changePassword(sys.getUsername(), newPass);
         if (r > 0) {
-            sys.setPassword(newPass);
-            session.setAttribute("systemUser", sys);
-            request.setAttribute("mess", "Password changed successfully!!!");
+        session.invalidate();
+        request.setAttribute("mess", "Password changed successfully! Please login again.");
+        request.getRequestDispatcher("/Views/Login.jsp").forward(request, response);
         } else {
-            request.setAttribute("mess", "An error occurred. Please try again.");
-        }
+        request.setAttribute("mess", "An error occurred. Please try again.");
         request.getRequestDispatcher("/Views/ChangePassword.jsp").forward(request, response);
+        }
     }
 }

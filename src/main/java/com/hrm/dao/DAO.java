@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class DAO {
 
@@ -49,11 +50,12 @@ public class DAO {
     }
 
     public int changePassword(String username, String newPass) {
+        String hashedPassword = hashPassword(newPass);
         String sql = "UPDATE SystemUser SET password=? Where username=?";
         int result = 0;
         try {
             PreparedStatement ps = con.prepareStatement(sql);
-            ps.setString(1, newPass);
+            ps.setString(1, hashedPassword);
             ps.setString(2, username);
             result = ps.executeUpdate();
         } catch (SQLException e) {
@@ -527,7 +529,7 @@ public class DAO {
     public List<Recruitment> searchRecruitmentWaiting(String title, String startDate, String endDate, int page, int size) {
         List<Recruitment> rList = new ArrayList<>();
         int offset = (page - 1) * size;
-        StringBuilder sql = new StringBuilder("SELECT * FROM Recruitment WHERE Status = 'Waiting'");
+        StringBuilder sql = new StringBuilder("SELECT * FROM Recruitment WHERE Status IN ('Waiting', 'Applied')");
         List<Object> params = new ArrayList<>();
 
         if (title != null && !title.trim().isEmpty()) {
@@ -568,7 +570,7 @@ public class DAO {
     }
 
     public int searchCountRecruitmentWaiting(String title, String startDate, String endDate) {
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Recruitment WHERE Status = 'Waiting'");
+        StringBuilder sql = new StringBuilder("SELECT * FROM Recruitment WHERE Status IN ('Waiting', 'Applied')");
         List<Object> params = new ArrayList<>();
 
         if (title != null && !title.trim().isEmpty()) {
@@ -603,7 +605,7 @@ public class DAO {
     }
 
     public int getCountRecruitmentWaiting() {
-        String sql = "SELECT COUNT(*) FROM Recruitment WHERE Status = 'Waiting'";
+        String sql = "SELECT COUNT(*) FROM Recruitment WHERE Status IN ('Waiting', 'Applied')";
         try {
             PreparedStatement ps = con.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
@@ -619,7 +621,7 @@ public class DAO {
     public List<Recruitment> getAllRecruitmentWaiting(int page, int size) {
         List<Recruitment> rList = new ArrayList<>();
         int offset = (page - 1) * size;
-        String sql = "SELECT * from Recruitment WHERE Status = 'Waiting' ORDER BY RecruitmentID LIMIT ? OFFSET ?";
+        String sql = "SELECT * from Recruitment WHERE Status IN ('Waiting', 'Applied') ORDER BY RecruitmentID LIMIT ? OFFSET ?";
         try {
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setInt(1, size);
@@ -640,147 +642,148 @@ public class DAO {
     // ==========================
     // Task Management (for Dept)
     // ==========================
-
-    public List<Task> getAllTasks(int page, int size) {
+    public List<Task> getAllTasks(int assigneeId, int page, int size) {
         List<Task> list = new ArrayList<>();
-        int offset = (page - 1) * size;
-        String sql = "SELECT * FROM Task ORDER BY TaskID LIMIT ? OFFSET ?";
-        try {
-            PreparedStatement ps = con.prepareStatement(sql);
-            ps.setInt(1, size);
-            ps.setInt(2, offset);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Task t = new Task();
-                t.setTaskId(rs.getInt("TaskID"));
-                t.setTitle(rs.getString("Title"));
-                t.setDescription(rs.getString("Description"));
-                t.setAssignedBy(rs.getInt("AssignedBy"));
-                t.setAssignTo(rs.getInt("AssignTo"));
-                if (rs.getDate("StartDate") != null) {
-                    t.setStartDate(rs.getDate("StartDate").toLocalDate());
-                }
-                if (rs.getDate("DueDate") != null) {
-                    t.setDueDate(rs.getDate("DueDate").toLocalDate());
-                }
-                t.setStatus(rs.getString("Status"));
-                list.add(t);
+    int offset = (page - 1) * size;
+    String sql = "SELECT * FROM Task WHERE AssignedBy = ? ORDER BY TaskID LIMIT ? OFFSET ?";
+    try {
+        PreparedStatement ps = con.prepareStatement(sql);
+        ps.setInt(1, assigneeId);
+        ps.setInt(2, size);
+        ps.setInt(3, offset);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            Task t = new Task();
+            t.setTaskId(rs.getInt("TaskID"));
+            t.setTitle(rs.getString("Title"));
+            t.setDescription(rs.getString("Description"));
+            t.setAssignedBy(rs.getInt("AssignedBy"));
+            if (rs.getDate("StartDate") != null) {
+                t.setStartDate(rs.getDate("StartDate").toLocalDate());
             }
-        } catch (SQLException e) {
-            System.err.println(e.getMessage());
+            if (rs.getDate("DueDate") != null) {
+                t.setDueDate(rs.getDate("DueDate").toLocalDate());
+            }
+            t.setStatus(rs.getString("Status"));
+            list.add(t);
         }
-        return list;
+    } catch (SQLException e) {
+        System.err.println("Error getting tasks by assignee: " + e.getMessage());
+    }
+    return list;
     }
 
-    public int getCountTasks() {
-        String sql = "SELECT COUNT(*) FROM Task";
-        try {
-            PreparedStatement ps = con.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-        } catch (SQLException e) {
-            System.err.println(e.getMessage());
+    public int getCountTasks(int assigneeId) {
+        String sql = "SELECT COUNT(*) FROM Task WHERE AssignedBy = ?";
+    try {
+        PreparedStatement ps = con.prepareStatement(sql);
+        ps.setInt(1, assigneeId);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            return rs.getInt(1);
         }
-        return 0;
+    } catch (SQLException e) {
+        System.err.println("Error counting tasks by assignee: " + e.getMessage());
+    }
+    return 0;
     }
 
-    public List<Task> searchTasks(String title, String status, String startDate, String endDate, int page, int size) {
+    public List<Task> searchTasks(int assigneeId, String title, String status, String startDate, String endDate, int page, int size) {
         List<Task> list = new ArrayList<>();
-        int offset = (page - 1) * size;
-        StringBuilder sql = new StringBuilder("SELECT * FROM Task WHERE 1=1");
-        List<Object> params = new ArrayList<>();
+    int offset = (page - 1) * size;
+    StringBuilder sql = new StringBuilder("SELECT * FROM Task WHERE AssignedBy = ?");
+    List<Object> params = new ArrayList<>();
+    params.add(assigneeId);
 
-        if (title != null && !title.trim().isEmpty()) {
-            sql.append(" AND Title LIKE ?");
-            params.add("%" + title.trim() + "%");
-        }
-
-        if (status != null && !status.trim().isEmpty() && !"all".equalsIgnoreCase(status)) {
-            sql.append(" AND Status = ?");
-            params.add(status.trim());
-        }
-
-        if (startDate != null && !startDate.trim().isEmpty()) {
-            sql.append(" AND (DueDate IS NOT NULL AND DueDate >= ?)");
-            params.add(startDate.trim());
-        }
-
-        if (endDate != null && !endDate.trim().isEmpty()) {
-            sql.append(" AND (DueDate IS NOT NULL AND DueDate <= ?)");
-            params.add(endDate.trim());
-        }
-
-        sql.append(" ORDER BY TaskID LIMIT ? OFFSET ?");
-        params.add(size);
-        params.add(offset);
-
-        try {
-            PreparedStatement ps = con.prepareStatement(sql.toString());
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
-            }
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Task t = new Task();
-                t.setTaskId(rs.getInt("TaskID"));
-                t.setTitle(rs.getString("Title"));
-                t.setDescription(rs.getString("Description"));
-                t.setAssignedBy(rs.getInt("AssignedBy"));
-                t.setAssignTo(rs.getInt("AssignTo"));
-                if (rs.getDate("StartDate") != null) {
-                    t.setStartDate(rs.getDate("StartDate").toLocalDate());
-                }
-                if (rs.getDate("DueDate") != null) {
-                    t.setDueDate(rs.getDate("DueDate").toLocalDate());
-                }
-                t.setStatus(rs.getString("Status"));
-                list.add(t);
-            }
-        } catch (SQLException e) {
-            System.err.println(e.getMessage());
-        }
-        return list;
+    if (title != null && !title.trim().isEmpty()) {
+        sql.append(" AND Title LIKE ?");
+        params.add("%" + title.trim() + "%");
     }
 
-    public int searchCountTasks(String title, String status, String startDate, String endDate) {
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Task WHERE 1=1");
-        List<Object> params = new ArrayList<>();
+    if (status != null && !status.trim().isEmpty() && !"all".equalsIgnoreCase(status)) {
+        sql.append(" AND Status = ?");
+        params.add(status.trim());
+    }
 
-        if (title != null && !title.trim().isEmpty()) {
-            sql.append(" AND Title LIKE ?");
-            params.add("%" + title.trim() + "%");
+    if (startDate != null && !startDate.trim().isEmpty()) {
+        sql.append(" AND (DueDate IS NOT NULL AND DueDate >= ?)");
+        params.add(startDate.trim());
+    }
+
+    if (endDate != null && !endDate.trim().isEmpty()) {
+        sql.append(" AND (DueDate IS NOT NULL AND DueDate <= ?)");
+        params.add(endDate.trim());
+    }
+
+    sql.append(" ORDER BY TaskID LIMIT ? OFFSET ?");
+    params.add(size);
+    params.add(offset);
+
+    try {
+        PreparedStatement ps = con.prepareStatement(sql.toString());
+        for (int i = 0; i < params.size(); i++) {
+            ps.setObject(i + 1, params.get(i));
         }
-
-        if (status != null && !status.trim().isEmpty() && !"all".equalsIgnoreCase(status)) {
-            sql.append(" AND Status = ?");
-            params.add(status.trim());
-        }
-
-        if (startDate != null && !startDate.trim().isEmpty()) {
-            sql.append(" AND (DueDate IS NOT NULL AND DueDate >= ?)");
-            params.add(startDate.trim());
-        }
-
-        if (endDate != null && !endDate.trim().isEmpty()) {
-            sql.append(" AND (DueDate IS NOT NULL AND DueDate <= ?)");
-            params.add(endDate.trim());
-        }
-
-        try {
-            PreparedStatement ps = con.prepareStatement(sql.toString());
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            Task t = new Task();
+            t.setTaskId(rs.getInt("TaskID"));
+            t.setTitle(rs.getString("Title"));
+            t.setDescription(rs.getString("Description"));
+            t.setAssignedBy(rs.getInt("AssignedBy"));
+            if (rs.getDate("StartDate") != null) {
+                t.setStartDate(rs.getDate("StartDate").toLocalDate());
             }
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1);
+            if (rs.getDate("DueDate") != null) {
+                t.setDueDate(rs.getDate("DueDate").toLocalDate());
             }
-        } catch (SQLException e) {
-            System.err.println(e.getMessage());
+            t.setStatus(rs.getString("Status"));
+            list.add(t);
         }
-        return 0;
+    } catch (SQLException e) {
+        System.err.println("Error searching tasks by assignee: " + e.getMessage());
+    }
+    return list;
+    }
+
+    public int searchCountTasks(int assigneeId,String title, String status, String startDate, String endDate) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Task WHERE AssignedBy = ?");
+    List<Object> params = new ArrayList<>();
+    params.add(assigneeId);
+
+    if (title != null && !title.trim().isEmpty()) {
+        sql.append(" AND Title LIKE ?");
+        params.add("%" + title.trim() + "%");
+    }
+
+    if (status != null && !status.trim().isEmpty() && !"all".equalsIgnoreCase(status)) {
+        sql.append(" AND Status = ?");
+        params.add(status.trim());
+    }
+
+    if (startDate != null && !startDate.trim().isEmpty()) {
+        sql.append(" AND (DueDate IS NOT NULL AND DueDate >= ?)");
+        params.add(startDate.trim());
+    }
+
+    if (endDate != null && !endDate.trim().isEmpty()) {
+        sql.append(" AND (DueDate IS NOT NULL AND DueDate <= ?)");
+        params.add(endDate.trim());
+    }
+
+    try {
+        PreparedStatement ps = con.prepareStatement(sql.toString());
+        for (int i = 0; i < params.size(); i++) {
+            ps.setObject(i + 1, params.get(i));
+        }
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            return rs.getInt(1);
+        }
+    } catch (SQLException e) {
+        System.err.println("Error counting search tasks by assignee: " + e.getMessage());
+    }
+    return 0;
     }
 
     public int updateTaskStatus(int id, String status) {
@@ -819,7 +822,6 @@ public class DAO {
                 t.setTitle(rs.getString("Title"));
                 t.setDescription(rs.getString("Description"));
                 t.setAssignedBy(rs.getInt("AssignedBy"));
-                t.setAssignTo(rs.getInt("AssignTo"));
                 if (rs.getDate("StartDate") != null) {
                     t.setStartDate(rs.getDate("StartDate").toLocalDate());
                 }
@@ -835,25 +837,24 @@ public class DAO {
         return null;
     }
 
-    public int createTask(String title, String description, int assignedBy, int assignTo, String startDate, String dueDate, String status) {
-        String sql = "INSERT INTO Task (Title, Description, AssignedBy, AssignTo, StartDate, DueDate, Status) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    public int createTask(String title, String description, int assignedBy, String startDate, String dueDate) {
+        String sql = "INSERT INTO Task (Title, Description, AssignedBy, StartDate, DueDate, Status) VALUES (?, ?, ?, ?, ?, ?)";
         int result = 0;
         try (PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, title);
             ps.setString(2, description);
             ps.setInt(3, assignedBy);
-            ps.setInt(4, assignTo);
             if (startDate != null && !startDate.trim().isEmpty()) {
-                ps.setDate(5, java.sql.Date.valueOf(startDate));
+                ps.setDate(4, java.sql.Date.valueOf(startDate));
             } else {
-                ps.setDate(5, new java.sql.Date(System.currentTimeMillis()));
+                ps.setDate(4, new java.sql.Date(System.currentTimeMillis()));
             }
             if (dueDate != null && !dueDate.trim().isEmpty()) {
-                ps.setDate(6, java.sql.Date.valueOf(dueDate));
+                ps.setDate(5, java.sql.Date.valueOf(dueDate));
             } else {
-                ps.setNull(6, java.sql.Types.DATE);
+                ps.setNull(5, java.sql.Types.DATE);
             }
-            ps.setString(7, status != null && !status.trim().isEmpty() ? status.trim() : "Pending");
+            ps.setString(6, "In Progress");
             result = ps.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
@@ -885,10 +886,10 @@ public class DAO {
         }
         return eList;
     }
-    
-    public Employee getEmp(int sysID){
-    String sql = "SELECT * from Employee WHERE EmployeeID = ?";
-    try {
+
+    public Employee getEmp(int sysID) {
+        String sql = "SELECT * from Employee WHERE EmployeeID = ?";
+        try {
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setInt(1, sysID);
             ResultSet rs = ps.executeQuery();
@@ -909,4 +910,121 @@ public class DAO {
         }
         return null;
     }
+
+    public String hashPassword(String plainTextPassword) {
+    return BCrypt.hashpw(plainTextPassword, BCrypt.gensalt());
+}
+
+public boolean checkPassword(String plainTextPassword, String hashedPassword) {
+    return BCrypt.checkpw(plainTextPassword, hashedPassword);
+}
+
+public List<SystemUser> getAllSystemUsers() {
+    List<SystemUser> users = new ArrayList<>();
+    String sql = "SELECT * FROM SystemUser";
+    
+    try (PreparedStatement ps = con.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+        
+        while (rs.next()) {
+            SystemUser user = new SystemUser(
+                rs.getInt("userId"), 
+                rs.getString("username"), 
+                rs.getString("password"), 
+                rs.getInt("roleId"),
+                rs.getObject("lastLogin", java.time.LocalDateTime.class), 
+                rs.getBoolean("isActive"),
+                rs.getObject("createdDate", java.time.LocalDateTime.class), 
+                rs.getInt("employeeId")
+            );
+            users.add(user);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return users;
+}
+
+public boolean updateUserPassword(int userId, String hashedPassword) {
+    String sql = "UPDATE SystemUser SET password = ? WHERE userId = ?";
+    
+    try (PreparedStatement ps = con.prepareStatement(sql)) {
+        
+        ps.setString(1, hashedPassword); 
+        ps.setInt(2, userId);
+        
+        int result = ps.executeUpdate();
+        return result > 0;
+        
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
+public List<Integer> getEmployeeIdsByTaskId(int taskId) {
+    List<Integer> empIds = new ArrayList<>();
+    String sql = "SELECT empId FROM assignlist WHERE taskId = ?";
+    
+    try (PreparedStatement ps = con.prepareStatement(sql)) {
+        ps.setInt(1, taskId);
+        ResultSet rs = ps.executeQuery();
+        
+        while (rs.next()) {
+            empIds.add(rs.getInt("empId"));
+        }
+    } catch (SQLException e) {
+        System.err.println("Error getting employee IDs by task ID: " + e.getMessage());
+    }
+    
+    return empIds;
+}
+    public boolean updateTask(int taskId, String title, String description, String startDate, String dueDate) {
+    String sql = "UPDATE Task SET Title = ?, Description = ?, StartDate = ?, DueDate = ? WHERE TaskID = ?";
+    
+    try (PreparedStatement ps = con.prepareStatement(sql)) {
+        ps.setString(1, title);
+        ps.setString(2, description);
+        if (startDate != null && !startDate.isEmpty()) {
+            ps.setDate(3, java.sql.Date.valueOf(startDate));
+        } else {
+            ps.setNull(3, java.sql.Types.DATE);
+        }
+        if (dueDate != null && !dueDate.isEmpty()) {
+            ps.setDate(4, java.sql.Date.valueOf(dueDate));
+        } else {
+            ps.setNull(4, java.sql.Types.DATE);
+        }
+        ps.setInt(5, taskId);
+        
+        int result = ps.executeUpdate();
+        return result > 0;
+    } catch (SQLException e) {
+        System.err.println("Error updating task: " + e.getMessage());
+        return false;
+    }
+}
+    
+    public boolean deleteTaskAssignments(int taskId) {
+    String sql = "DELETE FROM assignlist WHERE taskId = ?";
+    try (PreparedStatement ps = con.prepareStatement(sql)) {
+        ps.setInt(1, taskId);
+        int result = ps.executeUpdate();
+        return result > 0;
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
+    public boolean assignTaskToEmployee(int taskId, int empId) {
+    String sql = "INSERT INTO assignlist (taskId, empId) VALUES (?, ?)";
+    try (PreparedStatement ps = con.prepareStatement(sql)) {
+        ps.setInt(1, taskId);
+        ps.setInt(2, empId);
+        int result = ps.executeUpdate();
+        return result > 0;
+    } catch (SQLException e) {
+        e.printStackTrace();
+        return false;
+    }
+}
 }

@@ -71,8 +71,6 @@
                                 <tr>
                                     <th>Title</th>
                                     <th>Description</th>
-                                    <th>Assigned By</th>
-                                    <th>Assign To</th>
                                     <th>Start Date</th>
                                     <th>Due Date</th>
                                     <th>Status</th>
@@ -86,8 +84,6 @@
                                             <tr>
                                                 <td>${task.title}</td>
                                                 <td>${task.description}</td>
-                                                <td>${task.assignedBy}</td>
-                                                <td>${task.assignTo}</td>
                                                 <td>${task.startDate}</td>
                                                 <td>${task.dueDate}</td>
                                                 <td>
@@ -98,21 +94,45 @@
                                                 <td class="text-end">
                                                     <div class="btn-group">
                                                         <a href="${pageContext.request.contextPath}/viewTask?action=view&id=${task.taskId}" class="btn btn-sm btn-outline-primary">View</a>
-                                                        <a href="${pageContext.request.contextPath}/taskManager?action=reject&id=${task.taskId}" class="btn btn-sm btn-outline-primary">Reject</a>
+                                                        <a href="${pageContext.request.contextPath}/taskManager?action=viewAssignees&id=${task.taskId}" class="btn btn-sm btn-outline-primary" 
+                                                           data-bs-toggle="modal" data-bs-target="#assigneesModal" 
+                                                           onclick="loadAssignees(${task.taskId})">
+                                                            <i class="fas fa-users me-1"></i> View participating member
+                                                        </a>
+                                                        <c:if test="${task.status ne 'Rejected'}">
+                                                            <a href="${pageContext.request.contextPath}/taskManager?action=reject&id=${task.taskId}" 
+                                                               class="action-btn-custom btn btn-sm btn-outline-success ms-2"
+                                                               onclick="return confirm('Do you want to send this task? This action cannot be undone.');">
+                                                                <i class="fas fa-paper-plane me-1"></i> Send
+                                                            </a>
+                                                            <a href="${pageContext.request.contextPath}/taskManager?action=send&id=${task.taskId}"
+                                                               class="action-btn-custom btn btn-sm btn-outline-danger ms-2"
+                                                               onclick="return confirm('Do you want to delete this task? This action cannot be undone.');">
+                                                                <i class="fas fa-times me-1"></i> Delete
+                                                            </a>
+                                                        </c:if>
                                                     </div>
                                                 </td>
                                             </tr>
                                         </c:forEach>
                                     </c:when>
-                                    <c:otherwise>
-                                        <tr>
-                                            <td colspan="8" class="text-center text-muted">No tasks found</td>
-                                        </tr>
-                                    </c:otherwise>
                                 </c:choose>
                             </tbody>
                         </table>
                     </div>
+
+                    <c:if test="${empty tasks}">
+                        <div class="alert alert-warning text-center" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i> No task found.
+                        </div>
+                    </c:if>
+
+                    <c:if test="${not empty mess}">
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>${mess}</span>
+                        </div>
+                    </c:if>
 
                     <c:if test="${totalPages > 1}">
                         <nav>
@@ -140,6 +160,62 @@
             </div>
         </div>
 
+        <!-- Modal for viewing assignees -->
+        <div class="modal fade" id="assigneesModal" tabindex="-1" aria-labelledby="assigneesModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="assigneesModalLabel">Participating Members</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="assigneesList">
+                            <div class="text-center">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+                                                                   function loadAssignees(taskId) {
+                                                                       document.getElementById('assigneesList').innerHTML = `
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `;
+
+                                                                       fetch('${pageContext.request.contextPath}/taskManager?action=viewAssignees&id=' + taskId)
+                                                                               .then(response => response.text())
+                                                                               .then(html => {
+                                                                                   // Extract just the employee names from the response
+                                                                                   const parser = new DOMParser();
+                                                                                   const doc = parser.parseFromString(html, 'text/html');
+                                                                                   const employeeElements = doc.querySelectorAll('.employee-name');
+
+                                                                                   let namesHtml = '';
+                                                                                   if (employeeElements.length > 0) {
+                                                                                       employeeElements.forEach(el => {
+                                                                                           namesHtml += '<div class="mb-2"><i class="fas fa-user me-2"></i>' + el.textContent + '</div>';
+                                                                                       });
+                                                                                   } else {
+                                                                                       namesHtml = '<div class="alert alert-info">No employees assigned to this task.</div>';
+                                                                                   }
+
+                                                                                   document.getElementById('assigneesList').innerHTML = namesHtml;
+                                                                               })
+                                                                               .catch(error => {
+                                                                                   console.error('Error:', error);
+                                                                                   document.getElementById('assigneesList').innerHTML = '<div class="alert alert-danger">Error loading assignees.</div>';
+                                                                               });
+                                                                   }
+        </script>
     </body>
 </html>

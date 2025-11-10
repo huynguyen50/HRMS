@@ -15,7 +15,6 @@ public class Task implements Serializable {
     private String title;
     private String description;
     private Integer assignedBy;
-    private Integer assignTo;
     private LocalDate startDate;
     private LocalDate dueDate;
     private String status;
@@ -24,12 +23,11 @@ public class Task implements Serializable {
     }
 
     public Task(int taskId, String title, String description, Integer assignedBy,
-            Integer assignTo, LocalDate startDate, LocalDate dueDate, String status) {
+             LocalDate startDate, LocalDate dueDate, String status) {
         this.taskId = taskId;
         this.title = title;
         this.description = description;
         this.assignedBy = assignedBy;
-        this.assignTo = assignTo;
         this.startDate = startDate;
         this.dueDate = dueDate;
         this.status = status;
@@ -67,14 +65,6 @@ public class Task implements Serializable {
         this.assignedBy = assignedBy;
     }
 
-    public int getAssignTo() {
-        return assignTo;
-    }
-
-    public void setAssignTo(int assignTo) {
-        this.assignTo = assignTo;
-    }
-
     public LocalDate getStartDate() {
         return startDate;
     }
@@ -101,6 +91,6 @@ public class Task implements Serializable {
 
     @Override
     public String toString() {
-        return "Task{" + "taskId=" + taskId + ", title=" + title + ", description=" + description + ", assignedBy=" + assignedBy + ", assignTo=" + assignTo + ", startDate=" + startDate + ", dueDate=" + dueDate + ", status=" + status + '}';
+        return "Task{" + "taskId=" + taskId + ", title=" + title + ", description=" + description + ", assignedBy=" + assignedBy + ", startDate=" + startDate + ", dueDate=" + dueDate + ", status=" + status + '}';
     }
 }

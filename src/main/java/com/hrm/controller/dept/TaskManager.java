@@ -6,14 +6,19 @@
 package com.hrm.controller.dept;
 
 import com.hrm.dao.DAO;
+import com.hrm.model.entity.Employee;
+import com.hrm.model.entity.SystemUser;
 import com.hrm.model.entity.Task;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
+import java.util.ArrayList;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 /**
  *
@@ -27,17 +32,60 @@ public class TaskManager extends HttpServlet {
             throws ServletException, IOException {
         String action = request.getParameter("action");
 
-        // Actions similar to PostRecruitmentController but for Task
-        if ("progress".equals(action)) { // move to In Progress
-            handleStatusChange(request, response, "In Progress");
+        if ("viewAssignees".equals(action)) {
+            String taskIdStr = request.getParameter("id");
+            if (taskIdStr != null && !taskIdStr.trim().isEmpty()) {
+                try {
+                    int taskId = Integer.parseInt(taskIdStr);
+                    
+                    List<Integer> empIds = DAO.getInstance().getEmployeeIdsByTaskId(taskId);
+                    
+                    List<Employee> employees = new ArrayList<>();
+                    for (Integer empId : empIds) {
+                        Employee emp = DAO.getInstance().getEmp(empId);
+                        if (emp != null) {
+                            employees.add(emp);
+                        }
+                    }
+                    
+                    response.setContentType("text/html");
+                    PrintWriter out = response.getWriter();
+                    
+                    if (employees.isEmpty()) {
+                        out.println("<div class='alert alert-info'>No employees assigned to this task.</div>");
+                    } else {
+                        for (Employee emp : employees) {
+                            out.println("<div class='employee-name'>" + emp.getFullName() + "</div>");
+                        }
+                    }
+                    return;
+                } catch (NumberFormatException e) {
+                }
+            }
             return;
-        } else if ("complete".equals(action)) { // move to Completed
-            handleStatusChange(request, response, "Completed");
-            return;
-        } else if ("delete".equals(action)) { // delete task
-            handleDelete(request, response);
+        } else if ("reject".equals(action)) {
+            int TaskID = Integer.parseInt(request.getParameter("id"));
+            DAO.getInstance().updateTaskStatus(TaskID, "Rejected");
+            request.setAttribute("mess", "Reject successfully!");
+        } else if("send".equals(action)) {
+            int TaskID = Integer.parseInt(request.getParameter("id"));
+            DAO.getInstance().updateTaskStatus(TaskID, "Waiting");
+            request.setAttribute("mess", "Send successfully!");
+        }
+        
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
             return;
         }
+        
+        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
+        if (currentUser == null || currentUser.getRoleId() != 3) {
+            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+            return;
+        }
+        
+        int employeeId = currentUser.getEmployeeId();
 
         int page = 1;
         int pageSize = 5;
@@ -51,7 +99,6 @@ public class TaskManager extends HttpServlet {
         String startDate = request.getParameter("startDate");
         String endDate = request.getParameter("endDate");
 
-        // Use DAO for search and pagination
         List<Task> tasks;
         int total;
         boolean hasSearch = (searchByTitle != null && !searchByTitle.trim().isEmpty())
@@ -60,11 +107,11 @@ public class TaskManager extends HttpServlet {
                 || (endDate != null && !endDate.trim().isEmpty());
 
         if (hasSearch) {
-            tasks = DAO.getInstance().searchTasks(searchByTitle, filterStatus, startDate, endDate, page, pageSize);
-            total = DAO.getInstance().searchCountTasks(searchByTitle, filterStatus, startDate, endDate);
+            tasks = DAO.getInstance().searchTasks(employeeId, searchByTitle, filterStatus, startDate, endDate, page, pageSize);
+            total = DAO.getInstance().searchCountTasks(employeeId,searchByTitle, filterStatus, startDate, endDate);
         } else {
-            tasks = DAO.getInstance().getAllTasks(page, pageSize);
-            total = DAO.getInstance().getCountTasks();
+            tasks = DAO.getInstance().getAllTasks(employeeId,page, pageSize);
+            total = DAO.getInstance().getCountTasks(employeeId);
         }
 
         int totalPages = (int) Math.ceil((double) total / pageSize);
@@ -79,30 +126,6 @@ public class TaskManager extends HttpServlet {
         request.setAttribute("endDate", endDate);
 
         request.getRequestDispatcher("/Views/DeptManager/taskManager.jsp").forward(request, response);
-    }
-
-    private void handleStatusChange(HttpServletRequest request, HttpServletResponse response, String newStatus)
-            throws IOException {
-        try {
-            String idStr = request.getParameter("id");
-            int taskId = Integer.parseInt(idStr);
-            DAO.getInstance().updateTaskStatus(taskId, newStatus);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        response.sendRedirect(request.getContextPath() + "/taskManager");
-    }
-
-    private void handleDelete(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        try {
-            String idStr = request.getParameter("id");
-            int taskId = Integer.parseInt(idStr);
-            DAO.getInstance().deleteTaskById(taskId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        response.sendRedirect(request.getContextPath() + "/taskManager");
     }
 
     @Override

@@ -455,10 +455,11 @@
                     <div class="card-body">
                         <form action="${pageContext.request.contextPath}/detailRecruitment" method="post">
                             <input type="hidden" name="id" value="${rec.recruitmentId}">
+                            <input type="hidden" name="status" value="${rec.status}"
 
-                            <div class="mb-3">
-                                <label for="titleInput" class="form-label">Title</label>
-                                <input type="text" class="form-control" id="titleInput" name="Title" value="${rec.title}" placeholder="Enter recruitment title" maxlength="50" required>
+                                   <div class="mb-3">
+                            <label for="titleInput" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="titleInput" name="Title" value="${rec.title}" placeholder="Enter recruitment title" maxlength="50" required>
                             </div>
 
                             <div class="mb-3">
@@ -475,7 +476,7 @@
                                 <label for="locationInput" class="form-label">Location</label>
                                 <input type="text" class="form-control" id="locationInput" name="Location" value="${rec.location}" placeholder="Enter job location" maxlength="50" required>
                             </div>
-                            
+
                             <div class="mb-3">
                                 <label for="locationInput" class="form-label">Applicant</label>
                                 <input type="number" class="form-control" id="applicantInput" name="Applicant" value="${rec.applicant}" placeholder="Enter job applicant" step="1" required>
@@ -492,9 +493,11 @@
                                 <p style="color: red; font-size: 20px;">${mess}</p>
                             </c:if>            
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save me-1"></i> Save Changes
-                                </button>
+                                <c:if test="${rec.status ne 'Deleted'}">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-1"></i> Save Changes
+                                    </button>
+                                </c:if>
                             </div>
                         </form>
                     </div>
@@ -537,25 +540,25 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-                    // Copy các hàm JS cần thiết từ trang mẫu
-                    function handleLogout() {
-                        if (confirm('Are you sure you want to logout?')) {
-                            window.location.href = '${pageContext.request.contextPath}/logout';
-                        }
-                    }
-                    function toggleProfileDropdown() {
-                        const dropdown = document.getElementById('profileDropdown');
-                        if (dropdown) {
-                            dropdown.classList.toggle('show');
-                        }
-                    }
-                    document.addEventListener('click', function (event) {
-                        const profileDropdown = document.getElementById('profileDropdown');
-                        const profileAvatar = document.querySelector('.profile-avatar');
-                        if (profileDropdown && profileAvatar && !profileAvatar.contains(event.target) && !profileDropdown.contains(event.target)) {
-                            profileDropdown.classList.remove('show');
-                        }
-                    });
+                                                // Copy các hàm JS cần thiết từ trang mẫu
+                                                function handleLogout() {
+                                                    if (confirm('Are you sure you want to logout?')) {
+                                                        window.location.href = '${pageContext.request.contextPath}/logout';
+                                                    }
+                                                }
+                                                function toggleProfileDropdown() {
+                                                    const dropdown = document.getElementById('profileDropdown');
+                                                    if (dropdown) {
+                                                        dropdown.classList.toggle('show');
+                                                    }
+                                                }
+                                                document.addEventListener('click', function (event) {
+                                                    const profileDropdown = document.getElementById('profileDropdown');
+                                                    const profileAvatar = document.querySelector('.profile-avatar');
+                                                    if (profileDropdown && profileAvatar && !profileAvatar.contains(event.target) && !profileDropdown.contains(event.target)) {
+                                                        profileDropdown.classList.remove('show');
+                                                    }
+                                                });
         </script>
     </body>
 </html>

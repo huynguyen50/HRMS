@@ -32,13 +32,11 @@ public class PostRecruitmentController extends HttpServlet {
                 int recruitmentId = Integer.parseInt(idStr);
 
                 DAO.getInstance().updateRecruitmentStatus(recruitmentId,"Waiting");
-                response.sendRedirect(request.getContextPath() + "/postRecruitments");
-                return;
-
+                request.setAttribute("mess", "Send successfully!");
             } catch (Exception e) {
                 e.printStackTrace();
                 response.sendRedirect(request.getContextPath() + "/postRecruitments");
-                return;
+                
             }
         }else if("delete".equals(action)){
             try {
@@ -46,9 +44,7 @@ public class PostRecruitmentController extends HttpServlet {
                 int recruitmentId = Integer.parseInt(idStr);
 
                 DAO.getInstance().updateRecruitmentStatus(recruitmentId,"Deleted");
-                response.sendRedirect(request.getContextPath() + "/postRecruitments");
-                return;
-
+                request.setAttribute("mess", "Delete successfully!");
             } catch (Exception e) {
                 e.printStackTrace();
                 response.sendRedirect(request.getContextPath() + "/postRecruitments");
@@ -67,7 +63,6 @@ public class PostRecruitmentController extends HttpServlet {
                 page = 1;
             }
         }
-
         String searchByTitle = request.getParameter("searchByTitle");
         String filterStatus = request.getParameter("filterStatus");
         String startDate = request.getParameter("startDate");

@@ -36,7 +36,8 @@ public class LoginController extends HttpServlet {
         String username = request.getParameter("user");
         String password = request.getParameter("pass");
         String remember = request.getParameter("rememberMe");
-
+        
+        
         SystemUser sys = DAO.getInstance().getAccountByUsername(username);
 
         if(password.length()<8 || password.length()>16 || username.length()<8 || password.length()>16){
@@ -52,7 +53,7 @@ public class LoginController extends HttpServlet {
             return;
         }
         
-        if (sys != null && sys.getPassword().equals(password)) {
+        if (sys != null && DAO.getInstance().checkPassword(password, sys.getPassword())) {
             request.getSession().setAttribute("systemUser", sys);
 
             Cookie userCookie = new Cookie("username", username);
