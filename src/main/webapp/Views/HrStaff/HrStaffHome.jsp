@@ -56,7 +56,7 @@
         <div class="topbar">
             <div class="brand">
                 <div class="logo">HR</div>
-                <div>HR Dashboard</div>
+                <div>HR Staff Dashboard</div>
             </div>
             <div class="top-actions">
                 <div class="search">
@@ -72,7 +72,7 @@
             <aside class="sidebar">
                 <div class="side-group">
                     <div class="side-title">Main</div>
-                    <a class="side-link" href="<%=request.getContextPath()%>/hrstaff">🏠 HR Home</a>
+                    <a class="side-link" href="<%=request.getContextPath()%>/hrstaff">🏠 HR Staff Home</a>
                 </div>
                 <div class="side-group">
                     <div class="side-title">Requests & Approvals</div>
@@ -95,25 +95,25 @@
             <!-- Content Area -->
             <main class="content">
                 <section class="hero">
-                    <h2>HR Home</h2>
+                    <h2>HR Staff Home</h2>
                     <div class="muted">Welcome to the Human Resource Management System</div>
                 </section>
 
                 <section class="grid-3">
                     <div class="card metric">
                         <div class="muted">Total Employees</div>
-                        <div class="value">0</div>
+                        <div class="value"><%= request.getAttribute("totalEmployees") != null ? request.getAttribute("totalEmployees") : 0 %></div>
                         <div class="caption">Active employees in system</div>
                     </div>
-                    <div class="card metric" style="border-left-color:#22c55e;">
-                        <div class="muted">Active Staff</div>
-                        <div class="value">0</div>
-                        <div class="caption">Currently working employees</div>
+                    <div class="card metric" style="border-left-color:#3b82f6;">
+                        <div class="muted">Contracts Pending Approval</div>
+                        <div class="value"><%= request.getAttribute("pendingContractsCount") != null ? request.getAttribute("pendingContractsCount") : 0 %></div>
+                        <div class="caption">Awaiting approval</div>
                     </div>
-                    <div class="card metric" style="border-left-color:#f59e0b;">
-                        <div class="muted">Departments</div>
-                        <div class="value">0</div>
-                        <div class="caption">Organizational departments</div>
+                    <div class="card metric" style="border-left-color:#22c55e;">
+                        <div class="muted">Approved Contracts</div>
+                        <div class="value"><%= request.getAttribute("approvedContractsCount") != null ? request.getAttribute("approvedContractsCount") : 0 %></div>
+                        <div class="caption">Approved and active</div>
                     </div>
                 </section>
 

@@ -212,7 +212,7 @@
             <a href="${pageContext.request.contextPath}/RecruitmentController" class="btn btn-primary">
                 <i class="fas fa-briefcase"></i> View More Jobs
             </a>
-            <a href="/HRMS/homepage" class="btn btn-secondary">
+            <a href="/homepage" class="btn btn-secondary">
                 <i class="fas fa-home"></i> Back to Home
             </a>
         </div>

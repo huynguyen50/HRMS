@@ -5,6 +5,8 @@ import com.hrm.dao.EmployeeDAO;
 import com.hrm.dao.TaskDAO;
 import com.hrm.model.entity.Employee;
 import com.hrm.model.entity.Task;
+import com.hrm.model.entity.SystemUser;
+import com.hrm.util.PermissionUtil;
 import java.io.IOException;
 import java.util.List;
 import jakarta.servlet.ServletException;
@@ -12,6 +14,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 /**
  *
@@ -32,6 +35,20 @@ public class TaskManagementController extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        // Kiểm tra quyền xem employees (task management liên quan đến employees)
+        HttpSession session = request.getSession();
+        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
+        
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+            return;
+        }
+        
+        if (!PermissionUtil.hasPermission(currentUser, "VIEW_EMPLOYEES")) {
+            PermissionUtil.redirectToAccessDenied(request, response, "VIEW_EMPLOYEES", "View Employees");
+            return;
+        }
+        
         try {
             // Get all employees for task assignment
             List<Employee> employees = employeeDAO.getAll();

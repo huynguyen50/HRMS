@@ -777,6 +777,11 @@
                                                                         onclick="showStatusModal(${employee.employeeId}, '${employee.status}', '${employee.fullName}')">
                                                                     <i class="fas fa-user-check" style="font-size: 0.8rem;"></i>
                                                                 </button>
+                                                                <button class="btn btn-outline-danger btn-sm" title="Delete Employee" 
+                                                                        style="padding: 0.25rem 0.5rem;" 
+                                                                        onclick="confirmDeleteEmployee(${employee.employeeId}, '${fn:escapeXml(employee.fullName)}')">
+                                                                    <i class="fas fa-trash" style="font-size: 0.8rem;"></i>
+                                                                </button>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -1040,6 +1045,31 @@
                 
                 const modal = new bootstrap.Modal(document.getElementById('statusModal'));
                 modal.show();
+            }
+            
+            // Delete employee confirmation
+            function confirmDeleteEmployee(employeeId, employeeName) {
+                if (confirm('Are you sure you want to delete employee "' + employeeName + '"?\n\nThis action cannot be undone and will also delete the associated system account.')) {
+                    // Create a form to submit delete request
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '${pageContext.request.contextPath}/hr/employee-list';
+                    
+                    const actionInput = document.createElement('input');
+                    actionInput.type = 'hidden';
+                    actionInput.name = 'action';
+                    actionInput.value = 'deleteEmployee';
+                    form.appendChild(actionInput);
+                    
+                    const employeeIdInput = document.createElement('input');
+                    employeeIdInput.type = 'hidden';
+                    employeeIdInput.name = 'employeeId';
+                    employeeIdInput.value = employeeId;
+                    form.appendChild(employeeIdInput);
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                }
             }
 
             // Initialize page

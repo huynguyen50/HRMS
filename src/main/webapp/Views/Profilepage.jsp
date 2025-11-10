@@ -621,10 +621,7 @@ background: var(--primary-color);
                         <small class="text-muted">Department cannot be changed</small>
                     </div>
                     
-                    <div class="form-group">
-                        <label class="form-label" for="bio">Bio</label>
-                        <textarea class="form-control" id="bio" name="bio" rows="3" placeholder="Tell us about yourself..." disabled>Experienced professional with expertise in enterprise solutions and team management.</textarea>
-                    </div>
+                  
                     
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary" disabled>

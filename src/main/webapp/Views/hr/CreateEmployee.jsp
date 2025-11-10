@@ -622,6 +622,13 @@
                                 <input type="date" id="hireDate" name="hireDate" required>
                             </div>
                             <div class="form-group">
+                                <label for="endDate">End Date</label>
+                                <input type="date" id="endDate" name="endDate">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
                                 <label for="status">Employment Status <span class="required">*</span></label>
                                 <select id="status" name="status" required>
                                     <option value="">Select Status</option>
@@ -663,13 +670,8 @@
         
         <script>
             // Department-Position mapping
+            // Note: Human Resources is excluded as this page is for creating regular employees only
             const departmentPositions = {
-                'Human Resources': [
-                    { value: 'HR Manager', text: 'HR Manager' },
-                    { value: 'HR Staff', text: 'HR Staff' },
-                    { value: 'Recruitment Specialist', text: 'Recruitment Specialist' },
-                    { value: 'Training Coordinator', text: 'Training Coordinator' }
-                ],
                 'Finance': [
                     { value: 'Finance Manager', text: 'Finance Manager' },
                     { value: 'Accountant', text: 'Accountant' },
@@ -780,6 +782,9 @@
                 
                 // Form validation
                 const form = document.getElementById('createEmployeeForm');
+                const hireDateInput = document.getElementById('hireDate');
+                const endDateInput = document.getElementById('endDate');
+                
                 form.addEventListener('submit', function(e) {
                     if (!selectedGuestIdInput.value) {
                         e.preventDefault();
@@ -791,6 +796,17 @@
                         e.preventDefault();
                         alert('Please select a position.');
                         return false;
+                    }
+                    
+                    // Validate end date is after or equal to start date
+                    if (hireDateInput.value && endDateInput.value) {
+                        const startDate = new Date(hireDateInput.value);
+                        const endDate = new Date(endDateInput.value);
+                        if (endDate < startDate) {
+                            e.preventDefault();
+                            alert('End date must be after or equal to start date.');
+                            return false;
+                        }
                     }
                     
                     // Show loading state

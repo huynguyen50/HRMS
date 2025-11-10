@@ -136,6 +136,8 @@
                 border-radius: 8px;
                 margin-bottom: 20px;
                 font-size: 14px;
+                transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+                animation: slideIn 0.3s ease-out;
             }
 
             .alert.error {
@@ -148,6 +150,17 @@
                 background: #d1fae5;
                 color: #065f46;
                 border: 1px solid #a7f3d0;
+            }
+
+            @keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
             }
 
             .filters {
@@ -493,22 +506,22 @@
         <div class="container">
             <!-- Success/Error Messages -->
             <% if (request.getParameter("success") != null) { %>
-            <div class="alert success">
+            <div class="alert success" id="successAlert">
                 Contract updated successfully!
             </div>
             <% } %>
             <% if (request.getAttribute("error") != null) { %>
-            <div class="alert error">
+            <div class="alert error" id="errorAlert">
                 <%= request.getAttribute("error") %>
             </div>
             <% } %>
             <% if (request.getAttribute("success") != null) { %>
-            <div class="alert success">
+            <div class="alert success" id="successAlertAttr">
                 <%= request.getAttribute("success") %>
             </div>
             <% } %>
             <% if (request.getParameter("deleteSuccess") != null) { %>
-            <div class="alert success">
+            <div class="alert success" id="deleteSuccessAlert">
                 Contract deleted successfully!
             </div>
             <% } %>
@@ -532,7 +545,7 @@
                                 <option value="All" <%= (request.getAttribute("statusFilter") == null || request.getAttribute("statusFilter").equals("All")) ? "selected" : "" %>>All</option>
                                 <option value="Draft" <%= "Draft".equals(request.getAttribute("statusFilter")) ? "selected" : "" %>>Draft</option>
                                 <option value="Pending_Approval" <%= "Pending_Approval".equals(request.getAttribute("statusFilter")) ? "selected" : "" %>>Pending Approval</option>
-                                <option value="Approved" <%= "Approved".equals(request.getAttribute("statusFilter")) ? "selected" : "" %>>Approved</option>
+                             
                                 <option value="Active" <%= "Active".equals(request.getAttribute("statusFilter")) ? "selected" : "" %>>Active</option>
                                 <option value="Rejected" <%= "Rejected".equals(request.getAttribute("statusFilter")) ? "selected" : "" %>>Rejected</option>
                                 <option value="Expired" <%= "Expired".equals(request.getAttribute("statusFilter")) ? "selected" : "" %>>Expired</option>
@@ -546,7 +559,7 @@
                                 <option value="Part-time" <%= "Part-time".equals(request.getAttribute("contractTypeFilter")) ? "selected" : "" %>>Part-time</option>
                                 <option value="Probation" <%= "Probation".equals(request.getAttribute("contractTypeFilter")) ? "selected" : "" %>>Probation</option>
                                 <option value="Intern" <%= "Intern".equals(request.getAttribute("contractTypeFilter")) ? "selected" : "" %>>Intern</option>
-                                <option value="Contract" <%= "Contract".equals(request.getAttribute("contractTypeFilter")) ? "selected" : "" %>>Contract</option>
+                          
                             </select>
                         </div>
                         <div class="filter-group" style="justify-content: flex-end;">
@@ -1042,6 +1055,26 @@
                         this.value = '';
                     }
                 });
+            }
+
+            // Auto-hide alerts after 1 second
+            document.addEventListener('DOMContentLoaded', function() {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(function(alert) {
+                    setTimeout(function() {
+                        fadeOut(alert);
+                    }, 1000);
+                });
+            });
+
+            function fadeOut(element) {
+                if (!element) return;
+                element.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(-10px)';
+                setTimeout(function() {
+                    element.style.display = 'none';
+                }, 300);
             }
         </script>
     </body>

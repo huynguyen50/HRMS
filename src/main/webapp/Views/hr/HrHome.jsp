@@ -780,6 +780,10 @@
                                 <i class="fas fa-money-bill-wave"></i>
                                 <span>Payroll</span>
                             </a>
+                            <a href="${pageContext.request.contextPath}/hr/approve-reject-contracts" class="nav-item">
+                                <i class="fas fa-file-contract"></i>
+                                <span>Pending Contracts Approval</span>
+                            </a>
                         </div>
                         
                         <div class="nav-section">
@@ -870,6 +874,30 @@
                                         <p>Organizational departments</p>
                                 </div>
                             </div>
+                            
+                            <%
+                                // Load pending contracts count
+                                int pendingContractsCount = 0;
+                                try {
+                                    com.hrm.dao.ContractDAO contractDAO = new com.hrm.dao.ContractDAO();
+                                    pendingContractsCount = contractDAO.countContractsByStatus("Pending_Approval");
+                                } catch (Exception e) {
+                                    // Ignore errors, just show 0
+                                }
+                                pageContext.setAttribute("pendingContractsCount", pendingContractsCount);
+                            %>
+                            <a href="${pageContext.request.contextPath}/hr/approve-reject-contracts" style="text-decoration: none; color: inherit;">
+                                <div class="stat-card info" style="cursor: pointer;">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-file-contract"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <h3>Pending Contracts</h3>
+                                        <span class="stat-number">${pendingContractsCount}</span>
+                                        <p>Contracts pending approval</p>
+                                    </div>
+                                </div>
+                            </a>
                         </div>
 
                             <!-- Quick Access Functions -->
@@ -906,6 +934,11 @@
                                         <i class="fas fa-list"></i>
                                         <h4>Employee List</h4>
                                         <p>View all employees</p>
+                                    </a>
+                                    <a href="${pageContext.request.contextPath}/hr/approve-reject-contracts" class="access-card">
+                                        <i class="fas fa-file-contract"></i>
+                                        <h4>Approve Contracts</h4>
+                                        <p>Review and approve contracts pending approval (${pendingContractsCount})</p>
                                     </a>
                                     <a href="#payroll-management" class="access-card" onclick="showSection('payroll-management')">
                                         <i class="fas fa-money-bill-wave"></i>

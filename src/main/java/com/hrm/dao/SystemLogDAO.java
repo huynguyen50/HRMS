@@ -537,4 +537,41 @@ public class SystemLogDAO {
         }
         return values;
     }
+
+    /**
+     * Get the latest salary change log for a contract
+     * Returns the SystemLog entry with old and new salary information
+     */
+    public SystemLog getLatestSalaryChangeForContract(int contractId) {
+        String query = """
+            SELECT sl.*, su.Username, e.FullName
+            FROM SystemLog sl
+            LEFT JOIN SystemUser su ON sl.UserID = su.UserID
+            LEFT JOIN Employee e ON su.EmployeeID = e.EmployeeID
+            WHERE sl.ObjectType = 'Contract'
+              AND sl.Action = 'Update Salary'
+              AND (sl.OldValue LIKE ? OR sl.NewValue LIKE ?)
+            ORDER BY sl.Timestamp DESC
+            LIMIT 1
+        """;
+        
+        String contractPattern = "%Contract ID: " + contractId + "%";
+        
+        try (Connection conn = DBConnection.getConnection(); 
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            
+            stmt.setString(1, contractPattern);
+            stmt.setString(2, contractPattern);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToSystemLog(rs);
+                }
+            }
+        } catch (SQLException e) {
+            logger.log(Level.SEVERE, "Error getting latest salary change for contract", e);
+        }
+        
+        return null;
+    }
 }
