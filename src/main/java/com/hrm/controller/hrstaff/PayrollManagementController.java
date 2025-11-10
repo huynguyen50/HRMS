@@ -9,9 +9,12 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * Controller for Payroll Management
@@ -19,7 +22,7 @@ import java.util.Map;
  * Handles POST /hrstaff/payroll - Create/Update payroll
  * @author admin
  */
-@WebServlet(name = "PayrollManagementController", urlPatterns = {"/hrstaff/payroll", "/hrstaff/payroll/delete", "/hrstaff/payroll/submit", "/hrstaff/payroll/generate-all"})
+@WebServlet(name = "PayrollManagementController", urlPatterns = {"/hrstaff/payroll", "/hrstaff/payroll/delete", "/hrstaff/payroll/submit", "/hrstaff/payroll/generate-all", "/hrstaff/payroll/details", "/api/payroll"})
 public class PayrollManagementController extends HttpServlet {
 
     private final EmployeeDAO employeeDAO = new EmployeeDAO();
@@ -157,6 +160,8 @@ public class PayrollManagementController extends HttpServlet {
             handleSubmit(request, response);
         } else if (path != null && path.contains("/generate-all")) {
             handleGenerateAll(request, response);
+        } else if (path != null && (path.contains("/details") || path.contains("/api/payroll"))) {
+            handleGetPayrollDetails(request, response);
         } else {
             handleGet(request, response);
         }
@@ -439,6 +444,53 @@ public class PayrollManagementController extends HttpServlet {
             e.printStackTrace();
             request.getSession().setAttribute("error", "Error generating payroll: " + e.getMessage());
             response.sendRedirect(buildPayrollRedirectUrl(request));
+        }
+    }
+    
+    /**
+     * Handle GET request for payroll details (JSON API)
+     */
+    private void handleGetPayrollDetails(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        
+        try {
+            String payrollIdStr = request.getParameter("payrollId");
+            if (payrollIdStr == null || payrollIdStr.trim().isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                PrintWriter out = response.getWriter();
+                out.print("{\"error\":\"Missing payroll ID\"}");
+                return;
+            }
+            
+            int payrollId = Integer.parseInt(payrollIdStr);
+            Map<String, Object> details = payrollDAO.getDetailsById(payrollId);
+            
+            if (details == null) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                PrintWriter out = response.getWriter();
+                out.print("{\"error\":\"Payroll not found\"}");
+                return;
+            }
+            
+            // Convert to JSON
+            Gson gson = new GsonBuilder()
+                .setDateFormat("yyyy-MM-dd")
+                .create();
+            
+            PrintWriter out = response.getWriter();
+            out.print(gson.toJson(details));
+            
+        } catch (NumberFormatException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            PrintWriter out = response.getWriter();
+            out.print("{\"error\":\"Invalid payroll ID\"}");
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            PrintWriter out = response.getWriter();
+            out.print("{\"error\":\"Error retrieving payroll details: " + e.getMessage() + "\"}");
         }
     }
     
