@@ -320,6 +320,52 @@ public class PayrollDAO {
     }
     
     /**
+     * Approve payroll - set status to Approved and record approver info
+     */
+    public boolean approvePayroll(int payrollId, Integer approvedBy, java.time.LocalDate approvedDate) {
+        String sql = "UPDATE Payroll SET Status = 'Approved', ApprovedBy = ?, ApprovedDate = ? WHERE PayrollID = ?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setObject(1, approvedBy);
+            if (approvedDate != null) {
+                ps.setDate(2, java.sql.Date.valueOf(approvedDate));
+            } else {
+                ps.setDate(2, java.sql.Date.valueOf(java.time.LocalDate.now()));
+            }
+            ps.setInt(3, payrollId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    /**
+     * Reject payroll - set status to Rejected and record approver info
+     */
+    public boolean rejectPayroll(int payrollId, Integer approvedBy, java.time.LocalDate approvedDate) {
+        String sql = "UPDATE Payroll SET Status = 'Rejected', ApprovedBy = ?, ApprovedDate = ? WHERE PayrollID = ?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setObject(1, approvedBy);
+            if (approvedDate != null) {
+                ps.setDate(2, java.sql.Date.valueOf(approvedDate));
+            } else {
+                ps.setDate(2, java.sql.Date.valueOf(java.time.LocalDate.now()));
+            }
+            ps.setInt(3, payrollId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    /**
      * Delete payroll (only if Draft)
      */
     public boolean delete(int payrollId) {
@@ -357,6 +403,89 @@ public class PayrollDAO {
             e.printStackTrace();
         }
         return false;
+    }
+    
+    /**
+     * Get payroll details with PayrollAudit information
+     */
+    public Map<String, Object> getDetailsById(int payrollId) {
+        Map<String, Object> result = new HashMap<>();
+        
+        // Get payroll basic info
+        Payroll payroll = getById(payrollId);
+        if (payroll == null) {
+            return null;
+        }
+        
+        // Convert payroll to map
+        result.put("payrollId", payroll.getPayrollId());
+        result.put("employeeId", payroll.getEmployeeId());
+        result.put("payPeriod", payroll.getPayPeriod());
+        result.put("baseSalary", payroll.getBaseSalary());
+        result.put("allowance", payroll.getAllowance());
+        result.put("bonus", payroll.getBonus());
+        result.put("deduction", payroll.getDeduction());
+        result.put("netSalary", payroll.getNetSalary());
+        result.put("status", payroll.getStatus());
+        result.put("approvedBy", payroll.getApprovedBy());
+        result.put("approvedDate", payroll.getApprovedDate());
+        
+        // Get PayrollAudit details if exists
+        String auditSql = """
+            SELECT pa.*, e.FullName
+            FROM PayrollAudit pa
+            JOIN Employee e ON pa.EmployeeID = e.EmployeeID
+            WHERE pa.EmployeeID = ? AND pa.PayPeriod = ?
+        """;
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(auditSql)) {
+            
+            ps.setInt(1, payroll.getEmployeeId());
+            ps.setString(2, payroll.getPayPeriod());
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Map<String, Object> audit = new HashMap<>();
+                    audit.put("actualWorkingDays", rs.getBigDecimal("ActualWorkingDays"));
+                    audit.put("paidLeaveDays", rs.getBigDecimal("PaidLeaveDays"));
+                    audit.put("unpaidLeaveDays", rs.getBigDecimal("UnpaidLeaveDays"));
+                    audit.put("actualBaseSalary", rs.getBigDecimal("ActualBaseSalary"));
+                    audit.put("overtimeHours", rs.getBigDecimal("OvertimeHours"));
+                    audit.put("otSalary", rs.getBigDecimal("OTSalary"));
+                    audit.put("bhxh", rs.getBigDecimal("BHXH"));
+                    audit.put("bhyt", rs.getBigDecimal("BHYT"));
+                    audit.put("bhtn", rs.getBigDecimal("BHTN"));
+                    audit.put("taxableIncome", rs.getBigDecimal("TaxableIncome"));
+                    audit.put("personalTax", rs.getBigDecimal("PersonalTax"));
+                    audit.put("absentPenalty", rs.getBigDecimal("AbsentPenalty"));
+                    audit.put("otherDeduction", rs.getBigDecimal("OtherDeduction"));
+                    audit.put("totalDeduction", rs.getBigDecimal("TotalDeduction"));
+                    audit.put("calculatedAt", rs.getTimestamp("CalculatedAt"));
+                    audit.put("notes", rs.getString("Notes"));
+                    result.put("audit", audit);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        // Get employee name
+        String employeeSql = "SELECT FullName FROM Employee WHERE EmployeeID = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(employeeSql)) {
+            
+            ps.setInt(1, payroll.getEmployeeId());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    result.put("employeeName", rs.getString("FullName"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return result;
     }
     
     /**

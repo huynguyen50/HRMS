@@ -7,12 +7,14 @@ package com.hrm.controller.hr;
 
 import com.hrm.dao.EmployeeDAO;
 import com.hrm.dao.DepartmentDAO;
+import com.hrm.dao.PayrollDAO;
 import com.hrm.model.entity.Employee;
 import com.hrm.model.entity.Department;
 import com.hrm.model.entity.SystemUser;
 import com.hrm.util.PermissionUtil;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -29,6 +31,7 @@ public class ProfileManagementController extends HttpServlet {
    
     private EmployeeDAO employeeDAO = new EmployeeDAO();
     private DepartmentDAO departmentDAO = new DepartmentDAO();
+    private PayrollDAO payrollDAO = new PayrollDAO();
     
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -64,9 +67,63 @@ public class ProfileManagementController extends HttpServlet {
             List<Department> departments = departmentDAO.getAll();
             System.out.println("ProfileManagementController: Loaded " + departments.size() + " departments");
             
+            // Check if we need to load payroll data (when section=payroll-management)
+            String section = request.getParameter("section");
+            String payrollStatus = request.getParameter("payrollStatus");
+            String employeeFilter = request.getParameter("employeeFilter");
+            String monthFilter = request.getParameter("monthFilter");
+            
+            // Always load payroll counts for the status tabs
+            int pendingCount = payrollDAO.getTotalPayrollCount(null, "Pending");
+            int approvedCount = payrollDAO.getTotalPayrollCount(null, "Approved");
+            int rejectedCount = payrollDAO.getTotalPayrollCount(null, "Rejected");
+            int paidCount = payrollDAO.getTotalPayrollCount(null, "Paid");
+            
+            request.setAttribute("pendingCount", pendingCount);
+            request.setAttribute("approvedCount", approvedCount);
+            request.setAttribute("rejectedCount", rejectedCount);
+            request.setAttribute("paidCount", paidCount);
+            
+            // Load payroll data if section is payroll-management or payrollStatus is provided
+            if ("payroll-management".equals(section) || payrollStatus != null) {
+                // Load payroll data
+                if (payrollStatus == null || payrollStatus.trim().isEmpty()) {
+                    payrollStatus = "Pending";
+                }
+                
+                Integer employeeId = null;
+                if (employeeFilter != null && !employeeFilter.trim().isEmpty()) {
+                    try {
+                        employeeId = Integer.parseInt(employeeFilter);
+                    } catch (NumberFormatException e) {
+                        // Invalid employee ID, ignore
+                    }
+                }
+                
+                // Get payrolls by status
+                List<Map<String, Object>> payrolls = payrollDAO.getAll(employeeId, payrollStatus);
+                
+                // Filter by month if provided
+                if (monthFilter != null && !monthFilter.trim().isEmpty()) {
+                    payrolls.removeIf(p -> !monthFilter.equals(p.get("payPeriod")));
+                }
+                
+                request.setAttribute("payrolls", payrolls);
+                request.setAttribute("payrollStatus", payrollStatus);
+                request.setAttribute("payrollEmployeeFilter", employeeFilter);
+                request.setAttribute("payrollMonthFilter", monthFilter);
+            } else {
+                // Initialize empty lists if not loading payroll data
+                request.setAttribute("payrolls", new java.util.ArrayList<>());
+                request.setAttribute("payrollStatus", "Pending");
+                request.setAttribute("payrollEmployeeFilter", "");
+                request.setAttribute("payrollMonthFilter", "");
+            }
+            
             // Set attributes for JSP
             request.setAttribute("employees", employees);
             request.setAttribute("departments", departments);
+            request.setAttribute("section", section != null ? section : "hr-home");
             request.setAttribute("controllerMessage", "ProfileManagementController executed successfully!");
             
             System.out.println("ProfileManagementController: Forwarding to HrHome.jsp");

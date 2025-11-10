@@ -849,7 +849,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Month</label>
-                                <input type="month" id="attendanceMonthFilter" onchange="filterAttendance()"/>
+                                <input type="month" id="attendanceMonthFilter" onchange="filterAttendance()" value="<%= request.getAttribute("attendanceMonth") != null ? request.getAttribute("attendanceMonth") : "" %>"/>
                             </div>
                         </div>
 
@@ -1309,6 +1309,19 @@
             </div>
         </div>
 
+        <!-- Payroll Details Modal -->
+        <div id="payrollDetailsModal" class="modal">
+            <div class="modal-content" style="max-width:900px;">
+                <div class="modal-header">
+                    <h3>Payroll Details</h3>
+                    <button class="close-btn" onclick="closePayrollDetailsModal()">&times;</button>
+                </div>
+                <div id="payrollDetailsContent">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </div>
+        </div>
+
         <!-- Payroll Modal -->
         <div id="payrollModal" class="modal">
             <div class="modal-content" style="max-width:800px;">
@@ -1342,9 +1355,9 @@
 
                     <!-- Attendance Info Section -->
                     <div id="attendanceInfoSection" style="display:none; background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; padding:16px; margin-bottom:20px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <div style="margin-bottom:12px;">
                             <h4 style="margin:0; color:#0369a1;">📅 Attendance Summary</h4>
-                            <button type="button" class="btn btn-small" onclick="applyAttendanceToPayroll()" style="background:#0369a1;">Apply to Payroll</button>
+                            <div class="muted" style="font-size:12px; margin-top:4px;">Attendance data is automatically calculated and applied to payroll</div>
                         </div>
                         <div class="summary-grid" style="grid-template-columns: repeat(4, 1fr); gap:12px; margin:0;">
                             <div style="background:white; padding:12px; border-radius:6px;">
@@ -1585,8 +1598,57 @@
                     return;
                 }
                 console.log('Loading payroll data for ID:', id);
-                // TODO: Implement full payroll loading
-                alert('Edit payroll feature coming soon');
+                
+                fetch('<%=request.getContextPath()%>/api/payroll?payrollId=' + id)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network error: ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Payroll data loaded:', data);
+                        
+                        // Populate form fields
+                        document.getElementById('payrollId').value = data.payrollId;
+                        document.getElementById('payrollEmployee').value = data.employeeId;
+                        document.getElementById('payrollPeriod').value = data.payPeriod;
+                        
+                        // Set base salary (from Payroll table - this is actual base salary)
+                        const actualBaseSalary = parseFloat(data.baseSalary) || 0;
+                        const otSalary = parseFloat(data.bonus) || 0; // Bonus field stores OT Salary
+                        const allowance = parseFloat(data.allowance) || 0;
+                        const deduction = parseFloat(data.deduction) || 0;
+                        const netSalary = parseFloat(data.netSalary) || 0;
+                        
+                        // Set hidden fields
+                        document.getElementById('payrollBaseSalary').value = actualBaseSalary;
+                        document.getElementById('payrollActualBaseSalary').value = actualBaseSalary;
+                        document.getElementById('payrollOTSalary').value = otSalary;
+                        document.getElementById('payrollAllowance').value = allowance;
+                        document.getElementById('payrollDeduction').value = deduction;
+                        document.getElementById('payrollNetSalary').value = netSalary;
+                        
+                        // Update summary display
+                        updatePayrollSummary({
+                            baseSalary: actualBaseSalary,
+                            actualBaseSalary: actualBaseSalary,
+                            otSalary: otSalary,
+                            totalAllowance: allowance,
+                            totalDeduction: deduction,
+                            netSalary: netSalary
+                        });
+                        
+                        // Load employee payroll data to get attendance and insurance info
+                        loadEmployeePayrollData();
+                        
+                        // Open modal
+                        openPayrollModal();
+                    })
+                    .catch(err => {
+                        console.error('Error loading payroll:', err);
+                        alert('Error loading payroll data: ' + err.message);
+                    });
             }
 
             function deleteAllowance(id) {
@@ -1632,8 +1694,206 @@
             }
 
             function viewPayrollDetails(id) {
-                // TODO: Implement view payroll details modal with PayrollAudit data
-                alert('View payroll details for ID: ' + id + '\n\nThis feature will show detailed payroll calculation from PayrollAudit table.');
+                if (!id) {
+                    console.error('Invalid payroll ID');
+                    return;
+                }
+                
+                const modal = document.getElementById('payrollDetailsModal');
+                const content = document.getElementById('payrollDetailsContent');
+                
+                // Show loading state
+                content.innerHTML = '<div style="text-align:center; padding:40px;"><div class="muted">Loading payroll details...</div></div>';
+                modal.classList.add('active');
+                
+                fetch('<%=request.getContextPath()%>/api/payroll?payrollId=' + id)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network error: ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Payroll details loaded:', data);
+                        renderPayrollDetails(data);
+                    })
+                    .catch(err => {
+                        console.error('Error loading payroll details:', err);
+                        content.innerHTML = '<div style="background:#fee2e2; border:1px solid #fca5a5; border-radius:6px; padding:16px; color:#991b1b;">' +
+                            '<strong>Error:</strong> ' + err.message + '</div>';
+                    });
+            }
+            
+            function renderPayrollDetails(data) {
+                const content = document.getElementById('payrollDetailsContent');
+                const audit = data.audit || {};
+                
+                let html = '<div style="display:flex; flex-direction:column; gap:20px;">';
+                
+                // Basic Info Section
+                html += '<div class="card" style="padding:16px;">';
+                html += '<h4 style="margin:0 0 16px 0; color:var(--primary);">📋 Basic Information</h4>';
+                html += '<div class="form-row">';
+                html += '<div class="form-group"><label>Employee</label><div style="padding:8px 0; font-weight:600;">' + (data.employeeName || 'N/A') + '</div></div>';
+                html += '<div class="form-group"><label>Pay Period</label><div style="padding:8px 0; font-weight:600;">' + (data.payPeriod || 'N/A') + '</div></div>';
+                html += '</div>';
+                html += '<div class="form-row">';
+                html += '<div class="form-group"><label>Status</label><div style="padding:8px 0;"><span class="status-badge status-' + (data.status || 'Draft') + '">' + (data.status || 'Draft') + '</span></div></div>';
+                if (data.approvedDate) {
+                    html += '<div class="form-group"><label>Approved Date</label><div style="padding:8px 0;">' + data.approvedDate + '</div></div>';
+                }
+                html += '</div>';
+                html += '</div>';
+                
+                // Salary Breakdown Section
+                html += '<div class="card" style="padding:16px;">';
+                html += '<h4 style="margin:0 0 16px 0; color:var(--primary);">💰 Salary Breakdown</h4>';
+                html += '<div class="summary-grid" style="grid-template-columns: repeat(3, 1fr); gap:12px; margin:0;">';
+                html += '<div style="background:#f0f9ff; padding:12px; border-radius:6px; border-left:3px solid #3b82f6;">';
+                html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Base Salary</div>';
+                html += '<div style="font-weight:600; font-size:16px;">' + formatCurrency(parseFloat(data.baseSalary) || 0) + '</div>';
+                if (audit.actualBaseSalary) {
+                    html += '<div style="font-size:10px; color:var(--muted); margin-top:2px;">(Actual: ' + formatCurrency(parseFloat(audit.actualBaseSalary)) + ')</div>';
+                }
+                html += '</div>';
+                html += '<div style="background:#f0fdf4; padding:12px; border-radius:6px; border-left:3px solid var(--success);">';
+                html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">OT Salary</div>';
+                html += '<div style="font-weight:600; font-size:16px; color:var(--success);">' + formatCurrency(parseFloat(data.bonus) || 0) + '</div>';
+                if (audit.overtimeHours) {
+                    html += '<div style="font-size:10px; color:var(--muted); margin-top:2px;">(' + parseFloat(audit.overtimeHours).toFixed(1) + ' hours)</div>';
+                }
+                html += '</div>';
+                html += '<div style="background:#fef3c7; padding:12px; border-radius:6px; border-left:3px solid var(--warning);">';
+                html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Allowance</div>';
+                html += '<div style="font-weight:600; font-size:16px;">' + formatCurrency(parseFloat(data.allowance) || 0) + '</div>';
+                html += '</div>';
+                html += '</div>';
+                html += '</div>';
+                
+                // Attendance Details (if available)
+                if (audit.actualWorkingDays !== undefined || audit.paidLeaveDays !== undefined) {
+                    html += '<div class="card" style="padding:16px;">';
+                    html += '<h4 style="margin:0 0 16px 0; color:var(--primary);">📅 Attendance Details</h4>';
+                    html += '<div class="summary-grid" style="grid-template-columns: repeat(4, 1fr); gap:12px; margin:0;">';
+                    if (audit.actualWorkingDays !== undefined) {
+                        html += '<div style="background:#f0f9ff; padding:12px; border-radius:6px;">';
+                        html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Actual Work Days</div>';
+                        html += '<div style="font-weight:600; font-size:16px;">' + parseFloat(audit.actualWorkingDays).toFixed(1) + ' days</div>';
+                        html += '</div>';
+                    }
+                    if (audit.paidLeaveDays !== undefined) {
+                        html += '<div style="background:#f0fdf4; padding:12px; border-radius:6px;">';
+                        html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Paid Leave Days</div>';
+                        html += '<div style="font-weight:600; font-size:16px; color:var(--success);">' + parseFloat(audit.paidLeaveDays).toFixed(1) + ' days</div>';
+                        html += '</div>';
+                    }
+                    if (audit.unpaidLeaveDays !== undefined) {
+                        html += '<div style="background:#fee2e2; padding:12px; border-radius:6px;">';
+                        html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Unpaid Leave Days</div>';
+                        html += '<div style="font-weight:600; font-size:16px; color:var(--error);">' + parseFloat(audit.unpaidLeaveDays).toFixed(1) + ' days</div>';
+                        html += '</div>';
+                    }
+                    if (audit.overtimeHours !== undefined) {
+                        html += '<div style="background:#f0fdf4; padding:12px; border-radius:6px;">';
+                        html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Overtime Hours</div>';
+                        html += '<div style="font-weight:600; font-size:16px; color:var(--success);">' + parseFloat(audit.overtimeHours).toFixed(1) + ' hours</div>';
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                    html += '</div>';
+                }
+                
+                // Insurance & Tax Details (if available)
+                if (audit.bhxh !== undefined || audit.personalTax !== undefined) {
+                    html += '<div class="card" style="padding:16px;">';
+                    html += '<h4 style="margin:0 0 16px 0; color:var(--primary);">💳 Insurance & Tax</h4>';
+                    html += '<div class="summary-grid" style="grid-template-columns: repeat(4, 1fr); gap:12px; margin:0;">';
+                    if (audit.bhxh !== undefined) {
+                        html += '<div style="background:#f0f9ff; padding:12px; border-radius:6px; border-left:3px solid #3b82f6;">';
+                        html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">BHXH (8%)</div>';
+                        html += '<div style="font-weight:600; font-size:16px; color:#3b82f6;">' + formatCurrency(parseFloat(audit.bhxh) || 0) + '</div>';
+                        html += '</div>';
+                    }
+                    if (audit.bhyt !== undefined) {
+                        html += '<div style="background:#f0fdf4; padding:12px; border-radius:6px; border-left:3px solid #10b981;">';
+                        html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">BHYT (1.5%)</div>';
+                        html += '<div style="font-weight:600; font-size:16px; color:#10b981;">' + formatCurrency(parseFloat(audit.bhyt) || 0) + '</div>';
+                        html += '</div>';
+                    }
+                    if (audit.bhtn !== undefined) {
+                        html += '<div style="background:#f5f3ff; padding:12px; border-radius:6px; border-left:3px solid #8b5cf6;">';
+                        html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">BHTN (1%)</div>';
+                        html += '<div style="font-weight:600; font-size:16px; color:#8b5cf6;">' + formatCurrency(parseFloat(audit.bhtn) || 0) + '</div>';
+                        html += '</div>';
+                    }
+                    if (audit.personalTax !== undefined) {
+                        html += '<div style="background:#fee2e2; padding:12px; border-radius:6px; border-left:3px solid var(--error);">';
+                        html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Tax (TNCN)</div>';
+                        html += '<div style="font-weight:600; font-size:16px; color:var(--error);">' + formatCurrency(parseFloat(audit.personalTax) || 0) + '</div>';
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                    if (audit.taxableIncome !== undefined) {
+                        html += '<div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-size:12px;">';
+                        html += '<span style="color:var(--muted);">Taxable Income:</span> ';
+                        html += '<strong>' + formatCurrency(parseFloat(audit.taxableIncome) || 0) + '</strong>';
+                        html += '</div>';
+                    }
+                    html += '</div>';
+                }
+                
+                // Deductions Section
+                html += '<div class="card" style="padding:16px;">';
+                html += '<h4 style="margin:0 0 16px 0; color:var(--primary);">➖ Deductions</h4>';
+                html += '<div style="display:flex; flex-direction:column; gap:8px;">';
+                html += '<div style="display:flex; justify-content:space-between; padding:8px; background:#f9fafb; border-radius:6px;">';
+                html += '<span>Total Deduction:</span>';
+                html += '<strong style="color:var(--error);">' + formatCurrency(parseFloat(data.deduction) || 0) + '</strong>';
+                html += '</div>';
+                if (audit.totalDeduction !== undefined) {
+                    html += '<div style="font-size:12px; color:var(--muted); padding-left:8px;">';
+                    html += 'Includes: Insurance (' + formatCurrency((parseFloat(audit.bhxh) || 0) + (parseFloat(audit.bhyt) || 0) + (parseFloat(audit.bhtn) || 0)) + ')';
+                    if (audit.personalTax) {
+                        html += ' + Tax (' + formatCurrency(parseFloat(audit.personalTax)) + ')';
+                    }
+                    if (audit.otherDeduction) {
+                        html += ' + Other (' + formatCurrency(parseFloat(audit.otherDeduction)) + ')';
+                    }
+                    html += ')';
+                    html += '</div>';
+                }
+                html += '</div>';
+                html += '</div>';
+                
+                // Net Salary
+                html += '<div class="card" style="padding:16px; border-left:4px solid var(--success);">';
+                html += '<div style="display:flex; justify-content:space-between; align-items:center;">';
+                html += '<h4 style="margin:0; color:var(--success);">💵 Net Salary</h4>';
+                html += '<div style="font-size:28px; font-weight:700; color:var(--success);">' + formatCurrency(parseFloat(data.netSalary) || 0) + '</div>';
+                html += '</div>';
+                html += '<div style="margin-top:8px; font-size:12px; color:var(--muted);">';
+                html += 'Base Salary + OT Salary + Allowance - Total Deduction';
+                html += '</div>';
+                html += '</div>';
+                
+                // Notes (if available)
+                if (audit.notes) {
+                    html += '<div class="card" style="padding:16px;">';
+                    html += '<h4 style="margin:0 0 8px 0; color:var(--primary);">📝 Notes</h4>';
+                    html += '<div style="color:var(--muted);">' + audit.notes + '</div>';
+                    html += '</div>';
+                }
+                
+                html += '</div>';
+                
+                content.innerHTML = html;
+            }
+            
+            function closePayrollDetailsModal() {
+                const modal = document.getElementById('payrollDetailsModal');
+                if (modal) {
+                    modal.classList.remove('active');
+                }
             }
             
             // Generate payroll for all employees using stored procedure
@@ -1864,9 +2124,6 @@
                 alert('Feature: Auto-create allowances from attendance');
             }
 
-            function applyAttendanceToPayroll() {
-                alert('Feature: Apply attendance calculations to payroll');
-            }
 
             function loadEmployeePayrollData() {
                 const employeeId = document.getElementById('payrollEmployee').value;
@@ -2194,20 +2451,33 @@
                 
                 console.log('DOMContentLoaded: year:', year, 'month:', month, 'currentMonth:', currentMonth);
 
-                        // Set default month for all month inputs
+                        // Set default month for all month inputs (but preserve URL parameter values)
                         ['allowanceMonthFilter', 'deductionMonthFilter', 'attendanceMonthFilter', 'allowanceMonth', 'deductionMonth', 'payrollPeriod'].forEach(id => {
                             const elem = document.getElementById(id);
                             if (elem) {
-                                // Always set default month if empty or invalid
                                 const currentValue = elem.value || '';
-                                // Validate currentMonth before using
-                                if (currentMonth && currentMonth.match(/^\d{4}-\d{2}$/)) {
-                                    if (!currentValue || currentValue === '-' || currentValue === '' || !currentValue.match(/^\d{4}-\d{2}$/)) {
-                                        elem.value = currentMonth;
-                                        console.log('Set default month for', id, 'to:', currentMonth);
+                                // Only set default if empty or invalid, AND not attendanceMonthFilter (which should preserve URL value)
+                                if (id === 'attendanceMonthFilter') {
+                                    // For attendanceMonthFilter, only set default if truly empty (not from URL)
+                                    // The value should already be set from JSP if it exists in URL
+                                    if (!currentValue || currentValue === '-' || currentValue === '') {
+                                        if (currentMonth && currentMonth.match(/^\d{4}-\d{2}$/)) {
+                                            elem.value = currentMonth;
+                                            console.log('Set default month for', id, 'to:', currentMonth);
+                                        }
+                                    } else {
+                                        console.log('Preserving attendanceMonthFilter value from URL:', currentValue);
                                     }
                                 } else {
-                                    console.error('Invalid currentMonth format:', currentMonth);
+                                    // For other inputs, set default if empty or invalid
+                                    if (currentMonth && currentMonth.match(/^\d{4}-\d{2}$/)) {
+                                        if (!currentValue || currentValue === '-' || currentValue === '' || !currentValue.match(/^\d{4}-\d{2}$/)) {
+                                            elem.value = currentMonth;
+                                            console.log('Set default month for', id, 'to:', currentMonth);
+                                        }
+                                    } else {
+                                        console.error('Invalid currentMonth format:', currentMonth);
+                                    }
                                 }
                             }
                         });
@@ -2226,7 +2496,15 @@
                                 if (monthInput) {
                                     let month = monthInput.value || '';
                                     
-                                    // Fix invalid month format
+                                    // Get month from URL parameter if input is empty
+                                    const urlMonth = urlParams.get('attendanceMonth');
+                                    if ((!month || month === '-' || month === '') && urlMonth) {
+                                        month = urlMonth;
+                                        monthInput.value = month;
+                                        console.log('Set month from URL parameter:', month);
+                                    }
+                                    
+                                    // Fix invalid month format only if still invalid after checking URL
                                     if (!month || month === '-' || month === '' || !month.match(/^\d{4}-\d{2}$/)) {
                                         const now = new Date();
                                         const year = now.getFullYear();
@@ -2259,7 +2537,7 @@
                     });
 
                     document.addEventListener('click', function (event) {
-                        ['allowanceModal', 'deductionModal', 'payrollModal'].forEach(modalId => {
+                        ['allowanceModal', 'deductionModal', 'payrollModal', 'payrollDetailsModal'].forEach(modalId => {
                             const modal = document.getElementById(modalId);
                             if (modal && event.target === modal) {
                                 modal.classList.remove('active');

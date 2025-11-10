@@ -369,7 +369,7 @@ public class PayrollCalculateController extends HttpServlet {
     
     /**
      * Get attendance statistics for an employee in a specific month
-     * Uses SQL functions to calculate ActualWorkingDays, PaidLeaveDays, UnpaidLeaveDays
+     * Query directly from Attendance and MailRequest tables
      */
     private Map<String, Object> getAttendanceStatistics(int employeeId, int year, int month, BigDecimal baseSalary) {
         Map<String, Object> stats = new HashMap<>();
@@ -385,8 +385,22 @@ public class PayrollCalculateController extends HttpServlet {
         stats.put("calculatedOvertimeAmount", BigDecimal.ZERO);
         
         try (Connection con = DBConnection.getConnection()) {
-            // Calculate ActualWorkingDays using SQL function fn_calculate_actual_working_days
-            String sqlActualWorkingDays = "SELECT fn_calculate_actual_working_days(?, ?, ?) as actualWorkingDays";
+            // Calculate ActualWorkingDays directly from Attendance table
+            // Logic: SUM(WorkingHours / 8) where WorkingHours >= 8 counts as 1 day, otherwise WorkingHours/8
+            String sqlActualWorkingDays = """
+                SELECT COALESCE(
+                    SUM(
+                        CASE
+                            WHEN WorkingHours >= 8 THEN 1
+                            WHEN WorkingHours > 0 THEN WorkingHours / 8
+                            ELSE 0
+                        END
+                    ), 0) as actualWorkingDays
+                FROM Attendance
+                WHERE EmployeeID = ?
+                    AND YEAR(Date) = ?
+                    AND MONTH(Date) = ?
+            """;
             try (PreparedStatement ps = con.prepareStatement(sqlActualWorkingDays)) {
                 ps.setInt(1, employeeId);
                 ps.setInt(2, year);
@@ -396,36 +410,84 @@ public class PayrollCalculateController extends HttpServlet {
                         BigDecimal actualWorkingDays = rs.getBigDecimal("actualWorkingDays");
                         if (actualWorkingDays == null) actualWorkingDays = BigDecimal.ZERO;
                         stats.put("actualWorkingDays", actualWorkingDays);
+                        System.out.println("PayrollCalculateController: ActualWorkingDays for employee " + employeeId + 
+                            ", " + year + "-" + month + " = " + actualWorkingDays);
                     }
                 }
+            } catch (Exception e) {
+                System.err.println("PayrollCalculateController: Error calculating ActualWorkingDays: " + e.getMessage());
+                e.printStackTrace();
             }
             
-            // Calculate PaidLeaveDays using SQL function fn_calculate_paid_leave_days
-            String sqlPaidLeaveDays = "SELECT fn_calculate_paid_leave_days(?, ?, ?) as paidLeaveDays";
+            // Calculate PaidLeaveDays directly from MailRequest table
+            // Paid leave: Annual, Sick, Maternity with Status = 'Approved'
+            String monthStartStr = String.format("%d-%02d-01", year, month);
+            
+            String sqlPaidLeaveDays = """
+                SELECT COALESCE(
+                    SUM(
+                        DATEDIFF(
+                            LEAST(LAST_DAY(STR_TO_DATE(?, '%Y-%m-%d')), EndDate),
+                            GREATEST(STR_TO_DATE(?, '%Y-%m-%d'), StartDate)
+                        ) + 1
+                    ), 0) as paidLeaveDays
+                FROM MailRequest
+                WHERE EmployeeID = ?
+                    AND Status = 'Approved'
+                    AND LeaveType IN ('Annual', 'Sick', 'Maternity')
+                    AND StartDate <= LAST_DAY(STR_TO_DATE(?, '%Y-%m-%d'))
+                    AND EndDate >= STR_TO_DATE(?, '%Y-%m-%d')
+            """;
             try (PreparedStatement ps = con.prepareStatement(sqlPaidLeaveDays)) {
-                ps.setInt(1, employeeId);
-                ps.setInt(2, year);
-                ps.setInt(3, month);
+                ps.setString(1, monthStartStr);
+                ps.setString(2, monthStartStr);
+                ps.setInt(3, employeeId);
+                ps.setString(4, monthStartStr);
+                ps.setString(5, monthStartStr);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         BigDecimal paidLeaveDays = rs.getBigDecimal("paidLeaveDays");
                         if (paidLeaveDays == null) paidLeaveDays = BigDecimal.ZERO;
                         stats.put("paidLeaveDays", paidLeaveDays);
+                        System.out.println("PayrollCalculateController: PaidLeaveDays for employee " + employeeId + 
+                            ", " + year + "-" + month + " = " + paidLeaveDays);
                     }
                 }
+            } catch (Exception e) {
+                System.err.println("PayrollCalculateController: Error calculating PaidLeaveDays: " + e.getMessage());
+                e.printStackTrace();
             }
             
-            // Calculate UnpaidLeaveDays using SQL function fn_calculate_unpaid_leave_days
-            String sqlUnpaidLeaveDays = "SELECT fn_calculate_unpaid_leave_days(?, ?, ?) as unpaidLeaveDays";
+            // Calculate UnpaidLeaveDays directly from MailRequest table
+            // Unpaid leave: LeaveType = 'Unpaid' with Status = 'Approved'
+            String sqlUnpaidLeaveDays = """
+                SELECT COALESCE(
+                    SUM(
+                        DATEDIFF(
+                            LEAST(LAST_DAY(STR_TO_DATE(?, '%Y-%m-%d')), EndDate),
+                            GREATEST(STR_TO_DATE(?, '%Y-%m-%d'), StartDate)
+                        ) + 1
+                    ), 0) as unpaidLeaveDays
+                FROM MailRequest
+                WHERE EmployeeID = ?
+                    AND Status = 'Approved'
+                    AND LeaveType = 'Unpaid'
+                    AND StartDate <= LAST_DAY(STR_TO_DATE(?, '%Y-%m-%d'))
+                    AND EndDate >= STR_TO_DATE(?, '%Y-%m-%d')
+            """;
             try (PreparedStatement ps = con.prepareStatement(sqlUnpaidLeaveDays)) {
-                ps.setInt(1, employeeId);
-                ps.setInt(2, year);
-                ps.setInt(3, month);
+                ps.setString(1, monthStartStr);
+                ps.setString(2, monthStartStr);
+                ps.setInt(3, employeeId);
+                ps.setString(4, monthStartStr);
+                ps.setString(5, monthStartStr);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
                         BigDecimal unpaidLeaveDays = rs.getBigDecimal("unpaidLeaveDays");
                         if (unpaidLeaveDays == null) unpaidLeaveDays = BigDecimal.ZERO;
                         stats.put("unpaidLeaveDays", unpaidLeaveDays);
+                        System.out.println("PayrollCalculateController: UnpaidLeaveDays for employee " + employeeId + 
+                            ", " + year + "-" + month + " = " + unpaidLeaveDays);
                         // Calculate unpaid leave amount
                         if (unpaidLeaveDays.compareTo(BigDecimal.ZERO) > 0 && baseSalary != null && baseSalary.compareTo(BigDecimal.ZERO) > 0) {
                             BigDecimal dailyRate = baseSalary.divide(new BigDecimal(26), 2, java.math.RoundingMode.HALF_UP);
@@ -434,6 +496,9 @@ public class PayrollCalculateController extends HttpServlet {
                         }
                     }
                 }
+            } catch (Exception e) {
+                System.err.println("PayrollCalculateController: Error calculating UnpaidLeaveDays: " + e.getMessage());
+                e.printStackTrace();
             }
             
             // Count work days (days with attendance records) for display
@@ -452,8 +517,13 @@ public class PayrollCalculateController extends HttpServlet {
                     if (rs.next()) {
                         int workDays = rs.getInt("workDays");
                         stats.put("workDays", workDays);
+                        System.out.println("PayrollCalculateController: WorkDays (count) for employee " + employeeId + 
+                            ", " + year + "-" + month + " = " + workDays);
                     }
                 }
+            } catch (Exception e) {
+                System.err.println("PayrollCalculateController: Error counting workDays: " + e.getMessage());
+                e.printStackTrace();
             }
             
             // Count late arrivals (CheckIn > 08:00:00)
@@ -473,6 +543,8 @@ public class PayrollCalculateController extends HttpServlet {
                     if (rs.next()) {
                         int lateCount = rs.getInt("lateCount");
                         stats.put("lateCount", lateCount);
+                        System.out.println("PayrollCalculateController: LateCount for employee " + employeeId + 
+                            ", " + year + "-" + month + " = " + lateCount);
                         // Calculate late penalty (100,000 VNĐ per occurrence)
                         if (lateCount > 0) {
                             BigDecimal latePenalty = new BigDecimal(lateCount).multiply(new BigDecimal(100000));
@@ -480,6 +552,9 @@ public class PayrollCalculateController extends HttpServlet {
                         }
                     }
                 }
+            } catch (Exception e) {
+                System.err.println("PayrollCalculateController: Error counting late arrivals: " + e.getMessage());
+                e.printStackTrace();
             }
             
             // Count early leave (CheckOut < 17:00:00)
@@ -499,8 +574,13 @@ public class PayrollCalculateController extends HttpServlet {
                     if (rs.next()) {
                         int earlyCount = rs.getInt("earlyCount");
                         stats.put("earlyLeaveCount", earlyCount);
+                        System.out.println("PayrollCalculateController: EarlyLeaveCount for employee " + employeeId + 
+                            ", " + year + "-" + month + " = " + earlyCount);
                     }
                 }
+            } catch (Exception e) {
+                System.err.println("PayrollCalculateController: Error counting early leave: " + e.getMessage());
+                e.printStackTrace();
             }
             
             // Sum overtime hours
@@ -520,6 +600,8 @@ public class PayrollCalculateController extends HttpServlet {
                         BigDecimal totalOvertime = rs.getBigDecimal("totalOvertime");
                         if (totalOvertime == null) totalOvertime = BigDecimal.ZERO;
                         stats.put("totalOvertimeHours", totalOvertime);
+                        System.out.println("PayrollCalculateController: TotalOvertimeHours for employee " + employeeId + 
+                            ", " + year + "-" + month + " = " + totalOvertime);
                         // Calculate overtime amount: OvertimeHours × (BaseSalary / 208) × 1.5
                         if (totalOvertime.compareTo(BigDecimal.ZERO) > 0 && baseSalary != null && baseSalary.compareTo(BigDecimal.ZERO) > 0) {
                             BigDecimal hourlyRate = baseSalary.divide(new BigDecimal(208), 2, java.math.RoundingMode.HALF_UP);
@@ -528,12 +610,18 @@ public class PayrollCalculateController extends HttpServlet {
                         }
                     }
                 }
+            } catch (Exception e) {
+                System.err.println("PayrollCalculateController: Error calculating overtime: " + e.getMessage());
+                e.printStackTrace();
             }
             
         } catch (Exception e) {
+            System.err.println("PayrollCalculateController: Error in getAttendanceStatistics: " + e.getMessage());
             e.printStackTrace();
         }
         
+        System.out.println("PayrollCalculateController: Final attendance stats for employee " + employeeId + 
+            ", " + year + "-" + month + ": " + stats);
         return stats;
     }
     
