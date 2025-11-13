@@ -13,7 +13,6 @@ import com.hrm.dao.GuestDAO;
 import com.hrm.model.entity.Department;
 import com.hrm.model.entity.Employee;
 import com.hrm.model.entity.Guest;
-import com.hrm.model.entity.SystemUser;
 import com.hrm.util.PermissionUtil;
 import java.io.IOException;
 import java.sql.Connection;
@@ -30,7 +29,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 /**
  *
@@ -41,6 +39,8 @@ public class CreateEmployeeController extends HttpServlet {
    
     private static final String CREATE_EMPLOYEE_JSP = "/Views/hr/CreateEmployee.jsp";
     private static final String ERROR_ATTRIBUTE = "error";
+    private static final String REQUIRED_PERMISSION = "VIEW_EMPLOYEES";
+    private static final String DENIED_MESSAGE = "You do not have permission to create employees.";
     
     private final transient DAO dao = DAO.getInstance();
     private final transient DepartmentDAO departmentDAO = new DepartmentDAO();
@@ -57,20 +57,9 @@ public class CreateEmployeeController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        // Kiểm tra quyền tạo employee
-        HttpSession session = request.getSession();
-        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
-        
-        if (currentUser == null) {
-            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+        if (!ensureAccess(request, response)) {
             return;
         }
-        
-        if (!PermissionUtil.hasPermission(currentUser, "CREATE_EMPLOYEE")) {
-            PermissionUtil.redirectToAccessDenied(request, response, "CREATE_EMPLOYEE", "Create Employee");
-            return;
-        }
-        
         try {
             // Get only guests with HIRED status
             // Try both "Hired" and "HIRED" to handle different case variations
@@ -124,6 +113,9 @@ public class CreateEmployeeController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        if (!ensureAccess(request, response)) {
+            return;
+        }
         try {
             String action = request.getParameter("action");
             
@@ -146,15 +138,6 @@ public class CreateEmployeeController extends HttpServlet {
     
     private void createEmployee(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Kiểm tra quyền tạo employee
-        HttpSession session = request.getSession();
-        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
-        
-        if (currentUser == null || !PermissionUtil.hasPermission(currentUser, "CREATE_EMPLOYEE")) {
-            PermissionUtil.redirectToAccessDenied(request, response, "CREATE_EMPLOYEE", "Create Employee");
-            return;
-        }
-        
         try {
             // Get form parameters
             String guestIdStr = request.getParameter("guestId");
@@ -291,6 +274,11 @@ public class CreateEmployeeController extends HttpServlet {
             request.setAttribute(ERROR_ATTRIBUTE, "Error creating employee: " + e.getMessage());
             doGet(request, response);
         }
+    }
+    
+    private boolean ensureAccess(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        return PermissionUtil.ensurePermission(request, response, REQUIRED_PERMISSION, DENIED_MESSAGE);
     }
     
     private boolean createSystemUser(int employeeId, String username, String password) {

@@ -365,7 +365,7 @@
                                 <i class="fas fa-home"></i>
                                 <span>HR Dashboard</span>
                             </a>
-                            <a href="${pageContext.request.contextPath}/ProfileManagementController" class="nav-item">
+                            <a href="${pageContext.request.contextPath}/HrHomeController" class="nav-item">
                                 <i class="fas fa-user-edit"></i>
                                 <span>Profile Management</span>
                             </a>

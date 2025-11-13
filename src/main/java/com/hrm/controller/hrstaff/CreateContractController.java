@@ -9,6 +9,7 @@ import com.hrm.dao.ContractDAO;
 import com.hrm.dao.EmployeeDAO;
 import com.hrm.model.entity.Contract;
 import com.hrm.model.entity.Employee;
+import com.hrm.util.PermissionUtil;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -42,6 +43,9 @@ public class CreateContractController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        if (!ensureAccess(request, response)) {
+            return;
+        }
         try {
             // Get all employees for the dropdown
             EmployeeDAO employeeDAO = new EmployeeDAO();
@@ -72,6 +76,9 @@ public class CreateContractController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        if (!ensureAccess(request, response)) {
+            return;
+        }
         try {
             createContract(request, response);
         } catch (Exception e) {
@@ -189,6 +196,18 @@ public class CreateContractController extends HttpServlet {
                 ex.printStackTrace();
             }
         }
+    }
+    
+    private boolean ensureAccess(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        return PermissionUtil.ensureRolePermission(
+                request,
+                response,
+                PermissionUtil.ROLE_HR_STAFF,
+                "VIEW_CONTRACTS",
+                "This page is restricted to HR Staff.",
+                "You do not have permission to create contracts."
+        );
     }
 
     @Override

@@ -67,6 +67,18 @@ public class HomepageController extends HttpServlet {
             List<NewsItem> recentNews = getRecentNews();
             request.setAttribute("recentNews", recentNews);
             
+            String mode = request.getParameter("mode");
+            boolean forcePublicView = mode != null && mode.equalsIgnoreCase("public");
+            if (!forcePublicView) {
+                String referer = request.getHeader("Referer");
+                if (referer != null) {
+                    String normalizedRef = referer.toLowerCase();
+                    if (normalizedRef.contains("/admin")) {
+                        forcePublicView = true;
+                    }
+                }
+            }
+            
             // Get user info if logged in
             if (currentUser != null) {
                 request.setAttribute("currentUser", currentUser);
@@ -75,30 +87,33 @@ public class HomepageController extends HttpServlet {
                 // Get user role and permissions
                 Role userRole = getUserRole(currentUser.getRoleId());
                 request.setAttribute("userRole", userRole);
-DashboardAccess dashboardAccess = getDashboardAccess(userRole);
+                DashboardAccess dashboardAccess = getDashboardAccess(userRole);
                 request.setAttribute("dashboardAccess", dashboardAccess);
+                request.setAttribute("isPublicView", forcePublicView);
                 
-                // Check roleID first - roleID 3 redirects to deptHome.jsp
-                if (currentUser.getRoleId() == 3) {
-                    response.sendRedirect(request.getContextPath() + "/dept?action=dashboard");
-                    return;
-                }
-                
-                // Redirect to appropriate dashboard based on role
-                String roleName = userRole.getRoleName().toLowerCase();
-                switch (roleName) {
-                    case "admin":
-                        response.sendRedirect(request.getContextPath() + "/admin?action=dashboard");
+                if (!forcePublicView) {
+                    // Check roleID first - roleID 3 redirects to deptHome.jsp
+                    if (currentUser.getRoleId() == 3) {
+                        response.sendRedirect(request.getContextPath() + "/dept?action=dashboard");
                         return;
-                    case "hr":
-                        response.sendRedirect(request.getContextPath() + "/Views/hr/HrHome.jsp");
-                        return;
-                    case "employee":
-                        response.sendRedirect(request.getContextPath() + "/Views/Employee/EmployeeHome.jsp");
-                        return;
-                    default:
-                        // Stay on homepage for other roles
-                        break;
+                    }
+
+                    // Redirect to appropriate dashboard based on role
+                    String roleName = userRole.getRoleName().toLowerCase();
+                    switch (roleName) {
+                        case "admin":
+                            response.sendRedirect(request.getContextPath() + "/admin?action=dashboard");
+                            return;
+                        case "hr":
+                            response.sendRedirect(request.getContextPath() + "/Views/hr/HrHome.jsp");
+                            return;
+                        case "employee":
+                            response.sendRedirect(request.getContextPath() + "/Views/Employee/EmployeeHome.jsp");
+                            return;
+                        default:
+                            // Stay on homepage for other roles
+                            break;
+                    }
                 }
             } else {
                 request.setAttribute("isLoggedIn", false);

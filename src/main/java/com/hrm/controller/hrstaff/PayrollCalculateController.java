@@ -7,6 +7,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import com.hrm.util.PermissionUtil;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
@@ -26,6 +27,8 @@ import com.hrm.dao.DBConnection;
 @WebServlet(name = "PayrollCalculateController", urlPatterns = {"/hrstaff/payroll/calculate"})
 public class PayrollCalculateController extends HttpServlet {
 
+    private static final String REQUIRED_PERMISSION = "VIEW_PAYROLLS";
+
     private final EmployeeAllowanceDAO employeeAllowanceDAO = new EmployeeAllowanceDAO();
     private final InsuranceRateDAO insuranceRateDAO = new InsuranceRateDAO();
     private final TaxRateDAO taxRateDAO = new TaxRateDAO();
@@ -34,6 +37,15 @@ public class PayrollCalculateController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (!PermissionUtil.ensureRolePermissionJson(
+                request,
+                response,
+                PermissionUtil.ROLE_HR_STAFF,
+                REQUIRED_PERMISSION,
+                "This section is restricted to HR Staff.",
+                "You do not have permission to calculate payroll.")) {
+            return;
+        }
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         

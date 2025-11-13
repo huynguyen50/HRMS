@@ -12,6 +12,7 @@ import com.hrm.dao.SystemLogDAO;
 import com.hrm.model.entity.Contract;
 import com.hrm.model.entity.Employee;
 import com.hrm.model.entity.SystemUser;
+import com.hrm.util.PermissionUtil;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
@@ -50,6 +51,9 @@ public class ContractListController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        if (!ensureAccess(request, response)) {
+            return;
+        }
         try {
             ContractDAO contractDAO = new ContractDAO();
             
@@ -215,6 +219,9 @@ public class ContractListController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        if (!ensureAccess(request, response)) {
+            return;
+        }
         try {
             updateContract(request, response);
         } catch (Exception e) {
@@ -438,6 +445,18 @@ public class ContractListController extends HttpServlet {
             request.setAttribute(ERROR_ATTRIBUTE, "Error: " + e.getMessage());
             doGet(request, response);
         }
+    }
+    
+    private boolean ensureAccess(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        return PermissionUtil.ensureRolePermission(
+                request,
+                response,
+                PermissionUtil.ROLE_HR_STAFF,
+                "VIEW_CONTRACTS",
+                "This page is restricted to HR Staff.",
+                "You do not have permission to manage contracts."
+        );
     }
 
     /** 

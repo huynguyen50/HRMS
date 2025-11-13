@@ -225,6 +225,9 @@
                             <a href="${pageContext.request.contextPath}/admin?action=profile" class="dropdown-item">
                                 <span class="icon">👤</span> Profile
                             </a>
+                            <a href="${pageContext.request.contextPath}/homepage" class="dropdown-item">
+                                <span class="icon">🏠</span> Trang chủ
+                            </a>
                             <div class="dropdown-divider"></div>
                             <a href="${pageContext.request.contextPath}/logout" class="dropdown-item">
                                 <span class="icon">🚪</span> Logout

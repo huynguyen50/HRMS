@@ -1059,14 +1059,6 @@
                         
                         <div class="nav-section">
                             <h3>Recruitment</h3>
-                            <a href="${pageContext.request.contextPath}/viewRecruitment" class="nav-item">
-                                <i class="fas fa-bullhorn"></i>
-                                <span>View Recruitment</span>
-                            </a>
-                            <a href="${pageContext.request.contextPath}/candidates" class="nav-item">
-                                <i class="fas fa-users"></i>
-                                <span>View Candidates</span>
-                            </a>
                             <a href="${pageContext.request.contextPath}/hr/create-employee" class="nav-item">
                                 <i class="fas fa-user-plus"></i>
                                 <span>Create Employee</span>
@@ -1175,16 +1167,6 @@
                             <div class="quick-access">
                                 <h3>Quick Access</h3>
                                 <div class="access-grid">
-                                    <a href="${pageContext.request.contextPath}/ProfileManagementController" class="access-card">
-                                    <i class="fas fa-user-edit"></i>
-                                        <h4>Profile Management</h4>
-                                        <p>Manage employee profiles</p>
-                                    </a>
-<!--                                    <a href="${pageContext.request.contextPath}/EmploymentStatusController" class="access-card">
-                                        <i class="fas fa-user-check"></i>
-                                        <h4>Employment Status</h4>
-                                        <p>Update employment status</p>
-                                    </a>-->
                                     <a href="${pageContext.request.contextPath}/viewRecruitment" class="access-card">
                                         <i class="fas fa-bullhorn"></i>
                                         <h4>Post Recruitment</h4>
@@ -1245,78 +1227,6 @@
                         </div>
                     </section>
                     
-
-                    <!-- Profile Management Section -->
-                    <section id="ProfileManagementController" class="content-section">
-                        <div class="section-header">
-                            <h2>Profile Management</h2>
-                            <p>Approve or reject employee personal information update requests</p>
-                        </div>
-                        
-                        <div class="management-tabs">
-                            <button class="tab-btn active" data-tab="pending-profiles">Pending</button>
-                            <button class="tab-btn" data-tab="approved-profiles">Approved</button>
-                            <button class="tab-btn" data-tab="rejected-profiles">Rejected</button>
-                        </div>
-                        
-                        <div class="tab-content">
-                            <div id="pending-profiles" class="tab-panel active">
-                                <div class="profile-requests">
-                                    <c:choose>
-                                        <c:when test="${not empty employees}">
-                                            <c:forEach var="employee" items="${employees}" begin="0" end="4">
-                                    <div class="request-card">
-                                        <div class="request-header">
-                                            <div class="employee-info">
-                                                            <img src="https://i.pravatar.cc/50?img=${employee.employeeId}" alt="Employee">
-                                                <div>
-                                                                <h4>${employee.fullName}</h4>
-                                                                <p>${employee.position} - ${employee.departmentName}</p>
-                                                </div>
-                                            </div>
-                                            <div class="request-date">
-                                                <i class="fas fa-clock"></i>
-                                                            <span>${employee.employmentPeriod}</span>
-                                            </div>
-                                        </div>
-                                        <div class="request-details">
-                                                        <h5>Employee Information:</h5>
-                                                        <ul>
-                                                            <li><strong>Email:</strong> ${employee.email}</li>
-                                                            <li><strong>Phone:</strong> ${employee.phone}</li>
-                                                            <li><strong>Address:</strong> ${employee.address}</li>
-                                                            <li><strong>Status:</strong> ${employee.status}</li>
-                                            </ul>
-                                        </div>
-                                        <div class="request-actions">
-                                            <button class="btn-approve">
-                                                <i class="fas fa-check"></i>
-                                                            Approve
-                                            </button>
-                                            <button class="btn-reject">
-                                                <i class="fas fa-times"></i>
-                                                            Reject
-                                            </button>
-                                            <button class="btn-view-details">
-                                                <i class="fas fa-eye"></i>
-                                                            View Details
-                                            </button>
-                                        </div>
-                                    </div>
-                                            </c:forEach>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <div class="no-data">
-                                                <i class="fas fa-users-slash"></i>
-                                                <h3>No employee profiles found</h3>
-                                                <p>There are no employee profiles to display at the moment.</p>
-                                                </div>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
 
 <!--                     Employment Status Management Section 
                     <section id="employment-status" class="content-section">
@@ -1967,7 +1877,7 @@
             }
             
             function loadPayrollsByStatus(status) {
-                // Redirect to PayrollApprovalController instead of ProfileManagementController
+                // Redirect to PayrollApprovalController instead of HrHomeController
                 const employeeId = document.getElementById('employeeFilter') ? document.getElementById('employeeFilter').value : '';
                 const month = document.getElementById('monthFilter') ? document.getElementById('monthFilter').value : '';
                 

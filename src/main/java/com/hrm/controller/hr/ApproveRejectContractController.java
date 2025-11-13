@@ -11,7 +11,6 @@ import com.hrm.dao.SystemLogDAO;
 import com.hrm.model.entity.Contract;
 import com.hrm.model.entity.Employee;
 import com.hrm.model.entity.SystemLog;
-import com.hrm.model.entity.SystemUser;
 import com.hrm.util.PermissionUtil;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -31,7 +30,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 /**
  *
@@ -46,6 +44,8 @@ public class ApproveRejectContractController extends HttpServlet {
     private static final String STATUS_REJECTED = "Rejected";
     private static final String ERROR_ATTRIBUTE = "error";
     private static final String SUCCESS_ATTRIBUTE = "success";
+    private static final String REQUIRED_PERMISSION = "VIEW_CONTRACTS";
+    private static final String DENIED_MESSAGE = "You do not have permission to review or approve contracts.";
     
     private final transient ContractDAO contractDAO = new ContractDAO();
     private final transient SystemLogDAO systemLogDAO = new SystemLogDAO();
@@ -61,20 +61,9 @@ public class ApproveRejectContractController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        // Kiểm tra quyền xem contracts
-        HttpSession session = request.getSession();
-        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
-        
-        if (currentUser == null) {
-            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+        if (!ensureAccess(request, response)) {
             return;
         }
-        
-        if (!PermissionUtil.hasPermission(currentUser, "VIEW_CONTRACTS")) {
-            PermissionUtil.redirectToAccessDenied(request, response, "VIEW_CONTRACTS", "View Contracts");
-            return;
-        }
-        
         try {
             // Get all contracts with status Pending_Approval
             List<Map<String, Object>> pendingContracts = contractDAO.getContractsByStatus(STATUS_PENDING_APPROVAL);
@@ -204,27 +193,11 @@ public class ApproveRejectContractController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        // Kiểm tra quyền approve/reject contract
-        HttpSession session = request.getSession();
-        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
-        
-        if (currentUser == null) {
-            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+        if (!ensureAccess(request, response)) {
             return;
         }
-        
-        String action = request.getParameter("action");
-        
-        // Kiểm tra quyền approve hoặc reject
-        if ("approve".equals(action) && !PermissionUtil.hasPermission(currentUser, "APPROVE_CONTRACT")) {
-            PermissionUtil.redirectToAccessDenied(request, response, "APPROVE_CONTRACT", "Approve Contract");
-            return;
-        } else if ("reject".equals(action) && !PermissionUtil.hasPermission(currentUser, "REJECT_CONTRACT")) {
-            PermissionUtil.redirectToAccessDenied(request, response, "REJECT_CONTRACT", "Reject Contract");
-            return;
-        }
-        
         try {
+            String action = request.getParameter("action");
             String contractIdStr = request.getParameter("contractId");
             
             if (contractIdStr == null || contractIdStr.trim().isEmpty()) {
@@ -391,6 +364,11 @@ public class ApproveRejectContractController extends HttpServlet {
             // Fallback to default encoding if UTF-8 is not supported (should not happen)
             response.sendRedirect(url + "?" + type + "=" + URLEncoder.encode(message, "UTF-8"));
         }
+    }
+
+    private boolean ensureAccess(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        return PermissionUtil.ensurePermission(request, response, REQUIRED_PERMISSION, DENIED_MESSAGE);
     }
 
     /** 

@@ -72,7 +72,7 @@
     <div class="test-container">
         <div class="test-header">
             <h1>🧪 Test HR Dashboard</h1>
-            <p>Testing ProfileManagementController → HrHome.jsp</p>
+            <p>Testing HrHomeController → HrHome.jsp</p>
         </div>
 
         <div class="test-section info">
@@ -111,7 +111,7 @@
                 <c:otherwise>
                     <div class="error">
                         <h4>❌ No Employees Data Found!</h4>
-                        <p>ProfileManagementController did not load employee data.</p>
+                        <p>HrHomeController did not load employee data.</p>
                         <p><strong>Possible causes:</strong></p>
                         <ul>
                             <li>Database connection issue</li>
@@ -148,7 +148,7 @@
                 <c:otherwise>
                     <div class="error">
                         <h4>❌ No Departments Data Found!</h4>
-                        <p>ProfileManagementController did not load department data.</p>
+                        <p>HrHomeController did not load department data.</p>
                     </div>
                 </c:otherwise>
             </c:choose>
@@ -158,7 +158,7 @@
             <h3>🔧 Controller Test</h3>
             <div class="info">
                 <h4>📝 Controller Information</h4>
-                <p><strong>Controller:</strong> ProfileManagementController</p>
+                <p><strong>Controller:</strong> HrHomeController</p>
                 <p><strong>Method:</strong> processRequest()</p>
                 <p><strong>Forward Target:</strong> /Views/hr/HrHome.jsp</p>
                 <p><strong>Expected Attributes:</strong></p>
@@ -172,7 +172,7 @@
         <div class="test-section">
             <h3>🔗 Navigation Test</h3>
             <p>Test links to verify routing:</p>
-            <a href="/HRMS/ProfileManagementController" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin: 5px;">Test ProfileManagementController</a>
+            <a href="/HRMS/HrHomeController" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin: 5px;">Test HrHomeController</a>
             <a href="/HRMS/DBConnectionTest" style="background: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin: 5px;">Test Database Connection</a>
             <a href="/HRMS/homepage" style="background: #ffc107; color: black; padding: 10px 20px; text-decoration: none; border-radius: 4px; margin: 5px;">Test Homepage</a>
         </div>

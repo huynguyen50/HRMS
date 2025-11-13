@@ -257,7 +257,7 @@ public class RoleDAO {
 
     public List<Role> getAllRoles() {
         List<Role> roles = new ArrayList<>();
-        String sql = "SELECT RoleID, RoleName FROM Role ORDER BY RoleName";
+        String sql = "SELECT RoleID, RoleName FROM Role ORDER BY RoleID";
 
         try (Connection conn = DBConnection.getConnection(); 
              Statement stmt = conn.createStatement(); 

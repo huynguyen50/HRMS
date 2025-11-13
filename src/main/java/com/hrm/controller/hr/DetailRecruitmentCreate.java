@@ -6,16 +6,12 @@
 package com.hrm.controller.hr;
 
 import com.hrm.dao.DAO;
-import com.hrm.model.entity.SystemUser;
-import com.hrm.util.PermissionUtil;
 import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.time.LocalDateTime;
 
 /**
@@ -27,34 +23,11 @@ public class DetailRecruitmentCreate extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        // Kiểm tra quyền tạo recruitment
-        HttpSession session = request.getSession();
-        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
-        
-        if (currentUser == null) {
-            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
-            return;
-        }
-        
-        if (!PermissionUtil.hasPermission(currentUser, "CREATE_RECRUITMENT")) {
-            PermissionUtil.redirectToAccessDenied(request, response, "CREATE_RECRUITMENT", "Create Recruitment");
-            return;
-        }
-        
         request.getRequestDispatcher("/Views/hr/CreateNewRecruitment.jsp").forward(request, response);
     } 
     @Override
 protected void doPost(HttpServletRequest request, HttpServletResponse response)
 throws ServletException, IOException {
-    // Kiểm tra quyền tạo recruitment
-    HttpSession session = request.getSession();
-    SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
-    
-    if (currentUser == null || !PermissionUtil.hasPermission(currentUser, "CREATE_RECRUITMENT")) {
-        PermissionUtil.redirectToAccessDenied(request, response, "CREATE_RECRUITMENT", "Create Recruitment");
-        return;
-    }
-    
     String title = request.getParameter("Title");
     String description = request.getParameter("Description");
     String requirement = request.getParameter("Requirement");

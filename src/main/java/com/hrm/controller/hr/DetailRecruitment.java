@@ -6,15 +6,15 @@ package com.hrm.controller.hr;
 
 import com.hrm.dao.DAO;
 import com.hrm.model.entity.Recruitment;
-import com.hrm.model.entity.SystemUser;
 import com.hrm.util.PermissionUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 /**
  *
@@ -23,23 +23,15 @@ import java.io.IOException;
 @WebServlet(name = "DetailRecruitment", urlPatterns = {"/detailRecruitment"})
 public class DetailRecruitment extends HttpServlet {
 
+    private static final String REQUIRED_PERMISSION = "VIEW_RECRUITMENT";
+    private static final String DENIED_MESSAGE = "You do not have permission to view or edit recruitment details.";
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Kiểm tra quyền xem recruitment
-        HttpSession session = request.getSession();
-        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
-        
-        if (currentUser == null) {
-            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+        if (!ensureAccess(request, response)) {
             return;
         }
-        
-        if (!PermissionUtil.hasPermission(currentUser, "VIEW_RECRUITMENT")) {
-            PermissionUtil.redirectToAccessDenied(request, response, "VIEW_RECRUITMENT", "View Recruitment");
-            return;
-        }
-        
         try {
             int id = Integer.parseInt(request.getParameter("id"));
             Recruitment rec = DAO.getInstance().getRecruitmentById(id);
@@ -53,15 +45,9 @@ public class DetailRecruitment extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Kiểm tra quyền chỉnh sửa recruitment
-        HttpSession session = request.getSession();
-        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
-        
-        if (currentUser == null || !PermissionUtil.hasPermission(currentUser, "EDIT_RECRUITMENT")) {
-            PermissionUtil.redirectToAccessDenied(request, response, "EDIT_RECRUITMENT", "Edit Recruitment");
+        if (!ensureAccess(request, response)) {
             return;
         }
-        
         String idParam = request.getParameter("id");
 
         try {
@@ -72,6 +58,25 @@ public class DetailRecruitment extends HttpServlet {
                 String location = request.getParameter("Location");
                 double salary = Double.parseDouble(request.getParameter("Salary"));
                 int applicant = Integer.parseInt(request.getParameter("Applicant"));
+
+                String message = null;
+                if (title != null && title.length() > 50) {
+                    message = "Title must not exceed 50 characters!";
+                } else if (requirement != null && requirement.length() > 50) {
+                    message = "Requirement must not exceed 50 characters!";
+                } else if (location != null && location.length() > 50) {
+                    message = "Location must not exceed 50 characters!";
+                } else if (description != null && description.length() > 500) {
+                    message = "Description must not exceed 500 characters!";
+                }
+
+                if (message != null) {
+                    request.setAttribute("mess", message);
+                    Recruitment rec = DAO.getInstance().getRecruitmentById(id);
+                    request.setAttribute("rec", rec);
+                    request.getRequestDispatcher("Views/hr/DetailRecruitment.jsp").forward(request, response);
+                    return;
+                }
 
                 if (salary <= 0) {
                     request.setAttribute("mess", "Salary must be a positive number!");
@@ -90,7 +95,13 @@ public class DetailRecruitment extends HttpServlet {
                 }
 
                 int update = DAO.getInstance().setRecruitmentById(title, description, requirement, location, salary, applicant,id);
-                request.setAttribute("mess", "Save recruitment successfully!");
+                if (update > 0) {
+                    String successMessage = URLEncoder.encode("Save recruitment successfully!", StandardCharsets.UTF_8);
+                    response.sendRedirect(request.getContextPath() + "/postRecruitments?mess=" + successMessage);
+                    return;
+                }
+
+                request.setAttribute("mess", "No changes were saved.");
                 Recruitment rec = DAO.getInstance().getRecruitmentById(id);
                 request.setAttribute("rec", rec);
                 request.getRequestDispatcher("Views/hr/DetailRecruitment.jsp").forward(request, response);
@@ -106,5 +117,10 @@ public class DetailRecruitment extends HttpServlet {
     @Override
     public String getServletInfo() {
         return "Short description";
+    }
+
+    private boolean ensureAccess(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        return PermissionUtil.ensurePermission(request, response, REQUIRED_PERMISSION, DENIED_MESSAGE);
     }
 }
