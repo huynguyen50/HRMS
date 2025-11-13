@@ -2,17 +2,19 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
-package com.hrm.controller.hr;
+
+package com.hrm.controller.hrstaff;
 
 import com.hrm.dao.DAO;
 import com.hrm.model.entity.Recruitment;
+import com.hrm.model.entity.SystemUser;
 import com.hrm.util.PermissionUtil;
-import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -23,7 +25,9 @@ import java.util.List;
 public class PostRecruitmentController extends HttpServlet {
 
     private static final String REQUIRED_PERMISSION = "VIEW_RECRUITMENT";
-    private static final String DENIED_MESSAGE = "You do not have permission to manage recruitment posts.";
+    private static final String REQUIRED_ROLE_MESSAGE = "This section is restricted to HR Staff.";
+    private static final String PERMISSION_DENIED_MESSAGE = "You do not have permission to manage recruitment posts.";
+    private static final String LOGIN_PATH = "/login";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -37,19 +41,19 @@ public class PostRecruitmentController extends HttpServlet {
                 String idStr = request.getParameter("id");
                 int recruitmentId = Integer.parseInt(idStr);
 
-                DAO.getInstance().updateRecruitmentStatus(recruitmentId,"Waiting");
+                DAO.getInstance().updateRecruitmentStatus(recruitmentId, "Waiting");
                 request.setAttribute("mess", "Send successfully!");
             } catch (Exception e) {
                 e.printStackTrace();
                 response.sendRedirect(request.getContextPath() + "/postRecruitments");
                 return;
             }
-        } else if("delete".equals(action)){
+        } else if ("delete".equals(action)) {
             try {
                 String idStr = request.getParameter("id");
                 int recruitmentId = Integer.parseInt(idStr);
 
-                DAO.getInstance().updateRecruitmentStatus(recruitmentId,"Deleted");
+                DAO.getInstance().updateRecruitmentStatus(recruitmentId, "Deleted");
                 request.setAttribute("mess", "Delete successfully!");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -98,7 +102,7 @@ public class PostRecruitmentController extends HttpServlet {
         request.setAttribute("filterStatus", filterStatus);
         request.setAttribute("startDate", startDate);
         request.setAttribute("endDate", endDate);
-        request.getRequestDispatcher("/Views/hr/PostRecruitment.jsp").forward(request, response);
+        request.getRequestDispatcher("/Views/HrStaff/PostRecruitment.jsp").forward(request, response);
     }
 
     @Override
@@ -117,6 +121,20 @@ public class PostRecruitmentController extends HttpServlet {
 
     private boolean ensureAccess(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        return PermissionUtil.ensurePermission(request, response, REQUIRED_PERMISSION, DENIED_MESSAGE);
+        SystemUser currentUser = PermissionUtil.getCurrentUser(request);
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + LOGIN_PATH);
+            return false;
+        }
+        return PermissionUtil.ensureRolePermission(
+                request,
+                response,
+                PermissionUtil.ROLE_HR_STAFF,
+                REQUIRED_PERMISSION,
+                REQUIRED_ROLE_MESSAGE,
+                PERMISSION_DENIED_MESSAGE
+        );
     }
 }
+
+

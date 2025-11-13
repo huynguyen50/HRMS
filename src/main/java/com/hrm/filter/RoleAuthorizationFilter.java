@@ -27,6 +27,8 @@ public class RoleAuthorizationFilter implements Filter {
                 "/detailRecruitment", "/detailRecruitmentCreate", "/viewRecruitment",
                 "/viewCV", "/candidates", "/detailWaitingRecruitment", "/SimpleHrController");
 
+        addPattern(Set.of(4), "/postRecruitments", "/candidates", "/viewCV");
+
         addPattern(Set.of(4), "/hrstaff", "/hrstaff/", "/Views/HrStaff/", "/hrstaff/payroll",
                 "/hrstaff/contracts", "/hrstaff/tasks");
 

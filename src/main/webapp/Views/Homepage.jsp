@@ -1577,7 +1577,7 @@ width: 100%;
                     </a>
                 </div>
                 <div class="col-lg-3 col-md-6 mb-4">
-                    <a href="${pageContext.request.contextPath}/Views/hr/ViewCandidate.jsp" class="action-card">
+                    <a href="${pageContext.request.contextPath}/candidates" class="action-card">
                         <div class="action-icon teal">
                             <i class="fas fa-users"></i>
                         </div>

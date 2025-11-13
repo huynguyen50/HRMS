@@ -1059,6 +1059,14 @@
                         
                         <div class="nav-section">
                             <h3>Recruitment</h3>
+                            <a href="${pageContext.request.contextPath}/viewRecruitment" class="nav-item">
+                                <i class="fas fa-bullhorn"></i>
+                                <span>View Recruitment</span>
+                            </a>
+                            <a href="${pageContext.request.contextPath}/candidates" class="nav-item">
+                                <i class="fas fa-users"></i>
+                                <span>View Candidates</span>
+                            </a>
                             <a href="${pageContext.request.contextPath}/hr/create-employee" class="nav-item">
                                 <i class="fas fa-user-plus"></i>
                                 <span>Create Employee</span>

@@ -35,9 +35,6 @@
                     <a href="${pageContext.request.contextPath}/admin/users"
                        class="nav-item ${activePage == 'users' ? 'active' : ''}">👤 Users</a>
 
-                    <a href="${pageContext.request.contextPath}/admin/role/list"
-                       class="nav-item ${activePage == 'roles' ? 'active' : ''}">🔐 Roles</a>
-
                     <a href="${pageContext.request.contextPath}/admin?action=role-permissions"
                        class="nav-item ${activePage == 'role-permissions' ? 'active' : ''}">🛡️ Role Permissions</a>
 
