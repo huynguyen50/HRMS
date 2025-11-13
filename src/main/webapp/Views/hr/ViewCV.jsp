@@ -6,7 +6,8 @@
     <head>
         <meta charset="UTF-8">
         <title>Xem CV Ứng viên</title>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
         <style>
             body {
                 background-color: #f8f9fa; /* Nền xám nhạt */
@@ -105,10 +106,21 @@
                                         <c:when test="${fileExtension eq 'jpg' or fileExtension eq 'jpeg' or fileExtension eq 'png' or fileExtension eq 'gif'}">
                                             <img src="${pageContext.request.contextPath}/Upload/cvs/${g.cv}" alt="CV Image" class="cv-image">
                                         </c:when>
-                                        <%-- Nếu là file khác (pdf, doc, docx) thì hiển thị một liên kết để tải về --%>
+                                        <%-- Nếu là file PDF thì hiển thị bằng iframe để xem trực tiếp --%>
+                                        <c:when test="${fileExtension eq 'pdf'}">
+                                            <iframe src="${pageContext.request.contextPath}/Upload/cvs/${g.cv}" 
+                                                    class="cv-image" 
+                                                    style="width: 100%; height: 100%; min-height: 600px; border: none;">
+                                                Trình duyệt của bạn không hỗ trợ hiển thị PDF. 
+                                                <a href="${pageContext.request.contextPath}/Upload/cvs/${g.cv}" target="_blank" class="btn btn-primary">
+                                                    <i class="fas fa-download"></i> Tải xuống CV
+                                                </a>
+                                            </iframe>
+                                        </c:when>
+                                        <%-- Nếu là file khác (doc, docx) thì hiển thị một liên kết để tải về --%>
                                         <c:otherwise>
                                             <div class="text-center mt-5">
-                                                <i class="fas fa-file-pdf fa-5x text-danger"></i> <%-- Hoặc icon tương ứng với file --%>
+                                                <i class="fas fa-file fa-5x text-primary"></i>
                                                 <p class="mt-2">CV là một tài liệu.</p>
                                                 <a href="${pageContext.request.contextPath}/Upload/cvs/${g.cv}" target="_blank" class="btn btn-primary">
                                                     <i class="fas fa-download"></i> Xem/Tải xuống CV

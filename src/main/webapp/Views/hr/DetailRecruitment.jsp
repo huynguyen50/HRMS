@@ -157,7 +157,7 @@
                         <div class="col-md-6">
                             <label for="salaryInput" class="form-label">Salary</label>
                             <div class="input-group">
-                                <input type="number" class="form-control" id="salaryInput" name="Salary" value="${rec.salary}" placeholder="Enter salary" min="0" required>
+                                <input type="number" class="form-control" id="salaryInput" name="Salary" value="${rec.salary}" placeholder="Enter salary" min="0" step = "10000" required>
                                 <span class="input-group-text">đ</span>
                             </div>
                         </div>
