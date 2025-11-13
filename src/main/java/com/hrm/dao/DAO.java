@@ -6,12 +6,9 @@ import com.hrm.model.entity.Recruitment;
 import com.hrm.model.entity.Task;
 import com.hrm.model.entity.SystemUser;
 import java.sql.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class DAO {
@@ -51,17 +48,16 @@ public class DAO {
 
     public int changePassword(String username, String newPass) {
         String hashedPassword = hashPassword(newPass);
-        String sql = "UPDATE SystemUser SET password=? Where username=?";
-        int result = 0;
-        try {
-            PreparedStatement ps = con.prepareStatement(sql);
+        String sql = "UPDATE SystemUser SET password=? WHERE username=?";
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, hashedPassword);
             ps.setString(2, username);
-            result = ps.executeUpdate();
+            return ps.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("Error getting systemUser by username: " + e.getMessage());
+            System.err.println("Error updating password for username " + username + ": " + e.getMessage());
+            return 0;
         }
-        return result;
     }
 
     public boolean checkEmailExist(String email) {
