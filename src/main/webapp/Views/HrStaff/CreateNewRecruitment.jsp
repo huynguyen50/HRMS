@@ -1,5 +1,5 @@
 <%-- 
-    Document   : DetailRecruitment
+    Document   : CreateNewRecruitment
     Created on : Oct 30, 2025, 11:54:21 AM
     Author     : DELL
 --%>
@@ -11,14 +11,13 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>HRM - Edit Recruitment</title>
+        <title>HRM - Create Recruitment</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/7.2.3/css/flag-icons.min.css" rel="stylesheet">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <style>
-            /* Sao chép toàn bộ style từ trang mẫu để giữ giao diện nhất quán */
             :root {
                 --primary-color: #2563eb;
                 --secondary-color: #1e40af;
@@ -45,7 +44,6 @@
                 background-color: var(--light-color);
             }
 
-            /* Top Functional Bar */
             .top-bar {
                 background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
                 color: white;
@@ -216,7 +214,6 @@
                 transform: scale(1.1);
             }
 
-            /* Header */
             .header {
                 background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
                 color: white;
@@ -241,7 +238,6 @@
                 transform: translateY(-1px);
             }
 
-            /* Profile Dropdown Styles */
             .profile-dropdown {
                 position: relative;
                 display: inline-block;
@@ -325,7 +321,6 @@
                 color: #b91c1c;
             }
 
-            /* Footer */
             .footer {
                 background: var(--dark-color);
                 color: white;
@@ -349,7 +344,6 @@
                 color: white;
             }
 
-            /* Custom style for the main content area */
             .main-content-area {
                 min-height: 60vh;
                 padding: 40px 0;
@@ -357,7 +351,6 @@
         </style>
     </head>
     <body>
-        <!-- Top Functional Bar (Giữ nguyên từ trang mẫu) -->
         <div class="top-bar">
             <div class="container">
                 <nav class="top-nav" role="navigation" aria-label="Top navigation">
@@ -391,7 +384,6 @@
             </div>
         </div>
 
-        <!-- Header (Giữ nguyên từ trang mẫu) -->
         <header class="header">
             <nav class="navbar navbar-expand-lg" aria-label="Main navigation">
                 <div class="container">
@@ -439,18 +431,15 @@
             </nav>
         </header>
 
-        <!-- MAIN CONTENT AREA -->
         <main class="main-content-area">
             <div class="container">
-                <!-- Nút Back và Tiêu đề trang -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="h2">Edit Recruitment Details</h1>
+                    <h1 class="h2">Create Recruitment Details</h1>
                     <a href="${pageContext.request.contextPath}/postRecruitments" class="btn btn-secondary">
                         <i class="fas fa-arrow-left me-1"></i> Back to List
                     </a>
                 </div>
 
-                <!-- FORM CHỈNH SỬA -->
                 <div class="card">
                     <div class="card-body">
                         <form action="${pageContext.request.contextPath}/detailRecruitmentCreate" method="post">
@@ -463,7 +452,8 @@
 
                             <div class="mb-3">
                                 <label for="descriptionInput" class="form-label">Description</label>
-                                <textarea class="form-control" id="descriptionInput" name="Description" placeholder="Enter detailed description" maxlength="1000" rows="5" required>${description}</textarea>                            </div>
+                                <textarea class="form-control" id="descriptionInput" name="Description" placeholder="Enter detailed description" maxlength="1000" rows="5" required>${description}</textarea>
+                            </div>
 
                             <div class="mb-3">
                                 <label for="requirementInput" class="form-label">Requirement</label>
@@ -476,7 +466,7 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="locationInput" class="form-label">Applicant</label>
+                                <label for="applicantInput" class="form-label">Applicant</label>
                                 <input type="number" class="form-control" id="applicantInput" name="Applicant" value="${applicant}" placeholder="Enter job applicant" step="1" required>
                             </div>
 
@@ -489,7 +479,7 @@
                             </div>
                             <c:if test="${not empty mess}">
                                 <p style="color: red; font-size: 20px;">${mess}</p>
-                            </c:if>            
+                            </c:if>
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-save me-1"></i> Create
@@ -501,7 +491,6 @@
             </div>
         </main>
 
-        <!-- Footer (Giữ nguyên từ trang mẫu) -->
         <footer class="footer">
             <div class="container">
                 <div class="row">
@@ -536,25 +525,25 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-                                                // Copy các hàm JS cần thiết từ trang mẫu
-                                                function handleLogout() {
-                                                    if (confirm('Are you sure you want to logout?')) {
-                                                        window.location.href = '${pageContext.request.contextPath}/logout';
-                                                    }
-                                                }
-                                                function toggleProfileDropdown() {
-                                                    const dropdown = document.getElementById('profileDropdown');
-                                                    if (dropdown) {
-                                                        dropdown.classList.toggle('show');
-                                                    }
-                                                }
-                                                document.addEventListener('click', function (event) {
-                                                    const profileDropdown = document.getElementById('profileDropdown');
-                                                    const profileAvatar = document.querySelector('.profile-avatar');
-                                                    if (profileDropdown && profileAvatar && !profileAvatar.contains(event.target) && !profileDropdown.contains(event.target)) {
-                                                        profileDropdown.classList.remove('show');
-                                                    }
-                                                });
+            function handleLogout() {
+                if (confirm('Are you sure you want to logout?')) {
+                    window.location.href = '${pageContext.request.contextPath}/logout';
+                }
+            }
+            function toggleProfileDropdown() {
+                const dropdown = document.getElementById('profileDropdown');
+                if (dropdown) {
+                    dropdown.classList.toggle('show');
+                }
+            }
+            document.addEventListener('click', function (event) {
+                const profileDropdown = document.getElementById('profileDropdown');
+                const profileAvatar = document.querySelector('.profile-avatar');
+                if (profileDropdown && profileAvatar && !profileAvatar.contains(event.target) && !profileDropdown.contains(event.target)) {
+                    profileDropdown.classList.remove('show');
+                }
+            });
         </script>
     </body>
 </html>
+

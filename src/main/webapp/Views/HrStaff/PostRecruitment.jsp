@@ -361,7 +361,7 @@
             </div>
             <div class="top-actions">
                 <a class="btn secondary" href="<%=request.getContextPath()%>/hrstaff">🏠 HR Staff Home</a>
-                <a class="btn primary" href="${pageContext.request.contextPath}/Views/hr/CreateNewRecruitment.jsp">➕ Create New</a>
+                
             </div>
         </div>
 
@@ -381,7 +381,7 @@
                     <div class="nav-title">Recruitment</div>
                     <a class="side-link active" href="${pageContext.request.contextPath}/postRecruitments">📢 Post Recruitment</a>
                     <a class="side-link" href="${pageContext.request.contextPath}/candidates">👀 View Candidates</a>
-                    <a class="side-link" href="${pageContext.request.contextPath}/hr/create-employee">➕ Create Employee</a>
+                  
                 </div>
             </aside>
 
@@ -438,7 +438,7 @@
                             <div class="empty-state">
                                 <div style="font-size:48px;">📭</div>
                                 <p>Không có tin tuyển dụng nào phù hợp với bộ lọc hiện tại.</p>
-                                <a class="btn success" href="${pageContext.request.contextPath}/Views/hr/CreateNewRecruitment.jsp">Tạo tin mới</a>
+                                <a class="btn success" href="${pageContext.request.contextPath}/detailRecruitmentCreate">Tạo tin mới</a>
                             </div>
                         </c:when>
                         <c:otherwise>

@@ -6,7 +6,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>HR Staff - Danh sách Ứng viên</title>
+        <title>HR Staff - Candidate List</title>
         <link rel="stylesheet" href="<%=request.getContextPath()%>/css/style.css"/>
         <style>
             :root {
@@ -391,7 +391,7 @@
                 <div>Candidate Management</div>
             </div>
             <div class="top-actions">
-                <a class="btn" href="<%=request.getContextPath()%>/hrstaff">🏠 Trang chủ HR Staff</a>
+                <a class="btn" href="<%=request.getContextPath()%>/hrstaff">🏠 HR Staff Home</a>
                 <a class="btn" href="<%=request.getContextPath()%>/homepage">🌐 Homepage</a>
             </div>
         </div>
@@ -412,7 +412,7 @@
                     <div class="nav-title">Recruitment</div>
                     <a class="side-link" href="${pageContext.request.contextPath}/postRecruitments">📢 Post Recruitment</a>
                     <a class="side-link active" href="${pageContext.request.contextPath}/candidates">👀 View Candidates</a>
-                    <a class="side-link" href="${pageContext.request.contextPath}/hr/create-employee">➕ Create Employee</a>
+                    
                 </div>
             </aside>
 
@@ -420,8 +420,8 @@
                 <section class="card">
                     <div class="page-header">
                         <div>
-                            <h1 class="page-title">Danh sách Ứng viên</h1>
-                            <p class="muted">Theo dõi và quản lý các ứng viên đã nộp hồ sơ tuyển dụng</p>
+                            <h1 class="page-title">Candidate List</h1>
+                            <p class="muted">Track and manage the applicants who submitted recruitment forms</p>
                         </div>
                     </div>
                 </section>
@@ -431,7 +431,7 @@
                         <div class="filters">
                             <div class="filter-field" style="grid-column: span 4;">
                                 <label>Search by Name</label>
-                                <input type="text" name="searchByName" placeholder="Nhập tên ứng viên..." value="${fn:escapeXml(param.searchByName)}">
+                                <input type="text" name="searchByName" placeholder="Enter candidate name..." value="${fn:escapeXml(param.searchByName)}">
                             </div>
                             <div class="filter-field" style="grid-column: span 3;">
                                 <label>Status</label>
@@ -460,15 +460,15 @@
 
                 <section class="card table-card">
                     <div class="table-header">
-                        <h2 style="margin:0;">Danh sách ứng viên</h2>
-                        <span class="muted">Hiển thị ${guest != null ? fn:length(guest) : 0} ứng viên trong trang này</span>
+                        <h2 style="margin:0;">Candidate List</h2>
+                        <span class="muted">Showing ${guest != null ? fn:length(guest) : 0} candidates on this page</span>
                     </div>
                     <div class="table-wrapper">
                         <c:choose>
                             <c:when test="${empty guest}">
                                 <div class="empty-state">
                                     <div style="font-size:42px;">🗃️</div>
-                                    <p>Không tìm thấy ứng viên phù hợp với bộ lọc hiện tại.</p>
+                                    <p>No candidates match the current filters.</p>
                                 </div>
                             </c:when>
                             <c:otherwise>
@@ -492,7 +492,7 @@
                                                 <td>${g.fullName}</td>
                                                 <td>${g.email}</td>
                                                 <td>${g.phone}</td>
-                                                <td><a href="${pageContext.request.contextPath}/viewCV?guestId=${g.guestId}" style="color:var(--accent);font-weight:600;text-decoration:none;">Xem</a></td>
+                                                <td><a href="${pageContext.request.contextPath}/viewCV?guestId=${g.guestId}" style="color:var(--accent);font-weight:600;text-decoration:none;">View</a></td>
                                                 <td>${g.appliedDate}</td>
                                                 <td>
                                                     <c:set var="statusKey" value="${fn:toLowerCase(g.status)}"/>
