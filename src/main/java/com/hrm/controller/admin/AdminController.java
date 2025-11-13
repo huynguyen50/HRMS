@@ -7,9 +7,7 @@ import com.hrm.model.dto.StatusDistribution;
 import com.hrm.model.entity.*;
 import com.hrm.util.PermissionUtil;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.util.*;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -32,9 +30,16 @@ public class AdminController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        SystemUser currentUser = session != null ? (SystemUser) session.getAttribute("systemUser") : null;
+
         String action = request.getParameter("action");
         if (action == null) {
             action = "dashboard";
+        }
+
+        if (!ensureAdminAccess(request, response, currentUser, action)) {
+            return;
         }
 
         switch (action) {
@@ -102,16 +107,14 @@ public class AdminController extends HttpServlet {
 
     private void loadDashboard(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
-        // Kiểm tra quyền
-        HttpSession session = request.getSession();
-        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
+        HttpSession session = request.getSession(false);
+        SystemUser currentUser = session != null ? (SystemUser) session.getAttribute("systemUser") : null;
         if (currentUser == null) {
-            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
-        
-        if (!PermissionUtil.hasPermission(currentUser, "VIEW_DASHBOARD")) {
-            PermissionUtil.redirectToAccessDenied(request, response, "VIEW_DASHBOARD", "View Dashboard");
+        if (!isAdmin(currentUser)) {
+            PermissionUtil.redirectToAccessDenied(request, response, "ADMIN_PANEL", "Admin Panel");
             return;
         }
         
@@ -700,7 +703,15 @@ public class AdminController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        SystemUser currentUser = session != null ? (SystemUser) session.getAttribute("systemUser") : null;
+
         String action = request.getParameter("action");
+
+        if (!ensureAdminAccess(request, response, currentUser, action)) {
+            return;
+        }
+
         if ("save-user-permissions".equals(action)) {
             saveUserPermissions(request, response);
         } else {
@@ -814,5 +825,40 @@ public class AdminController extends HttpServlet {
     @Override
     public String getServletInfo() {
         return "Admin Controller - Handles admin panel navigation and data loading";
+    }
+
+    private boolean ensureAdminAccess(HttpServletRequest request, HttpServletResponse response,
+                                      SystemUser currentUser, String action)
+            throws IOException {
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return false;
+        }
+
+        if (!isAdmin(currentUser)) {
+            boolean isDashboardData = action != null && "dashboard-data".equalsIgnoreCase(action);
+            if (isJsonRequest(request) || isDashboardData) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            } else {
+                PermissionUtil.redirectToAccessDenied(request, response, "ADMIN_PANEL", "Admin Panel");
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean isAdmin(SystemUser user) {
+        return user != null && user.getRoleId() == 1;
+    }
+
+    private boolean isJsonRequest(HttpServletRequest request) {
+        String requestedWith = request.getHeader("X-Requested-With");
+        if (requestedWith != null && "XMLHttpRequest".equalsIgnoreCase(requestedWith)) {
+            return true;
+        }
+
+        String accept = request.getHeader("Accept");
+        return accept != null && accept.toLowerCase().contains("application/json");
     }
 }

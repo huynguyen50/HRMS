@@ -141,11 +141,11 @@ public class RecruitmentController extends HttpServlet {
             if (fullName != null && email != null && phone != null && recruitmentIdStr != null) {
                 int recruitmentId = Integer.parseInt(recruitmentIdStr);
                 
-                // Kiểm tra email đã tồn tại chưa
-                System.out.println("Checking if email exists: " + email);
-                if (guestDAO.isEmailExists(email)) {
-                    System.out.println("Email already exists!");
-                    request.setAttribute("error", "Email này đã được sử dụng để nộp đơn trước đó!");
+                // Kiểm tra số điện thoại đã tồn tại chưa
+                System.out.println("Checking if phone exists: " + phone);
+                if (guestDAO.isPhoneExists(phone)) {
+                    System.out.println("Phone already exists!");
+                    request.setAttribute("error", "Số điện thoại này đã được sử dụng để nộp đơn trước đó!");
                     // Giữ lại thông tin recruitment khi forward lại
                     Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
                     if (recruitment != null) {

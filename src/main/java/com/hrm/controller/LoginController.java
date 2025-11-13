@@ -1,11 +1,11 @@
 package com.hrm.controller;
 
 import com.hrm.dao.DAO;
-import com.hrm.model.entity.Recruitment;
 import com.hrm.model.entity.SystemUser;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -54,7 +54,12 @@ public class LoginController extends HttpServlet {
         }
         
         if (sys != null && DAO.getInstance().checkPassword(password, sys.getPassword())) {
-            request.getSession().setAttribute("systemUser", sys);
+            HttpSession oldSession = request.getSession(false);
+            if (oldSession != null) {
+                oldSession.invalidate();
+            }
+            HttpSession newSession = request.getSession(true);
+            newSession.setAttribute("systemUser", sys);
 
             Cookie userCookie = new Cookie("username", username);
             Cookie passCookie = new Cookie("password", password);

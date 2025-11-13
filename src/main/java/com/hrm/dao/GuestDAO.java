@@ -181,11 +181,6 @@ public class GuestDAO {
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             
-            if (con == null) {
-                System.err.println("Database connection is null!");
-                return false;
-            }
-            
             System.out.println("Setting parameters...");
             ps.setString(1, guest.getFullName());
             ps.setString(2, guest.getEmail());
@@ -281,6 +276,25 @@ public class GuestDAO {
              PreparedStatement ps = con.prepareStatement(sql)) {
             
             ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // Kiểm tra số điện thoại có tồn tại không
+    public boolean isPhoneExists(String phone) {
+        String sql = "SELECT COUNT(*) FROM Guest WHERE Phone=?";
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, phone);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1) > 0;
