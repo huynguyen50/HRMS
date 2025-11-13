@@ -81,7 +81,7 @@ public class RecruitmentController extends HttpServlet {
             // Chỉ lấy các tin tuyển dụng có status = 'Applied'
             // Các trạng thái New, Waiting, Close, Deleted sẽ không được hiển thị
             var recruitments = recruitmentDAO.getLatestThree();
-            request.setAttribute("recruitments", recruitments);
+request.setAttribute("recruitments", recruitments);
             RequestDispatcher dispatcher = request.getRequestDispatcher("/Views/Recruitment.jsp");
             dispatcher.forward(request, response);
         } catch (Exception e) {
@@ -139,7 +139,7 @@ public class RecruitmentController extends HttpServlet {
             System.out.println("Cover Letter: " + (coverLetter != null ? coverLetter.substring(0, Math.min(50, coverLetter.length())) + "..." : "null"));
             
             if (fullName != null && email != null && phone != null && recruitmentIdStr != null) {
-                int recruitmentId = Integer.parseInt(recruitmentIdStr);
+int recruitmentId = Integer.parseInt(recruitmentIdStr);
                 
                 // Kiểm tra số điện thoại đã tồn tại chưa
                 System.out.println("Checking if phone exists: " + phone);
@@ -171,8 +171,10 @@ public class RecruitmentController extends HttpServlet {
                 String cvFileName = null;
                 Part cvFilePart = request.getPart("cvFile");
                 System.out.println("CV File Part: " + (cvFilePart != null ? "Found" : "Not found"));
-                String uploadPath = "C/Users/admin/OneDrive/Desktop/HRMS/src/main/java/src/main/webapp/Upload/cvs";
-                System.out.println("Fixed Upload path: " + uploadPath);
+                // Lấy đường dẫn thực tế của webapp từ servlet context
+                String webappPath = getServletContext().getRealPath("/");
+                String uploadPath = webappPath + "Upload/cvs";
+                System.out.println("Upload path: " + uploadPath);
 
                 if (cvFilePart != null && cvFilePart.getSize() > 0) {
                     String originalFileName = getFileName(cvFilePart);
@@ -189,7 +191,7 @@ public class RecruitmentController extends HttpServlet {
                         Path filePath = uploadDir.resolve(uniqueFileName);
                         try (InputStream fileContent = cvFilePart.getInputStream()) {
                             Files.copy(fileContent, filePath, StandardCopyOption.REPLACE_EXISTING);
-                            cvFileName = uniqueFileName; // Lưu tên file unique
+cvFileName = uniqueFileName; // Lưu tên file unique
                             System.out.println("File saved successfully: " + cvFileName);
                         } catch (IOException e) {
                             System.out.println("Error saving file: " + e.getMessage());
@@ -243,7 +245,7 @@ return;
                     try {
                         int recruitmentId = Integer.parseInt(recruitmentIdStr);
                         Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
-                        if (recruitment != null) {
+if (recruitment != null) {
                             request.setAttribute("recruitment", recruitment);
                         }
                     } catch (NumberFormatException e) {
@@ -315,7 +317,7 @@ return;
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /** 
-     * Handles the HTTP <code>GET</code> method.
+* Handles the HTTP <code>GET</code> method.
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
