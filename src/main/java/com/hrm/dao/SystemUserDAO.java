@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class SystemUserDAO {
 
     public List<SystemUser> getAllUsers(int page, int pageSize) throws SQLException {
@@ -480,14 +479,11 @@ public class SystemUserDAO {
     }
 
     public boolean updatePassword(int userId, String newPassword) throws SQLException {
-        String sql = "UPDATE SystemUser SET Password = ? WHERE UserID = ?";
-
-        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, newPassword);
-            stmt.setInt(2, userId);
-
-            return stmt.executeUpdate() > 0;
+        SystemUser existingUser = getById(userId);
+        if (existingUser == null) {
+            return false;
         }
+        return DAO.getInstance().changePassword(existingUser.getUsername(), newPassword) > 0;
     }
 
     public boolean toggleUserStatus(int userId) throws SQLException {

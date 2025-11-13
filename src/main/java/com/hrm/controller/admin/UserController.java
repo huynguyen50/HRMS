@@ -2,6 +2,7 @@ package com.hrm.controller.admin;
 
 import com.google.gson.Gson;
 import com.hrm.dao.SystemUserDAO;
+import com.hrm.dao.DAO;
 import com.hrm.dao.RoleDAO;
 import com.hrm.dao.EmployeeDAO;
 import com.hrm.dao.DepartmentDAO;
@@ -18,6 +19,7 @@ import java.security.SecureRandom;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,8 +29,10 @@ import java.sql.Connection;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.sql.SQLException;
 
 @WebServlet("/admin/users")
+@MultipartConfig
 public class UserController extends HttpServlet {
 
     private static final int PAGE_SIZE = 10;
@@ -148,19 +152,17 @@ public class UserController extends HttpServlet {
         usernameFilter = request.getParameter("usernameFilter");
 
         List<SystemUser> users;
-        Integer totalCount;
+        Integer totalCountObj;
 
         if (roleFilter != null || statusFilter != null || departmentFilter != null || usernameFilter != null) {
             users = userDAO.getUsersWithFilters(page, pageSize, roleFilter, statusFilter, departmentFilter, usernameFilter, sortField, sortOrder);
-            totalCount = userDAO.getTotalUserCountWithFilters(roleFilter, statusFilter, departmentFilter, usernameFilter);
+            totalCountObj = userDAO.getTotalUserCountWithFilters(roleFilter, statusFilter, departmentFilter, usernameFilter);
         } else {
             users = userDAO.getAllUsers(page, pageSize, sortField, sortOrder);
-            totalCount = userDAO.getTotalUserCount();
+            totalCountObj = userDAO.getTotalUserCount();
         }
 
-        if (totalCount == null) {
-            totalCount = 0;
-        }
+        int totalCount = totalCountObj != null ? totalCountObj : 0;
 
         for (SystemUser user : users) {
             if (user.getEmployeeId() != null) {
@@ -225,6 +227,7 @@ public class UserController extends HttpServlet {
         
         if (username == null || username.trim().isEmpty()) {
             out.write("{\"exists\":false,\"valid\":false,\"message\":\"Username không được để trống.\"}");
+            out.flush();
             return;
         }
         
@@ -262,12 +265,14 @@ public class UserController extends HttpServlet {
         if (username == null || username.trim().length() < 3 || username.trim().length() > 50) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
             out.write("{\"success\":false,\"message\":\"Username phải có từ 3–50 ký tự.\"}");
+            out.flush();
             return;
         }
 
         if (!username.matches("^[A-Za-z0-9._-]+$")) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
             out.write("{\"success\":false,\"message\":\"Username chỉ được chứa chữ, số, dấu '.', '-' hoặc '_'.\"}");
+            out.flush();
             return;
         }
 
@@ -275,6 +280,7 @@ public class UserController extends HttpServlet {
         if (userDAO.usernameExists(username)) {
             response.setStatus(HttpServletResponse.SC_CONFLICT);
             out.write("{\"success\":false,\"message\":\"Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.\"}");
+            out.flush();
             return;
         }
 
@@ -282,38 +288,78 @@ public class UserController extends HttpServlet {
                   || !password.matches("(?=.*[A-Z])(?=.*[a-z])(?=.*\\d).*")) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
             out.write("{\"success\":false,\"message\":\"Mật khẩu phải có ít nhất 8 ký tự, gồm 1 chữ hoa, 1 chữ thường và 1 số.\"}");
+            out.flush();
             return;
         }
 
         if (roleIdStr == null || roleIdStr.isEmpty()) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
             out.write("{\"success\":false,\"message\":\"Vui lòng chọn vai trò.\"}");
+            out.flush();
             return;
         }
 
         Integer employeeId = null;
         if (empParam != null && !empParam.isEmpty()) {
-            employeeId = Integer.parseInt(empParam);
+            try {
+                employeeId = Integer.parseInt(empParam);
+            } catch (NumberFormatException ex) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                out.write("{\"success\":false,\"message\":\"ID nhân viên không hợp lệ.\"}");
+                out.flush();
+                return;
+            }
         } else {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
             out.write("{\"success\":false,\"message\":\"Vui lòng chọn nhân viên.\"}");
+            out.flush();
             return;
         }
 
         int roleId = Integer.parseInt(roleIdStr);
 
+        SystemUser existingByEmployee = userDAO.getByEmployeeId(employeeId);
+        if (existingByEmployee != null) {
+            response.setStatus(HttpServletResponse.SC_CONFLICT);
+            out.write("{\"success\":false,\"message\":\"Nhân viên này đã có tài khoản. Vui lòng chọn nhân viên khác.\"}");
+            out.flush();
+            return;
+        }
+
         SystemUser user = new SystemUser();
         user.setUsername(username);
-        user.setPassword(password);
+        user.setPassword("");
         user.setRoleId(roleId);
         user.setEmployeeId(employeeId);
         user.setIsActive(isActive);
 
-        if (userDAO.createUser(user)) {
-            out.write("{\"success\":true,\"message\":\"Tạo người dùng thành công.\"}");
-        } else {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); 
-            out.write("{\"success\":false,\"message\":\"Không thể tạo người dùng.\"}");
+        try {
+            if (userDAO.createUser(user)) {
+                SystemUser createdUser = userDAO.getByUsername(username);
+                if (createdUser == null) {
+                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                    out.write("{\"success\":false,\"message\":\"Không thể tải thông tin người dùng sau khi tạo.\"}");
+                    out.flush();
+                    return;
+                }
+                int changeResult = DAO.getInstance().changePassword(username, password);
+                if (changeResult <= 0) {
+                    userDAO.deleteUser(createdUser.getUserId());
+                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); 
+                    out.write("{\"success\":false,\"message\":\"Không thể thiết lập mật khẩu cho tài khoản mới.\"}");
+                } else {
+                    out.write("{\"success\":true,\"message\":\"Tạo người dùng thành công.\"}");
+                }
+            } else {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); 
+                out.write("{\"success\":false,\"message\":\"Không thể tạo người dùng.\"}");
+            }
+        } catch (SQLException sqlEx) {
+            sqlEx.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            out.write("{\"success\":false,\"message\":\"Lỗi cơ sở dữ liệu: " + sqlEx.getMessage().replace("\"", "\\\"") + "\"}");
+        } finally {
+            out.flush();
         }
     }
 
@@ -334,14 +380,15 @@ public class UserController extends HttpServlet {
             boolean isActive = request.getParameter("isActive") != null;
 
             int userId;
-            int roleId;
-            Integer employeeId;
+        int roleId;
+        Integer employeeId;
 
             try {
                 userId = Integer.parseInt(idParam);
             } catch (NumberFormatException e) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
                 out.write("{\"success\":false,\"message\":\"ID người dùng không hợp lệ.\"}");
+                out.flush();
                 return;
             }
 
@@ -350,6 +397,7 @@ public class UserController extends HttpServlet {
             } catch (NumberFormatException e) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
                 out.write("{\"success\":false,\"message\":\"Vui lòng chọn vai trò.\"}");
+                out.flush();
                 return;
             }
 
@@ -359,22 +407,26 @@ public class UserController extends HttpServlet {
                 } else {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
                     out.write("{\"success\":false,\"message\":\"Vui lòng chọn nhân viên.\"}");
+                    out.flush();
                     return;
                 }
             } catch (NumberFormatException e) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
                 out.write("{\"success\":false,\"message\":\"ID nhân viên không hợp lệ.\"}");
+                out.flush();
                 return;
             }
 
             if (username == null || username.trim().length() < 3 || username.trim().length() > 50) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
                 out.write("{\"success\":false,\"message\":\"Username phải có từ 3–50 ký tự.\"}");
+                out.flush();
                 return;
             }
             if (!username.matches("^[A-Za-z0-9._-]+$")) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
                 out.write("{\"success\":false,\"message\":\"Username chỉ được chứa chữ, số, dấu '.', '-' hoặc '_'.\"}");
+                out.flush();
                 return;
             }
 
@@ -383,6 +435,15 @@ public class UserController extends HttpServlet {
             if (userDAO.usernameExistsForOtherUser(username, userId)) {
                 response.setStatus(HttpServletResponse.SC_CONFLICT); 
                 out.write("{\"success\":false,\"message\":\"Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.\"}");
+                out.flush();
+                return;
+            }
+
+            SystemUser existingByEmployee = userDAO.getByEmployeeId(employeeId);
+            if (existingByEmployee != null && existingByEmployee.getUserId() != userId) {
+                response.setStatus(HttpServletResponse.SC_CONFLICT); 
+                out.write("{\"success\":false,\"message\":\"Nhân viên này đã có tài khoản. Vui lòng chọn nhân viên khác.\"}");
+                out.flush();
                 return;
             }
 
@@ -398,23 +459,33 @@ public class UserController extends HttpServlet {
             if (!basicUpdateSuccess) {
                 response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); 
                 out.write("{\"success\":false,\"message\":\"Không thể cập nhật thông tin người dùng.\"}");
+                out.flush();
                 return;
             }
 
             if (password != null && !password.isEmpty()) {
                 if (password.length() < 8 || !password.matches("(?=.*[A-Z])(?=.*[a-z])(?=.*\\d).*")) {
                     out.write("{\"success\":true,\"message\":\"Thông tin người dùng đã được cập nhật thành công, NHƯNG mật khẩu mới không hợp lệ (yêu cầu 8 ký tự, 1 hoa, 1 thường, 1 số) và KHÔNG được lưu.\"}");
+                    out.flush();
                     return;
                 }
-                userDAO.updatePassword(userId, password);
+                int passwordUpdated = DAO.getInstance().changePassword(user.getUsername(), password);
+                if (passwordUpdated <= 0) {
+                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                    out.write("{\"success\":false,\"message\":\"Không thể cập nhật mật khẩu người dùng.\"}");
+                    out.flush();
+                    return;
+                }
             }
 
             out.write("{\"success\":true,\"message\":\"Cập nhật người dùng thành công.\"}");
+            out.flush();
 
         } catch (Exception e) {
             e.printStackTrace();
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); 
             out.write("{\"success\":false,\"message\":\"Lỗi xử lý phía server: " + e.getMessage() + "\"}");
+            out.flush();
         }
     }
 
@@ -428,6 +499,7 @@ public class UserController extends HttpServlet {
         if (idParam == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST); 
             out.write("{\"success\":false,\"message\":\"Thiếu ID người dùng.\"}");
+            out.flush();
             return;
         }
 
@@ -435,12 +507,17 @@ public class UserController extends HttpServlet {
         String tempPassword = generateTempPassword(); 
 
         SystemUserDAO userDAO = new SystemUserDAO();
-        if (userDAO.updatePassword(userId, tempPassword)) {
+        SystemUser user = userDAO.getById(userId);
+        if (user == null) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            out.write("{\"success\":false,\"message\":\"Không tìm thấy người dùng.\"}");
+        } else if (DAO.getInstance().changePassword(user.getUsername(), tempPassword) > 0) {
             out.write("{\"success\":true,\"message\":\"Đặt lại mật khẩu thành công. Mật khẩu tạm thời: " + tempPassword + "\"}");
         } else {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR); 
             out.write("{\"success\":false,\"message\":\"Không thể đặt lại mật khẩu.\"}");
         }
+        out.flush();
     }
 
     private void handleToggleStatus(HttpServletRequest request, HttpServletResponse response, Connection conn)

@@ -340,14 +340,14 @@
                     <h2 id="modalTitle">Add New User</h2>
                     <button class="close-btn" onclick="closeUserModal()">&times;</button>
                 </div>
-                <form id="userForm" method="POST" action="${pageContext.request.contextPath}/admin/users" onsubmit="return handleFormSubmit(event)">
+                <form id="userForm" method="POST" action="${pageContext.request.contextPath}/admin/users" onsubmit="handleFormSubmit(event)">
                     <input type="hidden" id="userId" name="id">
                     <input type="hidden" id="actionField" name="action" value="save">
 
                     <div class="form-group">
                         <label for="username">Username *</label>
                         <input type="text" id="username" name="username" required 
-                               onblur="validateUsername()" oninput="clearUsernameError()">
+                               oninput="clearUsernameError()">
                         <small class="form-hint">Username must be unique and contain 3-50 characters (letters, numbers, ., -, _)</small>
                         <div id="usernameError" class="error-message" style="display: none;"></div>
                     </div>
@@ -355,7 +355,7 @@
                     <div class="form-group">
                         <label for="password">Password *</label>
                         <input type="password" id="password" name="password" required 
-                               oninput="validatePassword()" onblur="validatePassword()">
+                               oninput="clearError('password')">
                         <small class="form-hint">Password must be at least 8 characters, including 1 uppercase, 1 lowercase, and 1 number</small>
                         <div id="passwordError" class="error-message" style="display: none;"></div>
                     </div>
@@ -416,9 +416,64 @@
 
         <script>
             let currentResetUserId = null;
-            let usernameCheckTimeout = null;
             let isEditMode = false;
-            let isUsernameChecking = false;
+
+            function buildFetchOptions(options = {}) {
+                const headers = {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    ...(options.headers || {})
+                };
+
+                return {
+                    credentials: 'same-origin',
+                    ...options,
+                    headers
+                };
+            }
+
+            async function fetchJson(url, options = {}) {
+                const response = await fetch(url, buildFetchOptions(options));
+                return parseJsonResponse(response);
+            }
+
+            async function parseJsonResponse(response) {
+                const text = await response.text();
+                const contentType = response.headers.get('Content-Type') || '';
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('Phiên đăng nhập đã hết hạn hoặc bạn không có quyền. Vui lòng đăng nhập lại.');
+                    }
+                    const statusMessage = `HTTP ${response.status}${response.statusText ? ' ' + response.statusText : ''}`;
+                    const message = text && text.trim() ? text : statusMessage;
+                    throw new Error(message);
+                }
+
+                if (!text || !text.trim()) {
+                    if (response.status === 204 || response.status === 205 || response.headers.get('Content-Length') === '0') {
+                        return {};
+                    }
+
+                    if (contentType.includes('application/json')) {
+                        return {};
+                    }
+
+                    throw new Error('Server không trả về dữ liệu.');
+                }
+
+                if (!contentType.toLowerCase().includes('application/json')) {
+                    console.error('Phản hồi không phải JSON:', text);
+                    throw new Error('Server trả về dữ liệu không đúng định dạng JSON.');
+                }
+
+                try {
+                    return JSON.parse(text);
+                } catch (error) {
+                    console.error('Không thể phân tích JSON hợp lệ từ phản hồi:', text);
+                    throw new Error('Server trả về dữ liệu không hợp lệ.');
+                }
+            }
 
             function openAddUserModal() {
                 document.getElementById('modalTitle').textContent = 'Add New User';
@@ -485,16 +540,7 @@
 
             function validateUsername() {
                 const username = document.getElementById('username').value.trim();
-                const userId = document.getElementById('userId').value;
-                const errorDiv = document.getElementById('usernameError');
-                const input = document.getElementById('username');
 
-                // Clear previous timeout
-                if (usernameCheckTimeout) {
-                    clearTimeout(usernameCheckTimeout);
-                }
-
-                // Basic validation
                 if (username.length === 0) {
                     showError('username', 'Username không được để trống.');
                     return false;
@@ -510,30 +556,7 @@
                     return false;
                 }
 
-                // Check username exists (debounced)
-                usernameCheckTimeout = setTimeout(() => {
-                    isUsernameChecking = true;
-                    const url = '${pageContext.request.contextPath}/admin/users?action=checkUsername&username=' + 
-                                encodeURIComponent(username) + 
-                                (userId ? '&userId=' + userId : '');
-                    
-                    fetch(url)
-                        .then(response => response.json())
-                        .then(data => {
-                            isUsernameChecking = false;
-                            if (data.exists) {
-                                showError('username', data.message);
-                            } else {
-                                showSuccess('username', '');
-                                clearError('username');
-                            }
-                        })
-                        .catch(error => {
-                            isUsernameChecking = false;
-                            console.error('Error checking username:', error);
-                        });
-                }, 500); // Wait 500ms after user stops typing
-
+                clearError('username');
                 return true;
             }
 
@@ -578,9 +601,24 @@
                 return true;
             }
 
+            async function checkUsernameAvailability(username, userId) {
+                const url = '${pageContext.request.contextPath}/admin/users?action=checkUsername&username=' +
+                            encodeURIComponent(username) +
+                            (userId ? '&userId=' + userId : '');
+
+                const data = await fetchJson(url);
+
+                if (data.exists) {
+                    showError('username', data.message);
+                    return false;
+                }
+
+                clearError('username');
+                return true;
+            }
+
             function editUser(userId) {
-                fetch('${pageContext.request.contextPath}/admin/users?action=getUser&id=' + userId)
-                        .then(response => response.json())
+                fetchJson('${pageContext.request.contextPath}/admin/users?action=getUser&id=' + userId)
                         .then(data => {
                             document.getElementById('modalTitle').textContent = 'Edit User';
                             document.getElementById('userId').value = data.userId;
@@ -595,7 +633,10 @@
                             isEditMode = true;
                             document.getElementById('userModal').classList.add('show');
                         })
-                        .catch(error => alert('Error loading user data: ' + error));
+                        .catch(error => {
+                            console.error('Error loading user data:', error);
+                            alert('Không thể tải thông tin người dùng: ' + error.message);
+                        });
             }
 
             function resetPassword(userId) {
@@ -652,75 +693,47 @@
             }
 
             // Handle form submit with AJAX
-            function handleFormSubmit(event) {
+            async function handleFormSubmit(event) {
                 event.preventDefault();
-                
-                // Clear previous errors
+
                 document.getElementById('formError').style.display = 'none';
-                
-                // Basic validation first
-                const username = document.getElementById('username').value.trim();
-                const passwordInput = document.getElementById('password');
-                const password = passwordInput.value;
-                
-                // Validate username format
-                if (username.length === 0) {
-                    showError('username', 'Username không được để trống.');
-                    document.getElementById('formError').textContent = 'Vui lòng sửa lỗi username trước khi tiếp tục.';
-                    document.getElementById('formError').style.display = 'block';
-                    return false;
-                }
-                
-                if (username.length < 3 || username.length > 50) {
-                    showError('username', 'Username phải có từ 3–50 ký tự.');
-                    document.getElementById('formError').textContent = 'Vui lòng sửa lỗi username trước khi tiếp tục.';
-                    document.getElementById('formError').style.display = 'block';
-                    return false;
-                }
-                
-                if (!username.match(/^[A-Za-z0-9._-]+$/)) {
-                    showError('username', 'Username chỉ được chứa chữ, số, dấu \'.\', \'-\' hoặc \'_\'.');
-                    document.getElementById('formError').textContent = 'Vui lòng sửa lỗi username trước khi tiếp tục.';
-                    document.getElementById('formError').style.display = 'block';
-                    return false;
-                }
-                
-                // Validate password
+
+                const usernameValid = validateUsername();
                 const passwordValid = validatePassword();
+
+                if (!usernameValid) {
+                    document.getElementById('formError').textContent = 'Vui lòng sửa lỗi username trước khi tiếp tục.';
+                    document.getElementById('formError').style.display = 'block';
+                    return;
+                }
+
                 if (!passwordValid) {
                     document.getElementById('formError').textContent = 'Vui lòng sửa lỗi password trước khi tiếp tục.';
                     document.getElementById('formError').style.display = 'block';
-                    return false;
+                    return;
                 }
 
-                // Check username exists immediately (synchronous check)
+                const username = document.getElementById('username').value.trim();
                 const userId = document.getElementById('userId').value;
-                const url = '${pageContext.request.contextPath}/admin/users?action=checkUsername&username=' + 
-                            encodeURIComponent(username) + 
-                            (userId ? '&userId=' + userId : '');
-                
-                fetch(url)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.exists) {
-                            showError('username', data.message);
-                            document.getElementById('formError').textContent = 'Vui lòng sửa lỗi username trước khi tiếp tục.';
-                            document.getElementById('formError').style.display = 'block';
-                        } else {
-                            // Username is valid, proceed with submit
-                            submitForm();
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error checking username:', error);
-                        // If check fails, still try to submit (server will validate)
-                        submitForm();
-                    });
-                
-                return false;
+
+                try {
+                    const isAvailable = await checkUsernameAvailability(username, userId);
+                    if (!isAvailable) {
+                        document.getElementById('formError').textContent = 'Vui lòng sửa lỗi username trước khi tiếp tục.';
+                        document.getElementById('formError').style.display = 'block';
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Error checking username:', error);
+                    document.getElementById('formError').textContent = 'Không thể kiểm tra username: ' + error.message;
+                    document.getElementById('formError').style.display = 'block';
+                    return;
+                }
+
+                await submitForm();
             }
 
-            function submitForm() {
+            async function submitForm() {
                 const form = document.getElementById('userForm');
                 const formData = new FormData(form);
                 const submitBtn = document.getElementById('submitBtn');
@@ -728,12 +741,19 @@
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Đang xử lý...';
                 
-                fetch('${pageContext.request.contextPath}/admin/users', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
+                try {
+                    const data = await fetchJson('${pageContext.request.contextPath}/admin/users', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (Object.keys(data).length === 0) {
+                        console.warn('Server trả về phản hồi rỗng, giả định thao tác thành công.');
+                        closeUserModal();
+                        window.location.reload();
+                        return;
+                    }
+
                     if (data.success) {
                         alert(data.message || 'Thành công!');
                         closeUserModal();
@@ -742,7 +762,6 @@
                         // Show error message
                         document.getElementById('formError').textContent = data.message || 'Có lỗi xảy ra. Vui lòng thử lại.';
                         document.getElementById('formError').style.display = 'block';
-                        
                         // Try to identify which field has error
                         if (data.message && data.message.includes('Username')) {
                             showError('username', data.message);
@@ -750,16 +769,14 @@
                             showError('password', data.message);
                         }
                     }
-                })
-                .catch(error => {
+                } catch (error) {
                     console.error('Error:', error);
-                    document.getElementById('formError').textContent = 'Có lỗi xảy ra khi kết nối đến server.';
+                    document.getElementById('formError').textContent = error.message || 'Có lỗi xảy ra khi kết nối đến server.';
                     document.getElementById('formError').style.display = 'block';
-                })
-                .finally(() => {
+                } finally {
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Save User';
-                });
+                }
             }
 
             // Close modal when clicking outside

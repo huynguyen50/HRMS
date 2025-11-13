@@ -171,7 +171,7 @@ public class RecruitmentController extends HttpServlet {
                 String cvFileName = null;
                 Part cvFilePart = request.getPart("cvFile");
                 System.out.println("CV File Part: " + (cvFilePart != null ? "Found" : "Not found"));
-                String uploadPath = "C:/Users/admin/OneDrive/Pictures/swp/HRMS/HRMS/src/main/webapp/Upload/cvs";
+                String uploadPath = "C/Users/admin/OneDrive/Desktop/HRMS/src/main/java/src/main/webapp/Upload/cvs";
                 System.out.println("Fixed Upload path: " + uploadPath);
 
                 if (cvFilePart != null && cvFilePart.getSize() > 0) {
