@@ -3,15 +3,13 @@ package com.hrm.controller.admin;
 import com.hrm.dao.*;
 import com.hrm.model.dto.ActivityStats;
 import com.hrm.model.dto.DepartmentStats;
+import com.hrm.model.dto.PermissionSummary;
 import com.hrm.model.dto.StatusDistribution;
 import com.hrm.model.entity.*;
-import com.hrm.util.PermissionUtil;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import java.util.stream.Collectors;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -26,20 +24,15 @@ public class AdminController extends HttpServlet {
     private DepartmentDAO departmentDAO = new DepartmentDAO();
     private SystemUserDAO userDAO = new SystemUserDAO();
     private SystemLogDAO systemLogDAO = new SystemLogDAO();
+    private RoleDAO roleDAO = new RoleDAO();
+    private RolePermissionDAO rolePermissionDAO = new RolePermissionDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        SystemUser currentUser = session != null ? (SystemUser) session.getAttribute("systemUser") : null;
-
         String action = request.getParameter("action");
         if (action == null) {
             action = "dashboard";
-        }
-
-        if (!ensureAdminAccess(request, response, currentUser, action)) {
-            return;
         }
 
         switch (action) {
@@ -52,9 +45,6 @@ public class AdminController extends HttpServlet {
                 break;
 
             case "departments":
-                if (!checkPermission(request, response, "VIEW_DEPARTMENTS", "View Departments")) {
-                    return;
-                }
                 loadDepartments(request, response);
                 break;
 
@@ -75,9 +65,6 @@ public class AdminController extends HttpServlet {
                 break;
 
             case "users":
-                if (!checkPermission(request, response, "VIEW_USERS", "View Users")) {
-                    return;
-                }
                 loadUsers(request, response);
                 break;
 
@@ -85,19 +72,16 @@ public class AdminController extends HttpServlet {
                 loadRoles(request, response);
                 break;
 
+            case "role-permissions":
+                loadRolePermissionsManager(request, response);
+                break;
+
             case "audit-log":
-                if (!checkPermission(request, response, "VIEW_AUDIT_LOG", "View Audit Log")) {
-                    return;
-                }
                 loadAuditLog(request, response);
                 break;
 
             case "profile":
                 loadProfile(request, response);
-                break;
-
-            case "get-user-permissions":
-                getUserPermissions(request, response);
                 break;
 
             default:
@@ -107,17 +91,6 @@ public class AdminController extends HttpServlet {
 
     private void loadDashboard(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        SystemUser currentUser = session != null ? (SystemUser) session.getAttribute("systemUser") : null;
-        if (currentUser == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
-        if (!isAdmin(currentUser)) {
-            PermissionUtil.redirectToAccessDenied(request, response, "ADMIN_PANEL", "Admin Panel");
-            return;
-        }
-        
         request.setAttribute("activePage", "dashboard");
 
         int totalEmployees = employeeDAO.getTotalEmployees();
@@ -171,42 +144,6 @@ public class AdminController extends HttpServlet {
 
         List<SystemLog> recentActivity = dashboardDAO.getRecentActivity(5);
         request.setAttribute("recentActivity", recentActivity);
-
-        // Load users and permissions for permission manager
-        try {
-            List<SystemUser> allUsers = userDAO.getAllUsers(1, 1000); // Get all users
-            for (SystemUser user : allUsers) {
-                if (user.getEmployeeId() != null) {
-                    Employee emp = employeeDAO.getById(user.getEmployeeId());
-                    if (emp != null) {
-                        user.setEmployee(emp);
-                        if (emp.getDepartmentId() > 0) {
-                            Department dept = departmentDAO.getById(emp.getDepartmentId());
-                            emp.setDepartment(dept);
-                        }
-                    }
-                }
-            }
-            request.setAttribute("allUsers", allUsers);
-            
-            PermissionDAO permissionDAO = new PermissionDAO();
-            List<Permission> allPermissions = permissionDAO.getAllPermissions();
-            request.setAttribute("allPermissions", allPermissions);
-            
-            // Get unique categories
-            Set<String> categories = new HashSet<>();
-            for (Permission perm : allPermissions) {
-                if (perm.getCategory() != null && !perm.getCategory().isEmpty()) {
-                    categories.add(perm.getCategory());
-                }
-            }
-            request.setAttribute("permissionCategories", new ArrayList<>(categories));
-        } catch (Exception e) {
-            e.printStackTrace();
-            request.setAttribute("allUsers", new ArrayList<>());
-            request.setAttribute("allPermissions", new ArrayList<>());
-            request.setAttribute("permissionCategories", new ArrayList<>());
-        }
 
         System.out.println("Dashboard counts -> total=" + totalEmployees + ", active=" + activeEmployees + ", depts=" + totalDepartments + ", user=" + totalUser);
 
@@ -497,6 +434,104 @@ public class AdminController extends HttpServlet {
         request.getRequestDispatcher("Admin/Roles.jsp").forward(request, response);
     }
 
+    private void loadRolePermissionsManager(HttpServletRequest request, HttpServletResponse response)
+              throws ServletException, IOException {
+        request.setAttribute("activePage", "role-permissions");
+
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+            return;
+        }
+
+        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+            return;
+        }
+
+        try {
+            List<PermissionSummary> permissions = rolePermissionDAO.getAllPermissionSummaries();
+
+            if (!hasRolePermissionAccess(currentUser, permissions)) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                        "Bạn không có quyền truy cập trang quản lý phân quyền.");
+                return;
+            }
+
+            List<Role> roles = roleDAO.getAllRoles();
+
+            Map<String, List<PermissionSummary>> groupedPermissions = permissions.stream()
+                    .collect(Collectors.groupingBy(
+                            p -> {
+                                String category = p.getCategory();
+                                return (category != null && !category.isBlank()) ? category : "Khác";
+                            },
+                            LinkedHashMap::new,
+                            Collectors.toList()));
+
+            // Sắp xếp từng nhóm permission theo tên
+            groupedPermissions.replaceAll((category, list) -> list.stream()
+                    .sorted(Comparator.comparing(PermissionSummary::getPermissionName, String.CASE_INSENSITIVE_ORDER))
+                    .collect(Collectors.toList()));
+
+            Map<Integer, String> rolePermissionCsv = new HashMap<>();
+            for (Role role : roles) {
+                Set<Integer> assigned = rolePermissionDAO.getPermissionIdSetByRole(role.getRoleId());
+                String csv = assigned.stream()
+                        .sorted()
+                        .map(String::valueOf)
+                        .collect(Collectors.joining(","));
+                rolePermissionCsv.put(role.getRoleId(), csv);
+            }
+
+            request.setAttribute("roles", roles);
+            request.setAttribute("groupedPermissions", groupedPermissions);
+            request.setAttribute("rolePermissionCsv", rolePermissionCsv);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("errorMessage", "Không thể tải dữ liệu phân quyền: " + e.getMessage());
+        }
+
+        request.getRequestDispatcher("Admin/RolePermissionManager.jsp").forward(request, response);
+    }
+
+    private boolean hasRolePermissionAccess(SystemUser user, List<PermissionSummary> permissions) throws SQLException {
+        if (user == null) {
+            return false;
+        }
+
+        int roleId = user.getRoleId();
+        if (roleId <= 0) {
+            return false;
+        }
+
+        Role role = roleDAO.getRoleById(roleId);
+        if (role != null) {
+            String normalized = roleDAO.normalizeRoleName(role.getRoleName());
+            if ("admin".equalsIgnoreCase(normalized)) {
+                return true;
+            }
+        }
+
+        Integer manageRolePermissionId = null;
+        if (permissions != null) {
+            manageRolePermissionId = permissions.stream()
+                    .filter(p -> "MANAGE_ROLE_PERMISSIONS".equalsIgnoreCase(p.getPermissionCode()))
+                    .map(PermissionSummary::getPermissionId)
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        if (manageRolePermissionId == null) {
+            return false;
+        }
+
+        Set<Integer> assignedPermissions = rolePermissionDAO.getPermissionIdSetByRole(roleId);
+        return assignedPermissions.contains(manageRolePermissionId);
+    }
+
     private void loadAuditLog(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
@@ -640,225 +675,14 @@ public class AdminController extends HttpServlet {
         request.getRequestDispatcher("Admin/Profile.jsp").forward(request, response);
     }
 
-    private void getUserPermissions(HttpServletRequest request, HttpServletResponse response)
-              throws ServletException, IOException {
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        
-        try {
-            String userIdStr = request.getParameter("userId");
-            if (userIdStr == null || userIdStr.isEmpty()) {
-                response.getWriter().write("{\"error\": \"User ID is required\"}");
-                return;
-            }
-            
-            int userId = Integer.parseInt(userIdStr);
-            UserPermissionDAO userPermissionDAO = new UserPermissionDAO();
-            PermissionDAO permissionDAO = new PermissionDAO();
-            
-            // Get all permissions
-            List<Permission> allPermissions = permissionDAO.getAllPermissions();
-            
-            // Get user permissions
-            List<UserPermission> userPermissions = userPermissionDAO.getUserPermissions(userId);
-            
-            // Build response
-            JsonObject jsonResponse = new JsonObject();
-            
-            // All permissions
-            JsonArray permissionsArray = new JsonArray();
-            for (Permission perm : allPermissions) {
-                JsonObject permObj = new JsonObject();
-                permObj.addProperty("permissionId", perm.getPermissionId());
-                permObj.addProperty("permissionCode", perm.getPermissionCode());
-                permObj.addProperty("permissionName", perm.getPermissionName());
-                permObj.addProperty("category", perm.getCategory() != null ? perm.getCategory() : "");
-                permObj.addProperty("description", perm.getDescription() != null ? perm.getDescription() : "");
-                permissionsArray.add(permObj);
-            }
-            jsonResponse.add("allPermissions", permissionsArray);
-            
-            // User permissions as map
-            JsonObject userPermsObj = new JsonObject();
-            for (UserPermission userPerm : userPermissions) {
-                JsonObject upObj = new JsonObject();
-                upObj.addProperty("userPermissionId", userPerm.getUserPermissionId());
-                upObj.addProperty("userId", userPerm.getUserId());
-                upObj.addProperty("permissionId", userPerm.getPermissionId());
-                upObj.addProperty("isGranted", userPerm.isIsGranted()); // Using isIsGranted() as per entity
-                upObj.addProperty("scope", userPerm.getScope() != null ? userPerm.getScope() : "ALL");
-                upObj.addProperty("scopeValue", userPerm.getScopeValue() != null ? userPerm.getScopeValue() : 0);
-                userPermsObj.add(String.valueOf(userPerm.getPermissionId()), upObj);
-            }
-            jsonResponse.add("userPermissions", userPermsObj);
-            
-            response.getWriter().write(new Gson().toJson(jsonResponse));
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.getWriter().write("{\"error\": \"" + e.getMessage() + "\"}");
-        }
-    }
-
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
               throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        SystemUser currentUser = session != null ? (SystemUser) session.getAttribute("systemUser") : null;
-
-        String action = request.getParameter("action");
-
-        if (!ensureAdminAccess(request, response, currentUser, action)) {
-            return;
-        }
-
-        if ("save-user-permissions".equals(action)) {
-            saveUserPermissions(request, response);
-        } else {
-            doGet(request, response);
-        }
-    }
-    
-    private void saveUserPermissions(HttpServletRequest request, HttpServletResponse response)
-              throws ServletException, IOException {
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        
-        try {
-            // Read JSON from request body
-            StringBuilder jsonBuilder = new StringBuilder();
-            String line;
-            while ((line = request.getReader().readLine()) != null) {
-                jsonBuilder.append(line);
-            }
-            String jsonString = jsonBuilder.toString();
-            
-            Gson gson = new Gson();
-            JsonObject jsonObject = gson.fromJson(jsonString, JsonObject.class);
-            JsonArray changesArray = jsonObject.getAsJsonArray("changes");
-            
-            UserPermissionDAO userPermissionDAO = new UserPermissionDAO();
-            SystemUser currentUser = (SystemUser) request.getSession().getAttribute("systemUser");
-            int createdBy = currentUser != null ? currentUser.getUserId() : 1;
-            
-            int successCount = 0;
-            int failCount = 0;
-            
-            for (int i = 0; i < changesArray.size(); i++) {
-                JsonObject change = changesArray.get(i).getAsJsonObject();
-                try {
-                    UserPermission userPerm = new UserPermission();
-                    userPerm.setUserId(change.get("userId").getAsInt());
-                    userPerm.setPermissionId(change.get("permissionId").getAsInt());
-                    userPerm.setIsGranted(change.get("isGranted").getAsBoolean());
-                    userPerm.setScope(change.has("scope") && !change.get("scope").isJsonNull() 
-                        ? change.get("scope").getAsString() : "ALL");
-                    if (change.has("scopeValue") && !change.get("scopeValue").isJsonNull()) {
-                        int scopeValue = change.get("scopeValue").getAsInt();
-                        userPerm.setScopeValue(scopeValue > 0 ? scopeValue : null);
-                    } else {
-                        userPerm.setScopeValue(null);
-                    }
-                    userPerm.setCreatedBy(createdBy);
-                    
-                    // Check if exists
-                    UserPermission existing = userPermissionDAO.getUserPermission(
-                        userPerm.getUserId(), userPerm.getPermissionId(), 
-                        userPerm.getScope(), userPerm.getScopeValue());
-                    
-                    if (existing != null) {
-                        // Update
-                        userPerm.setUserPermissionId(existing.getUserPermissionId());
-                        userPermissionDAO.updateUserPermission(userPerm);
-                    } else {
-                        // Insert
-                        userPermissionDAO.createUserPermission(userPerm);
-                    }
-                    successCount++;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    failCount++;
-                }
-            }
-            
-            JsonObject result = new JsonObject();
-            result.addProperty("success", failCount == 0);
-            result.addProperty("successCount", successCount);
-            result.addProperty("failCount", failCount);
-            result.addProperty("message", failCount == 0 
-                ? "All permissions saved successfully" 
-                : "Saved " + successCount + " permissions, " + failCount + " failed");
-            
-            response.getWriter().write(gson.toJson(result));
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            JsonObject error = new JsonObject();
-            error.addProperty("success", false);
-            error.addProperty("message", "Error: " + e.getMessage());
-            response.getWriter().write(new Gson().toJson(error));
-        }
-    }
-
-    /**
-     * Helper method để kiểm tra quyền
-     */
-    private boolean checkPermission(HttpServletRequest request, HttpServletResponse response, 
-                                   String permissionCode, String permissionName) 
-            throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
-        
-        if (currentUser == null) {
-            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
-            return false;
-        }
-        
-        if (!PermissionUtil.hasPermission(currentUser, permissionCode)) {
-            PermissionUtil.redirectToAccessDenied(request, response, permissionCode, permissionName);
-            return false;
-        }
-        
-        return true;
+        doGet(request, response);
     }
 
     @Override
     public String getServletInfo() {
         return "Admin Controller - Handles admin panel navigation and data loading";
-    }
-
-    private boolean ensureAdminAccess(HttpServletRequest request, HttpServletResponse response,
-                                      SystemUser currentUser, String action)
-            throws IOException {
-        if (currentUser == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return false;
-        }
-
-        if (!isAdmin(currentUser)) {
-            boolean isDashboardData = action != null && "dashboard-data".equalsIgnoreCase(action);
-            if (isJsonRequest(request) || isDashboardData) {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN);
-            } else {
-                PermissionUtil.redirectToAccessDenied(request, response, "ADMIN_PANEL", "Admin Panel");
-            }
-            return false;
-        }
-
-        return true;
-    }
-
-    private boolean isAdmin(SystemUser user) {
-        return user != null && user.getRoleId() == 1;
-    }
-
-    private boolean isJsonRequest(HttpServletRequest request) {
-        String requestedWith = request.getHeader("X-Requested-With");
-        if (requestedWith != null && "XMLHttpRequest".equalsIgnoreCase(requestedWith)) {
-            return true;
-        }
-
-        String accept = request.getHeader("Accept");
-        return accept != null && accept.toLowerCase().contains("application/json");
     }
 }

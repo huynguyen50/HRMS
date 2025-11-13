@@ -155,44 +155,10 @@ public class RecruitmentController extends HttpServlet {
                     return;
                 }
                 
-                // Xử lý file upload
-                String cvFileName = null;
-                Part cvFilePart = request.getPart("cvFile");
-                System.out.println("CV File Part: " + (cvFilePart != null ? "Found" : "Not found"));
-if (cvFilePart != null && cvFilePart.getSize() > 0) {
-                    System.out.println("File size: " + cvFilePart.getSize() + " bytes");
-                    String originalFileName = getFileName(cvFilePart);
-                    System.out.println("Original filename: " + originalFileName);
-                    
-                    if (originalFileName != null && !originalFileName.isEmpty()) {
-                        // Tạo tên file unique
-                        String fileExtension = getFileExtension(originalFileName);
-                        String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
-                        System.out.println("Unique filename: " + uniqueFileName);
-                        
-                        // Tạo thư mục upload nếu chưa có
-                        String uploadPath = request.getServletContext().getRealPath("/Upload/cvs");
-                        System.out.println("Upload path: " + uploadPath);
-                        Path uploadDir = Paths.get(uploadPath);
-                        if (!Files.exists(uploadDir)) {
-                            System.out.println("Creating upload directory: " + uploadDir);
-                            Files.createDirectories(uploadDir);
-                        }
-                        
-                        // Lưu file
-                        Path filePath = uploadDir.resolve(uniqueFileName);
-                        System.out.println("Saving file to: " + filePath);
-                        try (InputStream fileContent = cvFilePart.getInputStream()) {
-                            Files.copy(fileContent, filePath, StandardCopyOption.REPLACE_EXISTING);
-                            cvFileName = uniqueFileName;
-                            System.out.println("File saved successfully: " + cvFileName);
-                        }
-                    }
-                }
-                
-                if (cvFileName == null) {
-                    System.out.println("No CV file provided!");
-                    request.setAttribute("error", "Vui lòng chọn file CV!");
+                System.out.println("Checking if email exists: " + email);
+                if (guestDAO.isEmailExists(email)) {
+                    System.out.println("Email already exists!");
+                    request.setAttribute("error", "Email này đã được sử dụng để nộp đơn trước đó!");
                     // Giữ lại thông tin recruitment khi forward lại
                     Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
                     if (recruitment != null) {
@@ -200,6 +166,47 @@ if (cvFilePart != null && cvFilePart.getSize() > 0) {
                     }
                     showApplyForm(request, response);
                     return;
+                }
+
+                String cvFileName = null;
+                Part cvFilePart = request.getPart("cvFile");
+                System.out.println("CV File Part: " + (cvFilePart != null ? "Found" : "Not found"));
+                String uploadPath = "C:/Users/admin/OneDrive/Pictures/swp/HRMS/HRMS/src/main/webapp/Upload/cvs";
+                System.out.println("Fixed Upload path: " + uploadPath);
+
+                if (cvFilePart != null && cvFilePart.getSize() > 0) {
+                    String originalFileName = getFileName(cvFilePart);
+                    if (originalFileName != null && !originalFileName.isEmpty()) {
+                        String fileExtension = getFileExtension(originalFileName);
+                        String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
+
+                        // Phần này giữ nguyên
+                        Path uploadDir = Paths.get(uploadPath);
+                        if (!Files.exists(uploadDir)) {
+                            Files.createDirectories(uploadDir);
+                        }
+
+                        Path filePath = uploadDir.resolve(uniqueFileName);
+                        try (InputStream fileContent = cvFilePart.getInputStream()) {
+                            Files.copy(fileContent, filePath, StandardCopyOption.REPLACE_EXISTING);
+                            cvFileName = uniqueFileName; // Lưu tên file unique
+                            System.out.println("File saved successfully: " + cvFileName);
+                        } catch (IOException e) {
+                            System.out.println("Error saving file: " + e.getMessage());
+                        }
+                    }
+                }
+
+                if (cvFileName == null) {
+                    System.out.println("No CV file provided or file saving failed!");
+                    request.setAttribute("error", "Vui lòng chọn file CV và đảm bảo file được lưu thành công!");
+                    // Giữ lại thông tin recruitment khi forward lại
+                    Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
+                    if (recruitment != null) {
+                        request.setAttribute("recruitment", recruitment);
+                    }
+                    showApplyForm(request, response);
+return;
                 }
                 
                 Guest guest = new Guest();
