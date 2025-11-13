@@ -28,9 +28,12 @@ import jakarta.servlet.http.HttpSession;
 @WebServlet(name="EmployeeListController", urlPatterns={"/hr/employee-list"})
 public class EmployeeListController extends HttpServlet {
    
-    private EmployeeDAO employeeDAO = new EmployeeDAO();
-    private DepartmentDAO departmentDAO = new DepartmentDAO();
-    private SystemUserDAO systemUserDAO = new SystemUserDAO();
+    private static final String REQUIRED_PERMISSION = "VIEW_EMPLOYEES";
+    private static final String DENIED_MESSAGE = "You do not have permission to view or manage employee records.";
+    
+    private final transient EmployeeDAO employeeDAO = new EmployeeDAO();
+    private final transient DepartmentDAO departmentDAO = new DepartmentDAO();
+    private final transient SystemUserDAO systemUserDAO = new SystemUserDAO();
     
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -41,20 +44,10 @@ public class EmployeeListController extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        // Kiểm tra quyền xem employees
+        if (!ensureAccess(request, response)) {
+            return;
+        }
         HttpSession session = request.getSession();
-        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
-        
-        if (currentUser == null) {
-            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
-            return;
-        }
-        
-        if (!PermissionUtil.hasPermission(currentUser, "VIEW_EMPLOYEES")) {
-            PermissionUtil.redirectToAccessDenied(request, response, "VIEW_EMPLOYEES", "View Employees");
-            return;
-        }
-        
         try {
             // Fixed page size
             final int pageSize = 5;
@@ -178,6 +171,9 @@ public class EmployeeListController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
+        if (!ensureAccess(request, response)) {
+            return;
+        }
         try {
             String action = request.getParameter("action");
             System.out.println("POST request received with action: " + action);
@@ -201,15 +197,7 @@ public class EmployeeListController extends HttpServlet {
     
     private void handleStatusUpdate(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        // Kiểm tra quyền chỉnh sửa employee
         HttpSession session = request.getSession();
-        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
-        
-        if (currentUser == null || !PermissionUtil.hasPermission(currentUser, "EDIT_EMPLOYEE")) {
-            PermissionUtil.redirectToAccessDenied(request, response, "EDIT_EMPLOYEE", "Edit Employee");
-            return;
-        }
-        
         try {
             int employeeId = Integer.parseInt(request.getParameter("employeeId"));
             String newStatus = request.getParameter("status");
@@ -236,15 +224,7 @@ public class EmployeeListController extends HttpServlet {
     
     private void handleEmployeeEdit(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        // Kiểm tra quyền chỉnh sửa employee
         HttpSession session = request.getSession();
-        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
-        
-        if (currentUser == null || !PermissionUtil.hasPermission(currentUser, "EDIT_EMPLOYEE")) {
-            PermissionUtil.redirectToAccessDenied(request, response, "EDIT_EMPLOYEE", "Edit Employee");
-            return;
-        }
-        
         try {
             String employeeIdStr = request.getParameter("employeeId");
             System.out.println("Received employeeId parameter: " + employeeIdStr);
@@ -314,15 +294,7 @@ public class EmployeeListController extends HttpServlet {
     
     private void handleEmployeeDelete(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        // Kiểm tra quyền xóa employee
         HttpSession session = request.getSession();
-        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
-        
-        if (currentUser == null || !PermissionUtil.hasPermission(currentUser, "DELETE_EMPLOYEE")) {
-            PermissionUtil.redirectToAccessDenied(request, response, "DELETE_EMPLOYEE", "Delete Employee");
-            return;
-        }
-        
         try {
             String employeeIdStr = request.getParameter("employeeId");
             
@@ -376,5 +348,10 @@ public class EmployeeListController extends HttpServlet {
     public String getServletInfo() {
         return "Employee List Controller";
     }// </editor-fold>
+
+    private boolean ensureAccess(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        return PermissionUtil.ensurePermission(request, response, REQUIRED_PERMISSION, DENIED_MESSAGE);
+    }
 
 }

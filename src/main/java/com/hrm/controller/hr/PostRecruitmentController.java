@@ -6,16 +6,13 @@ package com.hrm.controller.hr;
 
 import com.hrm.dao.DAO;
 import com.hrm.model.entity.Recruitment;
-import com.hrm.model.entity.SystemUser;
 import com.hrm.util.PermissionUtil;
 import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.util.List;
 
 /**
@@ -25,25 +22,17 @@ import java.util.List;
 @WebServlet(name = "PostRecruitmentController", urlPatterns = {"/postRecruitments"})
 public class PostRecruitmentController extends HttpServlet {
 
+    private static final String REQUIRED_PERMISSION = "VIEW_RECRUITMENT";
+    private static final String DENIED_MESSAGE = "You do not have permission to manage recruitment posts.";
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Kiểm tra quyền xem recruitment
-        HttpSession session = request.getSession();
-        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
-        
-        if (currentUser == null) {
-            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+        if (!ensureAccess(request, response)) {
             return;
         }
-        
         String action = request.getParameter("action");
         if ("send".equals(action)) {
-            // Kiểm tra quyền chỉnh sửa recruitment
-            if (!PermissionUtil.hasPermission(currentUser, "EDIT_RECRUITMENT")) {
-                PermissionUtil.redirectToAccessDenied(request, response, "EDIT_RECRUITMENT", "Edit Recruitment");
-                return;
-            }
             try {
                 String idStr = request.getParameter("id");
                 int recruitmentId = Integer.parseInt(idStr);
@@ -53,15 +42,9 @@ public class PostRecruitmentController extends HttpServlet {
             } catch (Exception e) {
                 e.printStackTrace();
                 response.sendRedirect(request.getContextPath() + "/postRecruitments");
-                
-            }
-        } else if("delete".equals(action)){
-            // Kiểm tra quyền xóa recruitment
-            if (!PermissionUtil.hasPermission(currentUser, "DELETE_RECRUITMENT")) {
-                PermissionUtil.redirectToAccessDenied(request, response, "DELETE_RECRUITMENT", "Delete Recruitment");
                 return;
             }
-            
+        } else if("delete".equals(action)){
             try {
                 String idStr = request.getParameter("id");
                 int recruitmentId = Integer.parseInt(idStr);
@@ -73,12 +56,6 @@ public class PostRecruitmentController extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/postRecruitments");
                 return;
             }
-        }
-        
-        // Kiểm tra quyền xem recruitment
-        if (!PermissionUtil.hasPermission(currentUser, "VIEW_RECRUITMENT")) {
-            PermissionUtil.redirectToAccessDenied(request, response, "VIEW_RECRUITMENT", "View Recruitment");
-            return;
         }
 
         int page = 1;
@@ -127,6 +104,9 @@ public class PostRecruitmentController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (!ensureAccess(request, response)) {
+            return;
+        }
 
     }
 
@@ -135,4 +115,8 @@ public class PostRecruitmentController extends HttpServlet {
         return "Short description";
     }
 
+    private boolean ensureAccess(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        return PermissionUtil.ensurePermission(request, response, REQUIRED_PERMISSION, DENIED_MESSAGE);
+    }
 }

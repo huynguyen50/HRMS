@@ -438,7 +438,7 @@
                             <span>HR Manager</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
-                        <a href="${pageContext.request.contextPath}/ProfileManagementController" class="nav-btn">
+                        <a href="${pageContext.request.contextPath}/HrHomeController" class="nav-btn">
                             <i class="fas fa-tachometer-alt"></i>
                             HR Dashboard
                         </a>
@@ -456,7 +456,7 @@
                 <nav class="hr-sidebar">
                     <div class="nav-section">
                         <h3>NAVIGATION</h3>
-                        <a href="${pageContext.request.contextPath}/ProfileManagementController" class="nav-item">
+                        <a href="${pageContext.request.contextPath}/HrHomeController" class="nav-item">
                             <i class="fas fa-home"></i>
                             <span>HR Dashboard</span>
                         </a>

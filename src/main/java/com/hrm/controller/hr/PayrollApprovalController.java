@@ -3,6 +3,7 @@ package com.hrm.controller.hr;
 import com.hrm.dao.PayrollDAO;
 import com.hrm.dao.EmployeeDAO;
 import com.hrm.model.entity.SystemUser;
+import com.hrm.util.PermissionUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -29,8 +30,11 @@ public class PayrollApprovalController extends HttpServlet {
     private static final String PAYROLL_MANAGEMENT_JSP = "/Views/hr/PayrollManagement.jsp";
     private static final String STATUS_PENDING = "Pending";
     
-    private final PayrollDAO payrollDAO = new PayrollDAO();
-    private final EmployeeDAO employeeDAO = new EmployeeDAO();
+    private static final String REQUIRED_PERMISSION = "VIEW_PAYROLLS";
+    private static final String DENIED_MESSAGE = "You do not have permission to approve payroll.";
+    
+    private final transient PayrollDAO payrollDAO = new PayrollDAO();
+    private final transient EmployeeDAO employeeDAO = new EmployeeDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -41,6 +45,9 @@ public class PayrollApprovalController extends HttpServlet {
         
         if (currentUser == null) {
             response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+            return;
+        }
+        if (!ensureAccess(request, response)) {
             return;
         }
         
@@ -143,6 +150,9 @@ public class PayrollApprovalController extends HttpServlet {
         
         if (currentUser == null) {
             response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+            return;
+        }
+        if (!ensureAccess(request, response)) {
             return;
         }
         
@@ -259,5 +269,10 @@ public class PayrollApprovalController extends HttpServlet {
             // Fallback to default encoding if UTF-8 is not supported (should not happen)
             response.sendRedirect(url + "?" + type + "=" + URLEncoder.encode(message, "UTF-8"));
         }
+    }
+
+    private boolean ensureAccess(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        return PermissionUtil.ensurePermission(request, response, REQUIRED_PERMISSION, DENIED_MESSAGE);
     }
 }

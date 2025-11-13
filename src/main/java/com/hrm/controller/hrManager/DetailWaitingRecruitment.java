@@ -8,7 +8,6 @@ package com.hrm.controller.hrManager;
 import com.hrm.dao.DAO;
 import com.hrm.model.entity.Recruitment;
 import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -47,6 +46,25 @@ public class DetailWaitingRecruitment extends HttpServlet {
                 double salary = Double.parseDouble(request.getParameter("Salary"));
                 int applicant = Integer.parseInt(request.getParameter("Applicant"));
 
+                String message = null;
+                if (title != null && title.length() > 50) {
+                    message = "Title cannot exceed 50 characters.";
+                } else if (requirement != null && requirement.length() > 50) {
+                    message = "Requirement cannot exceed 50 characters.";
+                } else if (location != null && location.length() > 50) {
+                    message = "Location cannot exceed 50 characters.";
+                } else if (description != null && description.length() > 500) {
+                    message = "Description cannot exceed 500 characters.";
+                }
+
+                if (message != null) {
+                    request.setAttribute("mess", message);
+                    Recruitment rec = DAO.getInstance().getRecruitmentById(id);
+                    request.setAttribute("rec", rec);
+                    request.getRequestDispatcher("Views/hr/DetailWaitingRecruitment.jsp").forward(request, response);
+                    return;
+                }
+
                 if (salary <= 0 || applicant<=0) {
                     request.setAttribute("mess", "Salary and applicant must be a positive number.");
                     Recruitment rec = DAO.getInstance().getRecruitmentById(id);
@@ -55,7 +73,7 @@ public class DetailWaitingRecruitment extends HttpServlet {
                     return;
                 }
 
-                int update = DAO.getInstance().setRecruitmentById(title, description, requirement, location, salary, applicant,id);
+                DAO.getInstance().setRecruitmentById(title, description, requirement, location, salary, applicant,id);
                 response.sendRedirect(request.getContextPath() + "/detailWaitingRecruitment?id=" + id);
                 
         } catch (NumberFormatException e) {

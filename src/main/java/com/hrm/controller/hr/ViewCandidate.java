@@ -6,7 +6,6 @@ package com.hrm.controller.hr;
 
 import com.hrm.dao.DAO;
 import com.hrm.model.entity.Guest;
-import com.hrm.model.entity.SystemUser;
 import com.hrm.util.PermissionUtil;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
@@ -14,7 +13,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.util.List;
 
 /**
@@ -24,23 +22,15 @@ import java.util.List;
 @WebServlet(name = "ViewCandidate", urlPatterns = {"/candidates"})
 public class ViewCandidate extends HttpServlet {
 
+    private static final String REQUIRED_PERMISSION = "VIEW_RECRUITMENT";
+    private static final String DENIED_MESSAGE = "You do not have permission to view candidate information.";
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Kiểm tra quyền quản lý ứng viên
-        HttpSession session = request.getSession();
-        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
-        
-        if (currentUser == null) {
-            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+        if (!ensureAccess(request, response)) {
             return;
         }
-        
-        if (!PermissionUtil.hasPermission(currentUser, "MANAGE_APPLICANTS")) {
-            PermissionUtil.redirectToAccessDenied(request, response, "MANAGE_APPLICANTS", "Manage Applicants");
-            return;
-        }
-        
         int page = 1;
         int pageSize = 5;
         String pageStr = request.getParameter("page");
@@ -95,23 +85,9 @@ public class ViewCandidate extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String action = request.getParameter("action");
-        String gIDRaw = request.getParameter("guestId");
-        if (gIDRaw == null || gIDRaw.isEmpty()) {
-            request.setAttribute("mess", "There are currently no candidates submitted.");
-            request.getRequestDispatcher("/Views/hr/ViewCandidate.jsp").forward(request, response);
+        if (!ensureAccess(request, response)) {
             return;
         }
-
-        int gID = Integer.parseInt(gIDRaw);
-        int n = 0;
-//        if ("apply".equals(action)) {
-//            n = DAO.getInstance().updateCandidateStatus(gID, "Hired");
-//        } else if ("reject".equals(action)) {
-//            n = DAO.getInstance().updateCandidateStatus(gID, "Rejected");
-//        }
-        
-        // Preserve search parameters when redirecting
         String searchByName = request.getParameter("searchByName");
         String filterStatus = request.getParameter("filterStatus");
         String startDate = request.getParameter("startDate");
@@ -138,5 +114,10 @@ public class ViewCandidate extends HttpServlet {
     @Override
     public String getServletInfo() {
         return "Short description";
+    }
+
+    private boolean ensureAccess(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        return PermissionUtil.ensurePermission(request, response, REQUIRED_PERMISSION, DENIED_MESSAGE);
     }
 }

@@ -95,7 +95,7 @@ if (rs.next()) {
                     out.println("<p>The database connection is working properly and contains employee data.</p>");
                     out.println("<p>You can now access the HR management pages:</p>");
                     out.println("<ul>");
-                    out.println("<li><a href='/HRMS/ProfileManagementController'>Profile Management</a></li>");
+                    out.println("<li><a href='/HRMS/HrHomeController'>Profile Management</a></li>");
                     out.println("<li><a href='/HRMS/EmploymentStatusController'>Employment Status</a></li>");
                     out.println("<li><a href='/HRMS/TaskManagementController'>Task Management</a></li>");
                     out.println("</ul>");

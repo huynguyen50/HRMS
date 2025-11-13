@@ -38,6 +38,9 @@
                     <a href="${pageContext.request.contextPath}/admin/role/list"
                        class="nav-item ${activePage == 'roles' ? 'active' : ''}">🔐 Roles</a>
 
+                    <a href="${pageContext.request.contextPath}/admin?action=role-permissions"
+                       class="nav-item ${activePage == 'role-permissions' ? 'active' : ''}">🛡️ Role Permissions</a>
+
                     <a href="${pageContext.request.contextPath}/admin?action=audit-log"
                        class="nav-item ${activePage == 'audit-log' ? 'active' : ''}">📜 Audit Log</a>
 
@@ -65,6 +68,9 @@
                             <div class="dropdown-menu" id="userDropdown">
                                 <a href="${pageContext.request.contextPath}/admin?action=profile" class="dropdown-item">
                                     <span class="icon">👤</span> Profile
+                                </a>
+                                <a href="${pageContext.request.contextPath}/homepage" class="dropdown-item">
+                                    <span class="icon">🏠</span> Homepage
                                 </a>
                                 <div class="dropdown-divider"></div>
                                 <a href="${pageContext.request.contextPath}/logout" class="dropdown-item">
@@ -219,10 +225,6 @@
                                     <span class="referral-name">View Audit Log</span>
                                     <span class="referral-count">→</span>
                                 </a>
-                                <a href="#" class="referral-item" onclick="openPermissionManager(); return false;">
-                                    <span class="referral-name">🔐 Manage Permissions</span>
-                                    <span class="referral-count">→</span>
-                                </a>
                             </div>
                         </div>
                     </div>
@@ -232,7 +234,7 @@
 
         <script>
             window.dashboardData = {
-                employeeDistribution: <c:out value="${employeeDistributionJson}" escapeXml="false" />,
+                employeeDistribution: <c:out value="${employeeDistributionJson}" escapeXml="false" />, 
                 employeeStatus: <c:out value="${employeeStatusJson}" escapeXml="false" />,
                 activityData: <c:out value="${activityDataJson}" escapeXml="false" />
             };
@@ -240,69 +242,6 @@
 
 
         <script src="${pageContext.request.contextPath}/Admin/js/dashboard.js"></script>
-
-        <!-- Permission Manager Modal -->
-        <div id="permissionModal" class="permission-modal">
-            <div class="permission-modal-content">
-                <div class="permission-modal-header">
-                    <h2>🔐 Quản lý Phân quyền Động</h2>
-                    <span class="permission-modal-close" onclick="closePermissionManager()">&times;</span>
-                </div>
-                <div class="permission-modal-body">
-                    <div class="permission-filters">
-                        <div class="filter-group">
-                            <label>Chọn User:</label>
-                            <select id="userSelect" class="permission-select" onchange="loadUserPermissions()">
-                                <option value="">-- Chọn User --</option>
-                                <c:forEach var="user" items="${allUsers}">
-                                    <option value="${user.userId}">${user.username} 
-                                        <c:if test="${not empty user.employee}">(${user.employee.fullName})</c:if>
-                                        <c:if test="${not empty user.role}"> - ${user.role.roleName}</c:if>
-                                    </option>
-                                </c:forEach>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label>Lọc theo Category:</label>
-                            <select id="categoryFilter" class="permission-select" onchange="filterPermissions()">
-                                <option value="">Tất cả</option>
-                                <c:forEach var="category" items="${permissionCategories}">
-                                    <option value="${category}">${category}</option>
-                                </c:forEach>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="permission-table-container">
-                        <table class="permission-table">
-                            <thead>
-                                <tr>
-                                    <th>Permission</th>
-                                    <th>Category</th>
-                                    <th>Status</th>
-                                    <th>Scope</th>
-                                    <th>Scope Value</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="permissionTableBody">
-                                <tr>
-                                    <td colspan="6" class="no-data">Vui lòng chọn user để xem phân quyền</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="permission-modal-actions">
-                        <button class="btn-permission btn-primary" onclick="saveAllPermissions()">💾 Lưu Tất Cả Thay Đổi</button>
-                        <button class="btn-permission btn-secondary" onclick="closePermissionManager()">Đóng</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/permission-manager.css">
-        <script src="${pageContext.request.contextPath}/Admin/js/permission-manager.js"></script>
 
     </body>
 </html>

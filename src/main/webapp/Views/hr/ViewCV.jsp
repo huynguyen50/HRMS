@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <!DOCTYPE html>
 <html>
     <head>
@@ -94,7 +95,32 @@
                     <!-- Phần bên trái: Ảnh CV (2/3) -->
                     <div class="col-md-8">
                         <div class="cv-image-container">
-                            <img src="${g.cv}" alt="CV Image" class="cv-image">
+                            <c:choose>
+                                <c:when test="${not empty g.cv}">
+                                    <%-- Lấy phần mở rộng của file và chuyển về chữ thường để so sánh --%>
+                                    <c:set var="fileExtension" value="${fn:toLowerCase(fn:substringAfter(g.cv, '.'))}" />
+
+                                    <c:choose>
+                                        <%-- Nếu là file ảnh (jpg, png, gif, jpeg) thì hiển thị bằng thẻ img --%>
+                                        <c:when test="${fileExtension eq 'jpg' or fileExtension eq 'jpeg' or fileExtension eq 'png' or fileExtension eq 'gif'}">
+                                            <img src="${pageContext.request.contextPath}/Upload/cvs/${g.cv}" alt="CV Image" class="cv-image">
+                                        </c:when>
+                                        <%-- Nếu là file khác (pdf, doc, docx) thì hiển thị một liên kết để tải về --%>
+                                        <c:otherwise>
+                                            <div class="text-center mt-5">
+                                                <i class="fas fa-file-pdf fa-5x text-danger"></i> <%-- Hoặc icon tương ứng với file --%>
+                                                <p class="mt-2">CV là một tài liệu.</p>
+                                                <a href="${pageContext.request.contextPath}/Upload/cvs/${g.cv}" target="_blank" class="btn btn-primary">
+                                                    <i class="fas fa-download"></i> Xem/Tải xuống CV
+                                                </a>
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </c:when>
+                                <c:otherwise>
+                                    <p class="text-center mt-5">Ứng viên này chưa tải lên CV.</p>
+                                </c:otherwise>
+                            </c:choose>
                         </div>
                     </div>
 

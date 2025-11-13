@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.hrm.util.PermissionUtil;
 
 /**
  * Controller for Payroll Management
@@ -24,6 +25,9 @@ import com.google.gson.GsonBuilder;
  */
 @WebServlet(name = "PayrollManagementController", urlPatterns = {"/hrstaff/payroll", "/hrstaff/payroll/delete", "/hrstaff/payroll/submit", "/hrstaff/payroll/generate-all", "/hrstaff/payroll/details", "/api/payroll"})
 public class PayrollManagementController extends HttpServlet {
+
+    private static final String REQUIRED_PERMISSION = "VIEW_PAYROLLS";
+    private static final String DEFAULT_DENIED_MESSAGE = "You do not have permission to manage payroll.";
 
     private final EmployeeDAO employeeDAO = new EmployeeDAO();
     private final AllowanceTypeDAO allowanceTypeDAO = new AllowanceTypeDAO();
@@ -36,6 +40,9 @@ public class PayrollManagementController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (!ensureHtmlAccess(request, response, DEFAULT_DENIED_MESSAGE)) {
+            return;
+        }
         try {
             String action = request.getParameter("action");
             
@@ -171,6 +178,9 @@ public class PayrollManagementController extends HttpServlet {
     
     private void handleGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (!ensureHtmlAccess(request, response, DEFAULT_DENIED_MESSAGE)) {
+            return;
+        }
         try {
             // Get tab parameter (default to 'allowance')
             String tab = request.getParameter("tab");
@@ -342,6 +352,9 @@ public class PayrollManagementController extends HttpServlet {
     
     private void handleDelete(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (!ensureHtmlAccess(request, response, "You do not have permission to delete payroll records.")) {
+            return;
+        }
         try {
             String payrollIdStr = request.getParameter("payrollId");
             if (payrollIdStr == null) {
@@ -369,6 +382,9 @@ public class PayrollManagementController extends HttpServlet {
     
     private void handleSubmit(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (!ensureHtmlAccess(request, response, "You do not have permission to submit payroll for approval.")) {
+            return;
+        }
         try {
             String payrollIdStr = request.getParameter("payrollId");
             if (payrollIdStr == null) {
@@ -413,6 +429,9 @@ public class PayrollManagementController extends HttpServlet {
      */
     private void handleGenerateAll(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (!ensureHtmlAccess(request, response, "You do not have permission to generate payroll for all employees.")) {
+            return;
+        }
         try {
             String period = request.getParameter("period");
             if (period == null || period.trim().isEmpty()) {
@@ -452,6 +471,9 @@ public class PayrollManagementController extends HttpServlet {
      */
     private void handleGetPayrollDetails(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (!ensureJsonAccess(request, response, "You do not have permission to view payroll details.")) {
+            return;
+        }
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         
@@ -516,6 +538,30 @@ public class PayrollManagementController extends HttpServlet {
             e.printStackTrace();
             return false;
         }
+    }
+
+    private boolean ensureHtmlAccess(HttpServletRequest request,
+                                     HttpServletResponse response,
+                                     String permissionMessage) throws ServletException, IOException {
+        return PermissionUtil.ensureRolePermission(
+                request,
+                response,
+                PermissionUtil.ROLE_HR_STAFF,
+                REQUIRED_PERMISSION,
+                "This section is restricted to HR Staff.",
+                permissionMessage);
+    }
+
+    private boolean ensureJsonAccess(HttpServletRequest request,
+                                     HttpServletResponse response,
+                                     String permissionMessage) throws IOException {
+        return PermissionUtil.ensureRolePermissionJson(
+                request,
+                response,
+                PermissionUtil.ROLE_HR_STAFF,
+                REQUIRED_PERMISSION,
+                "This section is restricted to HR Staff.",
+                permissionMessage);
     }
 }
 

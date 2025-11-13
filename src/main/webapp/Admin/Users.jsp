@@ -1,7 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -46,21 +45,21 @@
             <main class="main-content">
                 <!-- Top Bar -->
                 <header class="top-bar">
+                    
                     <div class="top-bar-actions">
+                        
                         <div class="user-menu" onclick="toggleUserMenu()">
                             <div class="user-info">
-                                <div class="user-name-display">
-                                    <img src="https://i.pravatar.cc/32" alt="User">
-                                    <div class="user-name-text">
-                                        <span class="name">${currentUserName != null ? fn:escapeXml(currentUserName) : 'Admin'}</span>
-                                        <span class="role">(admin)</span>
-                                    </div>
-                                    <span class="dropdown-arrow">▼</span>
-                                </div>
+                                <img src="https://i.pravatar.cc/32" alt="User">
+                                <span>Admin</span>
+                                <span class="dropdown-arrow">▼</span>
                             </div>
                             <div class="dropdown-menu" id="userDropdown">
                                 <a href="${pageContext.request.contextPath}/admin?action=profile" class="dropdown-item">
                                     <span class="icon">👤</span> Profile
+                                </a>
+                                <a href="${pageContext.request.contextPath}/homepage" class="dropdown-item">
+                                    <span class="icon">🏠</span> Trang chủ
                                 </a>
                                 <div class="dropdown-divider"></div>
                                 <a href="${pageContext.request.contextPath}/logout" class="dropdown-item">
@@ -216,7 +215,6 @@
                                                 <td>
                                                     <div class="action-buttons">
                                                         <button class="btn-edit" onclick="editUser(<c:out value='${user.userId}'/>)" title="Edit user">Edit</button>
-                                                        <button class="btn-permissions" onclick="managePermissions(<c:out value='${user.userId}'/>)" title="Manage permissions">🔑 Permissions</button>
                                                         <button class="btn-reset" onclick="resetPassword(<c:out value='${user.userId}'/>)" title="Reset password">Reset</button>
                                                         <button class="btn-toggle ${user.isActive ? 'btn-lock' : 'btn-unlock'}" 
                                                                 onclick="toggleUserStatus(<c:out value='${user.userId}'/>)" 
@@ -491,10 +489,12 @@
                 const errorDiv = document.getElementById('usernameError');
                 const input = document.getElementById('username');
 
+                // Clear previous timeout
                 if (usernameCheckTimeout) {
                     clearTimeout(usernameCheckTimeout);
                 }
 
+                // Basic validation
                 if (username.length === 0) {
                     showError('username', 'Username không được để trống.');
                     return false;
@@ -510,6 +510,7 @@
                     return false;
                 }
 
+                // Check username exists (debounced)
                 usernameCheckTimeout = setTimeout(() => {
                     isUsernameChecking = true;
                     const url = '${pageContext.request.contextPath}/admin/users?action=checkUsername&username=' + 
@@ -531,7 +532,7 @@
                             isUsernameChecking = false;
                             console.error('Error checking username:', error);
                         });
-                }, 500);
+                }, 500); // Wait 500ms after user stops typing
 
                 return true;
             }
@@ -541,16 +542,19 @@
                 const password = passwordInput.value;
                 const isRequired = passwordInput.required;
                 
+                // If editing and password is not required, skip validation if empty
                 if (!isRequired && password.length === 0) {
                     clearError('password');
                     return true;
                 }
 
+                // If password is required but empty
                 if (isRequired && password.length === 0) {
                     showError('password', 'Password không được để trống.');
                     return false;
                 }
 
+                // If password is provided, validate format
                 if (password.length > 0) {
                     if (password.length < 8) {
                         showError('password', 'Mật khẩu phải có ít nhất 8 ký tự.');
@@ -622,10 +626,6 @@
                 }
             }
 
-            function managePermissions(userId) {
-                window.location.href = '${pageContext.request.contextPath}/admin/permissions?userId=' + userId;
-            }
-
             function sortTable(column) {
                 const urlParams = new URLSearchParams(window.location.search);
                 const currentSortField = urlParams.get('sortField') || 'CreatedDate';
@@ -651,15 +651,19 @@
                 window.location.href = '${pageContext.request.contextPath}/admin/users?' + urlParams.toString();
             }
 
+            // Handle form submit with AJAX
             function handleFormSubmit(event) {
                 event.preventDefault();
                 
+                // Clear previous errors
                 document.getElementById('formError').style.display = 'none';
                 
+                // Basic validation first
                 const username = document.getElementById('username').value.trim();
                 const passwordInput = document.getElementById('password');
                 const password = passwordInput.value;
                 
+                // Validate username format
                 if (username.length === 0) {
                     showError('username', 'Username không được để trống.');
                     document.getElementById('formError').textContent = 'Vui lòng sửa lỗi username trước khi tiếp tục.';
@@ -681,6 +685,7 @@
                     return false;
                 }
                 
+                // Validate password
                 const passwordValid = validatePassword();
                 if (!passwordValid) {
                     document.getElementById('formError').textContent = 'Vui lòng sửa lỗi password trước khi tiếp tục.';
@@ -688,6 +693,7 @@
                     return false;
                 }
 
+                // Check username exists immediately (synchronous check)
                 const userId = document.getElementById('userId').value;
                 const url = '${pageContext.request.contextPath}/admin/users?action=checkUsername&username=' + 
                             encodeURIComponent(username) + 
@@ -701,11 +707,13 @@
                             document.getElementById('formError').textContent = 'Vui lòng sửa lỗi username trước khi tiếp tục.';
                             document.getElementById('formError').style.display = 'block';
                         } else {
+                            // Username is valid, proceed with submit
                             submitForm();
                         }
                     })
                     .catch(error => {
                         console.error('Error checking username:', error);
+                        // If check fails, still try to submit (server will validate)
                         submitForm();
                     });
                 
@@ -731,9 +739,11 @@
                         closeUserModal();
                         window.location.reload();
                     } else {
+                        // Show error message
                         document.getElementById('formError').textContent = data.message || 'Có lỗi xảy ra. Vui lòng thử lại.';
                         document.getElementById('formError').style.display = 'block';
                         
+                        // Try to identify which field has error
                         if (data.message && data.message.includes('Username')) {
                             showError('username', data.message);
                         } else if (data.message && data.message.includes('Mật khẩu')) {
@@ -752,6 +762,7 @@
                 });
             }
 
+            // Close modal when clicking outside
             window.onclick = function (event) {
                 const userModal = document.getElementById('userModal');
                 const resetModal = document.getElementById('resetPasswordModal');
@@ -766,11 +777,13 @@
             }
         </script>
         <script>
+            // Toggle user menu dropdown
             function toggleUserMenu() {
                 const userMenu = document.querySelector('.user-menu');
                 userMenu.classList.toggle('active');
             }
 
+            // Close user menu when clicking outside
             document.addEventListener('click', function(event) {
                 if (!event.target.closest('.user-menu')) {
                     const userMenu = document.querySelector('.user-menu');

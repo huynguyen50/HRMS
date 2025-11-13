@@ -1,171 +1,193 @@
 package com.hrm.util;
 
-import com.hrm.dao.PermissionDAO;
 import com.hrm.dao.RolePermissionDAO;
 import com.hrm.dao.UserPermissionDAO;
 import com.hrm.model.entity.SystemUser;
+import java.util.Optional;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import java.io.IOException;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- * Utility class để kiểm tra quyền của user
- * Hỗ trợ kiểm tra quyền từ RolePermission và UserPermission
+ * Utility helpers for checking runtime permissions.
  */
-public class PermissionUtil {
-    
+public final class PermissionUtil {
     private static final Logger logger = Logger.getLogger(PermissionUtil.class.getName());
-    private static PermissionDAO permissionDAO = new PermissionDAO();
-    private static RolePermissionDAO rolePermissionDAO = new RolePermissionDAO();
-    private static UserPermissionDAO userPermissionDAO = new UserPermissionDAO();
-    
-    /**
-     * Kiểm tra user có quyền thực hiện một action không
-     * @param user User cần kiểm tra
-     * @param permissionCode Mã quyền cần kiểm tra (ví dụ: "VIEW_EMPLOYEES")
-     * @param scopeValue Giá trị scope (ví dụ: DepartmentID nếu scope là DEPARTMENT)
-     * @return true nếu có quyền, false nếu không
-     */
-    public static boolean hasPermission(SystemUser user, String permissionCode, Integer scopeValue) {
-        if (user == null) {
-            return false;
-        }
-        
-        try {
-            // Admin luôn có tất cả quyền
-            if (user.getRoleId() == 1) { // RoleID 1 = Admin
-                return true;
-            }
-            
-            // Lấy PermissionID từ permissionCode
-            com.hrm.model.entity.Permission perm = permissionDAO.getPermissionByCode(permissionCode);
-            if (perm == null) {
-                logger.log(Level.WARNING, "Permission code not found: " + permissionCode);
-                return false;
-            }
-            int permissionId = perm.getPermissionId();
-            
-            // Kiểm tra UserPermission trước (ưu tiên cao hơn RolePermission)
-            Boolean userPermissionResult = checkUserPermission(user.getUserId(), permissionId, scopeValue);
-            if (userPermissionResult != null) { // Nếu có UserPermission (granted hoặc revoked)
-                return userPermissionResult;
-            }
-            
-            // Kiểm tra RolePermission (quyền mặc định của role)
-            return checkRolePermission(user.getRoleId(), permissionId);
-            
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error checking permission: " + permissionCode, e);
-            return false;
-        }
+    private static final RolePermissionDAO rolePermissionDAO = new RolePermissionDAO();
+    private static final UserPermissionDAO userPermissionDAO = new UserPermissionDAO();
+    public static final int ROLE_ADMIN = 1;
+    public static final int ROLE_HR_MANAGER = 2;
+    public static final int ROLE_DEPT_MANAGER = 3;
+    public static final int ROLE_HR_STAFF = 4;
+    public static final int ROLE_EMPLOYEE = 5;
+    private static final String DEFAULT_DENIED_MESSAGE = "You do not have permission to access this resource.";
+
+    private PermissionUtil() {
     }
-    
+
     /**
-     * Kiểm tra user có quyền không (không cần scope)
+     * Get the logged-in SystemUser from session (attribute "systemUser").
+     */
+    public static SystemUser getCurrentUser(HttpServletRequest request) {
+        if (request == null) {
+            return null;
+        }
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return null;
+        }
+        Object user = session.getAttribute("systemUser");
+        if (user instanceof SystemUser systemUser) {
+            return systemUser;
+        }
+        return null;
+    }
+
+    /**
+     * Check whether the current user has the given permission code.
      */
     public static boolean hasPermission(SystemUser user, String permissionCode) {
-        return hasPermission(user, permissionCode, null);
-    }
-    
-    /**
-     * Kiểm tra UserPermission
-     * @return true nếu granted, false nếu revoked, null nếu không có UserPermission
-     */
-    private static Boolean checkUserPermission(int userId, int permissionId, Integer scopeValue) throws SQLException {
-        try {
-            List<com.hrm.model.entity.UserPermission> userPermissions = userPermissionDAO.getUserPermissions(userId);
-            Boolean result = null;
-            
-            for (com.hrm.model.entity.UserPermission up : userPermissions) {
-                if (up.getPermissionId() == permissionId) {
-                    String scope = up.getScope();
-                    Integer upScopeValue = up.getScopeValue();
-                    
-                    // Kiểm tra scope
-                    if ("ALL".equals(scope)) {
-                        // ALL scope: áp dụng cho tất cả
-                        result = up.isIsGranted();
-                        break; // Ưu tiên cao nhất, dừng ngay
-                    } else if ("DEPARTMENT".equals(scope)) {
-                        // DEPARTMENT scope: chỉ áp dụng nếu scopeValue khớp
-                        if (scopeValue != null && scopeValue.equals(upScopeValue)) {
-                            result = up.isIsGranted();
-                            break; // Tìm thấy match, dừng ngay
-                        }
-                        // Nếu không khớp, tiếp tục tìm
-                    } else if ("SELF".equals(scope)) {
-                        // SELF scope: user chỉ có quyền với dữ liệu của chính họ
-                        // Logic này cần được xử lý ở controller level
-                        result = up.isIsGranted();
-                        // Không break, có thể có quyền ALL sau đó
-                    }
+        if (user == null || permissionCode == null || permissionCode.isBlank()) {
+            return false;
+        }
+        Integer userId = user.getUserId();
+        if (userId != null && userId > 0) {
+            try {
+                Optional<Boolean> userOverride = userPermissionDAO.getPermissionOverride(userId, permissionCode);
+                if (userOverride.isPresent()) {
+                    return userOverride.get();
                 }
+            } catch (SQLException ex) {
+                logger.log(Level.SEVERE, "Failed to verify user-specific permission {0} for user {1}",
+                        new Object[]{permissionCode, userId});
+                logger.log(Level.FINE, "SQLException stack trace", ex);
             }
-            
-            return result; // null nếu không có UserPermission phù hợp
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Error checking user permission", e);
-            throw e;
+        }
+        Integer roleId = user.getRoleId();
+        if (roleId == null || roleId <= 0) {
+            return false;
+        }
+        try {
+            return rolePermissionDAO.hasPermissionCode(roleId, permissionCode);
+        } catch (SQLException ex) {
+            logger.log(Level.SEVERE, "Failed to verify permission {0} for role {1}",
+                    new Object[]{permissionCode, roleId});
+            logger.log(Level.FINE, "SQLException stack trace", ex);
+            return false;
         }
     }
-    
+
     /**
-     * Kiểm tra RolePermission
+     * Ensure user has both the required role and permission for HTML responses.
      */
-    private static boolean checkRolePermission(int roleId, int permissionId) throws SQLException {
-        return rolePermissionDAO.hasRolePermission(roleId, permissionId);
+    public static boolean ensureRolePermission(HttpServletRequest request,
+                                               HttpServletResponse response,
+                                               int requiredRoleId,
+                                               String permissionCode,
+                                               String missingRoleMessage,
+                                               String missingPermissionMessage)
+            throws ServletException, IOException {
+        SystemUser currentUser = getCurrentUser(request);
+        if (!hasRole(currentUser, requiredRoleId)) {
+            handleHtmlForbidden(request, response,
+                    (missingRoleMessage == null || missingRoleMessage.isBlank())
+                            ? DEFAULT_DENIED_MESSAGE
+                            : missingRoleMessage);
+            return false;
+        }
+        if (!hasPermission(currentUser, permissionCode)) {
+            handleHtmlForbidden(request, response,
+                    (missingPermissionMessage == null || missingPermissionMessage.isBlank())
+                            ? DEFAULT_DENIED_MESSAGE
+                            : missingPermissionMessage);
+            return false;
+        }
+        return true;
     }
-    
+
     /**
-     * Kiểm tra user có quyền với scope DEPARTMENT không
+     * Ensure user has required role and permission for JSON responses.
      */
-    public static boolean hasDepartmentPermission(SystemUser user, String permissionCode, int departmentId) {
-        return hasPermission(user, permissionCode, departmentId);
+    public static boolean ensureRolePermissionJson(HttpServletRequest request,
+                                                   HttpServletResponse response,
+                                                   int requiredRoleId,
+                                                   String permissionCode,
+                                                   String missingRoleMessage,
+                                                   String missingPermissionMessage) throws IOException {
+        SystemUser currentUser = getCurrentUser(request);
+        if (!hasRole(currentUser, requiredRoleId)) {
+            handleJsonForbidden(response,
+                    (missingRoleMessage == null || missingRoleMessage.isBlank())
+                            ? DEFAULT_DENIED_MESSAGE
+                            : missingRoleMessage);
+            return false;
+        }
+        if (!hasPermission(currentUser, permissionCode)) {
+            handleJsonForbidden(response,
+                    (missingPermissionMessage == null || missingPermissionMessage.isBlank())
+                            ? DEFAULT_DENIED_MESSAGE
+                            : missingPermissionMessage);
+            return false;
+        }
+        return true;
     }
-    
-    /**
-     * Kiểm tra user có quyền với scope SELF không (chỉ với dữ liệu của chính họ)
-     */
-    public static boolean hasSelfPermission(SystemUser user, String permissionCode, int resourceOwnerId) {
+
+    private static boolean hasRole(SystemUser user, int requiredRoleId) {
         if (user == null) {
             return false;
         }
-        
-        // Nếu user là chủ sở hữu resource, cho phép
-        if (user.getEmployeeId() != null && user.getEmployeeId() == resourceOwnerId) {
-            return hasPermission(user, permissionCode, null);
+        Integer roleId = user.getRoleId();
+        return roleId != null && roleId == requiredRoleId;
+    }
+
+    /**
+     * Convenience method to ensure the current user has the permission.
+     * If not, renders an Access Denied page and returns false.
+     */
+    public static boolean ensurePermission(HttpServletRequest request,
+                                           HttpServletResponse response,
+                                           String permissionCode,
+                                           String message)
+            throws ServletException, IOException {
+        SystemUser currentUser = getCurrentUser(request);
+        if (hasPermission(currentUser, permissionCode)) {
+            return true;
         }
-        
+        handleHtmlForbidden(request, response, message);
         return false;
     }
-    
+
     /**
-     * Helper method để chuyển hướng đến trang AccessDenied
+     * Forward to the shared Access Denied page.
      */
-    public static void redirectToAccessDenied(jakarta.servlet.http.HttpServletRequest request, 
-                                             jakarta.servlet.http.HttpServletResponse response,
-                                             String permissionCode) throws java.io.IOException {
-        redirectToAccessDenied(request, response, permissionCode, null);
+    public static void handleHtmlForbidden(HttpServletRequest request,
+                                           HttpServletResponse response,
+                                           String message)
+            throws ServletException, IOException {
+        request.setAttribute("errorMessage",
+                (message == null || message.isBlank()) ? DEFAULT_DENIED_MESSAGE : message);
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        request.getRequestDispatcher("/Views/Common/AccessDenied.jsp").forward(request, response);
     }
-    
+
     /**
-     * Helper method để chuyển hướng đến trang AccessDenied với permission name
+     * Send a JSON 403 response.
      */
-    public static void redirectToAccessDenied(jakarta.servlet.http.HttpServletRequest request, 
-                                             jakarta.servlet.http.HttpServletResponse response,
-                                             String permissionCode, String permissionName) throws java.io.IOException {
-        request.setAttribute("permissionCode", permissionCode);
-        if (permissionName != null) {
-            request.setAttribute("permissionName", permissionName);
-        }
-        try {
-            request.getRequestDispatcher("/Views/AccessDenied.jsp").forward(request, response);
-        } catch (jakarta.servlet.ServletException e) {
-            logger.log(Level.SEVERE, "Error forwarding to AccessDenied page", e);
-            response.sendRedirect(request.getContextPath() + "/Views/AccessDenied.jsp");
-        }
+    public static void handleJsonForbidden(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        String safeMessage = (message == null || message.isBlank()) ? DEFAULT_DENIED_MESSAGE : message;
+        response.getWriter().write("{\"status\":\"error\",\"message\":\"" + escapeJson(safeMessage) + "\"}");
+    }
+
+    private static String escapeJson(String value) {
+        return value.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }
 

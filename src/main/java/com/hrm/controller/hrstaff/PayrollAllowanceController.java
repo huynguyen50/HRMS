@@ -1,6 +1,7 @@
 package com.hrm.controller.hrstaff;
 
 import com.hrm.dao.EmployeeAllowanceDAO;
+import com.hrm.util.PermissionUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -22,6 +23,9 @@ public class PayrollAllowanceController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (!ensureAccess(request, response)) {
+            return;
+        }
         try {
             String allowanceIdStr = request.getParameter("allowanceId");
             String employeeIdStr = request.getParameter("employeeId");
@@ -68,6 +72,9 @@ public class PayrollAllowanceController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (!ensureAccess(request, response)) {
+            return;
+        }
         String path = request.getServletPath();
         if (path != null && path.contains("/delete")) {
             doDelete(request, response);
@@ -76,6 +83,9 @@ public class PayrollAllowanceController extends HttpServlet {
     
     protected void doDelete(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (!ensureAccess(request, response)) {
+            return;
+        }
         try {
             String allowanceIdStr = request.getParameter("allowanceId");
             if (allowanceIdStr == null) {
@@ -99,6 +109,18 @@ public class PayrollAllowanceController extends HttpServlet {
             request.getSession().setAttribute("error", "Error deleting allowance: " + e.getMessage());
             response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=allowance");
         }
+    }
+
+    private boolean ensureAccess(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        return PermissionUtil.ensureRolePermission(
+                request,
+                response,
+                PermissionUtil.ROLE_HR_STAFF,
+                "VIEW_PAYROLLS",
+                "This page is restricted to HR Staff.",
+                "You do not have permission to manage payroll allowances."
+        );
     }
 }
 
