@@ -138,7 +138,7 @@ public class PayrollDAO {
     /**
      * Get total count of payrolls with filters (for pagination)
      */
-    public int getTotalPayrollCount(Integer employeeId, String status) {
+    public int getTotalPayrollCount(Integer employeeId, String status, String payPeriod) {
         StringBuilder sql = new StringBuilder("""
             SELECT COUNT(*)
             FROM Payroll p
@@ -156,6 +156,11 @@ public class PayrollDAO {
         if (status != null && !status.trim().isEmpty()) {
             sql.append(" AND p.Status = ?");
             params.add(status);
+        }
+        
+        if (payPeriod != null && !payPeriod.trim().isEmpty()) {
+            sql.append(" AND p.PayPeriod = ?");
+            params.add(payPeriod);
         }
         
         try (Connection con = DBConnection.getConnection();
@@ -176,11 +181,15 @@ public class PayrollDAO {
         return 0;
     }
     
+    public int getTotalPayrollCount(Integer employeeId, String status) {
+        return getTotalPayrollCount(employeeId, status, null);
+    }
+    
     /**
      * Get paged payrolls with filters and sorting (for pagination)
      */
-    public List<Map<String, Object>> getPagedPayrolls(int offset, int pageSize, 
-            Integer employeeId, String status, String sortBy, String sortOrder) {
+    public List<Map<String, Object>> getPagedPayrolls(int offset, int pageSize,
+            Integer employeeId, String status, String sortBy, String sortOrder, String payPeriod) {
         List<Map<String, Object>> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder("""
             SELECT p.*, e.FullName
@@ -199,6 +208,11 @@ public class PayrollDAO {
         if (status != null && !status.trim().isEmpty()) {
             sql.append(" AND p.Status = ?");
             params.add(status);
+        }
+        
+        if (payPeriod != null && !payPeriod.trim().isEmpty()) {
+            sql.append(" AND p.PayPeriod = ?");
+            params.add(payPeriod);
         }
         
         // Validate and set sortBy and sortOrder
@@ -272,6 +286,11 @@ public class PayrollDAO {
             e.printStackTrace();
         }
         return list;
+    }
+    
+    public List<Map<String, Object>> getPagedPayrolls(int offset, int pageSize,
+            Integer employeeId, String status, String sortBy, String sortOrder) {
+        return getPagedPayrolls(offset, pageSize, employeeId, status, sortBy, sortOrder, null);
     }
     
     /**
@@ -432,9 +451,10 @@ public class PayrollDAO {
         
         // Get PayrollAudit details if exists
         String auditSql = """
-            SELECT pa.*, e.FullName
+            SELECT pa.*, e.FullName AS EmployeeName, su.Username AS CalculatedByUsername
             FROM PayrollAudit pa
             JOIN Employee e ON pa.EmployeeID = e.EmployeeID
+            LEFT JOIN SystemUser su ON pa.CalculatedBy = su.UserID
             WHERE pa.EmployeeID = ? AND pa.PayPeriod = ?
         """;
         
@@ -447,6 +467,11 @@ public class PayrollDAO {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     Map<String, Object> audit = new HashMap<>();
+                    audit.put("auditId", rs.getInt("AuditID"));
+                    audit.put("baseSalary", rs.getBigDecimal("BaseSalary"));
+                    audit.put("allowance", rs.getBigDecimal("Allowance"));
+                    audit.put("netSalary", rs.getBigDecimal("NetSalary"));
+                    audit.put("status", rs.getString("Status"));
                     audit.put("actualWorkingDays", rs.getBigDecimal("ActualWorkingDays"));
                     audit.put("paidLeaveDays", rs.getBigDecimal("PaidLeaveDays"));
                     audit.put("unpaidLeaveDays", rs.getBigDecimal("UnpaidLeaveDays"));
@@ -462,27 +487,32 @@ public class PayrollDAO {
                     audit.put("otherDeduction", rs.getBigDecimal("OtherDeduction"));
                     audit.put("totalDeduction", rs.getBigDecimal("TotalDeduction"));
                     audit.put("calculatedAt", rs.getTimestamp("CalculatedAt"));
+                    audit.put("calculatedBy", rs.getObject("CalculatedBy"));
+                    audit.put("calculatedByUsername", rs.getString("CalculatedByUsername"));
                     audit.put("notes", rs.getString("Notes"));
                     result.put("audit", audit);
+                    result.put("employeeName", rs.getString("EmployeeName"));
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        
+
         // Get employee name
-        String employeeSql = "SELECT FullName FROM Employee WHERE EmployeeID = ?";
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(employeeSql)) {
-            
-            ps.setInt(1, payroll.getEmployeeId());
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    result.put("employeeName", rs.getString("FullName"));
+        if (!result.containsKey("employeeName")) {
+            String employeeSql = "SELECT FullName FROM Employee WHERE EmployeeID = ?";
+            try (Connection con = DBConnection.getConnection();
+                 PreparedStatement ps = con.prepareStatement(employeeSql)) {
+
+                ps.setInt(1, payroll.getEmployeeId());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        result.put("employeeName", rs.getString("FullName"));
+                    }
                 }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
         
         return result;

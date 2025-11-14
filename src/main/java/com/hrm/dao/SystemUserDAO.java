@@ -519,6 +519,18 @@ public class SystemUserDAO {
         return false;
     }
 
+    public SystemUser getAdminUser() throws SQLException {
+        String sql = "SELECT UserID FROM SystemUser WHERE RoleID = 1 LIMIT 1";
+        try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                int adminId = rs.getInt("UserID");
+                return getUserById(adminId);
+            }
+        }
+        return null;
+    }
+
     private SystemUser mapResultSetToUser(ResultSet rs) throws SQLException {
         SystemUser user = new SystemUser();
         user.setUserId(rs.getInt("UserID"));

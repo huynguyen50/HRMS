@@ -11,6 +11,7 @@ import com.hrm.model.entity.Role;
 import com.hrm.model.entity.Employee;
 import com.hrm.model.entity.Department;
 import com.hrm.dao.DBConnection;
+import com.hrm.util.PermissionUtil;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializer;
@@ -318,6 +319,14 @@ public class UserController extends HttpServlet {
 
         int roleId = Integer.parseInt(roleIdStr);
 
+        SystemUser existingAdmin = userDAO.getAdminUser();
+        if (roleId == PermissionUtil.ROLE_ADMIN && existingAdmin != null) {
+            response.setStatus(HttpServletResponse.SC_CONFLICT);
+            out.write("{\"success\":false,\"message\":\"Hệ thống chỉ cho phép duy nhất một tài khoản Admin.\"}");
+            out.flush();
+            return;
+        }
+
         SystemUser existingByEmployee = userDAO.getByEmployeeId(employeeId);
         if (existingByEmployee != null) {
             response.setStatus(HttpServletResponse.SC_CONFLICT);
@@ -379,10 +388,9 @@ public class UserController extends HttpServlet {
             String empParam = request.getParameter("employeeId");
             boolean isActive = request.getParameter("isActive") != null;
 
-            int userId;
-        int roleId;
-        Integer employeeId;
+            SystemUserDAO userDAO = new SystemUserDAO();
 
+            int userId;
             try {
                 userId = Integer.parseInt(idParam);
             } catch (NumberFormatException e) {
@@ -392,6 +400,15 @@ public class UserController extends HttpServlet {
                 return;
             }
 
+            SystemUser existingUser = userDAO.getUserById(userId);
+            if (existingUser == null) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                out.write("{\"success\":false,\"message\":\"Không tìm thấy người dùng để cập nhật.\"}");
+                out.flush();
+                return;
+            }
+
+            int roleId;
             try {
                 roleId = Integer.parseInt(roleIdParam);
             } catch (NumberFormatException e) {
@@ -401,6 +418,7 @@ public class UserController extends HttpServlet {
                 return;
             }
 
+            Integer employeeId;
             try {
                 if (empParam != null && !empParam.isEmpty()) {
                     employeeId = Integer.parseInt(empParam);
@@ -430,8 +448,6 @@ public class UserController extends HttpServlet {
                 return;
             }
 
-            SystemUserDAO userDAO = new SystemUserDAO();
-
             if (userDAO.usernameExistsForOtherUser(username, userId)) {
                 response.setStatus(HttpServletResponse.SC_CONFLICT); 
                 out.write("{\"success\":false,\"message\":\"Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác.\"}");
@@ -445,6 +461,23 @@ public class UserController extends HttpServlet {
                 out.write("{\"success\":false,\"message\":\"Nhân viên này đã có tài khoản. Vui lòng chọn nhân viên khác.\"}");
                 out.flush();
                 return;
+            }
+
+            SystemUser currentAdmin = userDAO.getAdminUser();
+            if (roleId == PermissionUtil.ROLE_ADMIN) {
+                if (currentAdmin != null && currentAdmin.getUserId() != userId) {
+                    response.setStatus(HttpServletResponse.SC_CONFLICT);
+                    out.write("{\"success\":false,\"message\":\"Hệ thống chỉ cho phép duy nhất một tài khoản Admin.\"}");
+                    out.flush();
+                    return;
+                }
+            } else {
+                if (currentAdmin != null && currentAdmin.getUserId() == userId) {
+                    response.setStatus(HttpServletResponse.SC_CONFLICT);
+                    out.write("{\"success\":false,\"message\":\"Không thể thay đổi vai trò của Admin duy nhất trong hệ thống.\"}");
+                    out.flush();
+                    return;
+                }
             }
 
             SystemUser user = new SystemUser();

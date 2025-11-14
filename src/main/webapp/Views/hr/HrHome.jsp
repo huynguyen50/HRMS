@@ -991,6 +991,135 @@
                 margin-bottom: 1rem;
                 opacity: 0.5;
             }
+            .payroll-cards {
+                display: grid !important;
+                grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+                gap: 1.5rem !important;
+            }
+            .payroll-card {
+                background: #ffffff !important;
+                border: 1px solid #e2e8f0 !important;
+                border-radius: 12px !important;
+                box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08) !important;
+                padding: 1.5rem !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 1.25rem !important;
+                transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+            }
+            .payroll-card:hover {
+                transform: translateY(-4px) !important;
+                box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12) !important;
+            }
+            .payroll-card .payroll-header {
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: flex-start !important;
+                gap: 1rem !important;
+            }
+            .payroll-card .payroll-title {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 0.25rem !important;
+            }
+            .payroll-card .employee-name {
+                font-size: 1.1rem !important;
+                font-weight: 600 !important;
+                color: #1e293b !important;
+            }
+            .payroll-card .payroll-id {
+                font-size: 0.85rem !important;
+                color: #64748b !important;
+            }
+            .payroll-card .status-badge {
+                border-radius: 999px !important;
+                padding: 0.35rem 0.85rem !important;
+                font-size: 0.75rem !important;
+                font-weight: 600 !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.03em !important;
+            }
+            .payroll-card .status-badge.Pending {
+                background: #fff7ed !important;
+                color: #c2410c !important;
+                border: 1px solid rgba(234, 88, 12, 0.3) !important;
+            }
+            .payroll-card .status-badge.Approved {
+                background: #ecfdf5 !important;
+                color: #047857 !important;
+                border: 1px solid rgba(16, 185, 129, 0.3) !important;
+            }
+            .payroll-card .status-badge.Rejected {
+                background: #fef2f2 !important;
+                color: #b91c1c !important;
+                border: 1px solid rgba(248, 113, 113, 0.3) !important;
+            }
+            .payroll-card .status-badge.Paid {
+                background: #eef2ff !important;
+                color: #4338ca !important;
+                border: 1px solid rgba(99, 102, 241, 0.3) !important;
+            }
+            .payroll-card .payroll-details {
+                display: grid !important;
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+                gap: 1rem !important;
+                border: 1px dashed #e2e8f0 !important;
+                border-radius: 10px !important;
+                padding: 1rem !important;
+                background: #f8fafc !important;
+            }
+            .payroll-card .detail-item {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 0.35rem !important;
+            }
+            .payroll-card .detail-label {
+                font-size: 0.75rem !important;
+                font-weight: 600 !important;
+                color: #64748b !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.08em !important;
+            }
+            .payroll-card .detail-value {
+                font-size: 1rem !important;
+                color: #0f172a !important;
+                font-weight: 600 !important;
+            }
+            .payroll-card .detail-value.amount {
+                font-feature-settings: "tnum" 1, "lnum" 1 !important;
+            }
+            .payroll-card .detail-value.deduction {
+                color: #dc2626 !important;
+            }
+            .payroll-card .detail-value.net-amount {
+                font-size: 1.25rem !important;
+                font-weight: 700 !important;
+                color: #2563eb !important;
+            }
+            .payroll-card .payroll-actions {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                gap: 0.75rem !important;
+            }
+            .payroll-card .payroll-actions .btn {
+                flex: 1 !important;
+                min-width: 140px !important;
+            }
+            .hr-main-content {
+                display: flex !important;
+                max-width: 1400px !important;
+                margin: 0 auto !important;
+                padding: 2rem !important;
+                gap: 2rem !important;
+            }
+            .hr-sidebar {
+                width: 280px !important;
+                background: white !important;
+                border-radius: 12px !important;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.1) !important;
+                padding: 1.5rem !important;
+                height: fit-content !important;
+            }
         </style>
     </head>
     <body>
@@ -1059,6 +1188,14 @@
                         
                         <div class="nav-section">
                             <h3>Recruitment</h3>
+                            <a href="${pageContext.request.contextPath}/viewRecruitment" class="nav-item">
+                                <i class="fas fa-bullhorn"></i>
+                                <span>View Recruitment</span>
+                            </a>
+                            <a href="${pageContext.request.contextPath}/candidates" class="nav-item">
+                                <i class="fas fa-users"></i>
+                                <span>View Candidates</span>
+                            </a>
                             <a href="${pageContext.request.contextPath}/hr/create-employee" class="nav-item">
                                 <i class="fas fa-user-plus"></i>
                                 <span>Create Employee</span>
@@ -1167,6 +1304,16 @@
                             <div class="quick-access">
                                 <h3>Quick Access</h3>
                                 <div class="access-grid">
+                                    <a href="${pageContext.request.contextPath}/ProfileManagementController" class="access-card">
+                                    <i class="fas fa-user-edit"></i>
+                                        <h4>Profile Management</h4>
+                                        <p>Manage employee profiles</p>
+                                    </a>
+<!--                                    <a href="${pageContext.request.contextPath}/EmploymentStatusController" class="access-card">
+                                        <i class="fas fa-user-check"></i>
+                                        <h4>Employment Status</h4>
+                                        <p>Update employment status</p>
+                                    </a>-->
                                     <a href="${pageContext.request.contextPath}/viewRecruitment" class="access-card">
                                         <i class="fas fa-bullhorn"></i>
                                         <h4>Post Recruitment</h4>
@@ -1227,6 +1374,78 @@
                         </div>
                     </section>
                     
+
+                    <!-- Profile Management Section -->
+                    <section id="ProfileManagementController" class="content-section">
+                        <div class="section-header">
+                            <h2>Profile Management</h2>
+                            <p>Approve or reject employee personal information update requests</p>
+                        </div>
+                        
+                        <div class="management-tabs">
+                            <button class="tab-btn active" data-tab="pending-profiles">Pending</button>
+                            <button class="tab-btn" data-tab="approved-profiles">Approved</button>
+                            <button class="tab-btn" data-tab="rejected-profiles">Rejected</button>
+                        </div>
+                        
+                        <div class="tab-content">
+                            <div id="pending-profiles" class="tab-panel active">
+                                <div class="profile-requests">
+                                    <c:choose>
+                                        <c:when test="${not empty employees}">
+                                            <c:forEach var="employee" items="${employees}" begin="0" end="4">
+                                    <div class="request-card">
+                                        <div class="request-header">
+                                            <div class="employee-info">
+                                                            <img src="https://i.pravatar.cc/50?img=${employee.employeeId}" alt="Employee">
+                                                <div>
+                                                                <h4>${employee.fullName}</h4>
+                                                                <p>${employee.position} - ${employee.departmentName}</p>
+                                                </div>
+                                            </div>
+                                            <div class="request-date">
+                                                <i class="fas fa-clock"></i>
+                                                            <span>${employee.employmentPeriod}</span>
+                                            </div>
+                                        </div>
+                                        <div class="request-details">
+                                                        <h5>Employee Information:</h5>
+                                                        <ul>
+                                                            <li><strong>Email:</strong> ${employee.email}</li>
+                                                            <li><strong>Phone:</strong> ${employee.phone}</li>
+                                                            <li><strong>Address:</strong> ${employee.address}</li>
+                                                            <li><strong>Status:</strong> ${employee.status}</li>
+                                            </ul>
+                                        </div>
+                                        <div class="request-actions">
+                                            <button class="btn-approve">
+                                                <i class="fas fa-check"></i>
+                                                            Approve
+                                            </button>
+                                            <button class="btn-reject">
+                                                <i class="fas fa-times"></i>
+                                                            Reject
+                                            </button>
+                                            <button class="btn-view-details">
+                                                <i class="fas fa-eye"></i>
+                                                            View Details
+                                            </button>
+                                        </div>
+                                    </div>
+                                            </c:forEach>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="no-data">
+                                                <i class="fas fa-users-slash"></i>
+                                                <h3>No employee profiles found</h3>
+                                                <p>There are no employee profiles to display at the moment.</p>
+                                                </div>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
 <!--                     Employment Status Management Section 
                     <section id="employment-status" class="content-section">
@@ -1369,30 +1588,34 @@
                                     
                                     <!-- Status Tabs -->
                                     <div class="status-tabs-container">
-                                        <button class="status-tab-btn ${payrollStatus == 'Pending' ? 'active' : ''}" data-status="Pending" onclick="loadPayrollsByStatus('Pending')">
+                                        <a class="status-tab-btn ${payrollStatus == 'Pending' ? 'active' : ''}" data-status="Pending" href="${pageContext.request.contextPath}/HrHomeController?section=payroll-management&payrollStatus=Pending">
                                             <i class="fas fa-clock"></i> Pending <span class="badge" id="pendingCount">${pendingCount != null ? pendingCount : 0}</span>
-                                        </button>
-                                        <button class="status-tab-btn ${payrollStatus == 'Approved' ? 'active' : ''}" data-status="Approved" onclick="loadPayrollsByStatus('Approved')">
+                                        </a>
+                                        <a class="status-tab-btn ${payrollStatus == 'Approved' ? 'active' : ''}" data-status="Approved" href="${pageContext.request.contextPath}/HrHomeController?section=payroll-management&payrollStatus=Approved">
                                             <i class="fas fa-check-circle"></i> Approved <span class="badge" id="approvedCount">${approvedCount != null ? approvedCount : 0}</span>
-                                        </button>
-                                        <button class="status-tab-btn ${payrollStatus == 'Rejected' ? 'active' : ''}" data-status="Rejected" onclick="loadPayrollsByStatus('Rejected')">
+                                        </a>
+                                        <a class="status-tab-btn ${payrollStatus == 'Rejected' ? 'active' : ''}" data-status="Rejected" href="${pageContext.request.contextPath}/HrHomeController?section=payroll-management&payrollStatus=Rejected">
                                             <i class="fas fa-times-circle"></i> Rejected <span class="badge" id="rejectedCount">${rejectedCount != null ? rejectedCount : 0}</span>
-                                        </button>
-                                        <button class="status-tab-btn ${payrollStatus == 'Paid' ? 'active' : ''}" data-status="Paid" onclick="loadPayrollsByStatus('Paid')">
+                                        </a>
+                                        <a class="status-tab-btn ${payrollStatus == 'Paid' ? 'active' : ''}" data-status="Paid" href="${pageContext.request.contextPath}/HrHomeController?section=payroll-management&payrollStatus=Paid">
                                             <i class="fas fa-money-bill-wave"></i> Paid <span class="badge" id="paidCount">${paidCount != null ? paidCount : 0}</span>
-                                        </button>
+                                        </a>
                                     </div>
                                     
                                     <!-- Filter Section -->
-                                    <div class="approval-filters">
-                                        <select id="employeeFilter" onchange="loadPayrollsByStatus(getCurrentStatus())">
+                                    <form class="approval-filters" method="get" action="${pageContext.request.contextPath}/HrHomeController">
+                                        <input type="hidden" name="section" value="payroll-management"/>
+                                        <input type="hidden" name="payrollStatus" value="${payrollStatus != null ? payrollStatus : 'Pending'}"/>
+                                        <select id="employeeFilter" name="employeeFilter" onchange="this.form.submit()">
                                             <option value="">All Employees</option>
                                             <c:forEach var="employee" items="${employees}">
                                                 <option value="${employee.employeeId}" ${payrollEmployeeFilter == employee.employeeId ? 'selected' : ''}>${employee.fullName} (ID: ${employee.employeeId})</option>
                                             </c:forEach>
                                         </select>
-                                        <input type="month" id="monthFilter" value="${payrollMonthFilter}" onchange="loadPayrollsByStatus(getCurrentStatus())"/>
-                                    </div>
+                                        <input type="month" id="monthFilter" name="monthFilter" value="${payrollMonthFilter}" onchange="this.form.submit()"/>
+                                        <button type="submit" class="btn btn-filter">Apply</button>
+                                        <a class="btn btn-reset" href="${pageContext.request.contextPath}/HrHomeController?section=payroll-management">Reset</a>
+                                    </form>
                                     
                                     <!-- Payrolls List -->
                                     <div id="payrollsList" class="payrolls-list">
@@ -1410,7 +1633,7 @@
                                                         
                                                         NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
                                                     %>
-                                                    <div class="payroll-card status-${fn:toLowerCase(status)}">
+                                                    <div class="payroll-card status-${fn:toLowerCase(status)}" data-payroll-id="${payroll.payrollId}">
                                                         <div class="payroll-header">
                                                             <div class="payroll-title">
                                                                 <div class="employee-name">
@@ -1424,23 +1647,23 @@
                                                         <div class="payroll-details">
                                                             <div class="detail-item">
                                                                 <span class="detail-label">Base Salary</span>
-                                                                <span class="detail-value amount"><%= nf.format(baseSalary) %> VNĐ</span>
+                                                                <span class="detail-value amount"><%= nf.format(baseSalary != null ? baseSalary : BigDecimal.ZERO) %> VNĐ</span>
                                                             </div>
                                                             <div class="detail-item">
                                                                 <span class="detail-label">OT Salary</span>
-                                                                <span class="detail-value amount"><%= nf.format(bonus) %> VNĐ</span>
+                                                                <span class="detail-value amount"><%= nf.format(bonus != null ? bonus : BigDecimal.ZERO) %> VNĐ</span>
                                                             </div>
                                                             <div class="detail-item">
                                                                 <span class="detail-label">Allowance</span>
-                                                                <span class="detail-value amount"><%= nf.format(allowance) %> VNĐ</span>
+                                                                <span class="detail-value amount"><%= nf.format(allowance != null ? allowance : BigDecimal.ZERO) %> VNĐ</span>
                                                             </div>
                                                             <div class="detail-item">
                                                                 <span class="detail-label">Deduction</span>
-                                                                <span class="detail-value" style="color: var(--danger-color);"><%= nf.format(deduction) %> VNĐ</span>
+                                                                <span class="detail-value deduction"><%= nf.format(deduction != null ? deduction : BigDecimal.ZERO) %> VNĐ</span>
                                                             </div>
                                                             <div class="detail-item">
                                                                 <span class="detail-label">Net Salary</span>
-                                                                <span class="detail-value amount" style="font-size: 1.3rem; font-weight: 700;"><%= nf.format(netSalary) %> VNĐ</span>
+                                                                <span class="detail-value net-amount"><%= nf.format(netSalary != null ? netSalary : BigDecimal.ZERO) %> VNĐ</span>
                                                             </div>
                                                             <c:if test="${not empty payroll.approvedDate}">
                                                                 <div class="detail-item">
@@ -1451,14 +1674,14 @@
                                                         </div>
 
                                                         <div class="payroll-actions">
-                                                            <button type="button" class="btn btn-view" onclick="viewPayrollDetails(${payroll.payrollId})">
+                                                            <button type="button" class="btn btn-view" data-payroll-id="${payroll.payrollId}">
                                                                 <i class="fas fa-eye"></i> View Details
                                                             </button>
                                                             <c:if test="${status == 'Pending'}">
-                                                                <button type="button" class="btn btn-approve" onclick="approvePayroll(${payroll.payrollId}, '${payroll.employeeName}', '${payroll.payPeriod}')">
+                                                                <button type="button" class="btn btn-approve" data-payroll-id="${payroll.payrollId}" data-employee="${payroll.employeeName}" data-period="${payroll.payPeriod}">
                                                                     <i class="fas fa-check"></i> Approve
                                                                 </button>
-                                                                <button type="button" class="btn btn-reject" onclick="rejectPayroll(${payroll.payrollId}, '${payroll.employeeName}', '${payroll.payPeriod}')">
+                                                                <button type="button" class="btn btn-reject" data-payroll-id="${payroll.payrollId}" data-employee="${payroll.employeeName}" data-period="${payroll.payPeriod}">
                                                                     <i class="fas fa-times"></i> Reject
                                                                 </button>
                                                             </c:if>
@@ -1760,9 +1983,12 @@
             
             // Initialize navigation on page load
             document.addEventListener('DOMContentLoaded', function() {
+                const appContext = '${pageContext.request.contextPath}';
+                // Sidebar navigation
+                const menuItems = document.querySelectorAll('.nav-item[data-section]');
+
                 // Handle navigation items with data-section
-                const navItems = document.querySelectorAll('.nav-item[data-section]');
-                navItems.forEach(item => {
+                menuItems.forEach(item => {
                     item.addEventListener('click', function(e) {
                         e.preventDefault();
                         const sectionId = this.getAttribute('data-section');
@@ -1877,17 +2103,22 @@
             }
             
             function loadPayrollsByStatus(status) {
-                // Redirect to PayrollApprovalController instead of HrHomeController
-                const employeeId = document.getElementById('employeeFilter') ? document.getElementById('employeeFilter').value : '';
-                const month = document.getElementById('monthFilter') ? document.getElementById('monthFilter').value : '';
-                
-                // Build URL to redirect to payroll approval page
-                let url = '${pageContext.request.contextPath}/hr/payroll-approval?status=' + status;
-                if (employeeId) url += '&employeeFilter=' + employeeId;
-                if (month) url += '&monthFilter=' + month;
-                
-                // Redirect to payroll approval page
-                window.location.href = url;
+                const params = new URLSearchParams(window.location.search);
+                params.set('section', 'payroll-management');
+                params.set('payrollStatus', status);
+                const employeeSelect = document.getElementById('employeeFilter');
+                const monthInput = document.getElementById('monthFilter');
+                if (employeeSelect && employeeSelect.value) {
+                    params.set('employeeFilter', employeeSelect.value);
+                } else {
+                    params.delete('employeeFilter');
+                }
+                if (monthInput && monthInput.value) {
+                    params.set('monthFilter', monthInput.value);
+                } else {
+                    params.delete('monthFilter');
+                }
+                window.location.href = appContext + '/HrHomeController?' + params.toString();
             }
             
             function updateCountsFromPage(doc) {
@@ -1915,10 +2146,9 @@
                 // Approve buttons
                 document.querySelectorAll('.btn-approve').forEach(btn => {
                     btn.addEventListener('click', function() {
-                        const payrollId = this.getAttribute('onclick')?.match(/\d+/)?.[0] || 
-                                         this.closest('.payroll-card')?.getAttribute('data-payroll-id');
-                        const employeeName = this.closest('.payroll-card')?.querySelector('.employee-name')?.textContent?.trim() || 'Employee';
-                        const payPeriod = this.closest('.payroll-card')?.querySelector('.payroll-id')?.textContent?.match(/Period: (.+)/)?.[1] || '';
+                        const payrollId = this.dataset.payrollId;
+                        const employeeName = this.dataset.employee || this.closest('.payroll-card')?.querySelector('.employee-name')?.textContent?.trim() || 'Employee';
+                        const payPeriod = this.dataset.period || this.closest('.payroll-card')?.querySelector('.payroll-id')?.textContent?.match(/Period: (.+)/)?.[1] || '';
                         if (payrollId) approvePayroll(payrollId, employeeName, payPeriod);
                     });
                 });
@@ -1926,10 +2156,9 @@
                 // Reject buttons
                 document.querySelectorAll('.btn-reject').forEach(btn => {
                     btn.addEventListener('click', function() {
-                        const payrollId = this.getAttribute('onclick')?.match(/\d+/)?.[0] || 
-                                         this.closest('.payroll-card')?.getAttribute('data-payroll-id');
-                        const employeeName = this.closest('.payroll-card')?.querySelector('.employee-name')?.textContent?.trim() || 'Employee';
-                        const payPeriod = this.closest('.payroll-card')?.querySelector('.payroll-id')?.textContent?.match(/Period: (.+)/)?.[1] || '';
+                        const payrollId = this.dataset.payrollId;
+                        const employeeName = this.dataset.employee || this.closest('.payroll-card')?.querySelector('.employee-name')?.textContent?.trim() || 'Employee';
+                        const payPeriod = this.dataset.period || this.closest('.payroll-card')?.querySelector('.payroll-id')?.textContent?.match(/Period: (.+)/)?.[1] || '';
                         if (payrollId) rejectPayroll(payrollId, employeeName, payPeriod);
                     });
                 });
@@ -1937,8 +2166,7 @@
                 // View details buttons
                 document.querySelectorAll('.btn-view').forEach(btn => {
                     btn.addEventListener('click', function() {
-                        const payrollId = this.getAttribute('onclick')?.match(/\d+/)?.[0] || 
-                                         this.closest('.payroll-card')?.getAttribute('data-payroll-id');
+                        const payrollId = this.dataset.payrollId || this.closest('.payroll-card')?.dataset.payrollId;
                         if (payrollId) viewPayrollDetails(payrollId);
                     });
                 });
