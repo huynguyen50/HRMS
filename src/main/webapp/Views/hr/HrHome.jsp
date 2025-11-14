@@ -1192,10 +1192,6 @@
                                 <i class="fas fa-bullhorn"></i>
                                 <span>View Recruitment</span>
                             </a>
-                            <a href="${pageContext.request.contextPath}/candidates" class="nav-item">
-                                <i class="fas fa-users"></i>
-                                <span>View Candidates</span>
-                            </a>
                             <a href="${pageContext.request.contextPath}/hr/create-employee" class="nav-item">
                                 <i class="fas fa-user-plus"></i>
                                 <span>Create Employee</span>
@@ -1320,11 +1316,7 @@
                                         <p>Create job postings</p>
                                     </a>
                                     
-                                    <a href="${pageContext.request.contextPath}/candidates" class="access-card">
-                                        <i class="fas fa-users"></i>
-                                        <h4>View Candidates</h4>
-                                        <p>Review applications</p>
-                                    </a>
+                                 
                                     <a href="${pageContext.request.contextPath}/hr/create-employee" class="access-card">
                                         <i class="fas fa-user-plus"></i>
                                         <h4>Create Employee</h4>
@@ -1775,10 +1767,7 @@
                                                     <i class="fas fa-edit"></i>
                                                     Edit
                                                 </button>
-                                                <button class="btn-secondary">
-                                                    <i class="fas fa-eye"></i>
-                                                    View Candidates
-                                                </button>
+                                             
                                                 <button class="btn-danger">
                                                     <i class="fas fa-pause"></i>
                                                     Pause
@@ -1802,10 +1791,6 @@
                                                 <button class="btn-secondary">
                                                     <i class="fas fa-edit"></i>
                                                     Edit
-                                                </button>
-                                                <button class="btn-secondary">
-                                                    <i class="fas fa-eye"></i>
-                                                    View Candidates
                                                 </button>
                                                 <button class="btn-danger">
                                                     <i class="fas fa-pause"></i>

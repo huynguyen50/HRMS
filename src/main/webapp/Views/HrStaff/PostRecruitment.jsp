@@ -6,7 +6,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>HR Staff - Quản lý tin tuyển dụng</title>
+        <title>Post Recruitment</title>
         <link rel="stylesheet" href="<%=request.getContextPath()%>/css/style.css"/>
         <style>
             :root {
@@ -15,7 +15,7 @@
                 --bg:#f3f4f6;
                 --card:#ffffff;
                 --border:#e5e7eb;
-                --text:#111827;
+                --text:#000000;
                 --muted:#6b7280;
                 --success:#10b981;
                 --warning:#f59e0b;
@@ -127,16 +127,18 @@
                 margin-bottom: 10px;
             }
 
-            .side-link {
+            .side-link, .side-link:visited {
                 display: flex;
                 align-items: center;
                 gap: 10px;
                 padding: 12px 12px;
                 border-radius: 10px;
-                color: var(--text);
+                color: var(--text) !important;
                 text-decoration: none;
                 transition: all 0.2s;
                 font-weight: 500;
+                font-size: 15px;
+                white-space: nowrap;
             }
 
             .side-link:hover {
@@ -361,7 +363,7 @@
             </div>
             <div class="top-actions">
                 <a class="btn secondary" href="<%=request.getContextPath()%>/hrstaff">🏠 HR Staff Home</a>
-                
+                <a class="btn success" href="${pageContext.request.contextPath}/detailRecruitmentCreate">➕ Create New</a>
             </div>
         </div>
 
