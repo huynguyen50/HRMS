@@ -50,6 +50,13 @@ public class DetailRecruitmentCreate extends HttpServlet {
         String salaryStr = request.getParameter("Salary");
         String applicantStr = request.getParameter("Applicant");
 
+        request.setAttribute("title", title);
+        request.setAttribute("description", description);
+        request.setAttribute("requirement", requirement);
+        request.setAttribute("location", location);
+        request.setAttribute("salary", salaryStr);
+        request.setAttribute("applicant", applicantStr);
+
         double salary;
         int applicant;
         try {

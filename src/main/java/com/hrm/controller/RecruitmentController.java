@@ -172,9 +172,16 @@ int recruitmentId = Integer.parseInt(recruitmentIdStr);
                 Part cvFilePart = request.getPart("cvFile");
                 System.out.println("CV File Part: " + (cvFilePart != null ? "Found" : "Not found"));
                 // Lấy đường dẫn thực tế của webapp từ servlet context
-                String webappPath = getServletContext().getRealPath("/");
-                String uploadPath = webappPath + "Upload/cvs";
-                System.out.println("Upload path: " + uploadPath);
+                String uploadRelativePath = "/Upload/cvs";
+                String uploadPath = getServletContext().getRealPath(uploadRelativePath);
+                Path uploadDir = null;
+                if (uploadPath != null) {
+                    uploadDir = Paths.get(uploadPath);
+                } else {
+                    // Fallback khi chạy ở môi trường không hỗ trợ getRealPath (ví dụ: chạy jar)
+                    uploadDir = Paths.get(System.getProperty("user.home"), "hrms", "Upload", "cvs");
+                }
+                System.out.println("Upload path: " + uploadDir.toAbsolutePath());
 
                 if (cvFilePart != null && cvFilePart.getSize() > 0) {
                     String originalFileName = getFileName(cvFilePart);
@@ -183,7 +190,6 @@ int recruitmentId = Integer.parseInt(recruitmentIdStr);
                         String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
 
                         // Phần này giữ nguyên
-                        Path uploadDir = Paths.get(uploadPath);
                         if (!Files.exists(uploadDir)) {
                             Files.createDirectories(uploadDir);
                         }

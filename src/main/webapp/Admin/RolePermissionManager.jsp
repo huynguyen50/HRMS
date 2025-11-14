@@ -185,6 +185,14 @@
                 text-align: center;
                 position: relative;
             }
+            .matrix-cell.locked-role .matrix-toggle {
+                cursor: not-allowed;
+                opacity: 0.6;
+            }
+            .matrix-cell.locked-role .matrix-toggle:hover {
+                transform: none;
+                border-color: #d4dcff;
+            }
             .matrix-cell.granted {
                 background: rgba(52, 199, 89, 0.08);
             }
@@ -365,11 +373,13 @@
                                                 <c:if test="${normalizedRoleName eq 'HR MANAGER'}">
                                                     <c:set var="displayRoleName" value="HR"/>
                                                 </c:if>
-                                                <th class="matrix-role-header"
-                                                    data-role-id="${role.roleId}"
-                                                    data-permissions="${fn:escapeXml(rolePermissionCsv[role.roleId])}">
-                                                    ${displayRoleName}
-                                                </th>
+                                                <c:if test="${fn:toLowerCase(role.roleName) ne 'admin'}">
+                                                    <th class="matrix-role-header"
+                                                        data-role-id="${role.roleId}"
+                                                        data-permissions="${fn:escapeXml(rolePermissionCsv[role.roleId])}">
+                                                        ${displayRoleName}
+                                                    </th>
+                                                </c:if>
                                             </c:forEach>
                                         </tr>
                                     </thead>
@@ -390,38 +400,43 @@
                                             <c:if test="${empty categoryDesc}">
                                                 <c:set var="categoryDesc" value="Feature ${entry.key}"/>
                                             </c:if>
-                                            <tr class="category-row" data-category="${entry.key}" data-permission-ids="${permissionIds}">
-                                                <td class="category-info sticky-col">
-                                                    <span class="category-info-title">${entry.key}</span>
-                                                    <span class="category-info-desc">${categoryDesc}</span>
-                                                    <span class="category-info-meta">${totalPermissions} detailed permissions</span>
-                                                    <div class="category-actions">
-                                                        <button type="button"
-                                                                class="category-btn apply-all"
-                                                                data-category="${entry.key}"
-                                                                data-permission-ids="${permissionIds}">
-                                                            Enable all roles
-                                                        </button>
-                                                        <button type="button"
-                                                                class="category-btn danger remove-all"
-                                                                data-category="${entry.key}"
-                                                                data-permission-ids="${permissionIds}">
-                                                            Disable all roles
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                                <c:forEach var="role" items="${roles}">
-                                                    <td class="matrix-cell">
-                                                        <label class="matrix-toggle" aria-label="Role ${role.roleName} - ${entry.key}">
-                                                            <input type="checkbox"
-                                                                   class="matrix-checkbox"
-                                                                   data-role-id="${role.roleId}"
-                                                                   data-permission-ids="${permissionIds}">
-                                                            <span class="matrix-slider"></span>
-                                                        </label>
+                                            <c:if test="${entry.key ne 'Department'}">
+                                                <tr class="category-row" data-category="${entry.key}" data-permission-ids="${permissionIds}">
+                                                    <td class="category-info sticky-col">
+                                                        <span class="category-info-title">${entry.key}</span>
+                                                        <span class="category-info-desc">${categoryDesc}</span>
+                                                        <span class="category-info-meta">${totalPermissions} detailed permissions</span>
+                                                        <div class="category-actions">
+                                                            <button type="button"
+                                                                    class="category-btn apply-all"
+                                                                    data-category="${entry.key}"
+                                                                    data-permission-ids="${permissionIds}">
+                                                                Enable all roles
+                                                            </button>
+                                                            <button type="button"
+                                                                    class="category-btn danger remove-all"
+                                                                    data-category="${entry.key}"
+                                                                    data-permission-ids="${permissionIds}">
+                                                                Disable all roles
+                                                            </button>
+                                                        </div>
                                                     </td>
-                                                </c:forEach>
-                                            </tr>
+                                                    <c:forEach var="role" items="${roles}">
+                                                        <c:set var="isAdminRole" value="${fn:toLowerCase(role.roleName) eq 'admin'}"/>
+                                                        <c:if test="${not isAdminRole}">
+                                                            <td class="matrix-cell">
+                                                                <label class="matrix-toggle" aria-label="Role ${role.roleName} - ${entry.key}">
+                                                                    <input type="checkbox"
+                                                                           class="matrix-checkbox"
+                                                                           data-role-id="${role.roleId}"
+                                                                           data-permission-ids="${permissionIds}">
+                                                                    <span class="matrix-slider"></span>
+                                                                </label>
+                                                            </td>
+                                                        </c:if>
+                                                    </c:forEach>
+                                                </tr>
+                                            </c:if>
                                         </c:forEach>
                                     </tbody>
                                 </table>
@@ -584,6 +599,9 @@
                     }
                     try {
                         for (const cb of relatedCheckboxes) {
+                            if (cb.disabled) {
+                                continue;
+                            }
                             const roleId = parseInt(cb.dataset.roleId, 10);
                             if (!roleId) {
                                 continue;
@@ -705,6 +723,9 @@
                 }
 
                 checkboxes.forEach(cb => {
+                    if (cb.disabled) {
+                        return;
+                    }
                     cb.addEventListener('change', () => {
                         if (lockChange) {
                             return;
