@@ -2544,6 +2544,8 @@
                             }
                         });
                     });
+
+                    document.getElementById('payrollDetailsModal').classList.add('active');
         </script>
     </body>
 </html>

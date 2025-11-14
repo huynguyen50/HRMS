@@ -52,18 +52,15 @@ public class HrHomeController extends HttpServlet {
             String payrollStatus = request.getParameter("payrollStatus");
             String employeeFilter = request.getParameter("employeeFilter");
             String monthFilter = request.getParameter("monthFilter");
-            
-            int pendingCount = payrollDAO.getTotalPayrollCount(null, "Pending");
-            int approvedCount = payrollDAO.getTotalPayrollCount(null, "Approved");
-            int rejectedCount = payrollDAO.getTotalPayrollCount(null, "Rejected");
-            int paidCount = payrollDAO.getTotalPayrollCount(null, "Paid");
-            
-            request.setAttribute("pendingCount", pendingCount);
-            request.setAttribute("approvedCount", approvedCount);
-            request.setAttribute("rejectedCount", rejectedCount);
-            request.setAttribute("paidCount", paidCount);
+            String successMessage = request.getParameter("success");
+            String errorMessage = request.getParameter("error");
             
             if ("payroll-management".equals(section) || payrollStatus != null) {
+                int pendingCount = payrollDAO.getTotalPayrollCount(null, "Pending");
+                int approvedCount = payrollDAO.getTotalPayrollCount(null, "Approved");
+                int rejectedCount = payrollDAO.getTotalPayrollCount(null, "Rejected");
+                int paidCount = payrollDAO.getTotalPayrollCount(null, "Paid");
+
                 if (payrollStatus == null || payrollStatus.trim().isEmpty()) {
                     payrollStatus = "Pending";
                 }
@@ -87,6 +84,10 @@ public class HrHomeController extends HttpServlet {
                 request.setAttribute("payrollStatus", payrollStatus);
                 request.setAttribute("payrollEmployeeFilter", employeeFilter);
                 request.setAttribute("payrollMonthFilter", monthFilter);
+                request.setAttribute("pendingCount", pendingCount);
+                request.setAttribute("approvedCount", approvedCount);
+                request.setAttribute("rejectedCount", rejectedCount);
+                request.setAttribute("paidCount", paidCount);
             } else {
                 request.setAttribute("payrolls", new java.util.ArrayList<>());
                 request.setAttribute("payrollStatus", "Pending");
@@ -98,6 +99,12 @@ public class HrHomeController extends HttpServlet {
             request.setAttribute("departments", departments);
             request.setAttribute("section", section != null ? section : "hr-home");
             request.setAttribute("controllerMessage", "HrHomeController executed successfully!");
+            if (successMessage != null && !successMessage.isBlank()) {
+                request.setAttribute("successMessage", successMessage);
+            }
+            if (errorMessage != null && !errorMessage.isBlank()) {
+                request.setAttribute("errorMessage", errorMessage);
+            }
             
             System.out.println("HrHomeController: Forwarding to HrHome.jsp");
             request.getRequestDispatcher("/Views/hr/HrHome.jsp").forward(request, response);
