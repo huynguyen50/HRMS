@@ -1489,9 +1489,6 @@
 
         <script>
 
-            // Tab switching is now handled by URL parameters and backend rendering
-            // No need for showTab function anymore
-
             function openAllowanceModal() {
                 const modal = document.getElementById('allowanceModal');
                 if (modal) {
@@ -1536,7 +1533,6 @@
                     document.getElementById('attendanceInfoSection').style.display = 'none';
                     document.getElementById('insuranceTaxSection').style.display = 'none';
                     
-                    // Set default month to current month if empty
                     const payrollPeriod = document.getElementById('payrollPeriod');
                     if (payrollPeriod && !payrollPeriod.value) {
                         const now = new Date();
@@ -1609,19 +1605,16 @@
                     .then(data => {
                         console.log('Payroll data loaded:', data);
                         
-                        // Populate form fields
                         document.getElementById('payrollId').value = data.payrollId;
                         document.getElementById('payrollEmployee').value = data.employeeId;
                         document.getElementById('payrollPeriod').value = data.payPeriod;
                         
-                        // Set base salary (from Payroll table - this is actual base salary)
                         const actualBaseSalary = parseFloat(data.baseSalary) || 0;
-                        const otSalary = parseFloat(data.bonus) || 0; // Bonus field stores OT Salary
+                        const otSalary = parseFloat(data.bonus) || 0; 
                         const allowance = parseFloat(data.allowance) || 0;
                         const deduction = parseFloat(data.deduction) || 0;
                         const netSalary = parseFloat(data.netSalary) || 0;
                         
-                        // Set hidden fields
                         document.getElementById('payrollBaseSalary').value = actualBaseSalary;
                         document.getElementById('payrollActualBaseSalary').value = actualBaseSalary;
                         document.getElementById('payrollOTSalary').value = otSalary;
@@ -1629,7 +1622,6 @@
                         document.getElementById('payrollDeduction').value = deduction;
                         document.getElementById('payrollNetSalary').value = netSalary;
                         
-                        // Update summary display
                         updatePayrollSummary({
                             baseSalary: actualBaseSalary,
                             actualBaseSalary: actualBaseSalary,
@@ -1639,10 +1631,8 @@
                             netSalary: netSalary
                         });
                         
-                        // Load employee payroll data to get attendance and insurance info
                         loadEmployeePayrollData();
                         
-                        // Open modal
                         openPayrollModal();
                     })
                     .catch(err => {
@@ -1667,7 +1657,6 @@
                 if (confirm('Are you sure you want to delete this payroll?')) {
                     const urlParams = new URLSearchParams(window.location.search);
                     let url = '<%=request.getContextPath()%>/hrstaff/payroll/delete?payrollId=' + id;
-                    // Preserve pagination parameters
                     if (urlParams.get('page')) url += '&page=' + urlParams.get('page');
                     if (urlParams.get('pageSize')) url += '&pageSize=' + urlParams.get('pageSize');
                     if (urlParams.get('sortBy')) url += '&sortBy=' + urlParams.get('sortBy');
@@ -2544,8 +2533,6 @@
                             }
                         });
                     });
-
-                    document.getElementById('payrollDetailsModal').classList.add('active');
         </script>
     </body>
 </html>

@@ -447,7 +447,7 @@ public class PayrollDAO {
         result.put("netSalary", payroll.getNetSalary());
         result.put("status", payroll.getStatus());
         result.put("approvedBy", payroll.getApprovedBy());
-        result.put("approvedDate", payroll.getApprovedDate());
+        result.put("approvedDate", payroll.getApprovedDate() != null ? payroll.getApprovedDate().toString() : null);
         
         // Get PayrollAudit details if exists
         String auditSql = """
@@ -486,7 +486,8 @@ public class PayrollDAO {
                     audit.put("absentPenalty", rs.getBigDecimal("AbsentPenalty"));
                     audit.put("otherDeduction", rs.getBigDecimal("OtherDeduction"));
                     audit.put("totalDeduction", rs.getBigDecimal("TotalDeduction"));
-                    audit.put("calculatedAt", rs.getTimestamp("CalculatedAt"));
+                    java.sql.Timestamp calculatedAt = rs.getTimestamp("CalculatedAt");
+                    audit.put("calculatedAt", calculatedAt != null ? calculatedAt.toInstant().toString() : null);
                     audit.put("calculatedBy", rs.getObject("CalculatedBy"));
                     audit.put("calculatedByUsername", rs.getString("CalculatedByUsername"));
                     audit.put("notes", rs.getString("Notes"));

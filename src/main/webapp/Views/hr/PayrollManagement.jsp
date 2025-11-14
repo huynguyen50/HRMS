@@ -1043,6 +1043,8 @@
                             </div>
                             <form method="GET" action="<%=request.getContextPath()%>/hr/payroll-approval" id="filterForm">
                                 <input type="hidden" name="status" value="${statusFilter}"/>
+                                <input type="hidden" name="page" id="pageField" value="${currentPage}"/>
+                                <input type="hidden" name="pageSize" id="pageSizeField" value="${pageSize}"/>
                                 <div class="filters">
                                     <div class="form-group">
                                         <label><i class="fas fa-user"></i> Employee</label>
@@ -1201,42 +1203,144 @@
                         </div>
 
                         <!-- Pagination -->
-                        <c:if test="${totalPages > 1}">
-                            <div class="pagination-bar">
-                                <div class="pagination-info">
-                                    Showing ${(currentPage - 1) * pageSize + 1} to ${currentPage * pageSize > totalCount ? totalCount : currentPage * pageSize} of ${totalCount} payrolls
-                                </div>
-                                <div class="pagination-controls">
-                                    <c:if test="${currentPage > 1}">
-                                        <a href="?status=${statusFilter}&employeeFilter=${employeeFilter}&payPeriod=${payPeriodFilter}&page=${currentPage - 1}">« Previous</a>
-                                    </c:if>
-                                    <c:if test="${currentPage <= 1}">
-                                        <span class="disabled">« Previous</span>
-                                    </c:if>
-                                    
-                                    <c:forEach begin="1" end="${totalPages}" var="i">
-                                        <c:choose>
-                                            <c:when test="${i == currentPage}">
-                                                <span class="active">${i}</span>
-                                            </c:when>
-                                            <c:when test="${i == 1 || i == totalPages || (i >= currentPage - 2 && i <= currentPage + 2)}">
-                                                <a href="?status=${statusFilter}&employeeFilter=${employeeFilter}&payPeriod=${payPeriodFilter}&page=${i}">${i}</a>
-                                            </c:when>
-                                            <c:when test="${i == currentPage - 3 || i == currentPage + 3}">
-                                                <span class="ellipsis">...</span>
-                                            </c:when>
-                                        </c:choose>
-                                    </c:forEach>
-                                    
-                                    <c:if test="${currentPage < totalPages}">
-                                        <a href="?status=${statusFilter}&employeeFilter=${employeeFilter}&payPeriod=${payPeriodFilter}&page=${currentPage + 1}">Next »</a>
-                                    </c:if>
-                                    <c:if test="${currentPage >= totalPages}">
-                                        <span class="disabled">Next »</span>
-                                    </c:if>
+                        <div class="pagination-bar">
+                            <c:set var="page" value="${currentPage != null ? currentPage : 1}" />
+                            <c:set var="size" value="${pageSize != null ? pageSize : 10}" />
+                            <c:set var="total" value="${totalCount != null ? totalCount : 0}" />
+                            <c:set var="totalPagesCalc" value="${totalPages != null ? totalPages : 1}" />
+                            <c:set var="start" value="${total > 0 ? (page - 1) * size + 1 : 0}" />
+                            <c:set var="end" value="${page * size}" />
+                            <c:if test="${end > total}">
+                                <c:set var="end" value="${total}" />
+                            </c:if>
+
+                            <div class="pagination-info">
+                                <span>Showing ${start} - ${end} of ${total} payrolls</span>
+                                <div class="page-size-selector">
+                                    <label for="pageSizeSelect">Items per page:</label>
+                                    <select id="pageSizeSelect" onchange="changePayrollPageSize(this.value)">
+                                        <option value="5" <c:if test="${size == 5}">selected</c:if>>5</option>
+                                        <option value="10" <c:if test="${size == 10}">selected</c:if>>10</option>
+                                        <option value="20" <c:if test="${size == 20}">selected</c:if>>20</option>
+                                        <option value="50" <c:if test="${size == 50}">selected</c:if>>50</option>
+                                    </select>
                                 </div>
                             </div>
-                        </c:if>
+
+                            <div class="pagination-controls">
+                                <c:choose>
+                                    <c:when test="${page > 1}">
+                                        <c:url var="prevUrl" value="/hr/payroll-approval">
+                                            <c:param name="page" value="${page - 1}" />
+                                            <c:param name="pageSize" value="${size}" />
+                                            <c:if test="${not empty statusFilter}">
+                                                <c:param name="status" value="${statusFilter}" />
+                                            </c:if>
+                                            <c:if test="${not empty employeeFilter}">
+                                                <c:param name="employeeFilter" value="${employeeFilter}" />
+                                            </c:if>
+                                            <c:if test="${not empty payPeriodFilter}">
+                                                <c:param name="payPeriod" value="${payPeriodFilter}" />
+                                            </c:if>
+                                        </c:url>
+                                        <a href="${prevUrl}" class="btn-pagination">← Prev</a>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="disabled">← Prev</span>
+                                    </c:otherwise>
+                                </c:choose>
+
+                                <c:set var="range" value="2" />
+                                <c:set var="startPage" value="${page - range > 1 ? page - range : 1}" />
+                                <c:set var="endPage" value="${page + range < totalPagesCalc ? page + range : totalPagesCalc}" />
+
+                                <c:if test="${startPage > 1}">
+                                    <c:url var="firstPageUrl" value="/hr/payroll-approval">
+                                        <c:param name="page" value="1" />
+                                        <c:param name="pageSize" value="${size}" />
+                                        <c:if test="${not empty statusFilter}">
+                                            <c:param name="status" value="${statusFilter}" />
+                                        </c:if>
+                                        <c:if test="${not empty employeeFilter}">
+                                            <c:param name="employeeFilter" value="${employeeFilter}" />
+                                        </c:if>
+                                        <c:if test="${not empty payPeriodFilter}">
+                                            <c:param name="payPeriod" value="${payPeriodFilter}" />
+                                        </c:if>
+                                    </c:url>
+                                    <a href="${firstPageUrl}" class="btn-pagination">1</a>
+                                    <c:if test="${startPage > 2}">
+                                        <span class="ellipsis">...</span>
+                                    </c:if>
+                                </c:if>
+
+                                <c:forEach begin="${startPage}" end="${endPage}" var="i">
+                                    <c:choose>
+                                        <c:when test="${i == page}">
+                                            <span class="active btn-pagination">${i}</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <c:url var="pageUrl" value="/hr/payroll-approval">
+                                                <c:param name="page" value="${i}" />
+                                                <c:param name="pageSize" value="${size}" />
+                                                <c:if test="${not empty statusFilter}">
+                                                    <c:param name="status" value="${statusFilter}" />
+                                                </c:if>
+                                                <c:if test="${not empty employeeFilter}">
+                                                    <c:param name="employeeFilter" value="${employeeFilter}" />
+                                                </c:if>
+                                                <c:if test="${not empty payPeriodFilter}">
+                                                    <c:param name="payPeriod" value="${payPeriodFilter}" />
+                                                </c:if>
+                                            </c:url>
+                                            <a href="${pageUrl}" class="btn-pagination">${i}</a>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </c:forEach>
+
+                                <c:if test="${endPage < totalPagesCalc}">
+                                    <c:if test="${endPage < totalPagesCalc - 1}">
+                                        <span class="ellipsis">...</span>
+                                    </c:if>
+                                    <c:url var="lastPageUrl" value="/hr/payroll-approval">
+                                        <c:param name="page" value="${totalPagesCalc}" />
+                                        <c:param name="pageSize" value="${size}" />
+                                        <c:if test="${not empty statusFilter}">
+                                            <c:param name="status" value="${statusFilter}" />
+                                        </c:if>
+                                        <c:if test="${not empty employeeFilter}">
+                                            <c:param name="employeeFilter" value="${employeeFilter}" />
+                                        </c:if>
+                                        <c:if test="${not empty payPeriodFilter}">
+                                            <c:param name="payPeriod" value="${payPeriodFilter}" />
+                                        </c:if>
+                                    </c:url>
+                                    <a href="${lastPageUrl}" class="btn-pagination">${totalPagesCalc}</a>
+                                </c:if>
+
+                                <c:choose>
+                                    <c:when test="${page < totalPagesCalc}">
+                                        <c:url var="nextUrl" value="/hr/payroll-approval">
+                                            <c:param name="page" value="${page + 1}" />
+                                            <c:param name="pageSize" value="${size}" />
+                                            <c:if test="${not empty statusFilter}">
+                                                <c:param name="status" value="${statusFilter}" />
+                                            </c:if>
+                                            <c:if test="${not empty employeeFilter}">
+                                                <c:param name="employeeFilter" value="${employeeFilter}" />
+                                            </c:if>
+                                            <c:if test="${not empty payPeriodFilter}">
+                                                <c:param name="payPeriod" value="${payPeriodFilter}" />
+                                            </c:if>
+                                        </c:url>
+                                        <a href="${nextUrl}" class="btn-pagination">Next →</a>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="disabled">Next →</span>
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </main>
@@ -1258,9 +1362,37 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
             const appContext = '${pageContext.request.contextPath}';
+            let statusFilterField;
+            let employeeFilterField;
+            let payPeriodFilterField;
+            let pageField;
+            let pageSizeField;
+
+            const getCurrentFilters = () => {
+                return {
+                    status: statusFilterField && statusFilterField.value ? statusFilterField.value.trim() : '',
+                    employee: employeeFilterField && employeeFilterField.value ? employeeFilterField.value.trim() : '',
+                    payPeriod: payPeriodFilterField && payPeriodFilterField.value ? payPeriodFilterField.value : '',
+                    page: pageField && pageField.value ? pageField.value.trim() : '',
+                    pageSize: pageSizeField && pageSizeField.value ? pageSizeField.value.trim() : ''
+                };
+            };
+
             document.addEventListener('DOMContentLoaded', function() {
-                const employeeFilter = document.getElementById('employeeFilter');
-                const payPeriodFilter = document.getElementById('payPeriod');
+                const filterForm = document.getElementById('filterForm');
+                statusFilterField = filterForm ? filterForm.querySelector('input[name="status"]') : null;
+                employeeFilterField = document.getElementById('employeeFilter');
+                payPeriodFilterField = document.getElementById('payPeriod');
+                pageField = document.getElementById('pageField');
+                pageSizeField = document.getElementById('pageSizeField');
+
+                if (filterForm) {
+                    filterForm.addEventListener('submit', function() {
+                        if (pageField) {
+                            pageField.value = '1';
+                        }
+                    });
+                }
                 
                 // Event listeners for action buttons
                 document.querySelectorAll('.view-payroll-btn').forEach(btn => {
@@ -1303,7 +1435,8 @@
                     + '</div>';
                 modal.classList.add('active');
 
-                fetch(`${appContext}/hr/payroll-approval?ajax=true&payrollId=${encodeURIComponent(payrollId)}`, {
+                const detailsUrl = appContext + '/hr/payroll-approval?ajax=true&payrollId=' + encodeURIComponent(payrollId);
+                fetch(detailsUrl, {
                     credentials: 'same-origin',
                     headers: {
                         'Accept': 'application/json'
@@ -1534,6 +1667,8 @@
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.action = appContext + '/hr/payroll-approval';
+
+                    const { status, employee, payPeriod, page, pageSize } = getCurrentFilters();
                     
                     const actionInput = document.createElement('input');
                     actionInput.type = 'hidden';
@@ -1547,26 +1682,40 @@
                     payrollIdInput.value = payrollId;
                     form.appendChild(payrollIdInput);
                     
-                    if (currentStatusFilter) {
+                    if (status) {
                         const statusInput = document.createElement('input');
                         statusInput.type = 'hidden';
                         statusInput.name = 'status';
-                        statusInput.value = currentStatusFilter;
+                        statusInput.value = status;
                         form.appendChild(statusInput);
                     }
-                    if (currentEmployeeFilter) {
+                    if (employee) {
                         const empInput = document.createElement('input');
                         empInput.type = 'hidden';
                         empInput.name = 'employeeFilter';
-                        empInput.value = currentEmployeeFilter;
+                        empInput.value = employee;
                         form.appendChild(empInput);
                     }
-                    if (currentPayPeriodFilter) {
+                    if (payPeriod) {
                         const periodInput = document.createElement('input');
                         periodInput.type = 'hidden';
                         periodInput.name = 'payPeriod';
-                        periodInput.value = currentPayPeriodFilter;
+                        periodInput.value = payPeriod;
                         form.appendChild(periodInput);
+                    }
+                    if (page) {
+                        const pageInput = document.createElement('input');
+                        pageInput.type = 'hidden';
+                        pageInput.name = 'page';
+                        pageInput.value = page;
+                        form.appendChild(pageInput);
+                    }
+                    if (pageSize) {
+                        const sizeInput = document.createElement('input');
+                        sizeInput.type = 'hidden';
+                        sizeInput.name = 'pageSize';
+                        sizeInput.value = pageSize;
+                        form.appendChild(sizeInput);
                     }
                     
                     document.body.appendChild(form);
@@ -1579,6 +1728,8 @@
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.action = appContext + '/hr/payroll-approval';
+
+                    const { status, employee, payPeriod, page, pageSize } = getCurrentFilters();
                     
                     const actionInput = document.createElement('input');
                     actionInput.type = 'hidden';
@@ -1592,26 +1743,40 @@
                     payrollIdInput.value = payrollId;
                     form.appendChild(payrollIdInput);
                     
-                    if (currentStatusFilter) {
+                    if (status) {
                         const statusInput = document.createElement('input');
                         statusInput.type = 'hidden';
                         statusInput.name = 'status';
-                        statusInput.value = currentStatusFilter;
+                        statusInput.value = status;
                         form.appendChild(statusInput);
                     }
-                    if (currentEmployeeFilter) {
+                    if (employee) {
                         const empInput = document.createElement('input');
                         empInput.type = 'hidden';
                         empInput.name = 'employeeFilter';
-                        empInput.value = currentEmployeeFilter;
+                        empInput.value = employee;
                         form.appendChild(empInput);
                     }
-                    if (currentPayPeriodFilter) {
+                    if (payPeriod) {
                         const periodInput = document.createElement('input');
                         periodInput.type = 'hidden';
                         periodInput.name = 'payPeriod';
-                        periodInput.value = currentPayPeriodFilter;
+                        periodInput.value = payPeriod;
                         form.appendChild(periodInput);
+                    }
+                    if (page) {
+                        const pageInput = document.createElement('input');
+                        pageInput.type = 'hidden';
+                        pageInput.name = 'page';
+                        pageInput.value = page;
+                        form.appendChild(pageInput);
+                    }
+                    if (pageSize) {
+                        const sizeInput = document.createElement('input');
+                        sizeInput.type = 'hidden';
+                        sizeInput.name = 'pageSize';
+                        sizeInput.value = pageSize;
+                        form.appendChild(sizeInput);
                     }
                     
                     document.body.appendChild(form);
@@ -1621,6 +1786,25 @@
 
             window.formatCurrency = function(amount) {
                 return new Intl.NumberFormat('en-US').format(amount);
+            };
+
+            window.changePayrollPageSize = function(newSize) {
+                const { status, employee, payPeriod } = getCurrentFilters();
+                const params = new URLSearchParams();
+                if (status) {
+                    params.append('status', status);
+                }
+                if (employee) {
+                    params.append('employeeFilter', employee);
+                }
+                if (payPeriod) {
+                    params.append('payPeriod', payPeriod);
+                }
+                if (newSize) {
+                    params.append('pageSize', newSize);
+                }
+                params.append('page', '1');
+                window.location.href = appContext + '/hr/payroll-approval' + (params.toString() ? ('?' + params.toString()) : '');
             };
 
             // Close modal when clicking outside
