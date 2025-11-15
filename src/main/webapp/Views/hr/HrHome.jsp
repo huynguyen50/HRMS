@@ -1300,11 +1300,7 @@
                             <div class="quick-access">
                                 <h3>Quick Access</h3>
                                 <div class="access-grid">
-                                    <a href="${pageContext.request.contextPath}/ProfileManagementController" class="access-card">
-                                    <i class="fas fa-user-edit"></i>
-                                        <h4>Profile Management</h4>
-                                        <p>Manage employee profiles</p>
-                                    </a>
+                                    
 <!--                                    <a href="${pageContext.request.contextPath}/EmploymentStatusController" class="access-card">
                                         <i class="fas fa-user-check"></i>
                                         <h4>Employment Status</h4>

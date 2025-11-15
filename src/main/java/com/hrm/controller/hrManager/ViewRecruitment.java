@@ -6,8 +6,8 @@ package com.hrm.controller.hrManager;
 
 import com.hrm.dao.DAO;
 import com.hrm.model.entity.Recruitment;
+import com.hrm.util.PermissionUtil;
 import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -22,9 +22,15 @@ import java.util.List;
 @WebServlet(name = "ViewRecruitment", urlPatterns = {"/viewRecruitment"})
 public class ViewRecruitment extends HttpServlet {
 
+    private static final String REQUIRED_PERMISSION = "VIEW_RECRUITMENT";
+    private static final String DENIED_MESSAGE = "Bạn không có quyền xem hoặc quản lý tin tuyển dụng.";
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (!ensureAccess(request, response)) {
+            return;
+        }
         String action = request.getParameter("action");
         if ("apply".equals(action)) {
             try {
@@ -97,12 +103,18 @@ public class ViewRecruitment extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
+        if (!ensureAccess(request, response)) {
+            return;
+        }
     }
 
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
+    }
 
+    private boolean ensureAccess(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        return PermissionUtil.ensurePermission(request, response, REQUIRED_PERMISSION, DENIED_MESSAGE);
+    }
 }

@@ -365,12 +365,6 @@ border-radius: 8px;
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="coverLetter">Cover Letter (Optional)</label>
-                    <textarea id="coverLetter" name="coverLetter" 
-                              placeholder="Briefly describe your experience, skills, and why you are suitable for this position..."><%= request.getParameter("coverLetter") != null ? request.getParameter("coverLetter") : "" %></textarea>
-                </div>
-
                 <button type="submit" class="submit-btn">
                     <i class="fas fa-paper-plane"></i> Submit Application
                 </button>
@@ -400,7 +394,7 @@ const fileName = document.getElementById('fileName');
                 // Validate file size (5MB = 5 * 1024 * 1024 bytes)
                 const maxSize = 5 * 1024 * 1024;
                 if (file.size > maxSize) {
-                    alert('File quá lớn. Vui lòng chọn file nhỏ hơn 5MB');
+                    alert('File is too large. Please select a file smaller than 5MB');
                     e.target.value = '';
                     fileInfo.classList.remove('show');
                     return;
@@ -442,13 +436,13 @@ const fileName = document.getElementById('fileName');
             const cvFile = document.getElementById('cvFile').files[0];
 
             if (!fullName) {
-                alert('Vui lòng nhập họ và tên');
+                alert('Please enter your full name');
                 e.preventDefault();
                 return;
             }
 
             if (!email) {
-                alert('Vui lòng nhập email');
+                alert('Please enter your email');
                 e.preventDefault();
                 return;
             }
@@ -456,13 +450,13 @@ const fileName = document.getElementById('fileName');
             // Simple email validation
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
-                alert('Vui lòng nhập email hợp lệ');
+                alert('Please enter a valid email address');
                 e.preventDefault();
                 return;
             }
 
             if (!phone) {
-                alert('Vui lòng nhập số điện thoại');
+                alert('Please enter your phone number');
                 e.preventDefault();
                 return;
             }
@@ -470,19 +464,19 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             // Simple phone validation (Vietnamese phone numbers)
             const phoneRegex = /^[0-9]{10,11}$/;
             if (!phoneRegex.test(phone.replace(/\s/g, ''))) {
-                alert('Vui lòng nhập số điện thoại hợp lệ (10-11 chữ số)');
+                alert('Please enter a valid phone number (10-11 digits)');
                 e.preventDefault();
                 return;
             }
 
             if (!cvFile) {
-                alert('Vui lòng chọn file CV');
+                alert('Please select a CV file');
                 e.preventDefault();
                 return;
             }
 
             // Confirm submission
-            if (!confirm('Bạn có chắc chắn muốn nộp đơn ứng tuyển?')) {
+            if (!confirm('Are you sure you want to submit your application?')) {
                 e.preventDefault();
                 return;
             }

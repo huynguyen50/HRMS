@@ -98,11 +98,11 @@ request.setAttribute("recruitments", recruitments);
                 int recruitmentId = Integer.parseInt(recruitmentIdStr);
                 Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
                 
-                // Kiểm tra Status - chỉ cho phép apply nếu status là Applied
+                // Check Status - only allow apply if status is Applied
                 if (recruitment != null) {
                     String status = recruitment.getStatus();
                     if (status == null || !status.equals("Applied")) {
-                        request.setAttribute("error", "Tin tuyển dụng này không khả dụng hoặc đã đóng!");
+                        request.setAttribute("error", "This recruitment post is not available or has been closed!");
                         showRecruitmentList(request, response);
                         return;
                     }
@@ -141,12 +141,12 @@ request.setAttribute("recruitments", recruitments);
             if (fullName != null && email != null && phone != null && recruitmentIdStr != null) {
 int recruitmentId = Integer.parseInt(recruitmentIdStr);
                 
-                // Kiểm tra số điện thoại đã tồn tại chưa
+                // Check if phone number already exists
                 System.out.println("Checking if phone exists: " + phone);
                 if (guestDAO.isPhoneExists(phone)) {
                     System.out.println("Phone already exists!");
-                    request.setAttribute("error", "Số điện thoại này đã được sử dụng để nộp đơn trước đó!");
-                    // Giữ lại thông tin recruitment khi forward lại
+                    request.setAttribute("error", "This phone number has already been used to submit an application!");
+                    // Keep recruitment information when forwarding back
                     Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
                     if (recruitment != null) {
                         request.setAttribute("recruitment", recruitment);
@@ -155,19 +155,9 @@ int recruitmentId = Integer.parseInt(recruitmentIdStr);
                     return;
                 }
                 
-                System.out.println("Checking if email exists: " + email);
-                if (guestDAO.isEmailExists(email)) {
-                    System.out.println("Email already exists!");
-                    request.setAttribute("error", "Email này đã được sử dụng để nộp đơn trước đó!");
-                    // Giữ lại thông tin recruitment khi forward lại
-                    Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
-                    if (recruitment != null) {
-                        request.setAttribute("recruitment", recruitment);
-                    }
-                    showApplyForm(request, response);
-                    return;
-                }
-
+                // EMAIL DUPLICATE CHECK REMOVED - Allow multiple applications with same email
+                System.out.println("Email check skipped - allowing duplicate emails: " + email);
+                
                 String cvFileName = null;
                 Part cvFilePart = request.getPart("cvFile");
                 System.out.println("CV File Part: " + (cvFilePart != null ? "Found" : "Not found"));
@@ -207,7 +197,7 @@ cvFileName = uniqueFileName; // Lưu tên file unique
 
                 if (cvFileName == null) {
                     System.out.println("No CV file provided or file saving failed!");
-                    request.setAttribute("error", "Vui lòng chọn file CV và đảm bảo file được lưu thành công!");
+                    request.setAttribute("error", "Please select a CV file and ensure the file is saved successfully!");
                     // Giữ lại thông tin recruitment khi forward lại
                     Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
                     if (recruitment != null) {
@@ -235,7 +225,7 @@ return;
                     response.sendRedirect(request.getContextPath() + "/Views/Success.jsp");
                 } else {
                     System.out.println("Insert failed!");
-                    request.setAttribute("error", "Có lỗi xảy ra khi nộp đơn. Vui lòng thử lại!");
+                    request.setAttribute("error", "An error occurred while submitting the application. Please try again!");
                     // Giữ lại thông tin recruitment khi forward lại
                     Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
                     if (recruitment != null) {
@@ -245,8 +235,8 @@ return;
                 }
             } else {
                 System.out.println("Missing required fields!");
-                request.setAttribute("error", "Vui lòng điền đầy đủ thông tin!");
-                // Giữ lại thông tin recruitment nếu có recruitmentId
+                request.setAttribute("error", "Please fill in all required information!");
+                // Keep recruitment information if recruitmentId exists
                 if (recruitmentIdStr != null) {
                     try {
                         int recruitmentId = Integer.parseInt(recruitmentIdStr);
@@ -263,8 +253,8 @@ if (recruitment != null) {
         } catch (Exception e) {
             System.err.println("=== ERROR in submitApplication ===");
             e.printStackTrace();
-            request.setAttribute("error", "Có lỗi xảy ra: " + e.getMessage());
-            // Giữ lại thông tin recruitment nếu có recruitmentId
+            request.setAttribute("error", "An error occurred: " + e.getMessage());
+            // Keep recruitment information if recruitmentId exists
             String recruitmentIdStr = request.getParameter("recruitmentId");
             if (recruitmentIdStr != null) {
                 try {
