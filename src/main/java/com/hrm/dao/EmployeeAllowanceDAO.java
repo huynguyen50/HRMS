@@ -152,6 +152,103 @@ public class EmployeeAllowanceDAO {
     }
     
     /**
+     * Get total count of allowances with filters
+     */
+    public int getTotalCount(Integer employeeId, String month) {
+        StringBuilder sql = new StringBuilder("""
+            SELECT COUNT(*) as Total
+            FROM EmployeeAllowance ea
+            WHERE 1=1
+        """);
+        
+        List<Object> params = new ArrayList<>();
+        
+        if (employeeId != null) {
+            sql.append(" AND ea.EmployeeID = ?");
+            params.add(employeeId);
+        }
+        
+        if (month != null && !month.trim().isEmpty()) {
+            sql.append(" AND ea.Month = ?");
+            params.add(month);
+        }
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql.toString())) {
+            
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("Total");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    
+    /**
+     * Get paged employee allowances with filters
+     */
+    public List<Map<String, Object>> getPaged(Integer employeeId, String month, int offset, int limit) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("""
+            SELECT ea.ID, ea.EmployeeID, ea.AllowanceTypeID, ea.Amount, ea.Month,
+                   e.FullName, at.AllowanceName
+            FROM EmployeeAllowance ea
+            JOIN Employee e ON ea.EmployeeID = e.EmployeeID
+            JOIN AllowanceType at ON ea.AllowanceTypeID = at.AllowanceTypeID
+            WHERE 1=1
+        """);
+        
+        List<Object> params = new ArrayList<>();
+        
+        if (employeeId != null) {
+            sql.append(" AND ea.EmployeeID = ?");
+            params.add(employeeId);
+        }
+        
+        if (month != null && !month.trim().isEmpty()) {
+            sql.append(" AND ea.Month = ?");
+            params.add(month);
+        }
+        
+        sql.append(" ORDER BY ea.Month DESC, e.FullName, at.AllowanceName");
+        sql.append(" LIMIT ? OFFSET ?");
+        params.add(limit);
+        params.add(offset);
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql.toString())) {
+            
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("id", rs.getInt("ID"));
+                    item.put("employeeId", rs.getInt("EmployeeID"));
+                    item.put("employeeName", rs.getString("FullName"));
+                    item.put("allowanceTypeId", rs.getInt("AllowanceTypeID"));
+                    item.put("allowanceName", rs.getString("AllowanceName"));
+                    item.put("amount", rs.getBigDecimal("Amount"));
+                    item.put("month", rs.getString("Month"));
+                    list.add(item);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    
+    /**
      * Get employee allowance by ID
      */
     public Map<String, Object> getById(int id) {
@@ -187,4 +284,5 @@ public class EmployeeAllowanceDAO {
         return null;
     }
 }
+
 

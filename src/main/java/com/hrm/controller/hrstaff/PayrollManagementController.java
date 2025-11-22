@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import com.google.gson.Gson;
@@ -23,7 +24,7 @@ import com.hrm.util.PermissionUtil;
  * Handles POST /hrstaff/payroll - Create/Update payroll
  * @author admin
  */
-@WebServlet(name = "PayrollManagementController", urlPatterns = {"/hrstaff/payroll", "/hrstaff/payroll/delete", "/hrstaff/payroll/submit", "/hrstaff/payroll/generate-all", "/hrstaff/payroll/details", "/api/payroll"})
+@WebServlet(name = "PayrollManagementController", urlPatterns = {"/hrstaff/payroll", "/hrstaff/payroll/delete", "/hrstaff/payroll/submit", "/hrstaff/payroll/batch-delete", "/hrstaff/payroll/batch-submit", "/hrstaff/payroll/generate-all", "/hrstaff/payroll/details", "/api/payroll"})
 public class PayrollManagementController extends HttpServlet {
 
     private static final String REQUIRED_PERMISSION = "VIEW_PAYROLLS";
@@ -87,6 +88,89 @@ public class PayrollManagementController extends HttpServlet {
                     ? new BigDecimal(netSalaryStr) 
                     : BigDecimal.ZERO;
 
+                // Validate Net Salary formula: Net Salary = ActualBaseSalary + OTSalary + Allowance - Deduction
+                BigDecimal calculatedNetSalary = actualBaseSalary.add(otSalary).add(allowance).subtract(deduction);
+                if (calculatedNetSalary.compareTo(BigDecimal.ZERO) < 0) {
+                    calculatedNetSalary = BigDecimal.ZERO;
+                }
+                
+                BigDecimal difference = netSalary.subtract(calculatedNetSalary).abs();
+                BigDecimal tolerance = new BigDecimal("0.01"); // Allow 1 cent difference for rounding
+                
+                String overrideReason = request.getParameter("overrideReason");
+                String manualOverride = request.getParameter("manualOverride");
+                boolean hasOverride = "on".equals(manualOverride) && overrideReason != null && !overrideReason.trim().isEmpty();
+                
+                // If Net Salary doesn't match formula, require override reason
+                if (difference.compareTo(tolerance) > 0) {
+                    if (!hasOverride) {
+                        request.setAttribute("error", "Net Salary does not match the formula!\n" +
+                            "Expected: " + calculatedNetSalary + " (Actual Base Salary + OT Salary + Allowance - Deduction)\n" +
+                            "Provided: " + netSalary + "\n" +
+                            "Please check 'Manual Override' and provide a reason if this is intentional.");
+                        doGet(request, response);
+                        return;
+                    }
+                    // Log override to PayrollAudit notes if exists
+                    if (payrollIdStr != null && !payrollIdStr.trim().isEmpty()) {
+                        int payrollId = Integer.parseInt(payrollIdStr);
+                        com.hrm.model.entity.Payroll existingPayroll = payrollDAO.getById(payrollId);
+                        if (existingPayroll != null) {
+                            // Update PayrollAudit notes with override information
+                            String auditNote = String.format("[MANUAL OVERRIDE] %s\nUser: %s\nReason: %s\n" +
+                                "Net Salary Override: Expected %s, Set to %s",
+                                java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                                request.getSession().getAttribute("systemUser") != null ? 
+                                    ((com.hrm.model.entity.SystemUser)request.getSession().getAttribute("systemUser")).getUsername() : "Unknown",
+                                overrideReason.trim(),
+                                calculatedNetSalary,
+                                netSalary);
+                            
+                            try {
+                                payrollDAO.updatePayrollAuditNotes(existingPayroll.getEmployeeId(), existingPayroll.getPayPeriod(), auditNote);
+                            } catch (Exception e) {
+                                System.err.println("Failed to update PayrollAudit notes: " + e.getMessage());
+                            }
+                        }
+                    } else if (employeeIdStr != null && payPeriod != null) {
+                        // For new payroll, we can't update audit yet, but we'll log it when creating
+                        // Store override note in request attribute for later use
+                        String auditNote = String.format("[MANUAL OVERRIDE] %s\nUser: %s\nReason: %s\n" +
+                            "Net Salary Override: Expected %s, Set to %s",
+                            java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                            request.getSession().getAttribute("systemUser") != null ? 
+                                ((com.hrm.model.entity.SystemUser)request.getSession().getAttribute("systemUser")).getUsername() : "Unknown",
+                            overrideReason.trim(),
+                            calculatedNetSalary,
+                            netSalary);
+                        
+                        // Will be applied after payroll creation
+                        request.setAttribute("pendingAuditNote", auditNote);
+                        request.setAttribute("pendingEmployeeId", employeeId);
+                        request.setAttribute("pendingPayPeriod", payPeriod);
+                    }
+                }
+                
+                // Also log manual override even if formula matches (user explicitly checked override)
+                if (hasOverride && difference.compareTo(tolerance) <= 0 && payrollIdStr != null && !payrollIdStr.trim().isEmpty()) {
+                    int payrollId = Integer.parseInt(payrollIdStr);
+                    com.hrm.model.entity.Payroll existingPayroll = payrollDAO.getById(payrollId);
+                    if (existingPayroll != null) {
+                        String auditNote = String.format("[MANUAL OVERRIDE - CONFIRMED] %s\nUser: %s\nReason: %s\n" +
+                            "Values match formula but user confirmed manual override.",
+                            java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                            request.getSession().getAttribute("systemUser") != null ? 
+                                ((com.hrm.model.entity.SystemUser)request.getSession().getAttribute("systemUser")).getUsername() : "Unknown",
+                            overrideReason.trim());
+                        
+                        try {
+                            payrollDAO.updatePayrollAuditNotes(existingPayroll.getEmployeeId(), existingPayroll.getPayPeriod(), auditNote);
+                        } catch (Exception e) {
+                            System.err.println("Failed to update PayrollAudit notes: " + e.getMessage());
+                        }
+                    }
+                }
+
                 Payroll payroll = new Payroll();
                 
                 if (payrollIdStr != null && !payrollIdStr.trim().isEmpty()) {
@@ -133,17 +217,28 @@ public class PayrollManagementController extends HttpServlet {
                 }
 
                 if (success && "submit".equals(action)) {
-                    // Submit for approval
+                    // Submit for approval (can be Draft or Rejected)
                     if (finalPayrollId > 0) {
-                        payrollDAO.updateStatus(finalPayrollId, "Pending");
-                        request.setAttribute("success", "Payroll submitted for approval successfully!");
+                        Payroll updatedPayroll = payrollDAO.getById(finalPayrollId);
+                        String previousStatus = updatedPayroll != null ? updatedPayroll.getStatus() : "";
+                        boolean statusUpdated = payrollDAO.updateStatus(finalPayrollId, "Pending");
+                        
+                        if (statusUpdated) {
+                            if ("Rejected".equals(previousStatus)) {
+                                request.setAttribute("success", "Payroll resubmitted for approval successfully!");
+                            } else {
+                                request.setAttribute("success", "Payroll submitted for approval successfully!");
+                            }
+                        } else {
+                            request.setAttribute("error", "Payroll updated but failed to change status to Pending.");
+                        }
                     } else {
                         request.setAttribute("error", "Failed to submit payroll. Payroll ID not found.");
                     }
                 } else if (success) {
                     request.setAttribute("success", "Payroll saved successfully!");
                 } else {
-                    request.setAttribute("error", "Failed to save payroll.");
+                    request.setAttribute("error", "Failed to save payroll. Make sure the payroll is in Draft or Rejected status.");
                 }
             }
 
@@ -161,7 +256,11 @@ public class PayrollManagementController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String path = request.getServletPath();
-        if (path != null && path.contains("/delete")) {
+        if (path != null && path.contains("/batch-delete")) {
+            handleBatchDelete(request, response);
+        } else if (path != null && path.contains("/batch-submit")) {
+            handleBatchSubmit(request, response);
+        } else if (path != null && path.contains("/delete")) {
             handleDelete(request, response);
         } else if (path != null && path.contains("/submit")) {
             handleSubmit(request, response);
@@ -214,17 +313,97 @@ public class PayrollManagementController extends HttpServlet {
             // Load deduction types
             List<Map<String, Object>> deductionTypes = deductionTypeDAO.getAll();
             
-            // Load allowances (with filters)
+            // Load allowances (with pagination if on allowance tab)
             String allowanceMonth = request.getParameter("allowanceMonth");
-            List<Map<String, Object>> allowances = employeeAllowanceDAO.getAll(
-                employeeId, allowanceMonth
-            );
+            List<Map<String, Object>> allowances;
+            int totalAllowances = 0;
+            int allowancePage = 1;
+            int allowancePageSize = DEFAULT_PAGE_SIZE;
+            int allowanceTotalPages = 1;
             
-            // Load deductions (with filters)
+            // Always get pagination parameters for allowance (for consistency)
+            String allowancePageStr = request.getParameter("allowancePage");
+            String allowancePageSizeStr = request.getParameter("allowancePageSize");
+            
+            try {
+                allowancePage = (allowancePageStr != null && allowancePageStr.matches("\\d+")) ? Integer.parseInt(allowancePageStr) : 1;
+            } catch (NumberFormatException e) {
+                allowancePage = 1;
+            }
+            try {
+                allowancePageSize = (allowancePageSizeStr != null && allowancePageSizeStr.matches("\\d+")) ? Integer.parseInt(allowancePageSizeStr) : DEFAULT_PAGE_SIZE;
+                if (allowancePageSize > 100) allowancePageSize = 100;
+            } catch (NumberFormatException e) {
+                allowancePageSize = DEFAULT_PAGE_SIZE;
+            }
+            
+            // Always get total count (needed for pagination display)
+            totalAllowances = employeeAllowanceDAO.getTotalCount(employeeId, allowanceMonth);
+            
+            if ("allowance".equals(tab)) {
+                // Calculate total pages (ensure at least 1 page even if empty)
+                allowanceTotalPages = totalAllowances == 0 ? 1 : (int) Math.ceil((double) totalAllowances / allowancePageSize);
+                if (allowanceTotalPages < 1) allowanceTotalPages = 1;
+                if (allowancePage < 1) allowancePage = 1;
+                if (allowancePage > allowanceTotalPages) allowancePage = allowanceTotalPages;
+                
+                // Calculate offset
+                int offset = (allowancePage - 1) * allowancePageSize;
+                
+                // Get paged allowances
+                allowances = employeeAllowanceDAO.getPaged(employeeId, allowanceMonth, offset, allowancePageSize);
+            } else {
+                // For other tabs, load all allowances without pagination
+                allowances = employeeAllowanceDAO.getAll(employeeId, allowanceMonth);
+                // Still calculate total pages for consistency
+                allowanceTotalPages = totalAllowances == 0 ? 1 : (int) Math.ceil((double) totalAllowances / allowancePageSize);
+            }
+            
+            // Load deductions (with pagination if on deduction tab)
             String deductionMonth = request.getParameter("deductionMonth");
-            List<Map<String, Object>> deductions = employeeDeductionDAO.getAll(
-                employeeId, deductionMonth
-            );
+            List<Map<String, Object>> deductions;
+            int totalDeductions = 0;
+            int deductionPage = 1;
+            int deductionPageSize = DEFAULT_PAGE_SIZE;
+            int deductionTotalPages = 1;
+            
+            // Always get pagination parameters for deduction (for consistency)
+            String deductionPageStr = request.getParameter("deductionPage");
+            String deductionPageSizeStr = request.getParameter("deductionPageSize");
+            
+            try {
+                deductionPage = (deductionPageStr != null && deductionPageStr.matches("\\d+")) ? Integer.parseInt(deductionPageStr) : 1;
+            } catch (NumberFormatException e) {
+                deductionPage = 1;
+            }
+            try {
+                deductionPageSize = (deductionPageSizeStr != null && deductionPageSizeStr.matches("\\d+")) ? Integer.parseInt(deductionPageSizeStr) : DEFAULT_PAGE_SIZE;
+                if (deductionPageSize > 100) deductionPageSize = 100;
+            } catch (NumberFormatException e) {
+                deductionPageSize = DEFAULT_PAGE_SIZE;
+            }
+            
+            // Always get total count (needed for pagination display)
+            totalDeductions = employeeDeductionDAO.getTotalCount(employeeId, deductionMonth);
+            
+            if ("deduction".equals(tab)) {
+                // Calculate total pages (ensure at least 1 page even if empty)
+                deductionTotalPages = totalDeductions == 0 ? 1 : (int) Math.ceil((double) totalDeductions / deductionPageSize);
+                if (deductionTotalPages < 1) deductionTotalPages = 1;
+                if (deductionPage < 1) deductionPage = 1;
+                if (deductionPage > deductionTotalPages) deductionPage = deductionTotalPages;
+                
+                // Calculate offset
+                int offset = (deductionPage - 1) * deductionPageSize;
+                
+                // Get paged deductions
+                deductions = employeeDeductionDAO.getPaged(employeeId, deductionMonth, offset, deductionPageSize);
+            } else {
+                // For other tabs, load all deductions without pagination
+                deductions = employeeDeductionDAO.getAll(employeeId, deductionMonth);
+                // Still calculate total pages for consistency
+                deductionTotalPages = totalDeductions == 0 ? 1 : (int) Math.ceil((double) totalDeductions / deductionPageSize);
+            }
             
             // Load payrolls with pagination (only for payroll tab)
             List<Map<String, Object>> payrolls;
@@ -303,6 +482,18 @@ public class PayrollManagementController extends HttpServlet {
             request.setAttribute("deductionMonth", deductionMonth);
             request.setAttribute("attendanceMonth", attendanceMonth);
             request.setAttribute("currentTab", tab); // Set current tab
+            
+            // Always set pagination attributes for allowance (even if not current tab, to maintain state)
+            request.setAttribute("allowancePage", allowancePage);
+            request.setAttribute("allowancePageSize", allowancePageSize);
+            request.setAttribute("totalAllowances", totalAllowances);
+            request.setAttribute("allowanceTotalPages", allowanceTotalPages);
+            
+            // Always set pagination attributes for deduction (even if not current tab, to maintain state)
+            request.setAttribute("deductionPage", deductionPage);
+            request.setAttribute("deductionPageSize", deductionPageSize);
+            request.setAttribute("totalDeductions", totalDeductions);
+            request.setAttribute("deductionTotalPages", deductionTotalPages);
 
             // Forward to JSP
             request.getRequestDispatcher("/Views/HrStaff/PayrollManagement.jsp").forward(request, response);
@@ -402,8 +593,9 @@ public class PayrollManagementController extends HttpServlet {
                 return;
             }
             
-            if (payroll.getStatus() == null || !"Draft".equals(payroll.getStatus())) {
-                request.getSession().setAttribute("error", "Only Draft payrolls can be submitted.");
+            // Allow submitting Draft or Rejected payrolls
+            if (payroll.getStatus() == null || (!"Draft".equals(payroll.getStatus()) && !"Rejected".equals(payroll.getStatus()))) {
+                request.getSession().setAttribute("error", "Only Draft or Rejected payrolls can be submitted.");
                 response.sendRedirect(buildPayrollRedirectUrl(request));
                 return;
             }
@@ -411,7 +603,10 @@ public class PayrollManagementController extends HttpServlet {
             boolean success = payrollDAO.updateStatus(payrollId, "Pending");
             
             if (success) {
-                request.getSession().setAttribute("success", "Payroll submitted for approval successfully!");
+                String message = "Rejected".equals(payroll.getStatus()) 
+                    ? "Payroll resubmitted for approval successfully!" 
+                    : "Payroll submitted for approval successfully!";
+                request.getSession().setAttribute("success", message);
             } else {
                 request.getSession().setAttribute("error", "Failed to submit payroll.");
             }
@@ -420,6 +615,172 @@ public class PayrollManagementController extends HttpServlet {
         } catch (Exception e) {
             e.printStackTrace();
             request.getSession().setAttribute("error", "Error submitting payroll: " + e.getMessage());
+            response.sendRedirect(buildPayrollRedirectUrl(request));
+        }
+    }
+    
+    /**
+     * Handle batch submit for multiple payrolls
+     */
+    private void handleBatchSubmit(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        if (!ensureHtmlAccess(request, response, "You do not have permission to submit payrolls for approval.")) {
+            return;
+        }
+        try {
+            String payrollIdsStr = request.getParameter("payrollIds");
+            if (payrollIdsStr == null || payrollIdsStr.trim().isEmpty()) {
+                request.getSession().setAttribute("error", "No payroll IDs provided");
+                response.sendRedirect(buildPayrollRedirectUrl(request));
+                return;
+            }
+            
+            String[] payrollIdStrs = payrollIdsStr.split(",");
+            List<Integer> payrollIds = new ArrayList<>();
+            for (String idStr : payrollIdStrs) {
+                try {
+                    payrollIds.add(Integer.parseInt(idStr.trim()));
+                } catch (NumberFormatException e) {
+                    // Skip invalid IDs
+                }
+            }
+            
+            if (payrollIds.isEmpty()) {
+                request.getSession().setAttribute("error", "No valid payroll IDs provided");
+                response.sendRedirect(buildPayrollRedirectUrl(request));
+                return;
+            }
+            
+            int successCount = 0;
+            int failCount = 0;
+            int skippedCount = 0;
+            
+            for (Integer payrollId : payrollIds) {
+                Payroll payroll = payrollDAO.getById(payrollId);
+                if (payroll == null) {
+                    skippedCount++;
+                    continue;
+                }
+                
+                // Only allow submitting Draft or Rejected payrolls
+                if (payroll.getStatus() == null || (!"Draft".equals(payroll.getStatus()) && !"Rejected".equals(payroll.getStatus()))) {
+                    skippedCount++;
+                    continue;
+                }
+                
+                boolean success = payrollDAO.updateStatus(payrollId, "Pending");
+                if (success) {
+                    successCount++;
+                } else {
+                    failCount++;
+                }
+            }
+            
+            // Build result message
+            StringBuilder message = new StringBuilder();
+            if (successCount > 0) {
+                message.append(successCount).append(" payroll(s) submitted successfully. ");
+            }
+            if (failCount > 0) {
+                message.append(failCount).append(" payroll(s) failed to submit. ");
+            }
+            if (skippedCount > 0) {
+                message.append(skippedCount).append(" payroll(s) skipped (not in Draft/Rejected status). ");
+            }
+            
+            if (successCount > 0) {
+                request.getSession().setAttribute("success", message.toString().trim());
+            } else {
+                request.getSession().setAttribute("error", message.toString().trim());
+            }
+            
+            response.sendRedirect(buildPayrollRedirectUrl(request));
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.getSession().setAttribute("error", "Error batch submitting payrolls: " + e.getMessage());
+            response.sendRedirect(buildPayrollRedirectUrl(request));
+        }
+    }
+    
+    /**
+     * Handle batch delete for multiple payrolls
+     */
+    private void handleBatchDelete(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        if (!ensureHtmlAccess(request, response, "You do not have permission to delete payroll records.")) {
+            return;
+        }
+        try {
+            String payrollIdsStr = request.getParameter("payrollIds");
+            if (payrollIdsStr == null || payrollIdsStr.trim().isEmpty()) {
+                request.getSession().setAttribute("error", "No payroll IDs provided");
+                response.sendRedirect(buildPayrollRedirectUrl(request));
+                return;
+            }
+            
+            String[] payrollIdStrs = payrollIdsStr.split(",");
+            List<Integer> payrollIds = new ArrayList<>();
+            for (String idStr : payrollIdStrs) {
+                try {
+                    payrollIds.add(Integer.parseInt(idStr.trim()));
+                } catch (NumberFormatException e) {
+                    // Skip invalid IDs
+                }
+            }
+            
+            if (payrollIds.isEmpty()) {
+                request.getSession().setAttribute("error", "No valid payroll IDs provided");
+                response.sendRedirect(buildPayrollRedirectUrl(request));
+                return;
+            }
+            
+            int successCount = 0;
+            int failCount = 0;
+            int skippedCount = 0;
+            
+            for (Integer payrollId : payrollIds) {
+                Payroll payroll = payrollDAO.getById(payrollId);
+                if (payroll == null) {
+                    skippedCount++;
+                    continue;
+                }
+                
+                // Only allow deleting Draft payrolls
+                if (!"Draft".equals(payroll.getStatus())) {
+                    skippedCount++;
+                    continue;
+                }
+                
+                boolean success = payrollDAO.delete(payrollId);
+                if (success) {
+                    successCount++;
+                } else {
+                    failCount++;
+                }
+            }
+            
+            // Build result message
+            StringBuilder message = new StringBuilder();
+            if (successCount > 0) {
+                message.append(successCount).append(" payroll(s) deleted successfully. ");
+            }
+            if (failCount > 0) {
+                message.append(failCount).append(" payroll(s) failed to delete. ");
+            }
+            if (skippedCount > 0) {
+                message.append(skippedCount).append(" payroll(s) skipped (not in Draft status). ");
+            }
+            
+            if (successCount > 0) {
+                request.getSession().setAttribute("success", message.toString().trim());
+            } else {
+                request.getSession().setAttribute("error", message.toString().trim());
+            }
+            
+            response.sendRedirect(buildPayrollRedirectUrl(request));
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.getSession().setAttribute("error", "Error batch deleting payrolls: " + e.getMessage());
             response.sendRedirect(buildPayrollRedirectUrl(request));
         }
     }

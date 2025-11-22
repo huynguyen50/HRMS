@@ -1,6 +1,7 @@
 package com.hrm.controller.hrstaff;
 
 import com.hrm.dao.EmployeeDeductionDAO;
+import com.hrm.dao.PayrollDAO;
 import com.hrm.util.PermissionUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -19,6 +20,7 @@ import java.math.BigDecimal;
 public class PayrollDeductionController extends HttpServlet {
 
     private final EmployeeDeductionDAO employeeDeductionDAO = new EmployeeDeductionDAO();
+    private final PayrollDAO payrollDAO = new PayrollDAO();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -43,6 +45,24 @@ public class PayrollDeductionController extends HttpServlet {
             int employeeId = Integer.parseInt(employeeIdStr);
             int deductionTypeId = Integer.parseInt(deductionTypeIdStr);
             BigDecimal amount = new BigDecimal(amountStr);
+
+            // Check payroll status before allowing deduction creation/update
+            String payrollStatus = payrollDAO.getPayrollStatusByEmployeeAndPeriod(employeeId, month);
+            if (payrollStatus != null && isPayrollStatusBlocked(payrollStatus)) {
+                String statusDisplay = getStatusDisplayName(payrollStatus);
+                String errorMessage = String.format(
+                    "⚠️ Không thể tạo/sửa deduction!\n\n" +
+                    "Bảng lương của nhân viên này cho tháng %s đã ở trạng thái '%s'.\n\n" +
+                    "Để thêm deduction:\n" +
+                    "1. Nếu payroll đang Pending: Yêu cầu HR Manager reject payroll\n" +
+                    "2. Nếu payroll đã Approved: Tạo payroll mới cho tháng tiếp theo hoặc tạo adjustment payroll\n" +
+                    "3. Nếu payroll đã Paid: Liên hệ quản lý để xử lý",
+                    month, statusDisplay
+                );
+                request.getSession().setAttribute("error", errorMessage);
+                response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=deduction");
+                return;
+            }
 
             boolean success;
             if (deductionIdStr != null && !deductionIdStr.trim().isEmpty()) {
@@ -95,6 +115,34 @@ public class PayrollDeductionController extends HttpServlet {
             }
             
             int deductionId = Integer.parseInt(deductionIdStr);
+            
+            // Get deduction info to check payroll status
+            var deductionInfo = employeeDeductionDAO.getById(deductionId);
+            if (deductionInfo != null) {
+                Integer employeeId = (Integer) deductionInfo.get("employeeId");
+                String month = (String) deductionInfo.get("month");
+                
+                if (employeeId != null && month != null) {
+                    // Check payroll status before allowing deletion
+                    String payrollStatus = payrollDAO.getPayrollStatusByEmployeeAndPeriod(employeeId, month);
+                    if (payrollStatus != null && isPayrollStatusBlocked(payrollStatus)) {
+                        String statusDisplay = getStatusDisplayName(payrollStatus);
+                        String errorMessage = String.format(
+                            "⚠️ Không thể xóa deduction!\n\n" +
+                            "Bảng lương của nhân viên này cho tháng %s đã ở trạng thái '%s'.\n\n" +
+                            "Để xóa deduction:\n" +
+                            "1. Nếu payroll đang Pending: Yêu cầu HR Manager reject payroll\n" +
+                            "2. Nếu payroll đã Approved: Tạo payroll mới cho tháng tiếp theo hoặc tạo adjustment payroll\n" +
+                            "3. Nếu payroll đã Paid: Liên hệ quản lý để xử lý",
+                            month, statusDisplay
+                        );
+                        request.getSession().setAttribute("error", errorMessage);
+                        response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=deduction");
+                        return;
+                    }
+                }
+            }
+            
             boolean success = employeeDeductionDAO.delete(deductionId);
             
             if (success) {
@@ -108,6 +156,33 @@ public class PayrollDeductionController extends HttpServlet {
             e.printStackTrace();
             request.getSession().setAttribute("error", "Error deleting deduction: " + e.getMessage());
             response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=deduction");
+        }
+    }
+
+    /**
+     * Check if payroll status blocks allowance/deduction modification
+     * Blocked statuses: Pending, Approved, Paid
+     * Allowed statuses: Draft, Rejected, null (no payroll)
+     */
+    private boolean isPayrollStatusBlocked(String status) {
+        if (status == null) {
+            return false; // No payroll exists, allow modification
+        }
+        return "Pending".equals(status) || "Approved".equals(status) || "Paid".equals(status);
+    }
+    
+    /**
+     * Get display name for payroll status
+     */
+    private String getStatusDisplayName(String status) {
+        if (status == null) return "N/A";
+        switch (status) {
+            case "Draft": return "Nháp";
+            case "Pending": return "Đang chờ duyệt";
+            case "Approved": return "Đã duyệt";
+            case "Rejected": return "Đã từ chối";
+            case "Paid": return "Đã thanh toán";
+            default: return status;
         }
     }
 

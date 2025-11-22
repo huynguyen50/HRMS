@@ -62,21 +62,15 @@ public class PayrollCalculateController extends HttpServlet {
 
             int employeeId = Integer.parseInt(employeeIdStr);
             
-            // Parse month to get year and month
             String[] monthParts = month.split("-");
             int year = Integer.parseInt(monthParts[0]);
             int monthNum = Integer.parseInt(monthParts[1]);
             
-            // Get BaseSalary from Contract for the specific pay period
-            // Logic matches stored procedure sp_GeneratePayrollImproved:
-            // Contract is valid if StartDate <= LAST_DAY(month) AND (EndDate IS NULL OR EndDate >= first day of month)
-            // Note: Does NOT check Status (like stored procedure)
             BigDecimal baseSalary = BigDecimal.ZERO;
             try {
                 System.out.println("PayrollCalculateController: Getting contract for employee " + employeeId + 
                     ", period " + month + " (year=" + year + ", month=" + monthNum + ")");
                 
-                // Get contract valid for the pay period month (like stored procedure)
                 Contract contract = getContractForPayPeriod(employeeId, year, monthNum);
                 if (contract != null && contract.getBaseSalary() != null && 
                     contract.getBaseSalary().compareTo(BigDecimal.ZERO) > 0) {
@@ -90,7 +84,6 @@ public class PayrollCalculateController extends HttpServlet {
                 } else {
                     System.out.println("PayrollCalculateController: ✗ No valid contract found for employee " + employeeId + 
                         " for period " + month + ". Trying fallback...");
-                    // Try fallback: get any contract with BaseSalary > 0 (ignoring date restrictions)
                     Contract fallbackContract = getAnyContractWithBaseSalary(employeeId);
                     if (fallbackContract != null && fallbackContract.getBaseSalary() != null && 
                         fallbackContract.getBaseSalary().compareTo(BigDecimal.ZERO) > 0) {
@@ -224,12 +217,6 @@ public class PayrollCalculateController extends HttpServlet {
         }
     }
     
-    /**
-     * Get contract valid for a specific pay period month
-     * Matches stored procedure logic: StartDate <= LAST_DAY(month) AND (EndDate IS NULL OR EndDate >= first day of month)
-     * Note: Does not check Status (like stored procedure), only checks date validity
-     * This is the same logic as sp_GeneratePayrollImproved uses
-     */
     private Contract getContractForPayPeriod(int employeeId, int year, int month) {
         // Build date string for the first day of the month (YYYY-MM-01)
         String monthStr = String.format("%d-%02d-01", year, month);
@@ -637,12 +624,6 @@ public class PayrollCalculateController extends HttpServlet {
         return stats;
     }
     
-    /**
-     * Calculate insurance and tax using stored procedure logic
-     * Based on sp_GeneratePayrollImproved stored procedure
-     * Insurance is calculated from BaseSalary (contract base salary)
-     * TaxableIncome = ActualBaseSalary + OTSalary + Allowance - (BHXH + BHYT + BHTN)
-     */
     private Map<String, Object> calculateInsuranceAndTax(int employeeId, BigDecimal baseSalary, 
             BigDecimal actualBaseSalary, BigDecimal otSalary, BigDecimal allowance) {
         Map<String, Object> result = new HashMap<>();

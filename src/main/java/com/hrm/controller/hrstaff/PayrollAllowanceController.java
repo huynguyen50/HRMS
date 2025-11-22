@@ -1,6 +1,7 @@
 package com.hrm.controller.hrstaff;
 
 import com.hrm.dao.EmployeeAllowanceDAO;
+import com.hrm.dao.PayrollDAO;
 import com.hrm.util.PermissionUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -19,6 +20,7 @@ import java.math.BigDecimal;
 public class PayrollAllowanceController extends HttpServlet {
 
     private final EmployeeAllowanceDAO employeeAllowanceDAO = new EmployeeAllowanceDAO();
+    private final PayrollDAO payrollDAO = new PayrollDAO();
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -43,6 +45,24 @@ public class PayrollAllowanceController extends HttpServlet {
             int employeeId = Integer.parseInt(employeeIdStr);
             int allowanceTypeId = Integer.parseInt(allowanceTypeIdStr);
             BigDecimal amount = new BigDecimal(amountStr);
+
+            // Check payroll status before allowing allowance creation/update
+            String payrollStatus = payrollDAO.getPayrollStatusByEmployeeAndPeriod(employeeId, month);
+            if (payrollStatus != null && isPayrollStatusBlocked(payrollStatus)) {
+                String statusDisplay = getStatusDisplayName(payrollStatus);
+                String errorMessage = String.format(
+                    "⚠️ Không thể tạo/sửa allowance!\n\n" +
+                    "Bảng lương của nhân viên này cho tháng %s đã ở trạng thái '%s'.\n\n" +
+                    "Để thêm allowance:\n" +
+                    "1. Nếu payroll đang Pending: Yêu cầu HR Manager reject payroll\n" +
+                    "2. Nếu payroll đã Approved: Tạo payroll mới cho tháng tiếp theo hoặc tạo adjustment payroll\n" +
+                    "3. Nếu payroll đã Paid: Liên hệ quản lý để xử lý",
+                    month, statusDisplay
+                );
+                request.getSession().setAttribute("error", errorMessage);
+                response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=allowance");
+                return;
+            }
 
             boolean success;
             if (allowanceIdStr != null && !allowanceIdStr.trim().isEmpty()) {
@@ -95,6 +115,34 @@ public class PayrollAllowanceController extends HttpServlet {
             }
             
             int allowanceId = Integer.parseInt(allowanceIdStr);
+            
+            // Get allowance info to check payroll status
+            var allowanceInfo = employeeAllowanceDAO.getById(allowanceId);
+            if (allowanceInfo != null) {
+                Integer employeeId = (Integer) allowanceInfo.get("employeeId");
+                String month = (String) allowanceInfo.get("month");
+                
+                if (employeeId != null && month != null) {
+                    // Check payroll status before allowing deletion
+                    String payrollStatus = payrollDAO.getPayrollStatusByEmployeeAndPeriod(employeeId, month);
+                    if (payrollStatus != null && isPayrollStatusBlocked(payrollStatus)) {
+                        String statusDisplay = getStatusDisplayName(payrollStatus);
+                        String errorMessage = String.format(
+                            "⚠️ Không thể xóa allowance!\n\n" +
+                            "Bảng lương của nhân viên này cho tháng %s đã ở trạng thái '%s'.\n\n" +
+                            "Để xóa allowance:\n" +
+                            "1. Nếu payroll đang Pending: Yêu cầu HR Manager reject payroll\n" +
+                            "2. Nếu payroll đã Approved: Tạo payroll mới cho tháng tiếp theo hoặc tạo adjustment payroll\n" +
+                            "3. Nếu payroll đã Paid: Liên hệ quản lý để xử lý",
+                            month, statusDisplay
+                        );
+                        request.getSession().setAttribute("error", errorMessage);
+                        response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=allowance");
+                        return;
+                    }
+                }
+            }
+            
             boolean success = employeeAllowanceDAO.delete(allowanceId);
             
             if (success) {
@@ -108,6 +156,33 @@ public class PayrollAllowanceController extends HttpServlet {
             e.printStackTrace();
             request.getSession().setAttribute("error", "Error deleting allowance: " + e.getMessage());
             response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=allowance");
+        }
+    }
+
+    /**
+     * Check if payroll status blocks allowance/deduction modification
+     * Blocked statuses: Pending, Approved, Paid
+     * Allowed statuses: Draft, Rejected, null (no payroll)
+     */
+    private boolean isPayrollStatusBlocked(String status) {
+        if (status == null) {
+            return false; // No payroll exists, allow modification
+        }
+        return "Pending".equals(status) || "Approved".equals(status) || "Paid".equals(status);
+    }
+    
+    /**
+     * Get display name for payroll status
+     */
+    private String getStatusDisplayName(String status) {
+        if (status == null) return "N/A";
+        switch (status) {
+            case "Draft": return "Nháp";
+            case "Pending": return "Đang chờ duyệt";
+            case "Approved": return "Đã duyệt";
+            case "Rejected": return "Đã từ chối";
+            case "Paid": return "Đã thanh toán";
+            default: return status;
         }
     }
 
