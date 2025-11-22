@@ -59,7 +59,7 @@ public class PayrollManagementController extends HttpServlet {
                 String otSalaryStr = request.getParameter("otSalary");
                 String allowanceStr = request.getParameter("allowance");
                 String deductionStr = request.getParameter("deduction");
-                String netSalaryStr = request.getParameter("netSalary");
+                // Net Salary is now auto-calculated, no need to read from request
 
                 // Validate required fields
                 if (employeeIdStr == null || payPeriod == null) {
@@ -84,91 +84,12 @@ public class PayrollManagementController extends HttpServlet {
                 BigDecimal deduction = (deductionStr != null && !deductionStr.trim().isEmpty()) 
                     ? new BigDecimal(deductionStr) 
                     : BigDecimal.ZERO;
-                BigDecimal netSalary = (netSalaryStr != null && !netSalaryStr.trim().isEmpty()) 
-                    ? new BigDecimal(netSalaryStr) 
-                    : BigDecimal.ZERO;
 
-                // Validate Net Salary formula: Net Salary = ActualBaseSalary + OTSalary + Allowance - Deduction
-                BigDecimal calculatedNetSalary = actualBaseSalary.add(otSalary).add(allowance).subtract(deduction);
-                if (calculatedNetSalary.compareTo(BigDecimal.ZERO) < 0) {
-                    calculatedNetSalary = BigDecimal.ZERO;
-                }
-                
-                BigDecimal difference = netSalary.subtract(calculatedNetSalary).abs();
-                BigDecimal tolerance = new BigDecimal("0.01"); // Allow 1 cent difference for rounding
-                
-                String overrideReason = request.getParameter("overrideReason");
-                String manualOverride = request.getParameter("manualOverride");
-                boolean hasOverride = "on".equals(manualOverride) && overrideReason != null && !overrideReason.trim().isEmpty();
-                
-                // If Net Salary doesn't match formula, require override reason
-                if (difference.compareTo(tolerance) > 0) {
-                    if (!hasOverride) {
-                        request.setAttribute("error", "Net Salary does not match the formula!\n" +
-                            "Expected: " + calculatedNetSalary + " (Actual Base Salary + OT Salary + Allowance - Deduction)\n" +
-                            "Provided: " + netSalary + "\n" +
-                            "Please check 'Manual Override' and provide a reason if this is intentional.");
-                        doGet(request, response);
-                        return;
-                    }
-                    // Log override to PayrollAudit notes if exists
-                    if (payrollIdStr != null && !payrollIdStr.trim().isEmpty()) {
-                        int payrollId = Integer.parseInt(payrollIdStr);
-                        com.hrm.model.entity.Payroll existingPayroll = payrollDAO.getById(payrollId);
-                        if (existingPayroll != null) {
-                            // Update PayrollAudit notes with override information
-                            String auditNote = String.format("[MANUAL OVERRIDE] %s\nUser: %s\nReason: %s\n" +
-                                "Net Salary Override: Expected %s, Set to %s",
-                                java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                                request.getSession().getAttribute("systemUser") != null ? 
-                                    ((com.hrm.model.entity.SystemUser)request.getSession().getAttribute("systemUser")).getUsername() : "Unknown",
-                                overrideReason.trim(),
-                                calculatedNetSalary,
-                                netSalary);
-                            
-                            try {
-                                payrollDAO.updatePayrollAuditNotes(existingPayroll.getEmployeeId(), existingPayroll.getPayPeriod(), auditNote);
-                            } catch (Exception e) {
-                                System.err.println("Failed to update PayrollAudit notes: " + e.getMessage());
-                            }
-                        }
-                    } else if (employeeIdStr != null && payPeriod != null) {
-                        // For new payroll, we can't update audit yet, but we'll log it when creating
-                        // Store override note in request attribute for later use
-                        String auditNote = String.format("[MANUAL OVERRIDE] %s\nUser: %s\nReason: %s\n" +
-                            "Net Salary Override: Expected %s, Set to %s",
-                            java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                            request.getSession().getAttribute("systemUser") != null ? 
-                                ((com.hrm.model.entity.SystemUser)request.getSession().getAttribute("systemUser")).getUsername() : "Unknown",
-                            overrideReason.trim(),
-                            calculatedNetSalary,
-                            netSalary);
-                        
-                        // Will be applied after payroll creation
-                        request.setAttribute("pendingAuditNote", auditNote);
-                        request.setAttribute("pendingEmployeeId", employeeId);
-                        request.setAttribute("pendingPayPeriod", payPeriod);
-                    }
-                }
-                
-                // Also log manual override even if formula matches (user explicitly checked override)
-                if (hasOverride && difference.compareTo(tolerance) <= 0 && payrollIdStr != null && !payrollIdStr.trim().isEmpty()) {
-                    int payrollId = Integer.parseInt(payrollIdStr);
-                    com.hrm.model.entity.Payroll existingPayroll = payrollDAO.getById(payrollId);
-                    if (existingPayroll != null) {
-                        String auditNote = String.format("[MANUAL OVERRIDE - CONFIRMED] %s\nUser: %s\nReason: %s\n" +
-                            "Values match formula but user confirmed manual override.",
-                            java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                            request.getSession().getAttribute("systemUser") != null ? 
-                                ((com.hrm.model.entity.SystemUser)request.getSession().getAttribute("systemUser")).getUsername() : "Unknown",
-                            overrideReason.trim());
-                        
-                        try {
-                            payrollDAO.updatePayrollAuditNotes(existingPayroll.getEmployeeId(), existingPayroll.getPayPeriod(), auditNote);
-                        } catch (Exception e) {
-                            System.err.println("Failed to update PayrollAudit notes: " + e.getMessage());
-                        }
-                    }
+                // Calculate Net Salary automatically from formula: Net Salary = ActualBaseSalary + OTSalary + Allowance - Deduction
+                // Net Salary is now read-only and always calculated, no manual override allowed
+                BigDecimal netSalary = actualBaseSalary.add(otSalary).add(allowance).subtract(deduction);
+                if (netSalary.compareTo(BigDecimal.ZERO) < 0) {
+                    netSalary = BigDecimal.ZERO;
                 }
 
                 Payroll payroll = new Payroll();

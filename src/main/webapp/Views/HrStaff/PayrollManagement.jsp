@@ -1827,30 +1827,14 @@
                         
                         <div class="form-row" style="margin-bottom:12px;">
                             <div class="form-group" style="flex:1;">
-                                <label>Net Salary <span style="color:var(--error);">*</span></label>
+                                <label>Net Salary <span style="color:var(--error);">*</span> <span style="color:var(--muted); font-size:11px; font-weight:normal;">(Auto-calculated)</span></label>
                                 <input type="number" id="payrollNetSalary" name="netSalary" step="0.01" min="0" required
-                                    readonly style="background:#f5f5f5; cursor:not-allowed; font-weight:bold;" 
-                                    onchange="validateNetSalary()" onblur="validateNetSalary()"/>
+                                    readonly style="background:#f5f5f5; cursor:not-allowed; font-weight:bold; color:#059669;" 
+                                    onchange="updateNetSalaryAuto()" onblur="updateNetSalaryAuto()"/>
                                 <small id="netSalaryWarning" style="display:none; color:var(--error); font-size:11px; font-weight:bold;"></small>
                                 <small id="netSalaryFormula" style="display:block; color:var(--muted); font-size:11px; margin-top:4px;">
-                                    Formula: Actual Base Salary + OT Salary + Allowance - Total Deduction
+                                    Formula: Actual Base Salary + OT Salary + Allowance - Total Deduction (Auto-calculated, cannot be edited directly)
                                 </small>
-                            </div>
-                        </div>
-                        
-                        <div id="overrideSection" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid #ffc107;">
-                            <div class="form-group">
-                                <label style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-                                    <input type="checkbox" id="manualOverride" name="manualOverride" onchange="toggleOverrideReason()"/>
-                                    <span>I understand this is a manual override and have a valid reason</span>
-                                </label>
-                            </div>
-                            <div class="form-group" id="overrideReasonGroup" style="display:none;">
-                                <label>Override Reason <span style="color:var(--error);">*</span></label>
-                                <textarea id="overrideReason" name="overrideReason" rows="3" 
-                                    style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:4px;"
-                                    placeholder="Please provide a reason for manually overriding the calculated values..."></textarea>
-                                <small style="color:var(--muted); font-size:11px;">This reason will be logged for audit purposes.</small>
                             </div>
                         </div>
                         
@@ -2076,7 +2060,19 @@
                         document.getElementById('payrollOTSalary').value = otSalary;
                         document.getElementById('payrollAllowance').value = allowance;
                         document.getElementById('payrollDeduction').value = deduction;
-                        document.getElementById('payrollNetSalary').value = netSalary;
+                        
+                        // Auto-calculate Net Salary from components
+                        if (typeof updateNetSalaryAuto === 'function') {
+                            updateNetSalaryAuto();
+                        } else {
+                            // Fallback: calculate directly
+                            const calculatedNet = actualBaseSalary + otSalary + allowance - deduction;
+                            document.getElementById('payrollNetSalary').value = Math.max(0, calculatedNet).toFixed(2);
+                        }
+                        
+                        // Calculate netSalary for summary display
+                        const calculatedNet = actualBaseSalary + otSalary + allowance - deduction;
+                        const netSalaryForSummary = Math.max(0, calculatedNet);
                         
                         updatePayrollSummary({
                             baseSalary: actualBaseSalary,
@@ -2084,7 +2080,7 @@
                             otSalary: otSalary,
                             totalAllowance: allowance,
                             totalDeduction: deduction,
-                            netSalary: netSalary
+                            netSalary: netSalaryForSummary
                         });
                         
                         // Load employee-specific data after setting employee and period
@@ -2852,7 +2848,15 @@
                                     document.getElementById('payrollOTSalary').value = otSalary;
                                     document.getElementById('payrollAllowance').value = totalAllowance;
                                     document.getElementById('payrollDeduction').value = totalDeduction;
-                                    document.getElementById('payrollNetSalary').value = netSalary;
+                                    
+                                    // Auto-calculate Net Salary from components
+                                    if (typeof updateNetSalaryAuto === 'function') {
+                                        updateNetSalaryAuto();
+                                    } else {
+                                        // Fallback: calculate directly
+                                        const calculatedNet = actualBaseSalary + otSalary + totalAllowance - totalDeduction;
+                                        document.getElementById('payrollNetSalary').value = Math.max(0, calculatedNet).toFixed(2);
+                                    }
                                     
                                     // Show manual edit section
                                     document.getElementById('manualEditSection').style.display = 'block';
@@ -2862,11 +2866,9 @@
                                         clearAllWarnings();
                                     }
                                     const manualEditWarningEl = document.getElementById('manualEditWarning');
-                                    const overrideSectionEl = document.getElementById('overrideSection');
                                     if (manualEditWarningEl) manualEditWarningEl.style.display = 'none';
-                                    if (overrideSectionEl) overrideSectionEl.style.display = 'none';
                                     
-                                    // Auto-validate after loading
+                                    // Auto-validate after loading (now just ensures Net Salary is calculated)
                                     if (typeof validateNetSalary === 'function') {
                                         validateNetSalary();
                                     }
@@ -3258,7 +3260,8 @@
             
             function toggleManualEdit() {
                 isEditing = !isEditing;
-                const inputs = ['payrollActualBaseSalary', 'payrollOTSalary', 'payrollAllowance', 'payrollDeduction', 'payrollNetSalary'];
+                // Net Salary is always readonly, only allow editing other fields
+                const inputs = ['payrollActualBaseSalary', 'payrollOTSalary', 'payrollAllowance', 'payrollDeduction'];
                 const btn = document.getElementById('toggleEditBtn');
                 
                 inputs.forEach(id => {
@@ -3268,55 +3271,78 @@
                             input.removeAttribute('readonly');
                             input.style.background = 'white';
                             input.style.cursor = 'text';
+                            // Add event listeners for auto-calculation
+                            input.addEventListener('input', updateNetSalaryAuto);
+                            input.addEventListener('change', updateNetSalaryAuto);
                             if (btn) btn.innerHTML = '<i class="fas fa-lock"></i> Lock Values';
                             document.getElementById('manualEditWarning').style.display = 'block';
-                            document.getElementById('overrideSection').style.display = 'block';
                         } else {
                             input.setAttribute('readonly', 'readonly');
                             input.style.background = '#f5f5f5';
                             input.style.cursor = 'not-allowed';
+                            // Remove event listeners
+                            input.removeEventListener('input', updateNetSalaryAuto);
+                            input.removeEventListener('change', updateNetSalaryAuto);
                             if (btn) btn.innerHTML = '<i class="fas fa-edit"></i> Edit Values';
                             document.getElementById('manualEditWarning').style.display = 'none';
-                            document.getElementById('overrideSection').style.display = 'none';
-                            document.getElementById('manualOverride').checked = false;
-                            document.getElementById('overrideReasonGroup').style.display = 'none';
                         }
                     }
                 });
+                
+                // Ensure Net Salary is always readonly
+                const netSalaryInput = document.getElementById('payrollNetSalary');
+                if (netSalaryInput) {
+                    netSalaryInput.setAttribute('readonly', 'readonly');
+                    netSalaryInput.style.background = '#f5f5f5';
+                    netSalaryInput.style.cursor = 'not-allowed';
+                }
+                
+                // Auto-calculate Net Salary when toggling
+                updateNetSalaryAuto();
             }
             
-            function validateNetSalary() {
+            // Auto-calculate Net Salary when any component changes
+            function updateNetSalaryAuto() {
                 const actualBaseSalary = parseFloat(document.getElementById('payrollActualBaseSalary').value) || 0;
                 const otSalary = parseFloat(document.getElementById('payrollOTSalary').value) || 0;
                 const allowance = parseFloat(document.getElementById('payrollAllowance').value) || 0;
                 const deduction = parseFloat(document.getElementById('payrollDeduction').value) || 0;
-                const netSalary = parseFloat(document.getElementById('payrollNetSalary').value) || 0;
                 
-                const calculatedNet = actualBaseSalary + otSalary + allowance - deduction;
-                const difference = Math.abs(netSalary - calculatedNet);
-                const tolerance = 0.01; // Allow 1 cent difference for rounding
+                // Calculate Net Salary: ActualBaseSalary + OTSalary + Allowance - Deduction
+                const netSalary = Math.max(0, actualBaseSalary + otSalary + allowance - deduction);
                 
+                const netSalaryInput = document.getElementById('payrollNetSalary');
+                if (netSalaryInput) {
+                    netSalaryInput.value = netSalary.toFixed(2);
+                }
+                
+                // Update summary if exists
+                if (typeof updatePayrollSummary === 'function') {
+                    updatePayrollSummary({
+                        baseSalary: parseFloat(document.getElementById('payrollBaseSalary').value) || 0,
+                        actualBaseSalary: actualBaseSalary,
+                        otSalary: otSalary,
+                        totalAllowance: allowance,
+                        totalDeduction: deduction,
+                        netSalary: netSalary
+                    });
+                }
+            }
+            
+            function validateNetSalary() {
+                // Net Salary is now always calculated automatically, no validation needed
+                // Just hide any warnings
                 const warningEl = document.getElementById('netSalaryWarning');
                 const formulaEl = document.getElementById('netSalaryFormula');
                 
-                if (difference > tolerance) {
-                    if (warningEl) {
-                        warningEl.style.display = 'block';
-                        warningEl.textContent = '⚠️ Calculated Net Salary: ' + formatCurrency(calculatedNet) + ' (Difference: ' + formatCurrency(difference) + ')';
-                    }
-                    if (formulaEl) {
-                        formulaEl.style.color = 'var(--error)';
-                        formulaEl.style.fontWeight = 'bold';
-                    }
-                    return false;
-                } else {
-                    if (warningEl) warningEl.style.display = 'none';
-                    if (formulaEl) {
-                        formulaEl.style.color = 'var(--muted)';
-                        formulaEl.style.fontWeight = 'normal';
-                    }
-                    return true;
+                if (warningEl) warningEl.style.display = 'none';
+                if (formulaEl) {
+                    formulaEl.style.color = 'var(--muted)';
+                    formulaEl.style.fontWeight = 'normal';
                 }
+                
+                // Always return true since Net Salary is auto-calculated
+                return true;
             }
             
             function recalculatePayroll() {
@@ -3426,31 +3452,19 @@
             }
             
             function validatePayrollForm() {
-                // Validate Net Salary formula
-                if (!validateNetSalary()) {
-                    const confirmOverride = confirm('Net Salary does not match the formula!\n\n' +
-                        'Formula: Actual Base Salary + OT Salary + Allowance - Total Deduction\n\n' +
-                        'Do you want to continue anyway?');
-                    if (!confirmOverride) {
-                        return false;
-                    }
+                // Net Salary is now always calculated automatically, no validation needed
+                // Just ensure Net Salary is calculated correctly
+                if (typeof updateNetSalaryAuto === 'function') {
+                    updateNetSalaryAuto();
                 }
                 
-                // If manually edited, require override checkbox and reason
-                const hasManualChanges = isManualEdited();
-                if (hasManualChanges) {
-                    const overrideCheckbox = document.getElementById('manualOverride');
-                    const overrideReason = document.getElementById('overrideReason').value.trim();
-                    
-                    if (!overrideCheckbox || !overrideCheckbox.checked) {
-                        alert('⚠️ You have manually edited calculated values. Please check "I understand this is a manual override" checkbox.');
-                        return false;
-                    }
-                    
-                    if (!overrideReason) {
-                        alert('⚠️ Please provide a reason for the manual override. This will be logged for audit purposes.');
-                        return false;
-                    }
+                // Basic validation: ensure required fields are filled
+                const employeeId = document.getElementById('payrollEmployee').value;
+                const payPeriod = document.getElementById('payrollPeriod').value;
+                
+                if (!employeeId || !payPeriod) {
+                    alert('⚠️ Please select Employee and Pay Period.');
+                    return false;
                 }
                 
                 return true;
