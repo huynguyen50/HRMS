@@ -25,9 +25,15 @@ import com.hrm.util.PermissionUtil;
  * Controller for Payroll Approval by HR Manager
  * Handles GET /hr/payroll-approval - Display payroll approval page
  * Handles POST /hr/payroll-approval - Approve/Reject payroll
+ * Handles POST /hr/payroll-approval/batch-approve - Batch approve payrolls
+ * Handles POST /hr/payroll-approval/batch-reject - Batch reject payrolls
  * @author admin
  */
-@WebServlet(name = "PayrollApprovalController", urlPatterns = {"/hr/payroll-approval"})
+@WebServlet(name = "PayrollApprovalController", urlPatterns = {
+    "/hr/payroll-approval",
+    "/hr/payroll-approval/batch-approve",
+    "/hr/payroll-approval/batch-reject"
+})
 public class PayrollApprovalController extends HttpServlet {
 
     private static final String STATUS_PENDING = "Pending";
@@ -160,6 +166,16 @@ public class PayrollApprovalController extends HttpServlet {
             return;
         }
         
+        // Check if this is a batch operation
+        String servletPath = request.getServletPath();
+        if (servletPath != null && servletPath.contains("/batch-approve")) {
+            handleBatchApprove(request, response);
+            return;
+        } else if (servletPath != null && servletPath.contains("/batch-reject")) {
+            handleBatchReject(request, response);
+            return;
+        }
+        
         try {
             String action = request.getParameter("action");
             String payrollIdStr = request.getParameter("payrollId");
@@ -224,8 +240,14 @@ public class PayrollApprovalController extends HttpServlet {
                     return;
                 }
                 
-                // Reject payroll
-                boolean success = payrollDAO.rejectPayroll(payrollId, approvedBy, LocalDate.now());
+                // Get rejection note
+                String rejectNote = request.getParameter("rejectNote");
+                if (rejectNote != null) {
+                    rejectNote = rejectNote.trim();
+                }
+                
+                // Reject payroll with note
+                boolean success = payrollDAO.rejectPayroll(payrollId, approvedBy, LocalDate.now(), rejectNote);
                 
                 if (success) {
                     redirectToPayrollPage(request, response, "Rejected", employeeFilter, monthFilter,
@@ -297,6 +319,220 @@ public class PayrollApprovalController extends HttpServlet {
         }
     }
 
+    /**
+     * Handle batch approve for multiple payrolls
+     */
+    private void handleBatchApprove(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
+        
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+            return;
+        }
+        
+        try {
+            String[] payrollIdStrs = request.getParameterValues("payrollIds");
+            if (payrollIdStrs == null || payrollIdStrs.length == 0) {
+                redirectToPayrollPage(request, response, STATUS_PENDING, null, null,
+                        "error", "No payroll IDs provided");
+                return;
+            }
+            
+            List<Integer> payrollIds = new ArrayList<>();
+            for (String idStr : payrollIdStrs) {
+                try {
+                    payrollIds.add(Integer.parseInt(idStr.trim()));
+                } catch (NumberFormatException e) {
+                    // Skip invalid IDs
+                }
+            }
+            
+            if (payrollIds.isEmpty()) {
+                redirectToPayrollPage(request, response, STATUS_PENDING, null, null,
+                        "error", "No valid payroll IDs provided");
+                return;
+            }
+            
+            // Get current user ID
+            Integer approvedBy = currentUser.getEmployeeId();
+            if (approvedBy == null) {
+                approvedBy = currentUser.getUserId();
+            }
+            
+            int successCount = 0;
+            int failCount = 0;
+            int skippedCount = 0;
+            
+            for (Integer payrollId : payrollIds) {
+                com.hrm.model.entity.Payroll payroll = payrollDAO.getById(payrollId);
+                if (payroll == null) {
+                    skippedCount++;
+                    continue;
+                }
+                
+                // Only allow approving Pending payrolls
+                if (!STATUS_PENDING.equals(payroll.getStatus())) {
+                    skippedCount++;
+                    continue;
+                }
+                
+                boolean success = payrollDAO.approvePayroll(payrollId, approvedBy, LocalDate.now());
+                if (success) {
+                    successCount++;
+                } else {
+                    failCount++;
+                }
+            }
+            
+            // Build result message
+            StringBuilder message = new StringBuilder();
+            if (successCount > 0) {
+                message.append(successCount).append(" payroll(s) approved successfully. ");
+            }
+            if (failCount > 0) {
+                message.append(failCount).append(" payroll(s) failed to approve. ");
+            }
+            if (skippedCount > 0) {
+                message.append(skippedCount).append(" payroll(s) skipped (not in Pending status). ");
+            }
+            
+            String currentStatus = request.getParameter("status");
+            if (currentStatus == null || currentStatus.trim().isEmpty()) {
+                currentStatus = STATUS_PENDING;
+            }
+            String employeeFilter = request.getParameter("employeeFilter");
+            String monthFilter = request.getParameter("payPeriod");
+            
+            if (successCount > 0) {
+                redirectToPayrollPage(request, response, "Approved", employeeFilter, monthFilter,
+                        "success", message.toString().trim());
+            } else {
+                redirectToPayrollPage(request, response, currentStatus, employeeFilter, monthFilter,
+                        "error", message.toString().trim());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            redirectToPayrollPage(request, response, STATUS_PENDING, null, null,
+                    "error", "Error batch approving payrolls: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Handle batch reject for multiple payrolls
+     */
+    private void handleBatchReject(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
+        
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+            return;
+        }
+        
+        try {
+            String[] payrollIdStrs = request.getParameterValues("payrollIds");
+            if (payrollIdStrs == null || payrollIdStrs.length == 0) {
+                redirectToPayrollPage(request, response, STATUS_PENDING, null, null,
+                        "error", "No payroll IDs provided");
+                return;
+            }
+            
+            List<Integer> payrollIds = new ArrayList<>();
+            for (String idStr : payrollIdStrs) {
+                try {
+                    payrollIds.add(Integer.parseInt(idStr.trim()));
+                } catch (NumberFormatException e) {
+                    // Skip invalid IDs
+                }
+            }
+            
+            if (payrollIds.isEmpty()) {
+                redirectToPayrollPage(request, response, STATUS_PENDING, null, null,
+                        "error", "No valid payroll IDs provided");
+                return;
+            }
+            
+            // Get rejection note
+            String rejectNote = request.getParameter("rejectNote");
+            if (rejectNote == null) {
+                rejectNote = "";
+            } else {
+                rejectNote = rejectNote.trim();
+            }
+            
+            if (rejectNote.isEmpty()) {
+                redirectToPayrollPage(request, response, STATUS_PENDING, null, null,
+                        "error", "Rejection reason is required");
+                return;
+            }
+            
+            // Get current user ID
+            Integer approvedBy = currentUser.getEmployeeId();
+            if (approvedBy == null) {
+                approvedBy = currentUser.getUserId();
+            }
+            
+            int successCount = 0;
+            int failCount = 0;
+            int skippedCount = 0;
+            
+            for (Integer payrollId : payrollIds) {
+                com.hrm.model.entity.Payroll payroll = payrollDAO.getById(payrollId);
+                if (payroll == null) {
+                    skippedCount++;
+                    continue;
+                }
+                
+                // Only allow rejecting Pending payrolls
+                if (!STATUS_PENDING.equals(payroll.getStatus())) {
+                    skippedCount++;
+                    continue;
+                }
+                
+                boolean success = payrollDAO.rejectPayroll(payrollId, approvedBy, LocalDate.now(), rejectNote);
+                if (success) {
+                    successCount++;
+                } else {
+                    failCount++;
+                }
+            }
+            
+            // Build result message
+            StringBuilder message = new StringBuilder();
+            if (successCount > 0) {
+                message.append(successCount).append(" payroll(s) rejected successfully. ");
+            }
+            if (failCount > 0) {
+                message.append(failCount).append(" payroll(s) failed to reject. ");
+            }
+            if (skippedCount > 0) {
+                message.append(skippedCount).append(" payroll(s) skipped (not in Pending status). ");
+            }
+            
+            String currentStatus = request.getParameter("status");
+            if (currentStatus == null || currentStatus.trim().isEmpty()) {
+                currentStatus = STATUS_PENDING;
+            }
+            String employeeFilter = request.getParameter("employeeFilter");
+            String monthFilter = request.getParameter("payPeriod");
+            
+            if (successCount > 0) {
+                redirectToPayrollPage(request, response, "Rejected", employeeFilter, monthFilter,
+                        "success", message.toString().trim());
+            } else {
+                redirectToPayrollPage(request, response, currentStatus, employeeFilter, monthFilter,
+                        "error", message.toString().trim());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            redirectToPayrollPage(request, response, STATUS_PENDING, null, null,
+                    "error", "Error batch rejecting payrolls: " + e.getMessage());
+        }
+    }
+    
     private void redirectToPayrollPage(HttpServletRequest request,
                                      HttpServletResponse response,
                                      String status,
@@ -328,3 +564,5 @@ public class PayrollApprovalController extends HttpServlet {
         response.sendRedirect(redirectUrl.toString());
     }
 }
+
+

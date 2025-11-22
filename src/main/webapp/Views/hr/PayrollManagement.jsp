@@ -475,6 +475,34 @@
                 color: #1e40af;
             }
 
+            /* Batch Actions Bar */
+            #batchActionsBar {
+                display: none;
+                margin-bottom: 15px;
+                padding: 12px;
+                background: #f0f9ff;
+                border: 1px solid #bae6fd;
+                border-radius: 8px;
+                align-items: center;
+                gap: 12px;
+            }
+
+            #batchActionsBar.show {
+                display: flex;
+            }
+
+            #selectedCount {
+                font-weight: 600;
+                color: #0369a1;
+                margin-right: auto;
+            }
+
+            .payroll-checkbox {
+                cursor: pointer;
+                width: 18px;
+                height: 18px;
+            }
+
             /* Action buttons */
             .action-btns {
                 display: flex;
@@ -1084,11 +1112,28 @@
                             </form>
                         </div>
 
+                        <!-- Batch Actions Bar -->
+                        <div id="batchActionsBar" style="display: none;">
+                            <span id="selectedCount" style="font-weight:600; color:#0369a1;">0 selected</span>
+                            <button type="button" class="btn btn-small btn-success" onclick="approveSelectedPayrolls()" id="batchApproveBtn" style="display:none;">
+                                <i class="fas fa-check"></i> Approve Selected
+                            </button>
+                            <button type="button" class="btn btn-small btn-danger" onclick="rejectSelectedPayrolls()" id="batchRejectBtn" style="display:none;">
+                                <i class="fas fa-times"></i> Reject Selected
+                            </button>
+                            <button type="button" class="btn btn-small" onclick="clearSelection()" style="background:#6b7280; color:white;">
+                                <i class="fas fa-times"></i> Clear Selection
+                            </button>
+                        </div>
+
                         <!-- Payroll Table -->
                         <div class="table-container">
                             <table>
                                 <thead>
                                     <tr>
+                                        <th style="width:40px; text-align:center;">
+                                            <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" title="Select All">
+                                        </th>
                                         <th><i class="fas fa-user"></i> Employee</th>
                                         <th><i class="fas fa-calendar"></i> Pay Period</th>
                                         <th><i class="fas fa-money-bill"></i> Base Salary</th>
@@ -1104,7 +1149,7 @@
                                     <c:choose>
                                         <c:when test="${empty payrolls}">
                                             <tr>
-                                                <td colspan="9">
+                                                <td colspan="10">
                                                     <div class="empty-state">
                                                         <i class="fas fa-inbox"></i>
                                                         <h3>No Payrolls Found</h3>
@@ -1125,6 +1170,14 @@
                                                     data-net-salary="${payroll.netSalary}"
                                                     data-status="${payroll.status}"
                                                     data-approved-date="${payroll.approvedDate}">
+                                                    <td style="text-align:center;">
+                                                        <c:if test="${payroll.status == 'Pending'}">
+                                                            <input type="checkbox" class="payroll-checkbox" 
+                                                                   data-payroll-id="${payroll.payrollId}"
+                                                                   data-payroll-status="${payroll.status}"
+                                                                   onchange="updateBatchActions()">
+                                                        </c:if>
+                                                    </td>
                                                     <td>${payroll.employeeName}</td>
                                                     <td>${payroll.payPeriod}</td>
                                                     <td class="currency">
@@ -1359,6 +1412,48 @@
             </div>
         </div>
 
+        <!-- Reject Payroll Modal -->
+        <div id="rejectPayrollModal" class="modal">
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h3><i class="fas fa-times-circle"></i> Reject Payroll</h3>
+                    <button class="close-btn" onclick="closeRejectModal()" title="Close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="rejectPayrollForm">
+                        <input type="hidden" id="rejectPayrollId" name="payrollId" />
+                        <input type="hidden" id="batchRejectPayrollIds" name="payrollIds" />
+                        <input type="hidden" id="rejectAction" name="action" value="reject" />
+                        
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label for="rejectNote" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-color);">
+                                Rejection Reason <span style="color: var(--error);">*</span>
+                            </label>
+                            <textarea 
+                                id="rejectNote" 
+                                name="rejectNote" 
+                                rows="5" 
+                                style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-family: inherit; font-size: 14px; resize: vertical;"
+                                placeholder="Please provide a reason for rejecting this payroll..."
+                                required></textarea>
+                            <small style="color: var(--muted-color); margin-top: 4px; display: block;">
+                                This note will be visible to HR Staff for reference when correcting the payroll.
+                            </small>
+                        </div>
+                        
+                        <div class="form-actions" style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
+                            <button type="button" class="btn btn-secondary" onclick="closeRejectModal()" style="padding: 10px 20px;">
+                                Cancel
+                            </button>
+                            <button type="submit" class="btn btn-danger" style="padding: 10px 20px;">
+                                <i class="fas fa-times"></i> Confirm Reject
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
             const appContext = '${pageContext.request.contextPath}';
@@ -1414,6 +1509,112 @@
                         rejectPayroll(payrollId);
                     });
                 });
+
+                // Handle reject form submission
+                const rejectForm = document.getElementById('rejectPayrollForm');
+                if (rejectForm) {
+                    rejectForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        
+                        const rejectNote = document.getElementById('rejectNote').value.trim();
+                        if (!rejectNote) {
+                            alert('Please provide a rejection reason.');
+                            return;
+                        }
+                        
+                        const singlePayrollId = document.getElementById('rejectPayrollId').value;
+                        const batchPayrollIds = document.getElementById('batchRejectPayrollIds').value;
+                        
+                        // Determine if this is batch reject or single reject
+                        const isBatchReject = batchPayrollIds && batchPayrollIds.trim() !== '';
+                        
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = appContext + (isBatchReject ? '/hr/payroll-approval/batch-reject' : '/hr/payroll-approval');
+
+                        const { status, employee, payPeriod, page, pageSize } = getCurrentFilters();
+                        
+                        const actionInput = document.createElement('input');
+                        actionInput.type = 'hidden';
+                        actionInput.name = 'action';
+                        actionInput.value = 'reject';
+                        form.appendChild(actionInput);
+                        
+                        if (isBatchReject) {
+                            // Batch reject: add multiple payroll IDs
+                            const payrollIds = batchPayrollIds.split(',');
+                            payrollIds.forEach(id => {
+                                const input = document.createElement('input');
+                                input.type = 'hidden';
+                                input.name = 'payrollIds';
+                                input.value = id.trim();
+                                form.appendChild(input);
+                            });
+                        } else {
+                            // Single reject: add single payroll ID
+                            const payrollIdInput = document.createElement('input');
+                            payrollIdInput.type = 'hidden';
+                            payrollIdInput.name = 'payrollId';
+                            payrollIdInput.value = singlePayrollId;
+                            form.appendChild(payrollIdInput);
+                        }
+                        
+                        const rejectNoteInput = document.createElement('input');
+                        rejectNoteInput.type = 'hidden';
+                        rejectNoteInput.name = 'rejectNote';
+                        rejectNoteInput.value = rejectNote;
+                        form.appendChild(rejectNoteInput);
+                        
+                        if (status) {
+                            const statusInput = document.createElement('input');
+                            statusInput.type = 'hidden';
+                            statusInput.name = 'status';
+                            statusInput.value = status;
+                            form.appendChild(statusInput);
+                        }
+                        if (employee) {
+                            const empInput = document.createElement('input');
+                            empInput.type = 'hidden';
+                            empInput.name = 'employeeFilter';
+                            empInput.value = employee;
+                            form.appendChild(empInput);
+                        }
+                        if (payPeriod) {
+                            const periodInput = document.createElement('input');
+                            periodInput.type = 'hidden';
+                            periodInput.name = 'payPeriod';
+                            periodInput.value = payPeriod;
+                            form.appendChild(periodInput);
+                        }
+                        if (page) {
+                            const pageInput = document.createElement('input');
+                            pageInput.type = 'hidden';
+                            pageInput.name = 'page';
+                            pageInput.value = page;
+                            form.appendChild(pageInput);
+                        }
+                        if (pageSize) {
+                            const sizeInput = document.createElement('input');
+                            sizeInput.type = 'hidden';
+                            sizeInput.name = 'pageSize';
+                            sizeInput.value = pageSize;
+                            form.appendChild(sizeInput);
+                        }
+                        
+                        document.body.appendChild(form);
+                        form.submit();
+                    });
+                }
+
+                // Close reject modal when clicking outside
+                const rejectModal = document.getElementById('rejectPayrollModal');
+                if (rejectModal) {
+                    rejectModal.addEventListener('click', function(e) {
+                        if (e.target === rejectModal) {
+                            closeRejectModal();
+                        }
+                    });
+                }
             });
 
             window.viewPayrollDetails = function(trigger) {
@@ -1507,10 +1708,18 @@
                 const content = document.getElementById('payrollDetailContent');
                 const audit = data.audit || {};
 
+                // Priority: Use audit data if available, otherwise use payroll data
                 const employeeName = data.employeeName || 'N/A';
                 const payPeriod = data.payPeriod || 'N/A';
-                const status = data.status || 'Draft';
+                const status = (audit.status || data.status) || 'Draft';
                 const approvedDate = data.approvedDate || '';
+                
+                // Use audit values if available, otherwise fallback to payroll values
+                const baseSalary = audit.baseSalary !== undefined && audit.baseSalary !== null ? audit.baseSalary : (data.baseSalary || 0);
+                const allowance = audit.allowance !== undefined && audit.allowance !== null ? audit.allowance : (data.allowance || 0);
+                const otSalary = audit.otSalary !== undefined && audit.otSalary !== null ? audit.otSalary : (data.bonus || 0);
+                const deduction = audit.totalDeduction !== undefined && audit.totalDeduction !== null ? audit.totalDeduction : (data.deduction || 0);
+                const netSalary = audit.netSalary !== undefined && audit.netSalary !== null ? audit.netSalary : (data.netSalary || 0);
 
                 const parts = [];
                 parts.push('<div class="detail-section">');
@@ -1534,119 +1743,218 @@
                     parts.push('      <div class="detail-value">' + approvedDate + '</div>');
                     parts.push('    </div>');
                 }
+                if (audit.calculatedAt) {
+                    parts.push('    <div class="detail-item">');
+                    parts.push('      <div class="detail-label">Calculated At</div>');
+                    parts.push('      <div class="detail-value">' + formatDateTime(audit.calculatedAt) + '</div>');
+                    parts.push('    </div>');
+                }
+                if (audit.calculatedByUsername || audit.calculatedBy) {
+                    parts.push('    <div class="detail-item">');
+                    parts.push('      <div class="detail-label">Calculated By</div>');
+                    const calcBy = audit.calculatedByUsername || ('User ID: ' + audit.calculatedBy);
+                    parts.push('      <div class="detail-value">' + calcBy + '</div>');
+                    parts.push('    </div>');
+                }
                 parts.push('  </div>');
                 parts.push('</div>');
 
-                parts.push('<div class="detail-section">');
-                parts.push('  <div class="detail-section-title"><i class="fas fa-calculator"></i> Salary Breakdown</div>');
-                parts.push('  <div class="detail-grid">');
-                parts.push('    <div class="detail-item">');
-                parts.push('      <div class="detail-label">Payroll Base Salary</div>');
-                parts.push('      <div class="detail-value currency">' + formatCurrency(data.baseSalary) + '</div>');
-                parts.push('    </div>');
-                parts.push('    <div class="detail-item">');
-                parts.push('      <div class="detail-label">Payroll Allowance</div>');
-                parts.push('      <div class="detail-value currency" style="color: var(--success-color);">+ ' + formatCurrency(data.allowance) + '</div>');
-                parts.push('    </div>');
-                parts.push('    <div class="detail-item">');
-                parts.push('      <div class="detail-label">Payroll Bonus</div>');
-                parts.push('      <div class="detail-value currency" style="color: var(--success-color);">+ ' + formatCurrency(data.bonus) + '</div>');
-                parts.push('    </div>');
-                parts.push('    <div class="detail-item">');
-                parts.push('      <div class="detail-label">Payroll Deduction</div>');
-                parts.push('      <div class="detail-value currency" style="color: var(--danger-color);">- ' + formatCurrency(data.deduction) + '</div>');
-                parts.push('    </div>');
-                parts.push('  </div>');
-                parts.push('</div>');
-
-                parts.push('<div class="detail-section">');
-                parts.push('  <div class="detail-section-title"><i class="fas fa-wallet"></i> Net Salary</div>');
-                parts.push('  <div style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); padding: 24px; border-radius: 12px; text-align: center;">');
-                parts.push('    <div class="detail-label" style="color: rgba(255,255,255,0.9); margin-bottom: 12px;">Total Net Salary</div>');
-                parts.push('    <div class="detail-value currency" style="color: white; font-size: 2rem; margin: 0;">' + formatCurrency(data.netSalary) + '</div>');
-                parts.push('  </div>');
-                parts.push('</div>');
-
+                // Display PayrollAudit information if available
                 if (audit && Object.keys(audit).length > 0) {
+                    // Attendance Information Section
                     parts.push('<div class="detail-section">');
-                    parts.push('  <div class="detail-section-title"><i class="fas fa-clipboard-list"></i> Payroll Audit</div>');
-                    parts.push('  <div class="detail-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">');
-
-                    const auditCurrencyFields = [
-                        { label: 'Audit Base Salary', key: 'baseSalary' },
-                        { label: 'Audit Allowance', key: 'allowance' },
-                        { label: 'Audit Net Salary', key: 'netSalary' },
-                        { label: 'Actual Base Salary', key: 'actualBaseSalary' },
-                        { label: 'OT Salary', key: 'otSalary' },
-                        { label: 'BHXH', key: 'bhxh' },
-                        { label: 'BHYT', key: 'bhyt' },
-                        { label: 'BHTN', key: 'bhtn' },
-                        { label: 'Taxable Income', key: 'taxableIncome' },
-                        { label: 'Personal Tax', key: 'personalTax' },
-                        { label: 'Absent Penalty', key: 'absentPenalty' },
-                        { label: 'Other Deduction', key: 'otherDeduction' },
-                        { label: 'Total Deduction', key: 'totalDeduction' }
-                    ];
-
-                    const auditNumberFields = [
-                        { label: 'Actual Working Days', key: 'actualWorkingDays' },
-                        { label: 'Paid Leave Days', key: 'paidLeaveDays' },
-                        { label: 'Unpaid Leave Days', key: 'unpaidLeaveDays' },
-                        { label: 'Overtime Hours', key: 'overtimeHours' }
-                    ];
-
-                    auditCurrencyFields.forEach(field => {
-                        const value = audit[field.key];
-                        if (value !== undefined && value !== null) {
-                            parts.push('    <div class="detail-item">');
-                            parts.push('      <div class="detail-label">' + field.label + '</div>');
-                            parts.push('      <div class="detail-value">' + formatCurrency(value) + '</div>');
-                            parts.push('    </div>');
-                        }
-                    });
-
-                    auditNumberFields.forEach(field => {
-                        const value = audit[field.key];
-                        if (value !== undefined && value !== null) {
-                            parts.push('    <div class="detail-item">');
-                            parts.push('      <div class="detail-label">' + field.label + '</div>');
-                            parts.push('      <div class="detail-value">' + formatNumber(value) + '</div>');
-                            parts.push('    </div>');
-                        }
-                    });
-
-                    if (audit.status) {
+                    parts.push('  <div class="detail-section-title"><i class="fas fa-calendar-check"></i> Attendance Information</div>');
+                    parts.push('  <div class="detail-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">');
+                    
+                    if (audit.actualWorkingDays !== undefined && audit.actualWorkingDays !== null) {
                         parts.push('    <div class="detail-item">');
-                        parts.push('      <div class="detail-label">Audit Status</div>');
-                        parts.push('      <div class="detail-value"><span class="status-badge ' + getStatusClass(audit.status) + '">' + audit.status + '</span></div>');
+                        parts.push('      <div class="detail-label">Actual Working Days</div>');
+                        parts.push('      <div class="detail-value">' + formatNumber(audit.actualWorkingDays) + ' days</div>');
                         parts.push('    </div>');
                     }
-
-                    if (audit.calculatedAt) {
+                    
+                    if (audit.paidLeaveDays !== undefined && audit.paidLeaveDays !== null) {
                         parts.push('    <div class="detail-item">');
-                        parts.push('      <div class="detail-label">Calculated At</div>');
-                        parts.push('      <div class="detail-value">' + formatDateTime(audit.calculatedAt) + '</div>');
+                        parts.push('      <div class="detail-label">Paid Leave Days</div>');
+                        parts.push('      <div class="detail-value" style="color: var(--success-color);">' + formatNumber(audit.paidLeaveDays) + ' days</div>');
                         parts.push('    </div>');
                     }
-
-                    if (audit.calculatedByUsername || audit.calculatedBy) {
+                    
+                    if (audit.unpaidLeaveDays !== undefined && audit.unpaidLeaveDays !== null) {
                         parts.push('    <div class="detail-item">');
-                        parts.push('      <div class="detail-label">Calculated By</div>');
-                        const calcBy = audit.calculatedByUsername || ('User ID: ' + audit.calculatedBy);
-                        parts.push('      <div class="detail-value">' + calcBy + '</div>');
+                        parts.push('      <div class="detail-label">Unpaid Leave Days</div>');
+                        parts.push('      <div class="detail-value" style="color: var(--error);">' + formatNumber(audit.unpaidLeaveDays) + ' days</div>');
                         parts.push('    </div>');
                     }
-
-                    if (audit.notes) {
-                        parts.push('    <div class="detail-item" style="grid-column: 1 / -1;">');
-                        parts.push('      <div class="detail-label">Notes</div>');
-                        parts.push('      <div class="detail-value" style="white-space: pre-wrap;">' + audit.notes + '</div>');
+                    
+                    if (audit.overtimeHours !== undefined && audit.overtimeHours !== null) {
+                        parts.push('    <div class="detail-item">');
+                        parts.push('      <div class="detail-label">Overtime Hours</div>');
+                        parts.push('      <div class="detail-value" style="color: var(--success-color);">' + formatNumber(audit.overtimeHours) + ' hours</div>');
                         parts.push('    </div>');
                     }
-
+                    
                     parts.push('  </div>');
                     parts.push('</div>');
+
+                    // Salary Breakdown Section (from PayrollAudit)
+                    parts.push('<div class="detail-section">');
+                    parts.push('  <div class="detail-section-title"><i class="fas fa-calculator"></i> Salary Breakdown (from PayrollAudit)</div>');
+                    parts.push('  <div class="detail-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">');
+                    
+                    if (audit.baseSalary !== undefined && audit.baseSalary !== null) {
+                        parts.push('    <div class="detail-item">');
+                        parts.push('      <div class="detail-label">Base Salary</div>');
+                        parts.push('      <div class="detail-value currency">' + formatCurrency(audit.baseSalary) + '</div>');
+                        parts.push('    </div>');
+                    }
+                    
+                    if (audit.actualBaseSalary !== undefined && audit.actualBaseSalary !== null) {
+                        parts.push('    <div class="detail-item">');
+                        parts.push('      <div class="detail-label">Actual Base Salary</div>');
+                        parts.push('      <div class="detail-value currency" style="color: var(--primary-color);">' + formatCurrency(audit.actualBaseSalary) + '</div>');
+                        parts.push('    </div>');
+                    }
+                    
+                    if (audit.otSalary !== undefined && audit.otSalary !== null) {
+                        parts.push('    <div class="detail-item">');
+                        parts.push('      <div class="detail-label">OT Salary</div>');
+                        parts.push('      <div class="detail-value currency" style="color: var(--success-color);">+ ' + formatCurrency(audit.otSalary) + '</div>');
+                        parts.push('    </div>');
+                    }
+                    
+                    if (audit.allowance !== undefined && audit.allowance !== null) {
+                        parts.push('    <div class="detail-item">');
+                        parts.push('      <div class="detail-label">Allowance</div>');
+                        parts.push('      <div class="detail-value currency" style="color: var(--success-color);">+ ' + formatCurrency(audit.allowance) + '</div>');
+                        parts.push('    </div>');
+                    }
+                    
+                    parts.push('  </div>');
+                    parts.push('</div>');
+
+                    // Insurance & Tax Section
+                    parts.push('<div class="detail-section">');
+                    parts.push('  <div class="detail-section-title"><i class="fas fa-shield-alt"></i> Insurance & Tax</div>');
+                    parts.push('  <div class="detail-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">');
+                    
+                    if (audit.bhxh !== undefined && audit.bhxh !== null) {
+                        parts.push('    <div class="detail-item">');
+                        parts.push('      <div class="detail-label">BHXH (8%)</div>');
+                        parts.push('      <div class="detail-value currency" style="color: #3b82f6;">' + formatCurrency(audit.bhxh) + '</div>');
+                        parts.push('    </div>');
+                    }
+                    
+                    if (audit.bhyt !== undefined && audit.bhyt !== null) {
+                        parts.push('    <div class="detail-item">');
+                        parts.push('      <div class="detail-label">BHYT (1.5%)</div>');
+                        parts.push('      <div class="detail-value currency" style="color: #10b981;">' + formatCurrency(audit.bhyt) + '</div>');
+                        parts.push('    </div>');
+                    }
+                    
+                    if (audit.bhtn !== undefined && audit.bhtn !== null) {
+                        parts.push('    <div class="detail-item">');
+                        parts.push('      <div class="detail-label">BHTN (1%)</div>');
+                        parts.push('      <div class="detail-value currency" style="color: #8b5cf6;">' + formatCurrency(audit.bhtn) + '</div>');
+                        parts.push('    </div>');
+                    }
+                    
+                    if (audit.taxableIncome !== undefined && audit.taxableIncome !== null) {
+                        parts.push('    <div class="detail-item">');
+                        parts.push('      <div class="detail-label">Taxable Income</div>');
+                        parts.push('      <div class="detail-value currency">' + formatCurrency(audit.taxableIncome) + '</div>');
+                        parts.push('    </div>');
+                    }
+                    
+                    if (audit.personalTax !== undefined && audit.personalTax !== null) {
+                        parts.push('    <div class="detail-item">');
+                        parts.push('      <div class="detail-label">Personal Tax (TNCN)</div>');
+                        parts.push('      <div class="detail-value currency" style="color: var(--error);">- ' + formatCurrency(audit.personalTax) + '</div>');
+                        parts.push('    </div>');
+                    }
+                    
+                    parts.push('  </div>');
+                    parts.push('</div>');
+
+                    // Deductions Section
+                    parts.push('<div class="detail-section">');
+                    parts.push('  <div class="detail-section-title"><i class="fas fa-minus-circle"></i> Deductions</div>');
+                    parts.push('  <div class="detail-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">');
+                    
+                    if (audit.absentPenalty !== undefined && audit.absentPenalty !== null) {
+                        parts.push('    <div class="detail-item">');
+                        parts.push('      <div class="detail-label">Absent Penalty</div>');
+                        parts.push('      <div class="detail-value currency" style="color: var(--error);">- ' + formatCurrency(audit.absentPenalty) + '</div>');
+                        parts.push('    </div>');
+                    }
+                    
+                    if (audit.otherDeduction !== undefined && audit.otherDeduction !== null) {
+                        parts.push('    <div class="detail-item">');
+                        parts.push('      <div class="detail-label">Other Deduction</div>');
+                        parts.push('      <div class="detail-value currency" style="color: var(--error);">- ' + formatCurrency(audit.otherDeduction) + '</div>');
+                        parts.push('    </div>');
+                    }
+                    
+                    if (audit.totalDeduction !== undefined && audit.totalDeduction !== null) {
+                        parts.push('    <div class="detail-item" style="border-left: 4px solid var(--error);">');
+                        parts.push('      <div class="detail-label">Total Deduction</div>');
+                        parts.push('      <div class="detail-value currency" style="color: var(--error); font-size: 1.2rem; font-weight: 700;">- ' + formatCurrency(audit.totalDeduction) + '</div>');
+                        parts.push('    </div>');
+                    }
+                    
+                    parts.push('  </div>');
+                    parts.push('</div>');
+
+                    // Net Salary Section
+                    parts.push('<div class="detail-section">');
+                    parts.push('  <div class="detail-section-title"><i class="fas fa-wallet"></i> Net Salary (from PayrollAudit)</div>');
+                    parts.push('  <div style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); padding: 24px; border-radius: 12px; text-align: center;">');
+                    parts.push('    <div class="detail-label" style="color: rgba(255,255,255,0.9); margin-bottom: 12px;">Total Net Salary</div>');
+                    parts.push('    <div class="detail-value currency" style="color: white; font-size: 2rem; margin: 0;">' + formatCurrency(audit.netSalary || netSalary) + '</div>');
+                    parts.push('  </div>');
+                    parts.push('</div>');
+
+                    // Notes Section
+                    if (audit.notes) {
+                        parts.push('<div class="detail-section">');
+                        parts.push('  <div class="detail-section-title"><i class="fas fa-sticky-note"></i> Notes</div>');
+                        parts.push('  <div style="background: #f8f9fa; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; color: var(--text-color);">');
+                        parts.push('    <div style="white-space: pre-wrap; line-height: 1.6;">' + audit.notes + '</div>');
+                        parts.push('  </div>');
+                        parts.push('</div>');
+                    }
                 } else {
+                    // Fallback: Show basic payroll info if no audit data
+                    parts.push('<div class="detail-section">');
+                    parts.push('  <div class="detail-section-title"><i class="fas fa-calculator"></i> Salary Breakdown</div>');
+                    parts.push('  <div class="detail-grid">');
+                    parts.push('    <div class="detail-item">');
+                    parts.push('      <div class="detail-label">Base Salary</div>');
+                    parts.push('      <div class="detail-value currency">' + formatCurrency(baseSalary) + '</div>');
+                    parts.push('    </div>');
+                    parts.push('    <div class="detail-item">');
+                    parts.push('      <div class="detail-label">Allowance</div>');
+                    parts.push('      <div class="detail-value currency" style="color: var(--success-color);">+ ' + formatCurrency(allowance) + '</div>');
+                    parts.push('    </div>');
+                    parts.push('    <div class="detail-item">');
+                    parts.push('      <div class="detail-label">OT Salary</div>');
+                    parts.push('      <div class="detail-value currency" style="color: var(--success-color);">+ ' + formatCurrency(otSalary) + '</div>');
+                    parts.push('    </div>');
+                    parts.push('    <div class="detail-item">');
+                    parts.push('      <div class="detail-label">Deduction</div>');
+                    parts.push('      <div class="detail-value currency" style="color: var(--danger-color);">- ' + formatCurrency(deduction) + '</div>');
+                    parts.push('    </div>');
+                    parts.push('  </div>');
+                    parts.push('</div>');
+
+                    parts.push('<div class="detail-section">');
+                    parts.push('  <div class="detail-section-title"><i class="fas fa-wallet"></i> Net Salary</div>');
+                    parts.push('  <div style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); padding: 24px; border-radius: 12px; text-align: center;">');
+                    parts.push('    <div class="detail-label" style="color: rgba(255,255,255,0.9); margin-bottom: 12px;">Total Net Salary</div>');
+                    parts.push('    <div class="detail-value currency" style="color: white; font-size: 2rem; margin: 0;">' + formatCurrency(netSalary) + '</div>');
+                    parts.push('  </div>');
+                    parts.push('</div>');
+
                     parts.push('<div class="detail-section">');
                     parts.push('  <div class="detail-section-title"><i class="fas fa-clipboard-list"></i> Payroll Audit</div>');
                     parts.push('  <div style="padding:16px; border:1px dashed var(--border-color); border-radius:12px; color: var(--muted-color);">');
@@ -1724,25 +2032,110 @@
             };
 
             window.rejectPayroll = function(payrollId) {
-                if (confirm('Are you sure you want to reject this payroll?')) {
+                const modal = document.getElementById('rejectPayrollModal');
+                const payrollIdInput = document.getElementById('rejectPayrollId');
+                const batchPayrollIdsInput = document.getElementById('batchRejectPayrollIds');
+                const rejectNoteTextarea = document.getElementById('rejectNote');
+                
+                payrollIdInput.value = payrollId;
+                if (batchPayrollIdsInput) {
+                    batchPayrollIdsInput.value = ''; // Clear batch IDs for single reject
+                }
+                rejectNoteTextarea.value = ''; // Clear previous note
+                rejectNoteTextarea.placeholder = 'Please provide a reason for rejecting this payroll...';
+                modal.classList.add('active');
+            };
+
+            window.closeRejectModal = function() {
+                const modal = document.getElementById('rejectPayrollModal');
+                const form = document.getElementById('rejectPayrollForm');
+                const batchPayrollIdsInput = document.getElementById('batchRejectPayrollIds');
+                modal.classList.remove('active');
+                form.reset();
+                if (batchPayrollIdsInput) {
+                    batchPayrollIdsInput.value = '';
+                }
+            };
+
+            // ========== Batch Selection Functions ==========
+            
+            window.toggleSelectAll = function(checkbox) {
+                const checkboxes = document.querySelectorAll('.payroll-checkbox');
+                checkboxes.forEach(cb => {
+                    cb.checked = checkbox.checked;
+                });
+                updateBatchActions();
+            };
+
+            window.updateBatchActions = function() {
+                const checkboxes = document.querySelectorAll('.payroll-checkbox:checked');
+                const selectedCount = checkboxes.length;
+                const batchBar = document.getElementById('batchActionsBar');
+                const selectedCountEl = document.getElementById('selectedCount');
+                const batchApproveBtn = document.getElementById('batchApproveBtn');
+                const batchRejectBtn = document.getElementById('batchRejectBtn');
+
+                if (selectedCount > 0) {
+                    batchBar.style.display = 'flex';
+                    selectedCountEl.textContent = selectedCount + ' selected';
+                    
+                    // Check which actions are available based on selected payrolls
+                    let hasPending = false;
+                    
+                    checkboxes.forEach(cb => {
+                        const status = cb.getAttribute('data-payroll-status');
+                        if (status === 'Pending') {
+                            hasPending = true;
+                        }
+                    });
+                    
+                    // Show buttons only if there are Pending payrolls
+                    batchApproveBtn.style.display = hasPending ? 'inline-block' : 'none';
+                    batchRejectBtn.style.display = hasPending ? 'inline-block' : 'none';
+                } else {
+                    batchBar.style.display = 'none';
+                }
+                
+                // Update select all checkbox state
+                const allCheckboxes = document.querySelectorAll('.payroll-checkbox');
+                const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+                if (allCheckboxes.length > 0) {
+                    const allChecked = Array.from(allCheckboxes).every(cb => cb.checked);
+                    selectAllCheckbox.checked = allChecked;
+                }
+            };
+
+            window.getSelectedPayrollIds = function() {
+                const checkboxes = document.querySelectorAll('.payroll-checkbox:checked');
+                return Array.from(checkboxes).map(cb => cb.getAttribute('data-payroll-id'));
+            };
+
+            window.approveSelectedPayrolls = function() {
+                const selectedIds = getSelectedPayrollIds();
+                
+                if (selectedIds.length === 0) {
+                    alert('Please select at least one payroll to approve.');
+                    return;
+                }
+                
+                const count = selectedIds.length;
+                if (confirm('Are you sure you want to approve ' + count + ' selected payroll(s)?')) {
                     const form = document.createElement('form');
                     form.method = 'POST';
-                    form.action = appContext + '/hr/payroll-approval';
+                    form.action = appContext + '/hr/payroll-approval/batch-approve';
 
                     const { status, employee, payPeriod, page, pageSize } = getCurrentFilters();
                     
-                    const actionInput = document.createElement('input');
-                    actionInput.type = 'hidden';
-                    actionInput.name = 'action';
-                    actionInput.value = 'reject';
-                    form.appendChild(actionInput);
+                    // Add payroll IDs
+                    selectedIds.forEach(id => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'payrollIds';
+                        input.value = id;
+                        form.appendChild(input);
+                    });
                     
-                    const payrollIdInput = document.createElement('input');
-                    payrollIdInput.type = 'hidden';
-                    payrollIdInput.name = 'payrollId';
-                    payrollIdInput.value = payrollId;
-                    form.appendChild(payrollIdInput);
-                    
+                    // Preserve filters
                     if (status) {
                         const statusInput = document.createElement('input');
                         statusInput.type = 'hidden';
@@ -1782,6 +2175,41 @@
                     document.body.appendChild(form);
                     form.submit();
                 }
+            };
+
+            window.rejectSelectedPayrolls = function() {
+                const selectedIds = getSelectedPayrollIds();
+                
+                if (selectedIds.length === 0) {
+                    alert('Please select at least one payroll to reject.');
+                    return;
+                }
+                
+                const count = selectedIds.length;
+                if (confirm('Are you sure you want to reject ' + count + ' selected payroll(s)?\n\nYou will be asked to provide a rejection reason that will apply to all selected payrolls.')) {
+                    // Store selected IDs in the hidden input for batch reject modal
+                    const batchPayrollIdsInput = document.getElementById('batchRejectPayrollIds');
+                    if (batchPayrollIdsInput) {
+                        batchPayrollIdsInput.value = selectedIds.join(',');
+                    }
+                    
+                    // Open reject modal with batch mode
+                    const modal = document.getElementById('rejectPayrollModal');
+                    const payrollIdInput = document.getElementById('rejectPayrollId');
+                    const rejectNoteTextarea = document.getElementById('rejectNote');
+                    
+                    payrollIdInput.value = ''; // Clear single payroll ID
+                    rejectNoteTextarea.value = ''; // Clear previous note
+                    rejectNoteTextarea.placeholder = 'Enter rejection reason for ' + count + ' selected payroll(s)...';
+                    modal.classList.add('active');
+                }
+            };
+
+            window.clearSelection = function() {
+                const checkboxes = document.querySelectorAll('.payroll-checkbox');
+                checkboxes.forEach(cb => cb.checked = false);
+                document.getElementById('selectAllCheckbox').checked = false;
+                updateBatchActions();
             };
 
             window.formatCurrency = function(amount) {

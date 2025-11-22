@@ -295,12 +295,13 @@ public class PayrollDAO {
     
     /**
      * Update payroll
+     * Allows updating payrolls with status 'Draft' or 'Rejected'
      */
     public boolean update(Payroll payroll) {
         String sql = """
             UPDATE Payroll 
             SET BaseSalary = ?, Allowance = ?, Bonus = ?, Deduction = ?, NetSalary = ?
-            WHERE PayrollID = ? AND Status = 'Draft'
+            WHERE PayrollID = ? AND (Status = 'Draft' OR Status = 'Rejected')
         """;
         
         try (Connection con = DBConnection.getConnection();
@@ -340,21 +341,42 @@ public class PayrollDAO {
     
     /**
      * Approve payroll - set status to Approved and record approver info
+     * Also updates PayrollAudit status to Approved
      */
     public boolean approvePayroll(int payrollId, Integer approvedBy, java.time.LocalDate approvedDate) {
-        String sql = "UPDATE Payroll SET Status = 'Approved', ApprovedBy = ?, ApprovedDate = ? WHERE PayrollID = ?";
+        // First get payroll info to get employeeId and payPeriod
+        Payroll payroll = getById(payrollId);
+        if (payroll == null) {
+            return false;
+        }
         
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            
-            ps.setObject(1, approvedBy);
-            if (approvedDate != null) {
-                ps.setDate(2, java.sql.Date.valueOf(approvedDate));
-            } else {
-                ps.setDate(2, java.sql.Date.valueOf(java.time.LocalDate.now()));
+        try (Connection con = DBConnection.getConnection()) {
+            // Update Payroll table
+            String payrollSql = "UPDATE Payroll SET Status = 'Approved', ApprovedBy = ?, ApprovedDate = ? WHERE PayrollID = ?";
+            try (PreparedStatement ps = con.prepareStatement(payrollSql)) {
+                ps.setObject(1, approvedBy);
+                if (approvedDate != null) {
+                    ps.setDate(2, java.sql.Date.valueOf(approvedDate));
+                } else {
+                    ps.setDate(2, java.sql.Date.valueOf(java.time.LocalDate.now()));
+                }
+                ps.setInt(3, payrollId);
+                
+                int payrollUpdated = ps.executeUpdate();
+                if (payrollUpdated <= 0) {
+                    return false;
+                }
             }
-            ps.setInt(3, payrollId);
-            return ps.executeUpdate() > 0;
+            
+            // Update PayrollAudit table with same status
+            String auditSql = "UPDATE PayrollAudit SET Status = 'Approved' WHERE EmployeeID = ? AND PayPeriod = ?";
+            try (PreparedStatement auditPs = con.prepareStatement(auditSql)) {
+                auditPs.setInt(1, payroll.getEmployeeId());
+                auditPs.setString(2, payroll.getPayPeriod());
+                auditPs.executeUpdate(); // Don't check result, audit may not exist for all payrolls
+            }
+            
+            return true;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -363,21 +385,130 @@ public class PayrollDAO {
     
     /**
      * Reject payroll - set status to Rejected and record approver info
+     * Also updates PayrollAudit status to Rejected and saves rejection note
+     */
+    public boolean rejectPayroll(int payrollId, Integer approvedBy, java.time.LocalDate approvedDate, String rejectNote) {
+        // First get payroll info to get employeeId and payPeriod
+        Payroll payroll = getById(payrollId);
+        if (payroll == null) {
+            return false;
+        }
+        
+        try (Connection con = DBConnection.getConnection()) {
+            // Update Payroll table
+            String payrollSql = "UPDATE Payroll SET Status = 'Rejected', ApprovedBy = ?, ApprovedDate = ? WHERE PayrollID = ?";
+            try (PreparedStatement ps = con.prepareStatement(payrollSql)) {
+                ps.setObject(1, approvedBy);
+                if (approvedDate != null) {
+                    ps.setDate(2, java.sql.Date.valueOf(approvedDate));
+                } else {
+                    ps.setDate(2, java.sql.Date.valueOf(java.time.LocalDate.now()));
+                }
+                ps.setInt(3, payrollId);
+                
+                int payrollUpdated = ps.executeUpdate();
+                if (payrollUpdated <= 0) {
+                    return false;
+                }
+            }
+            
+            // Update PayrollAudit table with same status and rejection note
+            String auditSql;
+            if (rejectNote != null && !rejectNote.trim().isEmpty()) {
+                // Build note with rejection reason and timestamp
+                String fullNote = "[REJECTED] " + java.time.LocalDateTime.now().format(
+                    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "\n" +
+                    "Reason: " + rejectNote.trim();
+                
+                // Check if there's an existing note
+                String checkNoteSql = "SELECT Notes FROM PayrollAudit WHERE EmployeeID = ? AND PayPeriod = ?";
+                String existingNote = null;
+                try (PreparedStatement checkPs = con.prepareStatement(checkNoteSql)) {
+                    checkPs.setInt(1, payroll.getEmployeeId());
+                    checkPs.setString(2, payroll.getPayPeriod());
+                    try (ResultSet rs = checkPs.executeQuery()) {
+                        if (rs.next()) {
+                            existingNote = rs.getString("Notes");
+                        }
+                    }
+                }
+                
+                // Combine existing note with rejection note if exists
+                String finalNote = fullNote;
+                if (existingNote != null && !existingNote.trim().isEmpty()) {
+                    finalNote = existingNote + "\n\n" + fullNote;
+                }
+                
+                auditSql = "UPDATE PayrollAudit SET Status = 'Rejected', Notes = ? WHERE EmployeeID = ? AND PayPeriod = ?";
+                try (PreparedStatement auditPs = con.prepareStatement(auditSql)) {
+                    auditPs.setString(1, finalNote);
+                    auditPs.setInt(2, payroll.getEmployeeId());
+                    auditPs.setString(3, payroll.getPayPeriod());
+                    auditPs.executeUpdate(); // Don't check result, audit may not exist for all payrolls
+                }
+            } else {
+                // No note provided, just update status
+                auditSql = "UPDATE PayrollAudit SET Status = 'Rejected' WHERE EmployeeID = ? AND PayPeriod = ?";
+                try (PreparedStatement auditPs = con.prepareStatement(auditSql)) {
+                    auditPs.setInt(1, payroll.getEmployeeId());
+                    auditPs.setString(2, payroll.getPayPeriod());
+                    auditPs.executeUpdate(); // Don't check result, audit may not exist for all payrolls
+                }
+            }
+            
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    /**
+     * Reject payroll without note (backward compatibility)
      */
     public boolean rejectPayroll(int payrollId, Integer approvedBy, java.time.LocalDate approvedDate) {
-        String sql = "UPDATE Payroll SET Status = 'Rejected', ApprovedBy = ?, ApprovedDate = ? WHERE PayrollID = ?";
+        return rejectPayroll(payrollId, approvedBy, approvedDate, null);
+    }
+    
+    /**
+     * Update PayrollAudit notes (append new note to existing notes)
+     */
+    public boolean updatePayrollAuditNotes(int employeeId, String payPeriod, String note) {
+        if (note == null || note.trim().isEmpty()) {
+            return false;
+        }
         
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            
-            ps.setObject(1, approvedBy);
-            if (approvedDate != null) {
-                ps.setDate(2, java.sql.Date.valueOf(approvedDate));
-            } else {
-                ps.setDate(2, java.sql.Date.valueOf(java.time.LocalDate.now()));
+        String checkSql = "SELECT Notes FROM PayrollAudit WHERE EmployeeID = ? AND PayPeriod = ?";
+        String updateSql = "UPDATE PayrollAudit SET Notes = ? WHERE EmployeeID = ? AND PayPeriod = ?";
+        
+        try (Connection con = DBConnection.getConnection()) {
+            // Check if PayrollAudit exists
+            String existingNote = null;
+            try (PreparedStatement checkPs = con.prepareStatement(checkSql)) {
+                checkPs.setInt(1, employeeId);
+                checkPs.setString(2, payPeriod);
+                try (ResultSet rs = checkPs.executeQuery()) {
+                    if (rs.next()) {
+                        existingNote = rs.getString("Notes");
+                    }
+                }
             }
-            ps.setInt(3, payrollId);
-            return ps.executeUpdate() > 0;
+            
+            // Combine notes
+            String finalNote = note.trim();
+            if (existingNote != null && !existingNote.trim().isEmpty()) {
+                finalNote = existingNote + "\n\n" + note.trim();
+            }
+            
+            // Update
+            try (PreparedStatement updatePs = con.prepareStatement(updateSql)) {
+                updatePs.setString(1, finalNote);
+                updatePs.setInt(2, employeeId);
+                updatePs.setString(3, payPeriod);
+                updatePs.executeUpdate(); // Don't check result, audit may not exist for all payrolls
+            }
+            
+            return true;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -422,6 +553,30 @@ public class PayrollDAO {
             e.printStackTrace();
         }
         return false;
+    }
+    
+    /**
+     * Get payroll status for employee and pay period
+     * Returns null if payroll doesn't exist
+     */
+    public String getPayrollStatusByEmployeeAndPeriod(int employeeId, String payPeriod) {
+        String sql = "SELECT Status FROM Payroll WHERE EmployeeID = ? AND PayPeriod = ?";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, employeeId);
+            ps.setString(2, payPeriod);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("Status");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null; // No payroll exists
     }
     
     /**

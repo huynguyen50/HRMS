@@ -16,6 +16,7 @@
         <title>Payroll Management - HR Staff</title>
         <link rel="stylesheet" href="<%=request.getContextPath()%>/css/style.css"/>
         <link rel="stylesheet" href="<%=request.getContextPath()%>/Admin/css/pagination.css"/>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <style>
             :root {
                 --primary:#5b5bd6;
@@ -357,15 +358,60 @@
                 color:#1e40af;
             }
 
+            /* Batch Actions Bar */
+            #batchActionsBar {
+                display: none;
+                margin-bottom: 15px;
+                padding: 12px;
+                background: #f0f9ff;
+                border: 1px solid #bae6fd;
+                border-radius: 8px;
+                align-items: center;
+                gap: 12px;
+            }
+
+            #batchActionsBar.show {
+                display: flex;
+            }
+
+            #selectedCount {
+                font-weight: 600;
+                color: #0369a1;
+                margin-right: auto;
+            }
+
+            .payroll-checkbox {
+                cursor: pointer;
+                width: 18px;
+                height: 18px;
+            }
+
             /* Action buttons */
             .action-btns {
                 display:flex;
-                gap:8px;
+                gap:6px;
+                align-items:center;
+                justify-content:flex-start;
             }
 
             .btn-small {
                 padding:6px 12px;
                 font-size:12px;
+                display:inline-flex;
+                align-items:center;
+                gap:4px;
+                font-weight:500;
+                white-space:nowrap;
+                box-shadow:0 1px 2px rgba(0,0,0,0.05);
+            }
+
+            .btn-small:hover {
+                box-shadow:0 2px 4px rgba(0,0,0,0.1);
+                transform:translateY(-1px);
+            }
+
+            .btn-small i {
+                font-size:11px;
             }
 
             .btn-danger {
@@ -659,9 +705,19 @@
                             String currentTab = (String) request.getAttribute("currentTab");
                             if (currentTab == null) currentTab = "allowance";
                         %>
-                        <a href="<%=request.getContextPath()%>/hrstaff/payroll?tab=allowance" 
+                        <c:url var="allowanceUrl" value="/hrstaff/payroll">
+                            <c:param name="tab" value="allowance"/>
+                            <c:param name="allowancePage" value="1"/>
+                            <c:param name="allowancePageSize" value="${allowancePageSize != null ? allowancePageSize : 10}"/>
+                        </c:url>
+                        <a href="${allowanceUrl}" 
                            class="tab-btn <%= "allowance".equals(currentTab) ? "active" : "" %>">💰 Allowances</a>
-                        <a href="<%=request.getContextPath()%>/hrstaff/payroll?tab=deduction" 
+                        <c:url var="deductionUrl" value="/hrstaff/payroll">
+                            <c:param name="tab" value="deduction"/>
+                            <c:param name="deductionPage" value="1"/>
+                            <c:param name="deductionPageSize" value="${deductionPageSize != null ? deductionPageSize : 10}"/>
+                        </c:url>
+                        <a href="${deductionUrl}" 
                            class="tab-btn <%= "deduction".equals(currentTab) ? "active" : "" %>">➖ Deductions</a>
                         <a href="<%=request.getContextPath()%>/hrstaff/payroll?tab=attendance" 
                            class="tab-btn <%= "attendance".equals(currentTab) ? "active" : "" %>">📅 Attendance</a>
@@ -731,12 +787,14 @@
                                     <td><%= String.format("%,d VNĐ", ((java.math.BigDecimal) allowance.get("amount")).intValue()) %></td>
                                     <td><%= allowance.get("month") %></td>
                                     <td>
-                                    <td>
                                         <div class="action-btns">
-                                            <button class="btn btn-small" onclick="editAllowance(<%= allowance.get("id") %>)">Edit</button>
-                                            <button class="btn btn-small btn-danger" onclick="deleteAllowance(<%= allowance.get("id") %>)">Delete</button>
+                                            <button class="btn btn-small" onclick="editAllowance(<%= allowance.get("id") %>)" title="Chỉnh sửa phụ cấp">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                            <button class="btn btn-small btn-danger" onclick="deleteAllowance(<%= allowance.get("id") %>)" title="Xóa phụ cấp">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
                                         </div>
-                                    </td>
                                     </td>
                                 </tr>
                                 <%
@@ -745,6 +803,111 @@
                                 %>
                             </tbody>
                         </table>
+                        
+                        <%-- Pagination Bar for Allowance tab --%>
+                        <c:if test="${currentTab == 'allowance'}">
+                            <div class="pagination-bar">
+                                <div class="pagination-info">
+                                    <c:set var="total" value="${totalAllowances != null ? totalAllowances : 0}" />
+                                    <c:set var="page" value="${allowancePage != null ? allowancePage : 1}" />
+                                    <c:set var="pageSize" value="${allowancePageSize != null ? allowancePageSize : 10}" />
+                                    <c:set var="totalPages" value="${allowanceTotalPages != null ? allowanceTotalPages : 1}" />
+                                    
+                                    <%-- Calculate display range --%>
+                                    <c:set var="start" value="${total > 0 ? (page - 1) * pageSize + 1 : 0}" />
+                                    <c:set var="end" value="${page * pageSize}" />
+                                    <c:if test="${end > total}">
+                                        <c:set var="end" value="${total}" />
+                                    </c:if>
+                                    <span>Showing ${start} - ${end} of ${total}</span>
+                                    
+                                    <div class="page-size-selector" style="margin-left: 20px; display: inline-block;">
+                                        <label for="allowancePageSizeSelect" style="margin-right: 8px;">Items per page:</label>
+                                        <select id="allowancePageSizeSelect" onchange="changeAllowancePageSize(this.value)" style="padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                            <option value="5" <c:if test="${pageSize == 5}">selected</c:if>>5</option>
+                                            <option value="10" <c:if test="${pageSize == 10}">selected</c:if>>10</option>
+                                            <option value="20" <c:if test="${pageSize == 20}">selected</c:if>>20</option>
+                                            <option value="50" <c:if test="${pageSize == 50}">selected</c:if>>50</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="pagination-controls">
+                                    <%-- Base URL --%>
+                                    <c:url var="baseUrl" value="/hrstaff/payroll">
+                                        <c:param name="tab" value="allowance" />
+                                        <c:param name="allowancePageSize" value="${pageSize}" />
+                                        <c:param name="employeeFilter" value="${employeeFilter != null ? employeeFilter : ''}" />
+                                        <c:param name="allowanceMonth" value="${allowanceMonth != null ? allowanceMonth : ''}" />
+                                    </c:url>
+
+                                    <%-- Previous button --%>
+                                    <c:choose>
+                                        <c:when test="${page > 1}">
+                                            <c:url var="prevUrl" value="${baseUrl}">
+                                                <c:param name="allowancePage" value="${page - 1}" />
+                                            </c:url>
+                                            <a href="${prevUrl}" class="btn-pagination">← Prev</a>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="disabled">← Prev</span>
+                                        </c:otherwise>
+                                    </c:choose>
+
+                                    <%-- Page numbers --%>
+                                    <c:set var="range" value="2" />
+                                    <c:set var="start_page" value="${page - range > 1 ? page - range : 1}" />
+                                    <c:set var="end_page" value="${page + range < totalPages ? page + range : totalPages}" />
+
+                                    <c:if test="${start_page > 1}">
+                                        <c:url var="firstPageUrl" value="${baseUrl}">
+                                            <c:param name="allowancePage" value="1" />
+                                        </c:url>
+                                        <a href="${firstPageUrl}" class="btn-pagination">1</a>
+                                        <c:if test="${start_page > 2}">
+                                            <span class="ellipsis">...</span>
+                                        </c:if>
+                                    </c:if>
+
+                                    <c:forEach begin="${start_page}" end="${end_page}" var="i">
+                                        <c:choose>
+                                            <c:when test="${i == page}">
+                                                <span class="active btn-pagination">${i}</span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <c:url var="pageUrl" value="${baseUrl}">
+                                                    <c:param name="allowancePage" value="${i}" />
+                                                </c:url>
+                                                <a href="${pageUrl}" class="btn-pagination">${i}</a>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </c:forEach>
+
+                                    <c:if test="${end_page < totalPages}">
+                                        <c:if test="${end_page < totalPages - 1}">
+                                            <span class="ellipsis">...</span>
+                                        </c:if>
+                                        <c:url var="lastPageUrl" value="${baseUrl}">
+                                            <c:param name="allowancePage" value="${totalPages}" />
+                                        </c:url>
+                                        <a href="${lastPageUrl}" class="btn-pagination">${totalPages}</a>
+                                    </c:if>
+
+                                    <%-- Next button --%>
+                                    <c:choose>
+                                        <c:when test="${page < totalPages}">
+                                            <c:url var="nextUrl" value="${baseUrl}">
+                                                <c:param name="allowancePage" value="${page + 1}" />
+                                            </c:url>
+                                            <a href="${nextUrl}" class="btn-pagination">Next →</a>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="disabled">Next →</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
+                            </div>
+                        </c:if>
                     </div>
 
                     <!-- Deduction Tab -->
@@ -819,6 +982,111 @@
                                 %>
                             </tbody>
                         </table>
+                        
+                        <%-- Pagination Bar for Deduction tab --%>
+                        <c:if test="${currentTab == 'deduction'}">
+                            <div class="pagination-bar">
+                                <div class="pagination-info">
+                                    <c:set var="total" value="${totalDeductions != null ? totalDeductions : 0}" />
+                                    <c:set var="page" value="${deductionPage != null ? deductionPage : 1}" />
+                                    <c:set var="pageSize" value="${deductionPageSize != null ? deductionPageSize : 10}" />
+                                    <c:set var="totalPages" value="${deductionTotalPages != null ? deductionTotalPages : 1}" />
+                                    
+                                    <%-- Calculate display range --%>
+                                    <c:set var="start" value="${total > 0 ? (page - 1) * pageSize + 1 : 0}" />
+                                    <c:set var="end" value="${page * pageSize}" />
+                                    <c:if test="${end > total}">
+                                        <c:set var="end" value="${total}" />
+                                    </c:if>
+                                    <span>Showing ${start} - ${end} of ${total}</span>
+                                    
+                                    <div class="page-size-selector" style="margin-left: 20px; display: inline-block;">
+                                        <label for="deductionPageSizeSelect" style="margin-right: 8px;">Items per page:</label>
+                                        <select id="deductionPageSizeSelect" onchange="changeDeductionPageSize(this.value)" style="padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px;">
+                                            <option value="5" <c:if test="${pageSize == 5}">selected</c:if>>5</option>
+                                            <option value="10" <c:if test="${pageSize == 10}">selected</c:if>>10</option>
+                                            <option value="20" <c:if test="${pageSize == 20}">selected</c:if>>20</option>
+                                            <option value="50" <c:if test="${pageSize == 50}">selected</c:if>>50</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="pagination-controls">
+                                    <%-- Base URL --%>
+                                    <c:url var="baseUrl" value="/hrstaff/payroll">
+                                        <c:param name="tab" value="deduction" />
+                                        <c:param name="deductionPageSize" value="${pageSize}" />
+                                        <c:param name="employeeFilter" value="${employeeFilter != null ? employeeFilter : ''}" />
+                                        <c:param name="deductionMonth" value="${deductionMonth != null ? deductionMonth : ''}" />
+                                    </c:url>
+
+                                    <%-- Previous button --%>
+                                    <c:choose>
+                                        <c:when test="${page > 1}">
+                                            <c:url var="prevUrl" value="${baseUrl}">
+                                                <c:param name="deductionPage" value="${page - 1}" />
+                                            </c:url>
+                                            <a href="${prevUrl}" class="btn-pagination">← Prev</a>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="disabled">← Prev</span>
+                                        </c:otherwise>
+                                    </c:choose>
+
+                                    <%-- Page numbers --%>
+                                    <c:set var="range" value="2" />
+                                    <c:set var="start_page" value="${page - range > 1 ? page - range : 1}" />
+                                    <c:set var="end_page" value="${page + range < totalPages ? page + range : totalPages}" />
+
+                                    <c:if test="${start_page > 1}">
+                                        <c:url var="firstPageUrl" value="${baseUrl}">
+                                            <c:param name="deductionPage" value="1" />
+                                        </c:url>
+                                        <a href="${firstPageUrl}" class="btn-pagination">1</a>
+                                        <c:if test="${start_page > 2}">
+                                            <span class="ellipsis">...</span>
+                                        </c:if>
+                                    </c:if>
+
+                                    <c:forEach begin="${start_page}" end="${end_page}" var="i">
+                                        <c:choose>
+                                            <c:when test="${i == page}">
+                                                <span class="active btn-pagination">${i}</span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <c:url var="pageUrl" value="${baseUrl}">
+                                                    <c:param name="deductionPage" value="${i}" />
+                                                </c:url>
+                                                <a href="${pageUrl}" class="btn-pagination">${i}</a>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </c:forEach>
+
+                                    <c:if test="${end_page < totalPages}">
+                                        <c:if test="${end_page < totalPages - 1}">
+                                            <span class="ellipsis">...</span>
+                                        </c:if>
+                                        <c:url var="lastPageUrl" value="${baseUrl}">
+                                            <c:param name="deductionPage" value="${totalPages}" />
+                                        </c:url>
+                                        <a href="${lastPageUrl}" class="btn-pagination">${totalPages}</a>
+                                    </c:if>
+
+                                    <%-- Next button --%>
+                                    <c:choose>
+                                        <c:when test="${page < totalPages}">
+                                            <c:url var="nextUrl" value="${baseUrl}">
+                                                <c:param name="deductionPage" value="${page + 1}" />
+                                            </c:url>
+                                            <a href="${nextUrl}" class="btn-pagination">Next →</a>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="disabled">Next →</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </div>
+                            </div>
+                        </c:if>
                     </div>
 
                     <!-- Attendance Tab -->
@@ -854,7 +1122,7 @@
                         </div>
 
                         <!-- Attendance Statistics -->
-                        <div id="attendanceStats" style="display:none;">
+                        <div id="attendanceStats">
                             <div class="summary-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom:20px;">
                                 <div class="summary-card">
                                     <h4>Actual Work Days</h4>
@@ -894,9 +1162,6 @@
                                     and allowance entries for overtime work.
                                 </div>
                             </div>
-                        </div>
-                        <div id="attendanceEmpty" class="empty" style="display:none;">
-                            Please select an employee and month to view attendance statistics.
                         </div>
                     </div>
 
@@ -964,6 +1229,20 @@
                             </div>
                         </div>
 
+                        <!-- Batch Actions Bar -->
+                        <div id="batchActionsBar">
+                            <span id="selectedCount" style="font-weight:600; color:#0369a1;">0 selected</span>
+                            <button type="button" class="btn btn-small secondary" onclick="submitSelectedPayrolls()" id="batchSubmitBtn" style="display:none;">
+                                <i class="fas fa-paper-plane"></i> Submit Selected
+                            </button>
+                            <button type="button" class="btn btn-small btn-danger" onclick="deleteSelectedPayrolls()" id="batchDeleteBtn" style="display:none;">
+                                <i class="fas fa-trash"></i> Delete Selected
+                            </button>
+                            <button type="button" class="btn btn-small" onclick="clearSelection()" style="background:#6b7280; color:white;">
+                                <i class="fas fa-times"></i> Clear Selection
+                            </button>
+                        </div>
+
                         <!-- Payroll List -->
                         <table id="payrollTable">
                             <thead>
@@ -974,6 +1253,9 @@
                                         if (sortBy == null) sortBy = "PayPeriod";
                                         if (sortOrder == null) sortOrder = "DESC";
                                     %>
+                                    <th style="width:40px; text-align:center;">
+                                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" title="Select All">
+                                    </th>
                                     <th style="cursor:pointer;" onclick="sortPayrollTable('FullName')">
                                         Employee<%
                                             if ("FullName".equals(sortBy)) {
@@ -1039,14 +1321,27 @@
                                     if (payrolls == null || payrolls.isEmpty()) {
                                 %>
                                 <tr>
-                                    <td colspan="9" class="empty">No payroll found. Click "Create Payroll" to create one.</td>
+                                    <td colspan="10" class="empty">No payroll found. Click "Create Payroll" to create one.</td>
                                 </tr>
                                 <%
                                     } else {
                                         for (Map<String, Object> payroll : payrolls) {
                                             String status = (String) payroll.get("status");
                                 %>
-                                <tr>
+                                <tr data-payroll-id="<%= payroll.get("payrollId") %>" data-status="<%= status %>">
+                                    <td style="text-align:center;">
+                                        <%
+                                            // Only show checkbox for Draft and Rejected status
+                                            if ("Draft".equals(status) || "Rejected".equals(status)) {
+                                        %>
+                                        <input type="checkbox" class="payroll-checkbox" 
+                                               data-payroll-id="<%= payroll.get("payrollId") %>" 
+                                               data-status="<%= status %>"
+                                               onchange="updateBatchActions()">
+                                        <%
+                                            }
+                                        %>
+                                    </td>
                                     <td><%= payroll.get("employeeName") %></td>
                                     <td><%= payroll.get("payPeriod") %></td>
                                     <td><%= String.format("%,d VNĐ", ((java.math.BigDecimal) payroll.get("baseSalary")).intValue()) %></td>
@@ -1065,6 +1360,18 @@
                                             <button class="btn btn-small" onclick="editPayroll(<%= payroll.get("payrollId") %>)">Edit</button>
                                             <button class="btn btn-small secondary" onclick="submitPayroll(<%= payroll.get("payrollId") %>)">Submit</button>
                                             <button class="btn btn-small btn-danger" onclick="deletePayroll(<%= payroll.get("payrollId") %>)">Delete</button>
+                                            <%
+                                                } else if ("Rejected".equals(status)) {
+                                            %>
+                                            <button class="btn btn-small" onclick="editPayroll(<%= payroll.get("payrollId") %>)" title="Edit rejected payroll">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                            <button class="btn btn-small btn-success" onclick="resubmitPayroll(<%= payroll.get("payrollId") %>)" title="Resubmit after correction">
+                                                <i class="fas fa-paper-plane"></i> Resubmit
+                                            </button>
+                                            <button class="btn btn-small" onclick="viewPayrollDetails(<%= payroll.get("payrollId") %>)" title="View details and rejection note">
+                                                <i class="fas fa-eye"></i> View
+                                            </button>
                                             <%
                                                 } else {
                                             %>
@@ -1471,17 +1778,129 @@
                         <div class="muted" style="margin-top:4px; font-size:12px;">Actual Base Salary + OT Salary + Allowance - Total Deduction</div>
                     </div>
 
+                    <!-- Manual Edit Section -->
+                    <div id="manualEditSection" style="display:none; background:#fff3cd; border:1px solid #ffc107; border-radius:8px; padding:16px; margin-top:20px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                            <h4 style="margin:0; color:#856404;">✏️ Manual Override</h4>
+                            <button type="button" class="btn btn-small" onclick="toggleManualEdit()" id="toggleEditBtn" style="font-size:12px; padding:6px 12px;">
+                                <i class="fas fa-edit"></i> Edit Values
+                            </button>
+                        </div>
+                        <div id="manualEditWarning" style="display:none; background:#fff3cd; border:1px solid #ffc107; border-radius:6px; padding:12px; margin-bottom:12px; color:#856404; font-size:13px;">
+                            <strong>⚠️ Warning:</strong> You are manually editing calculated values. Please ensure the Net Salary formula is correct:<br/>
+                            <strong>Net Salary = Actual Base Salary + OT Salary + Allowance - Total Deduction</strong>
+                        </div>
+                        
+                        <div class="form-row" style="margin-bottom:12px;">
+                            <div class="form-group" style="flex:1;">
+                                <label>Actual Base Salary</label>
+                                <input type="number" id="payrollActualBaseSalary" name="actualBaseSalary" step="0.01" min="0" 
+                                    readonly style="background:#f5f5f5; cursor:not-allowed;" 
+                                    onchange="validateNetSalary()" onblur="validateNetSalary()"/>
+                                <small id="actualBaseSalaryWarning" style="display:none; color:var(--error); font-size:11px;"></small>
+                            </div>
+                            <div class="form-group" style="flex:1;">
+                                <label>OT Salary</label>
+                                <input type="number" id="payrollOTSalary" name="otSalary" step="0.01" min="0" 
+                                    readonly style="background:#f5f5f5; cursor:not-allowed;" 
+                                    onchange="validateNetSalary()" onblur="validateNetSalary()"/>
+                                <small id="otSalaryWarning" style="display:none; color:var(--error); font-size:11px;"></small>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row" style="margin-bottom:12px;">
+                            <div class="form-group" style="flex:1;">
+                                <label>Total Allowance</label>
+                                <input type="number" id="payrollAllowance" name="allowance" step="0.01" min="0" 
+                                    readonly style="background:#f5f5f5; cursor:not-allowed;" 
+                                    onchange="validateNetSalary()" onblur="validateNetSalary()"/>
+                                <small id="allowanceWarning" style="display:none; color:var(--error); font-size:11px;"></small>
+                            </div>
+                            <div class="form-group" style="flex:1;">
+                                <label>Total Deduction</label>
+                                <input type="number" id="payrollDeduction" name="deduction" step="0.01" min="0" 
+                                    readonly style="background:#f5f5f5; cursor:not-allowed;" 
+                                    onchange="validateNetSalary()" onblur="validateNetSalary()"/>
+                                <small id="deductionWarning" style="display:none; color:var(--error); font-size:11px;"></small>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row" style="margin-bottom:12px;">
+                            <div class="form-group" style="flex:1;">
+                                <label>Net Salary <span style="color:var(--error);">*</span></label>
+                                <input type="number" id="payrollNetSalary" name="netSalary" step="0.01" min="0" required
+                                    readonly style="background:#f5f5f5; cursor:not-allowed; font-weight:bold;" 
+                                    onchange="validateNetSalary()" onblur="validateNetSalary()"/>
+                                <small id="netSalaryWarning" style="display:none; color:var(--error); font-size:11px; font-weight:bold;"></small>
+                                <small id="netSalaryFormula" style="display:block; color:var(--muted); font-size:11px; margin-top:4px;">
+                                    Formula: Actual Base Salary + OT Salary + Allowance - Total Deduction
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div id="overrideSection" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid #ffc107;">
+                            <div class="form-group">
+                                <label style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                                    <input type="checkbox" id="manualOverride" name="manualOverride" onchange="toggleOverrideReason()"/>
+                                    <span>I understand this is a manual override and have a valid reason</span>
+                                </label>
+                            </div>
+                            <div class="form-group" id="overrideReasonGroup" style="display:none;">
+                                <label>Override Reason <span style="color:var(--error);">*</span></label>
+                                <textarea id="overrideReason" name="overrideReason" rows="3" 
+                                    style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:4px;"
+                                    placeholder="Please provide a reason for manually overriding the calculated values..."></textarea>
+                                <small style="color:var(--muted); font-size:11px;">This reason will be logged for audit purposes.</small>
+                            </div>
+                        </div>
+                        
+                        <div style="display:flex; gap:8px; margin-top:12px;">
+                            <button type="button" class="btn btn-small" onclick="recalculatePayroll()" style="background:#0369a1; color:white;">
+                                <i class="fas fa-calculator"></i> Recalculate from Source Data
+                            </button>
+                            <button type="button" class="btn btn-small" onclick="compareWithCalculated()" style="background:#059669; color:white;">
+                                <i class="fas fa-balance-scale"></i> Compare with Auto-Calculated
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Comparison Section (hidden by default) -->
+                    <div id="comparisonSection" style="display:none; background:#e0f2fe; border:1px solid #0ea5e9; border-radius:8px; padding:16px; margin-top:12px;">
+                        <h4 style="margin:0 0 12px 0; color:#0c4a6e;">📊 Comparison: Manual vs Auto-Calculated</h4>
+                        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                            <thead>
+                                <tr style="background:#bae6fd; border-bottom:2px solid #0ea5e9;">
+                                    <th style="padding:8px; text-align:left;">Field</th>
+                                    <th style="padding:8px; text-align:right;">Auto-Calculated</th>
+                                    <th style="padding:8px; text-align:right;">Manual Value</th>
+                                    <th style="padding:8px; text-align:right;">Difference</th>
+                                </tr>
+                            </thead>
+                            <tbody id="comparisonTableBody">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                        <div style="margin-top:12px; display:flex; gap:8px;">
+                            <button type="button" class="btn btn-small" onclick="useCalculatedValues()" style="background:#059669; color:white;">
+                                <i class="fas fa-check"></i> Use Auto-Calculated Values
+                            </button>
+                            <button type="button" class="btn btn-small" onclick="hideComparison()" style="background:#6b7280; color:white;">
+                                Close Comparison
+                            </button>
+                        </div>
+                    </div>
+
                     <input type="hidden" id="payrollBaseSalary" name="baseSalary"/>
-                    <input type="hidden" id="payrollActualBaseSalary" name="actualBaseSalary"/>
-                    <input type="hidden" id="payrollOTSalary" name="otSalary"/>
-                    <input type="hidden" id="payrollAllowance" name="allowance"/>
-                    <input type="hidden" id="payrollDeduction" name="deduction"/>
-                    <input type="hidden" id="payrollNetSalary" name="netSalary"/>
+                    <input type="hidden" id="calculatedActualBaseSalary"/>
+                    <input type="hidden" id="calculatedOTSalary"/>
+                    <input type="hidden" id="calculatedAllowance"/>
+                    <input type="hidden" id="calculatedDeduction"/>
+                    <input type="hidden" id="calculatedNetSalary"/>
 
                     <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:20px;">
                         <button type="button" class="btn btn-small" onclick="closePayrollModal()">Cancel</button>
-                        <button type="submit" class="btn btn-small" name="action" value="save">Save Draft</button>
-                        <button type="submit" class="btn btn-small secondary" name="action" value="submit">Submit for Approval</button>
+                        <button type="submit" class="btn btn-small" name="action" value="save" onclick="return validatePayrollForm()">Save Draft</button>
+                        <button type="submit" class="btn btn-small secondary" name="action" value="submit" onclick="return validatePayrollForm()">Submit for Approval</button>
                     </div>
                 </form>
             </div>
@@ -1489,13 +1908,15 @@
 
         <script>
 
-            function openAllowanceModal() {
+            function openAllowanceModal(resetForm = true) {
                 const modal = document.getElementById('allowanceModal');
                 if (modal) {
                     modal.classList.add('active');
-                    document.getElementById('allowanceModalTitle').textContent = 'Add Allowance';
-                    document.getElementById('allowanceForm').reset();
-                    document.getElementById('allowanceId').value = '';
+                    if (resetForm) {
+                        document.getElementById('allowanceModalTitle').textContent = 'Add Allowance';
+                        document.getElementById('allowanceForm').reset();
+                        document.getElementById('allowanceId').value = '';
+                    }
                 }
             }
 
@@ -1506,13 +1927,15 @@
                 }
             }
 
-            function openDeductionModal() {
+            function openDeductionModal(resetForm = true) {
                 const modal = document.getElementById('deductionModal');
                 if (modal) {
                     modal.classList.add('active');
-                    document.getElementById('deductionModalTitle').textContent = 'Add Deduction';
-                    document.getElementById('deductionForm').reset();
-                    document.getElementById('deductionId').value = '';
+                    if (resetForm) {
+                        document.getElementById('deductionModalTitle').textContent = 'Add Deduction';
+                        document.getElementById('deductionForm').reset();
+                        document.getElementById('deductionId').value = '';
+                    }
                 }
             }
 
@@ -1523,22 +1946,25 @@
                 }
             }
 
-            function openPayrollModal() {
+            function openPayrollModal(resetForm = true) {
                 const modal = document.getElementById('payrollModal');
                 if (modal) {
                     modal.classList.add('active');
-                    document.getElementById('payrollForm').reset();
-                    document.getElementById('payrollId').value = '';
-                    document.getElementById('payrollSummary').style.display = 'none';
-                    document.getElementById('attendanceInfoSection').style.display = 'none';
-                    document.getElementById('insuranceTaxSection').style.display = 'none';
                     
-                    const payrollPeriod = document.getElementById('payrollPeriod');
-                    if (payrollPeriod && !payrollPeriod.value) {
-                        const now = new Date();
-                        const year = now.getFullYear();
-                        const month = String(now.getMonth() + 1).padStart(2, '0');
-                        payrollPeriod.value = `${year}-${month}`;
+                    if (resetForm) {
+                        document.getElementById('payrollForm').reset();
+                        document.getElementById('payrollId').value = '';
+                        document.getElementById('payrollSummary').style.display = 'none';
+                        document.getElementById('attendanceInfoSection').style.display = 'none';
+                        document.getElementById('insuranceTaxSection').style.display = 'none';
+                        
+                        const payrollPeriod = document.getElementById('payrollPeriod');
+                        if (payrollPeriod && !payrollPeriod.value) {
+                            const now = new Date();
+                            const year = now.getFullYear();
+                            const month = String(now.getMonth() + 1).padStart(2, '0');
+                            payrollPeriod.value = year + '-' + month;
+                        }
                     }
                 }
             }
@@ -1556,17 +1982,30 @@
                     return;
                 }
                 fetch('<%=request.getContextPath()%>/api/allowance/' + id)
-                        .then(r => r.json())
-                        .then(data => {
-                            document.getElementById('allowanceId').value = data.id;
-                            document.getElementById('allowanceEmployee').value = data.employeeId;
-                            document.getElementById('allowanceType').value = data.allowanceTypeId;
-                            document.getElementById('allowanceAmount').value = data.amount;
-                            document.getElementById('allowanceMonth').value = data.month;
-                            document.getElementById('allowanceModalTitle').textContent = 'Edit Allowance';
-                            openAllowanceModal();
+                        .then(r => {
+                            if (!r.ok) {
+                                throw new Error('Failed to load allowance data: ' + r.status);
+                            }
+                            return r.json();
                         })
-                        .catch(err => console.error('Error loading allowance:', err));
+                        .then(data => {
+                            if (!data || !data.id) {
+                                throw new Error('Invalid allowance data received');
+                            }
+                            // Set form values with the fetched data
+                            document.getElementById('allowanceId').value = data.id || '';
+                            document.getElementById('allowanceEmployee').value = data.employeeId || '';
+                            document.getElementById('allowanceType').value = data.allowanceTypeId || '';
+                            document.getElementById('allowanceAmount').value = data.amount || '';
+                            document.getElementById('allowanceMonth').value = data.month || '';
+                            document.getElementById('allowanceModalTitle').textContent = 'Edit Allowance';
+                            // Open modal without resetting form
+                            openAllowanceModal(false);
+                        })
+                        .catch(err => {
+                            console.error('Error loading allowance:', err);
+                            alert('Lỗi khi tải dữ liệu phụ cấp: ' + err.message);
+                        });
             }
 
             function editDeduction(id) {
@@ -1575,17 +2014,30 @@
                     return;
                 }
                 fetch('<%=request.getContextPath()%>/api/deduction/' + id)
-                        .then(r => r.json())
-                        .then(data => {
-                            document.getElementById('deductionId').value = data.id;
-                            document.getElementById('deductionEmployee').value = data.employeeId;
-                            document.getElementById('deductionType').value = data.deductionTypeId;
-                            document.getElementById('deductionAmount').value = data.amount;
-                            document.getElementById('deductionMonth').value = data.month;
-                            document.getElementById('deductionModalTitle').textContent = 'Edit Deduction';
-                            openDeductionModal();
+                        .then(r => {
+                            if (!r.ok) {
+                                throw new Error('Failed to load deduction data: ' + r.status);
+                            }
+                            return r.json();
                         })
-                        .catch(err => console.error('Error loading deduction:', err));
+                        .then(data => {
+                            if (!data || !data.id) {
+                                throw new Error('Invalid deduction data received');
+                            }
+                            // Set form values with the fetched data
+                            document.getElementById('deductionId').value = data.id || '';
+                            document.getElementById('deductionEmployee').value = data.employeeId || '';
+                            document.getElementById('deductionType').value = data.deductionTypeId || '';
+                            document.getElementById('deductionAmount').value = data.amount || '';
+                            document.getElementById('deductionMonth').value = data.month || '';
+                            document.getElementById('deductionModalTitle').textContent = 'Edit Deduction';
+                            // Open modal without resetting form
+                            openDeductionModal(false);
+                        })
+                        .catch(err => {
+                            console.error('Error loading deduction:', err);
+                            alert('Lỗi khi tải dữ liệu khấu trừ: ' + err.message);
+                        });
             }
 
             function editPayroll(id) {
@@ -1605,9 +2057,13 @@
                     .then(data => {
                         console.log('Payroll data loaded:', data);
                         
-                        document.getElementById('payrollId').value = data.payrollId;
-                        document.getElementById('payrollEmployee').value = data.employeeId;
-                        document.getElementById('payrollPeriod').value = data.payPeriod;
+                        // Open modal first without resetting form
+                        openPayrollModal(false);
+                        
+                        // Set form values
+                        document.getElementById('payrollId').value = data.payrollId || '';
+                        document.getElementById('payrollEmployee').value = data.employeeId || '';
+                        document.getElementById('payrollPeriod').value = data.payPeriod || '';
                         
                         const actualBaseSalary = parseFloat(data.baseSalary) || 0;
                         const otSalary = parseFloat(data.bonus) || 0; 
@@ -1631,9 +2087,8 @@
                             netSalary: netSalary
                         });
                         
+                        // Load employee-specific data after setting employee and period
                         loadEmployeePayrollData();
-                        
-                        openPayrollModal();
                     })
                     .catch(err => {
                         console.error('Error loading payroll:', err);
@@ -1680,6 +2135,136 @@
                     if (urlParams.get('statusFilter')) url += '&statusFilter=' + urlParams.get('statusFilter');
                     window.location.href = url;
                 }
+            }
+
+            function resubmitPayroll(id) {
+                if (confirm('Are you sure you want to resubmit this rejected payroll for approval? Make sure you have reviewed and addressed the rejection note.')) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    let url = '<%=request.getContextPath()%>/hrstaff/payroll/submit?payrollId=' + id;
+                    // Preserve pagination parameters
+                    if (urlParams.get('page')) url += '&page=' + urlParams.get('page');
+                    if (urlParams.get('pageSize')) url += '&pageSize=' + urlParams.get('pageSize');
+                    if (urlParams.get('sortBy')) url += '&sortBy=' + urlParams.get('sortBy');
+                    if (urlParams.get('sortOrder')) url += '&sortOrder=' + urlParams.get('sortOrder');
+                    if (urlParams.get('employeeFilter')) url += '&employeeFilter=' + urlParams.get('employeeFilter');
+                    if (urlParams.get('statusFilter')) url += '&statusFilter=' + urlParams.get('statusFilter');
+                    window.location.href = url;
+                }
+            }
+
+            // ========== Batch Selection Functions ==========
+            
+            function toggleSelectAll(checkbox) {
+                const checkboxes = document.querySelectorAll('.payroll-checkbox');
+                checkboxes.forEach(cb => {
+                    cb.checked = checkbox.checked;
+                });
+                updateBatchActions();
+            }
+
+            function updateBatchActions() {
+                const checkboxes = document.querySelectorAll('.payroll-checkbox:checked');
+                const selectedCount = checkboxes.length;
+                const batchBar = document.getElementById('batchActionsBar');
+                const selectedCountEl = document.getElementById('selectedCount');
+                const batchSubmitBtn = document.getElementById('batchSubmitBtn');
+                const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+
+                if (selectedCount > 0) {
+                    batchBar.style.display = 'flex';
+                    selectedCountEl.textContent = selectedCount + ' selected';
+                    
+                    // Check which actions are available based on selected payrolls
+                    let hasDraft = false;
+                    let hasRejected = false;
+                    let hasDeletable = false;
+                    
+                    checkboxes.forEach(cb => {
+                        const status = cb.getAttribute('data-status');
+                        if (status === 'Draft') {
+                            hasDraft = true;
+                            hasDeletable = true;
+                        } else if (status === 'Rejected') {
+                            hasRejected = true;
+                        }
+                    });
+                    
+                    // Show submit button if there are Draft or Rejected payrolls
+                    batchSubmitBtn.style.display = (hasDraft || hasRejected) ? 'inline-block' : 'none';
+                    
+                    // Show delete button only for Draft payrolls
+                    batchDeleteBtn.style.display = hasDeletable ? 'inline-block' : 'none';
+                } else {
+                    batchBar.style.display = 'none';
+                }
+                
+                // Update select all checkbox state
+                const allCheckboxes = document.querySelectorAll('.payroll-checkbox');
+                const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+                if (allCheckboxes.length > 0) {
+                    const allChecked = Array.from(allCheckboxes).every(cb => cb.checked);
+                    selectAllCheckbox.checked = allChecked;
+                }
+            }
+
+            function getSelectedPayrollIds() {
+                const checkboxes = document.querySelectorAll('.payroll-checkbox:checked');
+                return Array.from(checkboxes).map(cb => cb.getAttribute('data-payroll-id'));
+            }
+
+            function submitSelectedPayrolls() {
+                const selectedIds = getSelectedPayrollIds();
+                if (selectedIds.length === 0) {
+                    alert('Vui lòng chọn ít nhất một payroll để submit.');
+                    return;
+                }
+                
+                const count = selectedIds.length;
+                if (confirm('Bạn có chắc chắn muốn submit ' + count + ' payroll đã chọn để duyệt không?')) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    let url = '<%=request.getContextPath()%>/hrstaff/payroll/batch-submit?payrollIds=' + selectedIds.join(',');
+                    
+                    // Preserve pagination parameters
+                    if (urlParams.get('page')) url += '&page=' + urlParams.get('page');
+                    if (urlParams.get('pageSize')) url += '&pageSize=' + urlParams.get('pageSize');
+                    if (urlParams.get('sortBy')) url += '&sortBy=' + urlParams.get('sortBy');
+                    if (urlParams.get('sortOrder')) url += '&sortOrder=' + urlParams.get('sortOrder');
+                    if (urlParams.get('employeeFilter')) url += '&employeeFilter=' + urlParams.get('employeeFilter');
+                    if (urlParams.get('statusFilter')) url += '&statusFilter=' + urlParams.get('statusFilter');
+                    
+                    window.location.href = url;
+                }
+            }
+
+            function deleteSelectedPayrolls() {
+                const selectedIds = getSelectedPayrollIds();
+                if (selectedIds.length === 0) {
+                    alert('Vui lòng chọn ít nhất một payroll để xóa.');
+                    return;
+                }
+                
+                const count = selectedIds.length;
+                if (confirm('⚠️ CẢNH BÁO: Bạn có chắc chắn muốn xóa ' + count + ' payroll đã chọn không?\n\nHành động này không thể hoàn tác!')) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    let url = '<%=request.getContextPath()%>/hrstaff/payroll/batch-delete?payrollIds=' + selectedIds.join(',');
+                    
+                    // Preserve pagination parameters
+                    if (urlParams.get('page')) url += '&page=' + urlParams.get('page');
+                    if (urlParams.get('pageSize')) url += '&pageSize=' + urlParams.get('pageSize');
+                    if (urlParams.get('sortBy')) url += '&sortBy=' + urlParams.get('sortBy');
+                    if (urlParams.get('sortOrder')) url += '&sortOrder=' + urlParams.get('sortOrder');
+                    if (urlParams.get('employeeFilter')) url += '&employeeFilter=' + urlParams.get('employeeFilter');
+                    if (urlParams.get('statusFilter')) url += '&statusFilter=' + urlParams.get('statusFilter');
+                    
+                    window.location.href = url;
+                }
+            }
+
+            function clearSelection() {
+                const checkboxes = document.querySelectorAll('.payroll-checkbox');
+                checkboxes.forEach(cb => cb.checked = false);
+                document.getElementById('selectAllCheckbox').checked = false;
+                updateBatchActions();
             }
 
             function viewPayrollDetails(id) {
@@ -1867,9 +2452,20 @@
                 
                 // Notes (if available)
                 if (audit.notes) {
-                    html += '<div class="card" style="padding:16px;">';
-                    html += '<h4 style="margin:0 0 8px 0; color:var(--primary);">📝 Notes</h4>';
-                    html += '<div style="color:var(--muted);">' + audit.notes + '</div>';
+                    // Check if payroll is rejected to highlight rejection note
+                    const isRejected = (data.status === 'Rejected' || audit.status === 'Rejected');
+                    const hasRejectionNote = audit.notes.includes('[REJECTED]');
+                    
+                    html += '<div class="card" style="padding:16px;' + (isRejected && hasRejectionNote ? ' border-left:4px solid var(--error); background:#fef2f2;' : '') + '">';
+                    html += '<h4 style="margin:0 0 8px 0; color:' + (isRejected && hasRejectionNote ? 'var(--error)' : 'var(--primary)') + ';">';
+                    html += isRejected && hasRejectionNote ? '⚠️ Rejection Note' : '📝 Notes';
+                    html += '</h4>';
+                    html += '<div style="color:' + (isRejected && hasRejectionNote ? 'var(--text-color)' : 'var(--muted)') + '; white-space: pre-wrap; line-height: 1.6;">' + audit.notes.replace(/\n/g, '<br>') + '</div>';
+                    if (isRejected && hasRejectionNote) {
+                        html += '<div style="margin-top:12px; padding:8px; background:#fee2e2; border-radius:4px; font-size:12px; color:#991b1b;">';
+                        html += '<strong>Please review and correct the payroll based on the rejection reason above.</strong>';
+                        html += '</div>';
+                    }
                     html += '</div>';
                 }
                 
@@ -1898,25 +2494,59 @@
             function filterAllowances() {
                 const employeeId = document.getElementById('allowanceEmployeeFilter').value;
                 const month = document.getElementById('allowanceMonthFilter').value;
-                const params = new URLSearchParams();
-                if (employeeId)
-                    params.append('employeeFilter', employeeId);
-                if (month)
-                    params.append('allowanceMonth', month);
-                params.append('tab', 'allowance');
-                window.location.href = '<%=request.getContextPath()%>/hrstaff/payroll?' + params.toString();
+                const urlParams = new URLSearchParams(window.location.search);
+                
+                // Clear existing filters and set new ones
+                urlParams.delete('employeeFilter');
+                urlParams.delete('allowanceMonth');
+                urlParams.delete('allowancePage'); // Reset to page 1 when filter changes
+                
+                if (employeeId) {
+                    urlParams.set('employeeFilter', employeeId);
+                }
+                if (month) {
+                    urlParams.set('allowanceMonth', month);
+                }
+                
+                // Preserve page size if exists
+                const pageSize = urlParams.get('allowancePageSize');
+                if (pageSize) {
+                    urlParams.set('allowancePageSize', pageSize);
+                }
+                
+                urlParams.set('tab', 'allowance');
+                urlParams.set('allowancePage', '1'); // Always go to page 1 on filter change
+                
+                window.location.href = '<%=request.getContextPath()%>/hrstaff/payroll?' + urlParams.toString();
             }
 
             function filterDeductions() {
                 const employeeId = document.getElementById('deductionEmployeeFilter').value;
                 const month = document.getElementById('deductionMonthFilter').value;
-                const params = new URLSearchParams();
-                if (employeeId)
-                    params.append('employeeFilter', employeeId);
-                if (month)
-                    params.append('deductionMonth', month);
-                params.append('tab', 'deduction');
-                window.location.href = '<%=request.getContextPath()%>/hrstaff/payroll?' + params.toString();
+                const urlParams = new URLSearchParams(window.location.search);
+                
+                // Clear existing filters and set new ones
+                urlParams.delete('employeeFilter');
+                urlParams.delete('deductionMonth');
+                urlParams.delete('deductionPage'); // Reset to page 1 when filter changes
+                
+                if (employeeId) {
+                    urlParams.set('employeeFilter', employeeId);
+                }
+                if (month) {
+                    urlParams.set('deductionMonth', month);
+                }
+                
+                // Preserve page size if exists
+                const pageSize = urlParams.get('deductionPageSize');
+                if (pageSize) {
+                    urlParams.set('deductionPageSize', pageSize);
+                }
+                
+                urlParams.set('tab', 'deduction');
+                urlParams.set('deductionPage', '1'); // Always go to page 1 on filter change
+                
+                window.location.href = '<%=request.getContextPath()%>/hrstaff/payroll?' + urlParams.toString();
             }
 
             function filterPayrolls() {
@@ -1954,6 +2584,44 @@
                 window.location.href = '<%=request.getContextPath()%>/hrstaff/payroll?' + urlParams.toString();
             }
             
+            function changeAllowancePageSize(newSize) {
+                const urlParams = new URLSearchParams(window.location.search);
+                urlParams.set('tab', 'allowance');
+                urlParams.set('allowancePageSize', newSize);
+                urlParams.set('allowancePage', '1'); // Reset to first page
+                
+                // Preserve filters
+                const employeeFilter = document.getElementById('allowanceEmployeeFilter')?.value;
+                const monthFilter = document.getElementById('allowanceMonthFilter')?.value;
+                if (employeeFilter) {
+                    urlParams.set('employeeFilter', employeeFilter);
+                }
+                if (monthFilter) {
+                    urlParams.set('allowanceMonth', monthFilter);
+                }
+                
+                window.location.href = '<%=request.getContextPath()%>/hrstaff/payroll?' + urlParams.toString();
+            }
+
+            function changeDeductionPageSize(newSize) {
+                const urlParams = new URLSearchParams(window.location.search);
+                urlParams.set('tab', 'deduction');
+                urlParams.set('deductionPageSize', newSize);
+                urlParams.set('deductionPage', '1'); // Reset to first page
+                
+                // Preserve filters
+                const employeeFilter = document.getElementById('deductionEmployeeFilter')?.value;
+                const monthFilter = document.getElementById('deductionMonthFilter')?.value;
+                if (employeeFilter) {
+                    urlParams.set('employeeFilter', employeeFilter);
+                }
+                if (monthFilter) {
+                    urlParams.set('deductionMonth', monthFilter);
+                }
+                
+                window.location.href = '<%=request.getContextPath()%>/hrstaff/payroll?' + urlParams.toString();
+            }
+
             function changePayrollPageSize(newSize) {
                 const urlParams = new URLSearchParams(window.location.search);
                 urlParams.set('pageSize', newSize);
@@ -1985,6 +2653,15 @@
             function filterAttendance() {
                 const employeeId = document.getElementById('attendanceEmployeeFilter').value;
                 const month = document.getElementById('attendanceMonthFilter').value;
+                
+                // If both filters are empty, just reset stats to 0 and reload without params
+                if (!employeeId && !month) {
+                    resetAttendanceStats();
+                    window.location.href = '<%=request.getContextPath()%>/hrstaff/payroll?tab=attendance';
+                    return;
+                }
+                
+                // Reload page with filters
                 const params = new URLSearchParams();
                 if (employeeId)
                     params.append('employeeFilter', employeeId);
@@ -1992,6 +2669,29 @@
                     params.append('attendanceMonth', month);
                 params.append('tab', 'attendance');
                 window.location.href = '<%=request.getContextPath()%>/hrstaff/payroll?' + params.toString();
+            }
+
+            // Reset attendance stats to default values (0)
+            function resetAttendanceStats() {
+                const statWorkDays = document.getElementById('statWorkDays');
+                const statPaidLeaveInfo = document.getElementById('statPaidLeaveInfo');
+                const statUnpaidLeave = document.getElementById('statUnpaidLeave');
+                const statUnpaidLeaveAmount = document.getElementById('statUnpaidLeaveAmount');
+                const statLateCount = document.getElementById('statLateCount');
+                const statLatePenalty = document.getElementById('statLatePenalty');
+                const statEarlyLeave = document.getElementById('statEarlyLeave');
+                const statOvertimeHours = document.getElementById('statOvertimeHours');
+                const statOvertimeAmount = document.getElementById('statOvertimeAmount');
+                
+                if (statWorkDays) statWorkDays.textContent = '0 days';
+                if (statPaidLeaveInfo) statPaidLeaveInfo.textContent = '0 paid leave days';
+                if (statUnpaidLeave) statUnpaidLeave.textContent = '0 days';
+                if (statUnpaidLeaveAmount) statUnpaidLeaveAmount.textContent = '0 VNĐ';
+                if (statLateCount) statLateCount.textContent = '0 times';
+                if (statLatePenalty) statLatePenalty.textContent = '0 VNĐ';
+                if (statEarlyLeave) statEarlyLeave.textContent = '0 times';
+                if (statOvertimeHours) statOvertimeHours.textContent = '0.0 hours';
+                if (statOvertimeAmount) statOvertimeAmount.textContent = '0 VNĐ';
             }
 
             function loadAttendanceData() {
@@ -2006,8 +2706,15 @@
                 
                 let month = monthInput.value || '';
 
+                // If no employee or month selected, reset to default (0) and return
+                if (!employeeId || !month || month === '-' || month === '') {
+                    console.log('No employee or month selected, resetting to default values');
+                    resetAttendanceStats();
+                    return;
+                }
+
                 // Validate and fix month format
-                if (!month || month === '-' || month === '' || !month.match(/^\d{4}-\d{2}$/)) {
+                if (!month.match(/^\d{4}-\d{2}$/)) {
                     console.warn('Invalid month format:', month, '- fixing...');
                     // Set default month
                     const now = new Date();
@@ -2021,18 +2728,9 @@
                         console.log('Fixed month to:', month);
                     } else {
                         console.error('Failed to generate valid month format. year:', year, 'monthNum:', monthNum, 'result:', month);
-                        alert('Error: Cannot set valid month format. Please select a month manually.');
+                        resetAttendanceStats();
                         return;
                     }
-                }
-
-                if (!employeeId || !month) {
-                    console.warn('Missing employeeId or month:', {employeeId, month});
-                    const statsEl = document.getElementById('attendanceStats');
-                    const emptyEl = document.getElementById('attendanceEmpty');
-                    if (statsEl) statsEl.style.display = 'none';
-                    if (emptyEl) emptyEl.style.display = 'block';
-                    return;
                 }
                 
                 console.log('Loading attendance data for employee:', employeeId, 'month:', month);
@@ -2079,19 +2777,11 @@
                                     if (statOvertimeHours) statOvertimeHours.textContent = parseFloat(att.totalOvertimeHours || 0).toFixed(1) + ' hours';
                                     if (statOvertimeAmount) statOvertimeAmount.textContent = formatCurrency(parseFloat(att.calculatedOvertimeAmount) || 0);
 
-                                    const statsEl = document.getElementById('attendanceStats');
-                                    const emptyEl = document.getElementById('attendanceEmpty');
-                                    if (statsEl) {
-                                        statsEl.style.display = 'block';
-                                        console.log('Attendance stats displayed');
-                                    }
-                                    if (emptyEl) emptyEl.style.display = 'none';
+                                    console.log('Attendance stats displayed');
                                 } else {
                                     console.warn('No attendance data in response:', data);
-                                    const statsEl = document.getElementById('attendanceStats');
-                                    const emptyEl = document.getElementById('attendanceEmpty');
-                                    if (statsEl) statsEl.style.display = 'none';
-                                    if (emptyEl) emptyEl.style.display = 'block';
+                                    // If no data, reset to default (0)
+                                    resetAttendanceStats();
                                 }
                             } catch (e) {
                                 console.error('Error parsing attendance data:', e);
@@ -2147,12 +2837,39 @@
 
                                     console.log('Parsed values:', {baseSalary, actualBaseSalary, otSalary, totalAllowance, totalDeduction, netSalary}); // Debug log
 
+                                    // Store base salary (hidden)
                                     document.getElementById('payrollBaseSalary').value = baseSalary;
+                                    
+                                    // Store calculated values (for comparison)
+                                    document.getElementById('calculatedActualBaseSalary').value = actualBaseSalary;
+                                    document.getElementById('calculatedOTSalary').value = otSalary;
+                                    document.getElementById('calculatedAllowance').value = totalAllowance;
+                                    document.getElementById('calculatedDeduction').value = totalDeduction;
+                                    document.getElementById('calculatedNetSalary').value = netSalary;
+                                    
+                                    // Set editable values (initially same as calculated)
                                     document.getElementById('payrollActualBaseSalary').value = actualBaseSalary;
                                     document.getElementById('payrollOTSalary').value = otSalary;
                                     document.getElementById('payrollAllowance').value = totalAllowance;
                                     document.getElementById('payrollDeduction').value = totalDeduction;
                                     document.getElementById('payrollNetSalary').value = netSalary;
+                                    
+                                    // Show manual edit section
+                                    document.getElementById('manualEditSection').style.display = 'block';
+                                    
+                                    // Hide warnings initially
+                                    if (typeof clearAllWarnings === 'function') {
+                                        clearAllWarnings();
+                                    }
+                                    const manualEditWarningEl = document.getElementById('manualEditWarning');
+                                    const overrideSectionEl = document.getElementById('overrideSection');
+                                    if (manualEditWarningEl) manualEditWarningEl.style.display = 'none';
+                                    if (overrideSectionEl) overrideSectionEl.style.display = 'none';
+                                    
+                                    // Auto-validate after loading
+                                    if (typeof validateNetSalary === 'function') {
+                                        validateNetSalary();
+                                    }
 
                                     // Check if baseSalary is 0 and show warning
                                     if (baseSalary === 0) {
@@ -2511,19 +3228,19 @@
                                         }
                                     }
                                     
-                                    // Load data if employee is selected
+                                    // Load data if employee is selected, otherwise reset to 0
                                     if (employeeId && month && month.match(/^\d{4}-\d{2}$/)) {
                                         console.log('Loading attendance data for employee:', employeeId, 'month:', month);
                                         loadAttendanceData();
                                     } else {
-                                        console.log('Waiting for employee selection. employeeId:', employeeId, 'month:', month);
+                                        console.log('No employee or month selected, resetting to default values');
+                                        resetAttendanceStats();
                                     }
                                 } else {
                                     console.error('attendanceMonthFilter element not found');
                                 }
                             }, 300);
                         }
-                    });
 
                     document.addEventListener('click', function (event) {
                         ['allowanceModal', 'deductionModal', 'payrollModal', 'payrollDetailsModal'].forEach(modalId => {
@@ -2533,6 +3250,234 @@
                             }
                         });
                     });
+            });
+
+            // ========== Manual Edit Functions ==========
+            
+            let isEditing = false;
+            
+            function toggleManualEdit() {
+                isEditing = !isEditing;
+                const inputs = ['payrollActualBaseSalary', 'payrollOTSalary', 'payrollAllowance', 'payrollDeduction', 'payrollNetSalary'];
+                const btn = document.getElementById('toggleEditBtn');
+                
+                inputs.forEach(id => {
+                    const input = document.getElementById(id);
+                    if (input) {
+                        if (isEditing) {
+                            input.removeAttribute('readonly');
+                            input.style.background = 'white';
+                            input.style.cursor = 'text';
+                            if (btn) btn.innerHTML = '<i class="fas fa-lock"></i> Lock Values';
+                            document.getElementById('manualEditWarning').style.display = 'block';
+                            document.getElementById('overrideSection').style.display = 'block';
+                        } else {
+                            input.setAttribute('readonly', 'readonly');
+                            input.style.background = '#f5f5f5';
+                            input.style.cursor = 'not-allowed';
+                            if (btn) btn.innerHTML = '<i class="fas fa-edit"></i> Edit Values';
+                            document.getElementById('manualEditWarning').style.display = 'none';
+                            document.getElementById('overrideSection').style.display = 'none';
+                            document.getElementById('manualOverride').checked = false;
+                            document.getElementById('overrideReasonGroup').style.display = 'none';
+                        }
+                    }
+                });
+            }
+            
+            function validateNetSalary() {
+                const actualBaseSalary = parseFloat(document.getElementById('payrollActualBaseSalary').value) || 0;
+                const otSalary = parseFloat(document.getElementById('payrollOTSalary').value) || 0;
+                const allowance = parseFloat(document.getElementById('payrollAllowance').value) || 0;
+                const deduction = parseFloat(document.getElementById('payrollDeduction').value) || 0;
+                const netSalary = parseFloat(document.getElementById('payrollNetSalary').value) || 0;
+                
+                const calculatedNet = actualBaseSalary + otSalary + allowance - deduction;
+                const difference = Math.abs(netSalary - calculatedNet);
+                const tolerance = 0.01; // Allow 1 cent difference for rounding
+                
+                const warningEl = document.getElementById('netSalaryWarning');
+                const formulaEl = document.getElementById('netSalaryFormula');
+                
+                if (difference > tolerance) {
+                    if (warningEl) {
+                        warningEl.style.display = 'block';
+                        warningEl.textContent = '⚠️ Calculated Net Salary: ' + formatCurrency(calculatedNet) + ' (Difference: ' + formatCurrency(difference) + ')';
+                    }
+                    if (formulaEl) {
+                        formulaEl.style.color = 'var(--error)';
+                        formulaEl.style.fontWeight = 'bold';
+                    }
+                    return false;
+                } else {
+                    if (warningEl) warningEl.style.display = 'none';
+                    if (formulaEl) {
+                        formulaEl.style.color = 'var(--muted)';
+                        formulaEl.style.fontWeight = 'normal';
+                    }
+                    return true;
+                }
+            }
+            
+            function recalculatePayroll() {
+                const employeeId = document.getElementById('payrollEmployee').value;
+                const month = document.getElementById('payrollPeriod').value;
+                
+                if (!employeeId || !month) {
+                    alert('Please select Employee and Pay Period first.');
+                    return;
+                }
+                
+                if (confirm('Recalculate all values from source data? This will overwrite any manual changes.')) {
+                    loadEmployeePayrollData();
+                    if (isEditing) {
+                        toggleManualEdit(); // Lock fields after recalculate
+                    }
+                }
+            }
+            
+            function compareWithCalculated() {
+                const actualBaseSalary = parseFloat(document.getElementById('payrollActualBaseSalary').value) || 0;
+                const otSalary = parseFloat(document.getElementById('payrollOTSalary').value) || 0;
+                const allowance = parseFloat(document.getElementById('payrollAllowance').value) || 0;
+                const deduction = parseFloat(document.getElementById('payrollDeduction').value) || 0;
+                const netSalary = parseFloat(document.getElementById('payrollNetSalary').value) || 0;
+                
+                const calcActualBase = parseFloat(document.getElementById('calculatedActualBaseSalary').value) || 0;
+                const calcOT = parseFloat(document.getElementById('calculatedOTSalary').value) || 0;
+                const calcAllowance = parseFloat(document.getElementById('calculatedAllowance').value) || 0;
+                const calcDeduction = parseFloat(document.getElementById('calculatedDeduction').value) || 0;
+                const calcNet = parseFloat(document.getElementById('calculatedNetSalary').value) || 0;
+                
+                const tbody = document.getElementById('comparisonTableBody');
+                if (!tbody) return;
+                
+                const fields = [
+                    { name: 'Actual Base Salary', manual: actualBaseSalary, calculated: calcActualBase },
+                    { name: 'OT Salary', manual: otSalary, calculated: calcOT },
+                    { name: 'Total Allowance', manual: allowance, calculated: calcAllowance },
+                    { name: 'Total Deduction', manual: deduction, calculated: calcDeduction },
+                    { name: 'Net Salary', manual: netSalary, calculated: calcNet }
+                ];
+                
+                tbody.innerHTML = '';
+                fields.forEach(field => {
+                    const diff = field.manual - field.calculated;
+                    const hasDiff = Math.abs(diff) > 0.01;
+                    const row = document.createElement('tr');
+                    row.style.background = hasDiff ? '#fff3cd' : 'white';
+                    row.innerHTML = '<td style="padding:8px;">' + field.name + '</td>' +
+                        '<td style="padding:8px; text-align:right;">' + formatCurrency(field.calculated) + '</td>' +
+                        '<td style="padding:8px; text-align:right;' + (hasDiff ? ' font-weight:bold; color:var(--error);' : '') + '">' + formatCurrency(field.manual) + '</td>' +
+                        '<td style="padding:8px; text-align:right;' + (hasDiff ? ' font-weight:bold; color:var(--error);' : '') + '">' + formatCurrency(diff) + '</td>';
+                    tbody.appendChild(row);
+                });
+                
+                document.getElementById('comparisonSection').style.display = 'block';
+            }
+            
+            function useCalculatedValues() {
+                const calcActualBase = document.getElementById('calculatedActualBaseSalary').value;
+                const calcOT = document.getElementById('calculatedOTSalary').value;
+                const calcAllowance = document.getElementById('calculatedAllowance').value;
+                const calcDeduction = document.getElementById('calculatedDeduction').value;
+                const calcNet = document.getElementById('calculatedNetSalary').value;
+                
+                document.getElementById('payrollActualBaseSalary').value = calcActualBase;
+                document.getElementById('payrollOTSalary').value = calcOT;
+                document.getElementById('payrollAllowance').value = calcAllowance;
+                document.getElementById('payrollDeduction').value = calcDeduction;
+                document.getElementById('payrollNetSalary').value = calcNet;
+                
+                // Update summary
+                updatePayrollSummary({
+                    baseSalary: parseFloat(document.getElementById('payrollBaseSalary').value) || 0,
+                    actualBaseSalary: parseFloat(calcActualBase) || 0,
+                    otSalary: parseFloat(calcOT) || 0,
+                    totalAllowance: parseFloat(calcAllowance) || 0,
+                    totalDeduction: parseFloat(calcDeduction) || 0,
+                    netSalary: parseFloat(calcNet) || 0
+                });
+                
+                validateNetSalary();
+                hideComparison();
+            }
+            
+            function hideComparison() {
+                document.getElementById('comparisonSection').style.display = 'none';
+            }
+            
+            function toggleOverrideReason() {
+                const checkbox = document.getElementById('manualOverride');
+                const reasonGroup = document.getElementById('overrideReasonGroup');
+                if (checkbox && reasonGroup) {
+                    reasonGroup.style.display = checkbox.checked ? 'block' : 'none';
+                    if (!checkbox.checked) {
+                        document.getElementById('overrideReason').value = '';
+                    }
+                }
+            }
+            
+            function clearAllWarnings() {
+                ['actualBaseSalaryWarning', 'otSalaryWarning', 'allowanceWarning', 'deductionWarning', 'netSalaryWarning'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'none';
+                });
+            }
+            
+            function validatePayrollForm() {
+                // Validate Net Salary formula
+                if (!validateNetSalary()) {
+                    const confirmOverride = confirm('Net Salary does not match the formula!\n\n' +
+                        'Formula: Actual Base Salary + OT Salary + Allowance - Total Deduction\n\n' +
+                        'Do you want to continue anyway?');
+                    if (!confirmOverride) {
+                        return false;
+                    }
+                }
+                
+                // If manually edited, require override checkbox and reason
+                const hasManualChanges = isManualEdited();
+                if (hasManualChanges) {
+                    const overrideCheckbox = document.getElementById('manualOverride');
+                    const overrideReason = document.getElementById('overrideReason').value.trim();
+                    
+                    if (!overrideCheckbox || !overrideCheckbox.checked) {
+                        alert('⚠️ You have manually edited calculated values. Please check "I understand this is a manual override" checkbox.');
+                        return false;
+                    }
+                    
+                    if (!overrideReason) {
+                        alert('⚠️ Please provide a reason for the manual override. This will be logged for audit purposes.');
+                        return false;
+                    }
+                }
+                
+                return true;
+            }
+            
+            function isManualEdited() {
+                if (!isEditing) return false;
+                
+                const actualBaseSalary = parseFloat(document.getElementById('payrollActualBaseSalary').value) || 0;
+                const otSalary = parseFloat(document.getElementById('payrollOTSalary').value) || 0;
+                const allowance = parseFloat(document.getElementById('payrollAllowance').value) || 0;
+                const deduction = parseFloat(document.getElementById('payrollDeduction').value) || 0;
+                const netSalary = parseFloat(document.getElementById('payrollNetSalary').value) || 0;
+                
+                const calcActualBase = parseFloat(document.getElementById('calculatedActualBaseSalary').value) || 0;
+                const calcOT = parseFloat(document.getElementById('calculatedOTSalary').value) || 0;
+                const calcAllowance = parseFloat(document.getElementById('calculatedAllowance').value) || 0;
+                const calcDeduction = parseFloat(document.getElementById('calculatedDeduction').value) || 0;
+                const calcNet = parseFloat(document.getElementById('calculatedNetSalary').value) || 0;
+                
+                const tolerance = 0.01;
+                return Math.abs(actualBaseSalary - calcActualBase) > tolerance ||
+                       Math.abs(otSalary - calcOT) > tolerance ||
+                       Math.abs(allowance - calcAllowance) > tolerance ||
+                       Math.abs(deduction - calcDeduction) > tolerance ||
+                       Math.abs(netSalary - calcNet) > tolerance;
+            }
         </script>
     </body>
 </html>
