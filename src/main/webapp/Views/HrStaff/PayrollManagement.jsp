@@ -2895,7 +2895,12 @@
                                     
                                     // Update Attendance info if available (this will store data in window.currentAttendanceData)
                                     if (data.attendance) {
+                                        console.log('Calling updateAttendanceInfo with:', data.attendance);
+                                        console.log('data.attendance.actualWorkingDays:', data.attendance.actualWorkingDays);
+                                        console.log('data.attendance.paidLeaveDays:', data.attendance.paidLeaveDays);
                                         updateAttendanceInfo(data.attendance, baseSalary);
+                                    } else {
+                                        console.warn('data.attendance is null or undefined');
                                     }
                                     
                                     // Always show summary, even if values are 0
@@ -3010,21 +3015,43 @@
             
             // Update Attendance info in Payroll modal
             function updateAttendanceInfo(attendance, baseSalary) {
-                if (!attendance) return;
+                console.log('updateAttendanceInfo called with:', attendance);
+                console.log('attendance.actualWorkingDays:', attendance?.actualWorkingDays, 'type:', typeof attendance?.actualWorkingDays);
+                console.log('attendance.paidLeaveDays:', attendance?.paidLeaveDays, 'type:', typeof attendance?.paidLeaveDays);
+                if (!attendance) {
+                    console.warn('updateAttendanceInfo: attendance is null or undefined');
+                    return;
+                }
                 
-                const actualWorkingDays = parseFloat(attendance.actualWorkingDays) || 0;
-                const paidLeaveDays = parseFloat(attendance.paidLeaveDays) || 0;
-                const unpaidLeaveDays = parseFloat(attendance.unpaidLeaveDays) || 0;
+                // Safe parsing with fallback to 0 - handle null, undefined, and NaN
+                const actualWorkingDays = (attendance.actualWorkingDays != null && !isNaN(parseFloat(attendance.actualWorkingDays))) 
+                    ? parseFloat(attendance.actualWorkingDays) : 0;
+                const paidLeaveDays = (attendance.paidLeaveDays != null && !isNaN(parseFloat(attendance.paidLeaveDays))) 
+                    ? parseFloat(attendance.paidLeaveDays) : 0;
+                const unpaidLeaveDays = (attendance.unpaidLeaveDays != null && !isNaN(parseFloat(attendance.unpaidLeaveDays))) 
+                    ? parseFloat(attendance.unpaidLeaveDays) : 0;
                 const workDays = attendance.workDays || 0;
                 const lateCount = attendance.lateCount || 0;
                 const earlyLeaveCount = attendance.earlyLeaveCount || 0;
-                const totalOvertimeHours = parseFloat(attendance.totalOvertimeHours) || 0;
-                const unpaidLeaveAmount = parseFloat(attendance.calculatedUnpaidLeaveAmount) || 0;
-                const latePenalty = parseFloat(attendance.calculatedLatePenalty) || 0;
-                const overtimeAmount = parseFloat(attendance.calculatedOvertimeAmount) || 0;
+                const totalOvertimeHours = (attendance.totalOvertimeHours != null && !isNaN(parseFloat(attendance.totalOvertimeHours))) 
+                    ? parseFloat(attendance.totalOvertimeHours) : 0;
+                const unpaidLeaveAmount = (attendance.calculatedUnpaidLeaveAmount != null && !isNaN(parseFloat(attendance.calculatedUnpaidLeaveAmount))) 
+                    ? parseFloat(attendance.calculatedUnpaidLeaveAmount) : 0;
+                const latePenalty = (attendance.calculatedLatePenalty != null && !isNaN(parseFloat(attendance.calculatedLatePenalty))) 
+                    ? parseFloat(attendance.calculatedLatePenalty) : 0;
+                const overtimeAmount = (attendance.calculatedOvertimeAmount != null && !isNaN(parseFloat(attendance.calculatedOvertimeAmount))) 
+                    ? parseFloat(attendance.calculatedOvertimeAmount) : 0;
+                
+                console.log('Parsed values:', {
+                    actualWorkingDays, paidLeaveDays, unpaidLeaveDays, 
+                    totalOvertimeHours, unpaidLeaveAmount, latePenalty, overtimeAmount,
+                    'raw actualWorkingDays': attendance.actualWorkingDays,
+                    'raw paidLeaveDays': attendance.paidLeaveDays
+                });
                 
                 // Update display
                 const workDaysEl = document.getElementById('attWorkDays');
+                const paidLeaveInfoEl = document.getElementById('attPaidLeaveInfo');
                 const unpaidLeaveEl = document.getElementById('attUnpaidLeave');
                 const unpaidLeaveAmtEl = document.getElementById('attUnpaidLeaveAmt');
                 const lateCountEl = document.getElementById('attLateCount');
@@ -3035,8 +3062,62 @@
                 const otHoursEl = document.getElementById('summaryOTHours');
                 
                 // Update work days display with actual working days and paid leave days
-                if (workDaysEl) {
-                    workDaysEl.textContent = `${actualWorkingDays.toFixed(1)} days (${paidLeaveDays.toFixed(1)} paid leave)`;
+                try {
+                    if (workDaysEl) {
+                        // Ensure values are numbers - handle all edge cases
+                        let workDaysNum = 0;
+                        try {
+                            if (actualWorkingDays != null && actualWorkingDays !== undefined) {
+                                workDaysNum = parseFloat(actualWorkingDays);
+                                if (isNaN(workDaysNum)) workDaysNum = 0;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing actualWorkingDays:', e);
+                            workDaysNum = 0;
+                        }
+                        
+                        let paidLeaveNum = 0;
+                        try {
+                            if (paidLeaveDays != null && paidLeaveDays !== undefined) {
+                                paidLeaveNum = parseFloat(paidLeaveDays);
+                                if (isNaN(paidLeaveNum)) paidLeaveNum = 0;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing paidLeaveDays:', e);
+                            paidLeaveNum = 0;
+                        }
+                        
+                        const workDaysText = workDaysNum.toFixed(1) + ' days';
+                        const paidLeaveText = paidLeaveNum > 0 ? ' (' + paidLeaveNum.toFixed(1) + ' paid leave)' : '';
+                        workDaysEl.textContent = workDaysText + paidLeaveText;
+                        console.log('Updated workDaysEl:', workDaysEl.textContent, 'actualWorkingDays:', workDaysNum, 'paidLeaveDays:', paidLeaveNum);
+                    } else {
+                        console.warn('workDaysEl not found');
+                    }
+                } catch (e) {
+                    console.error('Error updating workDaysEl:', e);
+                }
+                
+                // Update paid leave info display
+                try {
+                    if (paidLeaveInfoEl) {
+                        let paidLeaveNum = 0;
+                        try {
+                            if (paidLeaveDays != null && paidLeaveDays !== undefined) {
+                                paidLeaveNum = parseFloat(paidLeaveDays);
+                                if (isNaN(paidLeaveNum)) paidLeaveNum = 0;
+                            }
+                        } catch (e) {
+                            console.error('Error parsing paidLeaveDays for display:', e);
+                            paidLeaveNum = 0;
+                        }
+                        paidLeaveInfoEl.textContent = paidLeaveNum.toFixed(1) + ' paid leave days';
+                        console.log('Updated paidLeaveInfoEl:', paidLeaveInfoEl.textContent, 'paidLeaveDays:', paidLeaveNum);
+                    } else {
+                        console.warn('paidLeaveInfoEl not found');
+                    }
+                } catch (e) {
+                    console.error('Error updating paidLeaveInfoEl:', e);
                 }
                 if (unpaidLeaveEl) unpaidLeaveEl.textContent = `${unpaidLeaveDays.toFixed(1)} days`;
                 if (unpaidLeaveAmtEl) unpaidLeaveAmtEl.textContent = formatCurrency(unpaidLeaveAmount);
