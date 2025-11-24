@@ -83,7 +83,14 @@
             }
 
             .btn.primary { background: #fff; color: var(--primary); }
-            .btn.secondary { background: rgba(255,255,255,0.18); color: #fff; }
+            .btn.secondary { 
+                background: rgba(255,255,255,0.18); 
+                color: #fff; 
+            }
+            
+            .btn.secondary:hover {
+                background: rgba(255,255,255,0.25);
+            }
             .btn.success { background: var(--success); color: #fff; }
             .btn.warning { background: var(--warning); color: #fff; }
             .btn.danger { background: var(--danger); color: #fff; }
@@ -185,13 +192,14 @@
             .filters {
                 display: grid;
                 grid-template-columns: repeat(12, 1fr);
-                gap: 14px;
+                gap: 16px;
+                align-items: end;
             }
 
             .filter-field {
                 display: flex;
                 flex-direction: column;
-                gap: 6px;
+                gap: 8px;
             }
 
             .filter-field label {
@@ -200,16 +208,41 @@
                 color: var(--muted);
                 text-transform: uppercase;
                 letter-spacing: 0.4px;
+                margin-bottom: 0;
             }
 
             .filter-field input,
             .filter-field select {
+                width: 100%;
                 border: 1px solid var(--border);
                 border-radius: 10px;
                 padding: 10px 12px;
                 font-size: 14px;
-                transition: border 0.2s;
+                transition: all 0.2s;
                 background: #fff;
+                font-family: inherit;
+                color: var(--text);
+            }
+
+            .filter-field select {
+                cursor: pointer;
+                appearance: none;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 12px center;
+                padding-right: 35px;
+            }
+
+            .filter-field input[type="date"] {
+                position: relative;
+                padding-right: 35px;
+            }
+
+            .filter-field input[type="date"]::-webkit-calendar-picker-indicator {
+                position: absolute;
+                right: 8px;
+                cursor: pointer;
+                opacity: 0.6;
             }
 
             .filter-field input:focus,
@@ -222,7 +255,24 @@
             .filter-actions {
                 display: flex;
                 gap: 10px;
-                align-items: flex-end;
+                align-items: center;
+                justify-content: flex-end;
+                margin-top: 0;
+            }
+
+            .filter-field.filter-actions {
+                grid-column: span 12;
+                flex-direction: row;
+                justify-content: flex-end;
+                margin-top: 8px;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .filter-field.filter-actions .btn {
+                white-space: nowrap;
+                flex-shrink: 0;
+                margin: 0;
             }
 
             .message {
@@ -242,6 +292,7 @@
             }
 
             .recruitment-card {
+                background: var(--card);
                 border: 1px solid var(--border);
                 border-radius: 14px;
                 padding: 20px;
@@ -349,8 +400,20 @@
                 .filters {
                     grid-template-columns: 1fr;
                 }
+                .filter-field {
+                    grid-column: span 1 !important;
+                }
+                .filter-field.filter-actions {
+                    grid-column: span 1 !important;
+                    flex-direction: column;
+                    align-items: stretch;
+                }
                 .filter-actions {
-                    justify-content: flex-start;
+                    justify-content: stretch;
+                }
+                .filter-actions .btn {
+                    width: 100%;
+                    justify-content: center;
                 }
             }
         </style>
@@ -391,8 +454,8 @@
                 <section class="card">
                     <div class="page-header">
                         <div>
-                            <h1 class="page-title">Quản lý tin tuyển dụng</h1>
-                            <p class="muted">Tạo, gửi duyệt và theo dõi trạng thái các tin tuyển dụng</p>
+                            <h1 class="page-title">Recruitment Management</h1>
+                            <p class="muted">Create, submit for approval and track the status of recruitment posts</p>
                         </div>
                     </div>
                     <c:if test="${not empty mess}">
@@ -404,12 +467,12 @@
                     <form action="${pageContext.request.contextPath}/postRecruitments" method="GET">
                         <div class="filters">
                             <div class="filter-field" style="grid-column: span 4;">
-                                <label>Search by Title</label>
-                                <input type="text" name="searchByTitle" placeholder="Nhập tiêu đề..." value="${fn:escapeXml(param.searchByTitle)}">
+                                <label for="searchByTitle">Search by Title</label>
+                                <input type="text" id="searchByTitle" name="searchByTitle" placeholder="Enter title..." value="${fn:escapeXml(param.searchByTitle)}">
                             </div>
                             <div class="filter-field" style="grid-column: span 3;">
-                                <label>Status</label>
-                                <select name="filterStatus">
+                                <label for="filterStatus">Status</label>
+                                <select id="filterStatus" name="filterStatus">
                                     <option value="">All</option>
                                     <option value="New" <c:if test="${param.filterStatus eq 'New'}">selected</c:if>>New</option>
                                     <option value="Waiting" <c:if test="${param.filterStatus eq 'Waiting'}">selected</c:if>>Waiting</option>
@@ -419,14 +482,14 @@
                                 </select>
                             </div>
                             <div class="filter-field" style="grid-column: span 2;">
-                                <label>Start Date</label>
-                                <input type="date" name="startDate" value="${param.startDate}">
+                                <label for="startDate">Start Date</label>
+                                <input type="date" id="startDate" name="startDate" value="${param.startDate}">
                             </div>
                             <div class="filter-field" style="grid-column: span 2;">
-                                <label>End Date</label>
-                                <input type="date" name="endDate" value="${param.endDate}">
+                                <label for="endDate">End Date</label>
+                                <input type="date" id="endDate" name="endDate" value="${param.endDate}">
                             </div>
-                            <div class="filter-field filter-actions" style="grid-column: span 12;">
+                            <div class="filter-field filter-actions">
                                 <button type="submit" class="btn primary">🔍 Apply Filter</button>
                                 <a href="${pageContext.request.contextPath}/postRecruitments" class="btn secondary">✖ Clear</a>
                             </div>
@@ -439,8 +502,8 @@
                         <c:when test="${empty recruitment}">
                             <div class="empty-state">
                                 <div style="font-size:48px;">📭</div>
-                                <p>Không có tin tuyển dụng nào phù hợp với bộ lọc hiện tại.</p>
-                                <a class="btn success" href="${pageContext.request.contextPath}/detailRecruitmentCreate">Tạo tin mới</a>
+                                <p>No recruitment posts match the current filters.</p>
+                                <a class="btn success" href="${pageContext.request.contextPath}/detailRecruitmentCreate">Create New Post</a>
                             </div>
                         </c:when>
                         <c:otherwise>
@@ -462,8 +525,8 @@
                                         <div class="card-actions">
                                             <a class="btn secondary" href="${pageContext.request.contextPath}/detailRecruitment?id=${rec.recruitmentId}">👁️ View</a>
                                             <c:if test="${rec.status ne 'Deleted' and rec.status ne 'Waiting' and rec.status ne 'Applied'}">
-                                                <a class="btn success" href="${pageContext.request.contextPath}/postRecruitments?action=send&id=${rec.recruitmentId}" onclick="return confirm('Bạn có chắc chắn muốn gửi tin tuyển dụng này?');">📨 Send</a>
-                                                <a class="btn danger" href="${pageContext.request.contextPath}/postRecruitments?action=delete&id=${rec.recruitmentId}" onclick="return confirm('Bạn có chắc chắn muốn xóa tin tuyển dụng này?');">🗑️ Delete</a>
+                                                <a class="btn success" href="${pageContext.request.contextPath}/postRecruitments?action=send&id=${rec.recruitmentId}" onclick="return confirm('Are you sure you want to send this recruitment post?');">📨 Send</a>
+                                                <a class="btn danger" href="${pageContext.request.contextPath}/postRecruitments?action=delete&id=${rec.recruitmentId}" onclick="return confirm('Are you sure you want to delete this recruitment post?');">🗑️ Delete</a>
                                             </c:if>
                                         </div>
                                     </div>

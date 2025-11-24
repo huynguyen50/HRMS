@@ -283,15 +283,122 @@
                 border-radius: 5px;
                 font-size: 0.9rem;
                 transition: all 0.2s ease;
+                display: inline-block;
             }
             .action-btn-custom:hover {
                 text-decoration: none;
                 transform: translateY(-1px);
             }
             
+            /* Đảm bảo các nút Clear và View hiển thị rõ */
+            .btn-secondary {
+                color: #fff !important;
+                background-color: #6c757d !important;
+                border-color: #6c757d !important;
+                display: inline-block !important;
+                visibility: visible !important;
+            }
+            .btn-secondary:hover {
+                color: #fff !important;
+                background-color: #5c636a !important;
+                border-color: #565e64 !important;
+            }
+            
+            .btn-outline-primary {
+                color: #0d6efd !important;
+                border-color: #0d6efd !important;
+                background-color: transparent !important;
+                display: inline-block !important;
+                visibility: visible !important;
+            }
+            .btn-outline-primary:hover {
+                color: #fff !important;
+                background-color: #0d6efd !important;
+                border-color: #0d6efd !important;
+            }
+            
+            .btn-outline-success {
+                color: #198754 !important;
+                border-color: #198754 !important;
+                background-color: transparent !important;
+                display: inline-block !important;
+                visibility: visible !important;
+            }
+            .btn-outline-success:hover {
+                color: #fff !important;
+                background-color: #198754 !important;
+                border-color: #198754 !important;
+            }
+            
+            .btn-outline-danger {
+                color: #dc3545 !important;
+                border-color: #dc3545 !important;
+                background-color: transparent !important;
+                display: inline-block !important;
+                visibility: visible !important;
+            }
+            .btn-outline-danger:hover {
+                color: #fff !important;
+                background-color: #dc3545 !important;
+                border-color: #dc3545 !important;
+            }
+            
+            /* Đảm bảo card có background và border rõ ràng */
+            .card {
+                background-color: #fff !important;
+                border: 1px solid #dee2e6 !important;
+                box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+            }
+            
+            .card-body {
+                background-color: #fff !important;
+                color: #212529 !important;
+            }
+            
+            /* Đảm bảo text trong card hiển thị rõ */
+            .card-title {
+                color: #212529 !important;
+            }
+            
+            .card-text {
+                color: #6c757d !important;
+            }
+            
+            /* Đảm bảo form và các input hiển thị rõ */
+            .form-label {
+                color: #212529 !important;
+                font-weight: 500 !important;
+            }
+            
+            .form-control {
+                background-color: #fff !important;
+                border: 1px solid #ced4da !important;
+                color: #212529 !important;
+            }
+            
+            .btn-primary {
+                color: #fff !important;
+                background-color: #0d6efd !important;
+                border-color: #0d6efd !important;
+                display: inline-block !important;
+                visibility: visible !important;
+            }
+            
+            .btn-primary:hover {
+                color: #fff !important;
+                background-color: #0b5ed7 !important;
+                border-color: #0a58ca !important;
+            }
+            
             /* Thêm style cho trạng thái Applied - làm mờ */
             .status-applied {
                 opacity: 0.5 !important;
+            }
+            
+            /* Đảm bảo các nút trong status-applied vẫn hiển thị */
+            .status-applied .action-btn-custom,
+            .status-applied .btn {
+                opacity: 1 !important;
             }
 
             /* Responsive Design */
