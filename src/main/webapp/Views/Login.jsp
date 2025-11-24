@@ -240,14 +240,7 @@
                 <button type="submit" class="btn-login">Log In</button>
             </form>
 
-            <div class="divider">
-                <span>OR</span>
-            </div>
-
-            <a href="https://accounts.google.com/o/oauth2/auth?scope=email%20pro…2sdrgc53oqd.apps.googleusercontent.com&approval_prompt=force" class="btn-social btn-gmail">
-                <i class="fab fa-google"></i>
-                Login with Gmail
-            </a>
+           
         </div>
     </body>
 </html>

@@ -15,6 +15,7 @@ import java.util.List;
  * Bộ lọc trách nhiệm kiểm soát quyền truy cập cho các module nhạy cảm:
  * admin, dept và employee. Tận dụng kho permission động thông qua PermissionUtil.
  */
+// request  đến filter 
 @WebFilter(filterName = "ModulePermissionFilter", urlPatterns = {
         "/admin", "/admin/*",
         "/dept", "/dept/*",

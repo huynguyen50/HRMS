@@ -23,7 +23,7 @@ import java.util.List;
 public class ViewRecruitment extends HttpServlet {
 
     private static final String REQUIRED_PERMISSION = "VIEW_RECRUITMENT";
-    private static final String DENIED_MESSAGE = "Bạn không có quyền xem hoặc quản lý tin tuyển dụng.";
+    private static final String DENIED_MESSAGE = "You do not have permission to Post Recruitment.";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)

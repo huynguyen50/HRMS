@@ -400,7 +400,7 @@
                                             <c:if test="${empty categoryDesc}">
                                                 <c:set var="categoryDesc" value="Feature ${entry.key}"/>
                                             </c:if>
-                                            <c:if test="${entry.key ne 'Department'}">
+                                            <c:if test="${entry.key ne 'Department' and entry.key ne 'Role' and entry.key ne 'System' and entry.key ne 'User'}">
                                                 <tr class="category-row" data-category="${entry.key}" data-permission-ids="${permissionIds}">
                                                     <td class="category-info sticky-col">
                                                         <span class="category-info-title">${entry.key}</span>

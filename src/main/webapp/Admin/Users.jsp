@@ -215,7 +215,6 @@
                                                 <td>
                                                     <div class="action-buttons">
                                                         <button class="btn-edit" onclick="editUser(<c:out value='${user.userId}'/>)" title="Edit user">Edit</button>
-                                                        <button class="btn-reset" onclick="resetPassword(<c:out value='${user.userId}'/>)" title="Reset password">Reset</button>
                                                         <button class="btn-toggle ${user.isActive ? 'btn-lock' : 'btn-unlock'}" 
                                                                 onclick="toggleUserStatus(<c:out value='${user.userId}'/>)" 
                                                                 title="${user.isActive ? 'Lock account' : 'Unlock account'}">
@@ -396,26 +395,7 @@
             </div>
         </div>
 
-        <!-- Reset Password Modal -->
-        <div id="resetPasswordModal" class="modal">
-            <div class="modal-content modal-small">
-                <div class="modal-header">
-                    <h2>Reset Password</h2>
-                    <button class="close-btn" onclick="closeResetPasswordModal()">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to reset the password for this user?</p>
-                    <p class="warning-text">A temporary password will be generated and the user will be required to change it on next login.</p>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn-cancel" onclick="closeResetPasswordModal()">Cancel</button>
-                    <button type="button" class="btn-submit" onclick="confirmResetPassword()">Reset Password</button>
-                </div>
-            </div>
-        </div>
-
         <script>
-            let currentResetUserId = null;
             let isEditMode = false;
 
             function buildFetchOptions(options = {}) {
@@ -639,22 +619,6 @@
                         });
             }
 
-            function resetPassword(userId) {
-                currentResetUserId = userId;
-                document.getElementById('resetPasswordModal').classList.add('show');
-            }
-
-            function closeResetPasswordModal() {
-                document.getElementById('resetPasswordModal').classList.remove('show');
-                currentResetUserId = null;
-            }
-
-            function confirmResetPassword() {
-                if (currentResetUserId) {
-                    window.location.href = '${pageContext.request.contextPath}/admin/users?action=resetPassword&id=' + currentResetUserId;
-                }
-            }
-
             function toggleUserStatus(userId) {
                 if (confirm('Are you sure you want to toggle this user\'s status?')) {
                     window.location.href = '${pageContext.request.contextPath}/admin/users?action=toggleStatus&id=' + userId;
@@ -782,14 +746,10 @@
             // Close modal when clicking outside
             window.onclick = function (event) {
                 const userModal = document.getElementById('userModal');
-                const resetModal = document.getElementById('resetPasswordModal');
 
                 if (event.target == userModal) {
                     userModal.classList.remove('show');
                     clearAllErrors();
-                }
-                if (event.target == resetModal) {
-                    resetModal.classList.remove('show');
                 }
             }
         </script>
