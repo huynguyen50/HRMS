@@ -27,14 +27,14 @@ public class ChangePassController extends HttpServlet {
         String confirmPass = request.getParameter("confirmPass");
         
         if(newPass.length()<8 && newPass.length()>16){
-            request.setAttribute("mess", "New password must be between 8 and 16 characters long!");
+            request.setAttribute("mess", "Mật khẩu mới phải có từ 8 đến 16 ký tự.");
             request.getRequestDispatcher("/Views/ChangePassword.jsp").forward(request, response);
             return;
         }
         
         String allowPattern = "[a-zA-Z0-9]+";
         if(!newPass.matches(allowPattern)){
-            request.setAttribute("mess", "New password must contain no special characters!");
+            request.setAttribute("mess", "Mật khẩu mới không được chứa ký tự đặc biệt.");
             request.getRequestDispatcher("/Views/ChangePassword.jsp").forward(request, response);
             return;
         }
@@ -47,21 +47,21 @@ public class ChangePassController extends HttpServlet {
 
         SystemUser sys = (SystemUser) session.getAttribute("systemUser");
         if (!DAO.getInstance().checkPassword(curPass, sys.getPassword())) {
-            request.setAttribute("mess", "Wrong current password!!!");
+            request.setAttribute("mess", "Mật khẩu hiện tại không đúng.");
             request.getRequestDispatcher("/Views/ChangePassword.jsp").forward(request, response); // Sửa lại đường dẫn
             return;
         }
         if (!newPass.equals(confirmPass)) {
-            request.setAttribute("mess", "New password is not match with confirm password!!!");
+            request.setAttribute("mess", "Mật khẩu xác nhận không khớp với mật khẩu mới.");
             request.getRequestDispatcher("/Views/ChangePassword.jsp").forward(request, response); // Sửa lại đường dẫn
         }
         int r = DAO.getInstance().changePassword(sys.getUsername(), newPass);
         if (r > 0) {
         session.invalidate();
-        request.setAttribute("mess", "Password changed successfully! Please login again.");
+        request.setAttribute("mess", "Đổi mật khẩu thành công. Vui lòng đăng nhập lại.");
         request.getRequestDispatcher("/Views/Login.jsp").forward(request, response);
         } else {
-        request.setAttribute("mess", "An error occurred. Please try again.");
+        request.setAttribute("mess", "Đã xảy ra lỗi. Vui lòng thử lại.");
         request.getRequestDispatcher("/Views/ChangePassword.jsp").forward(request, response);
         }
     }

@@ -4,10 +4,13 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
     <head>
         <meta charset="UTF-8">
-        <title>Audit Log - HRMS</title>
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"><title>Nhật ký hệ thống - HRMS</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/Admin_home.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/unified-layout.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/user-menu.css">
@@ -31,7 +34,7 @@
                 background-color: #f4f7f6;
                 color: #333;
                 font-weight: 600;
-                cursor: pointer; 
+                cursor: pointer;
             }
             .log-table tr:hover {
                 background-color: #f9f9f9;
@@ -49,47 +52,47 @@
                 padding: 0;
                 font-size: 14px;
             }
-            
-            /* Style cho Modal (Dòng 21-28) */
+
+            /* Style cho modal */
             .modal {
-                display: none; 
-                position: fixed; 
-                z-index: 1000; 
-                left: 0; top: 0; 
-                width: 100%; height: 100%; 
-                overflow: auto; 
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                left: 0; top: 0;
+                width: 100%; height: 100%;
+                overflow: auto;
                 background-color: rgba(0,0,0,0.4);
             }
             .modal-content {
-                background-color: #fefefe; 
-                margin: 10% auto; 
-                padding: 20px; 
-                border: 1px solid #888; 
-                width: 80%; 
+                background-color: #fefefe;
+                margin: 10% auto;
+                padding: 20px;
+                border: 1px solid #888;
+                width: 80%;
                 max-width: 800px;
                 border-radius: 8px;
             }
             .modal-content pre {
-                background-color: #eee; 
-                padding: 10px; 
-                border: 1px solid #ddd; 
-                max-height: 200px; 
-                overflow-y: auto; 
-                white-space: pre-wrap; 
+                background-color: #eee;
+                padding: 10px;
+                border: 1px solid #ddd;
+                max-height: 200px;
+                overflow-y: auto;
+                white-space: pre-wrap;
                 word-break: break-all;
             }
             .close {
-                color: #aaa; 
-                float: right; 
-                font-size: 28px; 
-                font-weight: bold; 
+                color: #aaa;
+                float: right;
+                font-size: 28px;
+                font-weight: bold;
                 cursor: pointer;
             }
-            
+
             .filter-controls {
                 display: flex;
                 justify-content: flex-start;
-                align-items: flex-end; 
+                align-items: flex-end;
                 margin-bottom: 20px;
                 gap: 20px;
                 flex-wrap: wrap;
@@ -97,9 +100,9 @@
 
             .filter-group {
                 display: flex;
-                flex-direction: column; 
+                flex-direction: column;
                 align-items: flex-start;
-                gap: 5px; 
+                gap: 5px;
             }
 
             .filter-group input[type="text"],
@@ -110,7 +113,7 @@
                 font-size: 14px;
                 min-width: 150px;
                 box-sizing: border-box; /* [cite: 36] */
-                height: 38px; /* Thiết lập chiều cao cố định để căn chỉnh tốt hơn [cite: 37] */
+                height: 38px; /* Thiết lập chiều cao cố định để căn chỉnh tốt hơn */
             }
 
             .filter-buttons {
@@ -124,9 +127,9 @@
                 border: none;
                 border-radius: 4px;
                 cursor: pointer;
-                font-size: 14px; 
+                font-size: 14px;
                 line-height: 1.2;
-                height: 38px; 
+                height: 38px;
                 box-sizing: border-box;
             }
 
@@ -136,17 +139,17 @@
             }
             .btn-secondary {
                 background-color: #6c757d;
-                color: white; 
+                color: white;
             }
 
             .log-table th {
                 cursor: pointer;
-                user-select: none; 
+                user-select: none;
             }
             .sort-arrow {
                 margin-left: 5px;
                 font-size: 0.8em;
-                vertical-align: middle; 
+                vertical-align: middle;
             }
 
             .pagination-info {
@@ -170,64 +173,75 @@
                 cursor: pointer;
             }
         </style>
+            <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/admin-shared-theme.css?v=20260618d">
     </head>
-    <body>
+    <body class="admin-page">
         <div class="dashboard-container">
 
             <aside class="sidebar">
                 <div class="sidebar-header">
                     <div class="logo">
                         <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="Logo" width="32">
-                        <span>Admin Panel</span>
+                        <span>Quản trị</span>
                     </div>
                 </div>
 
                 <div class="sidebar-nav">
                     <a href="${pageContext.request.contextPath}/admin?action=dashboard"
-                       class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">🏠 Dashboard</a>
-
-                    <%-- Cập nhật link Departments để trỏ đến Controller riêng của nó --%>
-                    <a href="${pageContext.request.contextPath}/departments?action=departments"
-                       class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
-
+                       class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        <span>Tổng quan</span>
+                    </a>
+                    <a href="${pageContext.request.contextPath}/admin?action=departments"
+                       class="nav-item ${activePage == 'departments' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">domain</span>
+                        <span>Phòng ban</span>
+                    </a>
                     <a href="${pageContext.request.contextPath}/admin/users"
-                       class="nav-item ${activePage == 'users' ? 'active' : ''}">👤 Users</a>
-
+                       class="nav-item ${activePage == 'users' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">group</span>
+                        <span>Người dùng</span>
+                    </a>
                     <a href="${pageContext.request.contextPath}/admin?action=role-permissions"
-                       class="nav-item ${activePage == 'role-permissions' ? 'active' : ''}">🛡️ Role Permissions</a>
-
+                       class="nav-item ${activePage == 'role-permissions' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">admin_panel_settings</span>
+                        <span>Phân quyền</span>
+                    </a>
                     <a href="${pageContext.request.contextPath}/admin?action=audit-log"
-                       class="nav-item ${activePage == 'audit-log' ? 'active' : ''}">📜 Audit Log</a>
-
+                       class="nav-item ${activePage == 'audit-log' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">history</span>
+                        <span>Nhật ký hệ thống</span>
+                    </a>
                     <a href="${pageContext.request.contextPath}/admin?action=profile"
-                       class="nav-item ${activePage == 'profile' ? 'active' : ''}">⚙️ Profile</a>
-                </div>
-            </aside>
+                       class="nav-item ${activePage == 'profile' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">person</span>
+                        <span>Hồ sơ</span>
+                    </a>
+                </div>            </aside>
 
             <main class="main-content">
                 <header class="top-bar">
+                    <div class="search-box">
+                        <span class="material-symbols-outlined search-icon">search</span>
+                        <input class="search-input" type="text" placeholder="Tìm kiếm...">
+                    </div>
                     <div class="top-bar-actions">
                         <div class="user-menu" onclick="toggleUserMenu()">
                             <div class="user-info">
-                                <div class="user-name-display">
-                                    <img src="https://i.pravatar.cc/32" alt="User">
-                                    <div class="user-name-text">
-                                        <span class="name">${currentUserName != null ? fn:escapeXml(currentUserName) : 'Admin'}</span>
-                                        <span class="role">(admin)</span>
-                                    </div>
-                                    <span class="dropdown-arrow">▼</span>
-                                </div>
+                                <img src="${pageContext.request.contextPath}/Admin/images/admin-user-avatar.png" alt="Quản trị viên">
+                                <span>Admin</span>
+                                <span class="dropdown-arrow material-symbols-outlined">expand_more</span>
                             </div>
                             <div class="dropdown-menu" id="userDropdown">
                                 <a href="${pageContext.request.contextPath}/admin?action=profile" class="dropdown-item">
-                                    <span class="icon">👤</span> Profile
+                                    <span class="material-symbols-outlined">person</span> Hồ sơ
                                 </a>
                                 <a href="${pageContext.request.contextPath}/homepage" class="dropdown-item">
-                                    <span class="icon">🏠</span> Trang chủ
+                                    <span class="material-symbols-outlined">home</span> Trang chủ
                                 </a>
                                 <div class="dropdown-divider"></div>
                                 <a href="${pageContext.request.contextPath}/logout" class="dropdown-item">
-                                    <span class="icon">🚪</span> Logout
+                                    <span class="material-symbols-outlined">logout</span> Đăng xuất
                                 </a>
                             </div>
                         </div>
@@ -236,28 +250,28 @@
 
                 <section class="dashboard-content">
                     <div class="page-header">
-                        <h1 class="page-title">📜 System Audit Log</h1>
+                        <h1 class="page-title">Nhật ký hệ thống</h1>
                     </div>
 
                     <c:if test="${not empty errorMessage}">
                         <div class="alert error">
-                            <strong>Error:</strong> <c:out value="${errorMessage}"/>
+                            <strong>Lỗi:</strong> <c:out value="${errorMessage}"/>
                         </div>
                     </c:if>
 
                     <div class="filter-section">
                         <div class="filter-controls">
                             <div class="filter-group">
-                                <label for="searchQueryInput">Search</label>
-                                <input type="text" id="searchQueryInput" name="search" 
-                                       placeholder="LogID, User, Action, Object..." 
+                                <label for="searchQueryInput">Tìm kiếm</label>
+                                <input type="text" id="searchQueryInput" name="search"
+                                       placeholder="LogID, người dùng, thao tác, đối tượng..."
                                        value="${searchQuery}" class="filter-input">
                             </div>
 
                             <div class="filter-group">
-                                <label for="filterAction">Action Type</label>
+                                <label for="filterAction">Loại thao tác</label>
                                 <select id="filterAction" name="filterAction" class="filter-select">
-                                    <option value="all">All Actions</option>
+                                    <option value="all">Tất cả thao tác</option>
                                     <c:forEach var="action" items="${distinctActions}">
                                         <option value="${action}" <c:if test="${filterAction == action}">selected</c:if>>
                                             ${action}
@@ -267,9 +281,9 @@
                             </div>
 
                             <div class="filter-group">
-                                <label for="filterObjectType">Object Type</label>
+                                <label for="filterObjectType">Loại đối tượng</label>
                                 <select id="filterObjectType" name="filterObjectType" class="filter-select">
-                                    <option value="all">All Objects</option>
+                                    <option value="all">Tất cả đối tượng</option>
                                     <c:forEach var="objectType" items="${distinctObjectTypes}">
                                         <option value="${objectType}" <c:if test="${filterObjectType == objectType}">selected</c:if>>
                                             ${objectType}
@@ -279,8 +293,8 @@
                             </div>
 
                             <div class="filter-buttons">
-                                <button type="button" onclick="applyFilters()" class="btn-primary">Apply Filter</button>
-                                <button type="button" onclick="clearAllFilters()" class="btn-secondary">Clear All</button>
+                                <button type="button" onclick="applyFilters()" class="btn-primary">Áp dụng lọc</button>
+                                <button type="button" onclick="clearAllFilters()" class="btn-secondary">Xóa tất cả</button>
                             </div>
                         </div>
                     </div>
@@ -299,22 +313,22 @@
                                             <span class="sort-arrow">${sortOrder == 'ASC' ? '▲' : '▼'}</span>
                                         </c:if>
                                     </th>
-                                    <th onclick="sortTable('Username')">User Name
+                                    <th onclick="sortTable('Username')">Tên người dùng
                                         <c:if test="${sortBy == 'Username'}">
                                             <span class="sort-arrow">${sortOrder == 'ASC' ? '▲' : '▼'}</span>
                                         </c:if>
                                     </th>
-                                    <th onclick="sortTable('Action')">Action
+                                    <th onclick="sortTable('Action')">Thao tác
                                         <c:if test="${sortBy == 'Action'}">
                                             <span class="sort-arrow">${sortOrder == 'ASC' ? '▲' : '▼'}</span>
                                         </c:if>
                                     </th>
-                                    <th onclick="sortTable('ObjectType')">Object Type
+                                    <th onclick="sortTable('ObjectType')">Loại đối tượng
                                         <c:if test="${sortBy == 'ObjectType'}">
                                             <span class="sort-arrow">${sortOrder == 'ASC' ? '▲' : '▼'}</span>
                                         </c:if>
                                     </th>
-                                    <th>Details</th>
+                                    <th>Chi tiết</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -327,17 +341,17 @@
                                                     <fmt:parseDate value="${log.timestamp}" pattern="yyyy-MM-dd'T'HH:mm:ss" var="parsedTimestamp" type="both" />
                                                     <fmt:formatDate value="${parsedTimestamp}" pattern="yyyy-MM-dd HH:mm:ss" />
                                                 </td>
-                                                <td>${log.userName != null && log.userName != '' ? log.userName : 'N/A'} (${log.userId})</td> 
+                                                <td>${log.userName != null && log.userName != '' ? log.userName : 'Không có'} (${log.userId})</td>
                                                 <td class="action-cell">${log.action}</td>
                                                 <td>${log.objectType}</td>
                                                 <td>
-                                                    <button class="log-detail-btn" 
-                                                            onclick="showLogDetails('${log.logId}', 
-                                                                                   '${fn:escapeXml(log.oldValue)}', 
-                                                                                   '${fn:escapeXml(log.newValue)}', 
-                                                                                   '${fn:escapeXml(log.action)}', 
+                                                    <button class="log-detail-btn"
+                                                            onclick="showLogDetails('${log.logId}',
+                                                                                   '${fn:escapeXml(log.oldValue)}',
+                                                                                   '${fn:escapeXml(log.newValue)}',
+                                                                                   '${fn:escapeXml(log.action)}',
                                                                                    '${fn:escapeXml(log.objectType)}')">
-                                                        View
+                                                        Xem
                                                     </button>
                                                 </td>
                                             </tr>
@@ -345,14 +359,14 @@
                                     </c:when>
                                     <c:otherwise>
                                         <tr>
-                                            <td colspan="6" style="text-align: center;">No system log records found matching the criteria.</td>
+                                            <td colspan="6" style="text-align: center;">Không tìm thấy bản ghi nhật ký phù hợp với điều kiện lọc.</td>
                                         </tr>
                                     </c:otherwise>
                                 </c:choose>
                             </tbody>
                         </table>
                     </div>
-                        
+
                     <div class="pagination-bar">
                             <div class="pagination-info">
                                 <c:set var="start" value="${total > 0 ? (page - 1) * pageSize + 1 : 0}" />
@@ -360,10 +374,10 @@
                                 <c:if test="${end > total}">
                                     <c:set var="end" value="${total}" />
                                 </c:if>
-                                <span>Showing ${start} - ${end} of ${total}</span>
-                                
+                                <span>Hiển thị ${start} - ${end} / ${total}</span>
+
                                 <div class="page-size-selector">
-                                    <label for="pageSizeSelect">Items per page:</label>
+                                    <label for="pageSizeSelect">Số dòng mỗi trang:</label>
                                     <select id="pageSizeSelect" onchange="changePageSize(this.value)">
                                         <option value="5" <c:if test="${pageSize == 5}">selected</c:if>>5</option>
                                         <option value="10" <c:if test="${pageSize == 10}">selected</c:if>>10</option>
@@ -375,7 +389,7 @@
                             </div>
 
                             <div class="pagination-controls">
-                                
+
                                 <c:url var="baseUrl" value="/admin">
                                     <c:param name="action" value="audit-log" />
                                     <c:param name="pageSize" value="${pageSize}" />
@@ -392,10 +406,10 @@
                                         <c:url var="prevUrl" value="${baseUrl}">
                                             <c:param name="page" value="${page - 1}" />
                                         </c:url>
-                                        <a href="${prevUrl}" class="btn-pagination">← Prev</a>
+                                        <a href="${prevUrl}" class="btn-pagination">&larr; Trước</a>
                                     </c:when>
                                     <c:otherwise>
-                                        <span class="disabled">← Prev</span>
+                                        <span class="disabled">&larr; Trước</span>
                                     </c:otherwise>
                                 </c:choose>
 
@@ -436,10 +450,10 @@
                                         <c:url var="nextUrl" value="${baseUrl}">
                                             <c:param name="page" value="${page + 1}" />
                                         </c:url>
-                                        <a href="${nextUrl}" class="btn-pagination">Next →</a>
+                                        <a href="${nextUrl}" class="btn-pagination">Sau &rarr;</a>
                                     </c:when>
                                     <c:otherwise>
-                                        <span class="disabled">Next →</span>
+                                        <span class="disabled">Sau &rarr;</span>
                                     </c:otherwise>
                                 </c:choose>
                             </div>
@@ -452,12 +466,12 @@
         <div id="logDetailsModal" class="modal">
              <div class="modal-content">
                 <span onclick="document.getElementById('logDetailsModal').style.display='none'" class="close">&times;</span>
-                <h3>Log Entry Details - ID: <span id="modalLogId"></span></h3>
-                <p><strong>Action:</strong> <span id="modalAction"></span> on <span id="modalObjectType"></span></p>
+                <h3>Chi tiết nhật ký - ID: <span id="modalLogId"></span></h3>
+                <p><strong>Thao tác:</strong> <span id="modalAction"></span> trên <span id="modalObjectType"></span></p>
                 <hr>
-                <h4>Old Value:</h4>
+                <h4>Giá trị cũ:</h4>
                 <pre id="modalOldValue"></pre>
-                <h4>New Value:</h4>
+                <h4>Giá trị mới:</h4>
                 <pre id="modalNewValue"></pre>
             </div>
         </div>
@@ -465,54 +479,54 @@
         <script>
             function applyFilters() {
                 const urlParams = new URLSearchParams();
-                
+
                 const search = document.getElementById('searchQueryInput').value.trim();
                 const action = document.getElementById('filterAction').value;
                 const objectType = document.getElementById('filterObjectType').value;
-                
+
                 const currentPageSize = document.getElementById('pageSizeSelect').value || '10';
                 const currentSortBy = '${sortBy}';
                 const currentSortOrder = '${sortOrder}';
-                
+
                 urlParams.set('action', 'audit-log');
-                urlParams.set('page', '1'); 
+                urlParams.set('page', '1');
                 urlParams.set('pageSize', currentPageSize);
-                
+
                 if (search !== '') urlParams.set('search', search);
                 if (action !== 'all') urlParams.set('filterAction', action);
                 if (objectType !== 'all') urlParams.set('filterObjectType', objectType);
-                
+
                 if (currentSortBy && currentSortOrder) {
                     urlParams.set('sortBy', currentSortBy);
                     urlParams.set('sortOrder', currentSortOrder);
                 }
-                
+
                 window.location.href = '${pageContext.request.contextPath}/admin?' + urlParams.toString();
             }
-            
+
             function clearAllFilters() {
                 window.location.href = '${pageContext.request.contextPath}/admin?action=audit-log';
             }
 
             function changePageSize(newSize) {
                 const urlParams = new URLSearchParams();
-                
+
                 urlParams.set('action', 'audit-log');
                 urlParams.set('pageSize', newSize);
-                urlParams.set('page', '1'); 
-                
+                urlParams.set('page', '1');
+
                 const searchInput = document.getElementById('searchQueryInput');
                 const filterActionSelect = document.getElementById('filterAction');
                 const filterObjectTypeSelect = document.getElementById('filterObjectType');
-                
+
                 const search = searchInput ? searchInput.value.trim() : '';
                 const filterAction = filterActionSelect ? filterActionSelect.value : '';
                 const filterObjectType = filterObjectTypeSelect ? filterObjectTypeSelect.value : '';
-                
+
                 const currentUrlParams = new URLSearchParams(window.location.search);
                 const sortBy = currentUrlParams.get('sortBy') || 'Timestamp';
                 const sortOrder = currentUrlParams.get('sortOrder') || 'DESC';
-                
+
                 if (search && search !== '') {
                     urlParams.set('search', search);
                 }
@@ -522,7 +536,7 @@
                 if (filterObjectType && filterObjectType !== 'all' && filterObjectType !== '') {
                     urlParams.set('filterObjectType', filterObjectType);
                 }
-                
+
                 if (sortBy && sortBy !== '') {
                     urlParams.set('sortBy', sortBy);
                 }
@@ -542,9 +556,9 @@
                 if (currentSortBy === column) {
                     newSortOrder = (currentSortOrder === 'ASC') ? 'DESC' : 'ASC';
                 }
-                
+
                 urlParams.set('action', 'audit-log');
-                urlParams.set('page', '1'); 
+                urlParams.set('page', '1');
                 urlParams.set('sortBy', column);
                 urlParams.set('sortOrder', newSortOrder);
 
@@ -562,7 +576,7 @@
 
                 const formatValue = (value) => {
                     if (!value || value.trim() === 'null' || value.trim() === '') {
-                        return 'N/A or Empty';
+                        return 'Không có hoặc trống';
                     }
                     let decodedValue = new DOMParser().parseFromString(value, 'text/html').documentElement.textContent;
                     return decodedValue.replace(/\\n/g, '\n').replace(/\\r/g, '\r');

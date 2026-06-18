@@ -17,12 +17,15 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 import jakarta.servlet.RequestDispatcher;
 
@@ -38,6 +41,7 @@ import jakarta.servlet.RequestDispatcher;
 )
 public class RecruitmentController extends HttpServlet {
    
+    private static final Logger LOGGER = Logger.getLogger(RecruitmentController.class.getName());
     private RecruitmentDAO recruitmentDAO = new RecruitmentDAO();
     private GuestDAO guestDAO = new GuestDAO();
    
@@ -81,17 +85,22 @@ public class RecruitmentController extends HttpServlet {
             // Chỉ lấy các tin tuyển dụng có status = 'Applied'
             // Các trạng thái New, Waiting, Close, Deleted sẽ không được hiển thị
             var recruitments = recruitmentDAO.getLatestThree();
-request.setAttribute("recruitments", recruitments);
+            request.setAttribute("recruitments", recruitments);
             RequestDispatcher dispatcher = request.getRequestDispatcher("/Views/Recruitment.jsp");
             dispatcher.forward(request, response);
         } catch (Exception e) {
-            e.printStackTrace();
-            response.sendRedirect("error.jsp");
+            LOGGER.log(Level.SEVERE, "Không tải được danh sách tuyển dụng", e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
     
     private void showApplyForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (!isLoggedIn(request)) {
+            response.sendRedirect(request.getContextPath() + "/login?error=login_required");
+            return;
+        }
+
         try {
             String recruitmentIdStr = request.getParameter("recruitmentId");
             if (recruitmentIdStr != null) {
@@ -102,7 +111,7 @@ request.setAttribute("recruitments", recruitments);
                 if (recruitment != null) {
                     String status = recruitment.getStatus();
                     if (status == null || !status.equals("Applied")) {
-                        request.setAttribute("error", "This recruitment post is not available or has been closed!");
+                        request.setAttribute("error", "Tin tuyển dụng này không còn nhận hồ sơ.");
                         showRecruitmentList(request, response);
                         return;
                     }
@@ -117,35 +126,30 @@ request.setAttribute("recruitments", recruitments);
             RequestDispatcher dispatcher = request.getRequestDispatcher("/Views/ApplyForm.jsp");
             dispatcher.forward(request, response);
         } catch (Exception e) {
-            e.printStackTrace();
-            response.sendRedirect("error.jsp");
+            LOGGER.log(Level.SEVERE, "Không mở được form ứng tuyển", e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
     
     private void submitApplication(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (!isLoggedIn(request)) {
+            response.sendRedirect(request.getContextPath() + "/login?error=login_required");
+            return;
+        }
+
         try {
             String fullName = request.getParameter("fullName");
             String email = request.getParameter("email");
             String phone = request.getParameter("phone");
-            String coverLetter = request.getParameter("coverLetter");
             String recruitmentIdStr = request.getParameter("recruitmentId");
-            
-            System.out.println("=== DEBUG: Form submission data ===");
-            System.out.println("Full Name: " + fullName);
-            System.out.println("Email: " + email);
-            System.out.println("Phone: " + phone);
-            System.out.println("Recruitment ID: " + recruitmentIdStr);
-            System.out.println("Cover Letter: " + (coverLetter != null ? coverLetter.substring(0, Math.min(50, coverLetter.length())) + "..." : "null"));
-            
+
             if (fullName != null && email != null && phone != null && recruitmentIdStr != null) {
-int recruitmentId = Integer.parseInt(recruitmentIdStr);
+                int recruitmentId = Integer.parseInt(recruitmentIdStr);
                 
                 // Check if phone number already exists
-                System.out.println("Checking if phone exists: " + phone);
                 if (guestDAO.isPhoneExists(phone)) {
-                    System.out.println("Phone already exists!");
-                    request.setAttribute("error", "This phone number has already been used to submit an application!");
+                    request.setAttribute("error", "Số điện thoại này đã được dùng để ứng tuyển.");
                     // Keep recruitment information when forwarding back
                     Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
                     if (recruitment != null) {
@@ -156,11 +160,9 @@ int recruitmentId = Integer.parseInt(recruitmentIdStr);
                 }
                 
                 // EMAIL DUPLICATE CHECK REMOVED - Allow multiple applications with same email
-                System.out.println("Email check skipped - allowing duplicate emails: " + email);
                 
                 String cvFileName = null;
                 Part cvFilePart = request.getPart("cvFile");
-                System.out.println("CV File Part: " + (cvFilePart != null ? "Found" : "Not found"));
                 // Lấy đường dẫn thực tế của webapp từ servlet context
                 String uploadRelativePath = "/Upload/cvs";
                 String uploadPath = getServletContext().getRealPath(uploadRelativePath);
@@ -171,7 +173,6 @@ int recruitmentId = Integer.parseInt(recruitmentIdStr);
                     // Fallback khi chạy ở môi trường không hỗ trợ getRealPath (ví dụ: chạy jar)
                     uploadDir = Paths.get(System.getProperty("user.home"), "hrms", "Upload", "cvs");
                 }
-                System.out.println("Upload path: " + uploadDir.toAbsolutePath());
 
                 if (cvFilePart != null && cvFilePart.getSize() > 0) {
                     String originalFileName = getFileName(cvFilePart);
@@ -187,24 +188,22 @@ int recruitmentId = Integer.parseInt(recruitmentIdStr);
                         Path filePath = uploadDir.resolve(uniqueFileName);
                         try (InputStream fileContent = cvFilePart.getInputStream()) {
                             Files.copy(fileContent, filePath, StandardCopyOption.REPLACE_EXISTING);
-cvFileName = uniqueFileName; // Lưu tên file unique
-                            System.out.println("File saved successfully: " + cvFileName);
+                            cvFileName = uniqueFileName; // Lưu tên file unique
                         } catch (IOException e) {
-                            System.out.println("Error saving file: " + e.getMessage());
+                            LOGGER.log(Level.WARNING, "Không lưu được file CV", e);
                         }
                     }
                 }
 
                 if (cvFileName == null) {
-                    System.out.println("No CV file provided or file saving failed!");
-                    request.setAttribute("error", "Please select a CV file and ensure the file is saved successfully!");
+                    request.setAttribute("error", "Vui lòng chọn file CV hợp lệ.");
                     // Giữ lại thông tin recruitment khi forward lại
                     Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
                     if (recruitment != null) {
                         request.setAttribute("recruitment", recruitment);
                     }
                     showApplyForm(request, response);
-return;
+                    return;
                 }
                 
                 Guest guest = new Guest();
@@ -216,16 +215,12 @@ return;
                 guest.setRecruitmentId(recruitmentId);
                 guest.setAppliedDate(LocalDateTime.now());
                 
-                System.out.println("Attempting to insert guest: " + guest.toString());
                 boolean insertResult = guestDAO.insert(guest);
-                System.out.println("Insert result: " + insertResult);
                 
                 if (insertResult) {
-                    System.out.println("Redirecting to success page");
                     response.sendRedirect(request.getContextPath() + "/Views/Success.jsp");
                 } else {
-                    System.out.println("Insert failed!");
-                    request.setAttribute("error", "An error occurred while submitting the application. Please try again!");
+                    request.setAttribute("error", "Không thể gửi hồ sơ. Vui lòng thử lại.");
                     // Giữ lại thông tin recruitment khi forward lại
                     Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
                     if (recruitment != null) {
@@ -234,14 +229,13 @@ return;
                     showApplyForm(request, response);
                 }
             } else {
-                System.out.println("Missing required fields!");
-                request.setAttribute("error", "Please fill in all required information!");
+                request.setAttribute("error", "Vui lòng nhập đầy đủ thông tin bắt buộc.");
                 // Keep recruitment information if recruitmentId exists
                 if (recruitmentIdStr != null) {
                     try {
                         int recruitmentId = Integer.parseInt(recruitmentIdStr);
                         Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
-if (recruitment != null) {
+                        if (recruitment != null) {
                             request.setAttribute("recruitment", recruitment);
                         }
                     } catch (NumberFormatException e) {
@@ -251,9 +245,8 @@ if (recruitment != null) {
                 showApplyForm(request, response);
             }
         } catch (Exception e) {
-            System.err.println("=== ERROR in submitApplication ===");
-            e.printStackTrace();
-            request.setAttribute("error", "An error occurred: " + e.getMessage());
+            LOGGER.log(Level.SEVERE, "Không gửi được hồ sơ ứng tuyển", e);
+            request.setAttribute("error", "Có lỗi xảy ra khi gửi hồ sơ. Vui lòng thử lại.");
             // Keep recruitment information if recruitmentId exists
             String recruitmentIdStr = request.getParameter("recruitmentId");
             if (recruitmentIdStr != null) {
@@ -269,6 +262,11 @@ if (recruitment != null) {
             }
             showApplyForm(request, response);
         }
+    }
+
+    private boolean isLoggedIn(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        return session != null && session.getAttribute("systemUser") != null;
     }
     
     private String getFileName(Part part) {
@@ -306,8 +304,8 @@ if (recruitment != null) {
                 showRecruitmentList(request, response);
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            response.sendRedirect("error.jsp");
+            LOGGER.log(Level.SEVERE, "Không xem được chi tiết tuyển dụng", e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     } 
 

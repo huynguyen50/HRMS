@@ -1,4 +1,4 @@
-<%-- 
+<%--
     Document   : ApplyForm
     Created on : Oct 27, 2025, 1:45:23 PM
     Author     : admin
@@ -11,274 +11,304 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Application - HRMS</title>
+    <title>Ứng tuyển - BetterHR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        :root {
+            --bh-green: #006241;
+            --bh-accent: #00754A;
+            --bh-house: #1E3932;
+            --bh-canvas: #f2f0eb;
+            --bh-ceramic: #edebe9;
+            --bh-white: #ffffff;
+            --bh-text: rgba(0, 0, 0, 0.87);
+            --bh-muted: rgba(0, 0, 0, 0.58);
+            --bh-border: rgba(0, 0, 0, 0.14);
+            --bh-gold: #cba258;
+            --bh-red: #c82014;
+            --bh-mint: #d4e9e2;
+        }
+
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            font-family: Inter, "Helvetica Neue", Arial, sans-serif;
+            color: var(--bh-text);
+            background: var(--bh-canvas);
             line-height: 1.6;
-            color: #333;
-            background-color: #f8f9fa;
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem 0;
+            background: var(--bh-house);
+            color: var(--bh-white);
+            padding: 42px 20px 46px;
             text-align: center;
         }
 
         .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: clamp(32px, 4vw, 48px);
+            line-height: 1.16;
+            font-weight: 800;
+            letter-spacing: 0;
         }
 
         .header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 18px;
         }
 
         .container {
-            max-width: 800px;
+            width: min(920px, calc(100% - 32px));
             margin: 0 auto;
-            padding: 0 20px;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            align-items: center;
+            padding: 24px 0 0;
+        }
+
+        .back-btn,
+        .submit-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border-radius: 50px;
+            font-weight: 800;
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .back-btn {
+            min-height: 44px;
+            padding: 9px 18px;
+            border: 1px solid var(--bh-border);
+            background: var(--bh-white);
+            color: var(--bh-green);
+            box-shadow: 0 0 0.5px rgba(0,0,0,0.14), 0 1px 1px rgba(0,0,0,0.18);
+        }
+
+        .back-btn:hover {
+            background: var(--bh-ceramic);
+            transform: translateY(-2px);
         }
 
         .form-section {
-            background: white;
-            padding: 3rem;
-            margin: 2rem 0;
+            margin: 32px auto 56px;
+            padding: 40px;
+            border: 1px solid var(--bh-border);
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            background: var(--bh-white);
+            box-shadow: 0 0 0.5px rgba(0,0,0,0.14), 0 8px 24px rgba(0,0,0,0.08);
         }
 
         .job-info {
-            background: #f8f9fa;
-            padding: 1.5rem;
+            margin-bottom: 28px;
+            padding: 24px;
+            border-left: 4px solid var(--bh-accent);
             border-radius: 8px;
-            margin-bottom: 2rem;
-            border-left: 4px solid #667eea;
+            background: var(--bh-ceramic);
         }
 
         .job-info h3 {
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
+            margin-bottom: 12px;
+            color: var(--bh-text);
+            font-size: 22px;
+            font-weight: 800;
         }
 
         .job-info p {
-            color: #666;
-            margin-bottom: 0.3rem;
+            margin-bottom: 6px;
+            color: var(--bh-muted);
+            font-size: 16px;
+        }
+
+        .job-info i {
+            color: var(--bh-green);
+            margin-right: 6px;
+        }
+
+        .form-note {
+            margin-bottom: 30px;
+            padding: 18px 20px;
+            border-left: 4px solid var(--bh-accent);
+            border-radius: 8px;
+            background: var(--bh-mint);
+        }
+
+        .form-note h4 {
+            margin-bottom: 8px;
+            color: var(--bh-green);
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .form-note p {
+            color: rgba(0, 0, 0, 0.70);
+            font-size: 15px;
+        }
+
+        .alert {
+            margin-bottom: 24px;
+            padding: 14px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+        }
+
+        .alert-error {
+            border: 1px solid rgba(200, 32, 20, 0.22);
+            background: rgba(200, 32, 20, 0.08);
+            color: var(--bh-red);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
         }
 
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 22px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #2c3e50;
+            margin-bottom: 8px;
+            color: var(--bh-text);
+            font-size: 14px;
+            font-weight: 800;
         }
 
-        .form-group label.required:after {
+        .form-group label.required::after {
             content: " *";
-            color: #e74c3c;
+            color: var(--bh-red);
         }
 
         .form-group input,
         .form-group textarea {
             width: 100%;
-            padding: 0.8rem;
-            border: 2px solid #e9ecef;
+            min-height: 52px;
+            padding: 13px 16px;
+            border: 1px solid rgba(0, 0, 0, 0.18);
             border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
+            background: var(--bh-white);
+            color: var(--bh-text);
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(0, 0, 0, 0.42);
         }
 
         .form-group input:focus,
         .form-group textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 120px;
+            border-color: var(--bh-accent);
+            box-shadow: 0 0 0 3px rgba(0, 117, 74, 0.14);
         }
 
         .form-group input[type="file"] {
-            width: 100%;
-            padding: 0.8rem;
-border: 2px solid #e9ecef;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-            background: white;
             cursor: pointer;
-        }
-
-        .form-group input[type="file"]:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: #fafafa;
         }
 
         .form-group input[type="file"]:hover {
-            border-color: #667eea;
+            border-color: var(--bh-accent);
         }
 
         .form-text {
-            color: #666;
-            font-size: 0.85rem;
-            margin-top: 0.25rem;
             display: block;
+            margin-top: 7px;
+            color: var(--bh-muted);
+            font-size: 13px;
         }
 
         .file-info {
-            background: #f8f9fa;
-            padding: 0.75rem;
-            border-radius: 6px;
-            margin-top: 0.5rem;
-            border-left: 3px solid #667eea;
             display: none;
+            margin-top: 10px;
+            padding: 12px 14px;
+            border-left: 3px solid var(--bh-accent);
+            border-radius: 8px;
+            background: var(--bh-ceramic);
         }
 
         .file-info.show {
             display: block;
         }
 
-        .file-info .file-name {
-            font-weight: 600;
-            color: #2c3e50;
+        .file-name {
+            color: var(--bh-text);
+            font-weight: 800;
         }
 
-        .file-info .file-size {
-            color: #666;
-            font-size: 0.9rem;
+        .file-size {
+            color: var(--bh-muted);
+            font-size: 13px;
         }
 
-        .file-info .file-type {
-            color: #667eea;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
+        .file-type {
+            color: var(--bh-green);
+            font-size: 13px;
+            font-weight: 800;
         }
 
         .submit-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 1rem 2rem;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
             width: 100%;
+            min-height: 54px;
+            border: 1px solid var(--bh-accent);
+            background: var(--bh-accent);
+            color: var(--bh-white);
+            font-size: 16px;
         }
 
         .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .back-btn {
-            background: #6c757d;
-            color: white;
-            padding: 0.8rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .back-btn:hover {
-            background: #5a6268;
+            background: var(--bh-green);
+            border-color: var(--bh-green);
+            box-shadow: 0 8px 22px rgba(0, 98, 65, 0.24);
             transform: translateY(-2px);
         }
 
-
-        .navigation-buttons {
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding: 0 1rem;
+        .submit-btn:active,
+        .back-btn:active {
+            transform: scale(0.95);
         }
 
         @media (max-width: 768px) {
-            .navigation-buttons {
-                justify-content: center;
+            .header {
+                padding: 34px 16px;
             }
-            
+
+            .navigation-buttons {
+                justify-content: stretch;
+            }
+
             .back-btn {
                 width: 100%;
-                justify-content: center;
             }
-        }
 
-        .alert {
-            padding: 1rem;
-            margin: 1rem 0;
-border-radius: 8px;
-            font-weight: 500;
-        }
-
-        .alert-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .form-note {
-            background: #e3f2fd;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-            border-left: 4px solid #2196f3;
-        }
-
-        .form-note h4 {
-            color: #1976d2;
-            margin-bottom: 0.5rem;
-        }
-
-        .form-note p {
-            color: #1565c0;
-            font-size: 0.95rem;
-        }
-
-        @media (max-width: 768px) {
             .form-section {
-                padding: 2rem 1rem;
+                padding: 26px 18px;
             }
-            
+
             .form-row {
                 grid-template-columns: 1fr;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
+                gap: 0;
             }
         }
     </style>
@@ -286,17 +316,15 @@ border-radius: 8px;
 <body>
     <div class="header">
         <div class="container">
-            <div class="header-text">
-                <h1><i class="fas fa-paper-plane"></i> Job Application</h1>
-                <p>Fill in your information to apply for the desired position</p>
-            </div>
+            <h1><i class="fas fa-paper-plane"></i> Ứng tuyển vị trí</h1>
+            <p>Điền thông tin của bạn để gửi hồ sơ ứng tuyển</p>
         </div>
     </div>
 
     <div class="container">
         <div class="navigation-buttons">
             <a href="${pageContext.request.contextPath}/RecruitmentController" class="back-btn">
-                <i class="fas fa-arrow-left"></i> Back to Job List
+                <i class="fas fa-arrow-left"></i> Quay lại danh sách việc làm
             </a>
         </div>
 
@@ -315,8 +343,8 @@ border-radius: 8px;
             <% } %>
 
             <div class="form-note">
-                <h4><i class="fas fa-info-circle"></i> Important Note</h4>
-                <p>Please fill in complete and accurate personal information. We will contact you within 3-5 business days.</p>
+                <h4><i class="fas fa-info-circle"></i> Lưu ý quan trọng</h4>
+                <p>Vui lòng điền đầy đủ và chính xác thông tin cá nhân. Chúng tôi sẽ liên hệ với bạn trong vòng 3-5 ngày làm việc.</p>
             </div>
 
             <% if (request.getAttribute("error") != null) { %>
@@ -328,36 +356,36 @@ border-radius: 8px;
             <form action="${pageContext.request.contextPath}/RecruitmentController" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="submitApplication">
                 <% if (recruitment != null) { %>
-<input type="hidden" name="recruitmentId" value="<%= recruitment.getRecruitmentId() %>">
+                <input type="hidden" name="recruitmentId" value="<%= recruitment.getRecruitmentId() %>">
                 <% } %>
 
                 <div class="form-group">
-                    <label for="fullName" class="required">Full Name</label>
-                    <input type="text" id="fullName" name="fullName" required 
-                           placeholder="Enter your full name"
+                    <label for="fullName" class="required">Họ và tên</label>
+                    <input type="text" id="fullName" name="fullName" required
+                           placeholder="Nhập họ và tên"
                            value="<%= request.getParameter("fullName") != null ? request.getParameter("fullName") : "" %>">
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label for="email" class="required">Email</label>
-                        <input type="email" id="email" name="email" required 
+                        <input type="email" id="email" name="email" required
                                placeholder="example@email.com"
                                value="<%= request.getParameter("email") != null ? request.getParameter("email") : "" %>">
                     </div>
 
                     <div class="form-group">
-                        <label for="phone" class="required">Phone Number</label>
-                        <input type="tel" id="phone" name="phone" required 
+                        <label for="phone" class="required">Số điện thoại</label>
+                        <input type="tel" id="phone" name="phone" required
                                placeholder="0123456789"
                                value="<%= request.getParameter("phone") != null ? request.getParameter("phone") : "" %>">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="cvFile" class="required">CV/Resume</label>
+                    <label for="cvFile" class="required">CV/Hồ sơ ứng tuyển</label>
                     <input type="file" id="cvFile" name="cvFile" accept=".pdf,.doc,.docx,.txt" required>
-                    <small class="form-text">Accepted files: PDF, DOC, DOCX, TXT (Max 5MB)</small>
+                    <small class="form-text">Chấp nhận file: PDF, DOC, DOCX, TXT (tối đa 5MB)</small>
                     <div class="file-info" id="fileInfo">
                         <div class="file-name" id="fileName"></div>
                         <div class="file-size" id="fileSize"></div>
@@ -366,23 +394,21 @@ border-radius: 8px;
                 </div>
 
                 <button type="submit" class="submit-btn">
-                    <i class="fas fa-paper-plane"></i> Submit Application
+                    <i class="fas fa-paper-plane"></i> Gửi hồ sơ ứng tuyển
                 </button>
             </form>
         </div>
     </div>
 
     <script>
-        // File upload handling
         document.getElementById('cvFile').addEventListener('change', function(e) {
             const file = e.target.files[0];
             const fileInfo = document.getElementById('fileInfo');
-const fileName = document.getElementById('fileName');
+            const fileName = document.getElementById('fileName');
             const fileSize = document.getElementById('fileSize');
             const fileType = document.getElementById('fileType');
 
             if (file) {
-                // Validate file type
                 const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
                 if (!allowedTypes.includes(file.type)) {
                     alert('Chỉ chấp nhận file PDF, DOC, DOCX, TXT');
@@ -391,16 +417,14 @@ const fileName = document.getElementById('fileName');
                     return;
                 }
 
-                // Validate file size (5MB = 5 * 1024 * 1024 bytes)
                 const maxSize = 5 * 1024 * 1024;
                 if (file.size > maxSize) {
-                    alert('File is too large. Please select a file smaller than 5MB');
+                    alert('File quá lớn. Vui lòng chọn file nhỏ hơn 5MB');
                     e.target.value = '';
                     fileInfo.classList.remove('show');
                     return;
                 }
 
-                // Display file info
                 fileName.textContent = file.name;
                 fileSize.textContent = formatFileSize(file.size);
                 fileType.textContent = getFileTypeLabel(file.type);
@@ -420,15 +444,14 @@ const fileName = document.getElementById('fileName');
 
         function getFileTypeLabel(type) {
             const typeLabels = {
-                'application/pdf': 'PDF Document',
-                'application/msword': 'Word Document',
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word Document',
-                'text/plain': 'Text File'
+                'application/pdf': 'Tài liệu PDF',
+                'application/msword': 'Tài liệu Word',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Tài liệu Word',
+                'text/plain': 'Tệp văn bản'
             };
-            return typeLabels[type] || 'Unknown File Type';
+            return typeLabels[type] || 'Không xác định';
         }
 
-        // Form validation
         document.querySelector('form').addEventListener('submit', function(e) {
             const fullName = document.getElementById('fullName').value.trim();
             const email = document.getElementById('email').value.trim();
@@ -436,53 +459,48 @@ const fileName = document.getElementById('fileName');
             const cvFile = document.getElementById('cvFile').files[0];
 
             if (!fullName) {
-                alert('Please enter your full name');
+                alert('Vui lòng nhập họ và tên');
                 e.preventDefault();
                 return;
             }
 
             if (!email) {
-                alert('Please enter your email');
+                alert('Vui lòng nhập email');
                 e.preventDefault();
                 return;
             }
 
-            // Simple email validation
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
-                alert('Please enter a valid email address');
+                alert('Vui lòng nhập email hợp lệ');
                 e.preventDefault();
                 return;
             }
 
             if (!phone) {
-                alert('Please enter your phone number');
+                alert('Vui lòng nhập số điện thoại');
                 e.preventDefault();
                 return;
             }
 
-            // Simple phone validation (Vietnamese phone numbers)
             const phoneRegex = /^[0-9]{10,11}$/;
             if (!phoneRegex.test(phone.replace(/\s/g, ''))) {
-                alert('Please enter a valid phone number (10-11 digits)');
+                alert('Vui lòng nhập số điện thoại hợp lệ (10-11 chữ số)');
                 e.preventDefault();
                 return;
             }
 
             if (!cvFile) {
-                alert('Please select a CV file');
+                alert('Vui lòng chọn file CV');
                 e.preventDefault();
                 return;
             }
 
-            // Confirm submission
-            if (!confirm('Are you sure you want to submit your application?')) {
+            if (!confirm('Bạn có chắc chắn muốn gửi hồ sơ ứng tuyển?')) {
                 e.preventDefault();
-                return;
             }
         });
 
-        // Auto-format phone number
         document.getElementById('phone').addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
             if (value.length > 11) {
@@ -491,7 +509,6 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             e.target.value = value;
         });
 
-        // Auto-capitalize name
         document.getElementById('fullName').addEventListener('input', function(e) {
             let value = e.target.value;
             value = value.replace(/\b\w/g, function(char) {

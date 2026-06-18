@@ -55,6 +55,10 @@ public final class PermissionUtil {
         if (user == null || permissionCode == null || permissionCode.isBlank()) {
             return false;
         }
+        Integer roleId = user.getRoleId();
+        if (roleId != null && roleId == ROLE_ADMIN) {
+            return true;
+        }
         Integer userId = user.getUserId();
         if (userId != null && userId > 0) {
             try {
@@ -68,7 +72,6 @@ public final class PermissionUtil {
                 logger.log(Level.FINE, "SQLException stack trace", ex);
             }
         }
-        Integer roleId = user.getRoleId();
         if (roleId == null || roleId <= 0) {
             return false;
         }

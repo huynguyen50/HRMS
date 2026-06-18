@@ -46,8 +46,8 @@ function loadRoles(page = 1) {
       displayPagination(data)
     })
     .fail((xhr) => {
-      console.log("[v0] Error:", xhr)
-      alert("Error loading roles: " + (xhr.responseJSON?.message || "Unknown error"))
+      console.log("[v0] Lỗi:", xhr)
+      alert("Không thể tải vai trò: " + (xhr.responseJSON?.message || "Lỗi không xác định"))
     })
 
 }
@@ -67,8 +67,8 @@ function displayRoles(data) {
                     <td>${role.roleName}</td>
                     <td>
                         <div class="action-buttons">
-                            <button class="btn-edit" onclick="editRole(${role.roleId})">Edit</button>
-                            <button class="btn-delete" onclick="deleteRole(${role.roleId})">Delete</button>
+                            <button class="btn-edit" onclick="editRole(${role.roleId})">Sửa</button>
+                            <button class="btn-delete" onclick="deleteRole(${role.roleId})">Xóa</button>
                         </div>
                     </td>
                 </tr>
@@ -78,7 +78,7 @@ function displayRoles(data) {
         tbody.append(`
             <tr>
                 <td colspan="3" style="text-align: center; padding: 20px; color: #9ca3af;">
-                    No roles found
+                    Không tìm thấy vai trò
                 </td>
             </tr>
         `);
@@ -101,7 +101,7 @@ function displayPagination(data) {
   // Add info text
   const infoDiv = $(`
         <div class="pagination-info">
-            Showing ${totalItems === 0 ? 0 : start} - ${end} of ${totalItems}
+            Hiển thị ${totalItems === 0 ? 0 : start} - ${end} / ${totalItems}
         </div>
     `)
   pagination.append(infoDiv)
@@ -112,11 +112,11 @@ function displayPagination(data) {
   if (totalPages > 1) {
     // Previous button
     if (currentPage > 1) {
-      controlsDiv.append(`<a onclick="loadRoles(1)">First</a>`)
-      controlsDiv.append(`<a onclick="loadRoles(${currentPage - 1})">Prev</a>`)
+      controlsDiv.append(`<a onclick="loadRoles(1)">Đầu</a>`)
+      controlsDiv.append(`<a onclick="loadRoles(${currentPage - 1})">Trước</a>`)
     } else {
-      controlsDiv.append('<span class="disabled">First</span>')
-      controlsDiv.append('<span class="disabled">Prev</span>')
+      controlsDiv.append('<span class="disabled">Đầu</span>')
+      controlsDiv.append('<span class="disabled">Trước</span>')
     }
 
     // Page numbers
@@ -145,13 +145,13 @@ function displayPagination(data) {
       controlsDiv.append(`<a onclick="loadRoles(${totalPages})">${totalPages}</a>`)
     }
 
-    // Next button
+    // Sau button
     if (currentPage < totalPages) {
-      controlsDiv.append(`<a onclick="loadRoles(${currentPage + 1})">Next</a>`)
-      controlsDiv.append(`<a onclick="loadRoles(${totalPages})">Last</a>`)
+      controlsDiv.append(`<a onclick="loadRoles(${currentPage + 1})">Sau</a>`)
+      controlsDiv.append(`<a onclick="loadRoles(${totalPages})">Cuối</a>`)
     } else {
-      controlsDiv.append('<span class="disabled">Next</span>')
-      controlsDiv.append('<span class="disabled">Last</span>')
+      controlsDiv.append('<span class="disabled">Sau</span>')
+      controlsDiv.append('<span class="disabled">Cuối</span>')
     }
   }
 
@@ -159,7 +159,7 @@ function displayPagination(data) {
 }
 
 function openAddRoleModal() {
-    document.getElementById('modalTitle').textContent = 'Add New Role';
+    document.getElementById('modalTitle').textContent = 'Thêm vai trò mới';
     document.getElementById('roleForm').reset();
     document.getElementById('roleModal').classList.add('show');
 }
@@ -173,7 +173,7 @@ function editRole(roleId) {
     fetch(contextPath + '/admin/role/' + roleId)
         .then(response => response.json())
         .then(data => {
-            document.getElementById('modalTitle').textContent = 'Edit Role';
+            document.getElementById('modalTitle').textContent = 'Sửa vai trò';
             document.getElementById('roleName').value = data.roleName;
             document.getElementById('roleModal').classList.add('show');
         });
@@ -183,7 +183,7 @@ function editRole(roleId) {
 $(document).on('submit', '#roleForm', function(e) {
     e.preventDefault();
     const roleName = document.getElementById('roleName').value;
-    const isEdit = document.getElementById('modalTitle').textContent === 'Edit Role';
+    const isEdit = document.getElementById('modalTitle').textContent === 'Sửa vai trò';
     
     const method = isEdit ? 'PUT' : 'POST';
     const url = isEdit ? 
@@ -201,12 +201,12 @@ $(document).on('submit', '#roleForm', function(e) {
             loadRoles(currentPage);
         })
         .fail(function(xhr) {
-            alert('Error saving role: ' + xhr.responseJSON?.message || 'Unknown error');
+            alert('Không thể lưu vai trò: ' + xhr.responseJSON?.message || 'Lỗi không xác định');
         });
 });
 
 function deleteRole(roleId) {
-    if (confirm('Are you sure you want to delete this role? This cannot be undone if the role is not in use.')) {
+    if (confirm('Bạn có chắc muốn xóa vai trò này không? Thao tác này không thể hoàn tác nếu vai trò không còn được sử dụng.')) {
         $.ajax({
             url: contextPath + '/admin/role/' + roleId,
             method: 'DELETE'
@@ -216,9 +216,9 @@ function deleteRole(roleId) {
             })
             .fail(function(xhr) {
                 if (xhr.status === 409) {
-                    alert('This role cannot be deleted because it is currently assigned to users.');
+                    alert('Không thể xóa vai trò này vì đang được gán cho người dùng.');
                 } else {
-                    alert('Error deleting role: ' + xhr.responseJSON?.message || 'Unknown error');
+                    alert('Không thể xóa vai trò: ' + xhr.responseJSON?.message || 'Lỗi không xác định');
                 }
             });
     }

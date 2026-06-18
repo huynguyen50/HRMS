@@ -282,17 +282,24 @@ public class CreateEmployeeController extends HttpServlet {
     }
     
     private boolean createSystemUser(int employeeId, String username, String password) {
-        String sql = "INSERT INTO SystemUser (Username, Password, RoleID, EmployeeID, IsActive, CreatedDate) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = """
+            INSERT INTO SystemUser
+                (Username, Email, PasswordHash, RoleID, EmployeeID, IsActive, CreatedDate, LoginProvider)
+            SELECT ?, e.Email, ?, ?, ?, ?, ?, 'LOCAL'
+            FROM Employee e
+            WHERE e.EmployeeID = ?
+        """;
         
         try (Connection con = DBConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             
             ps.setString(1, username.trim());
-            ps.setString(2, password); // In production, this should be hashed
+            ps.setString(2, password);
             ps.setInt(3, 5); // RoleID 5 = Employee role (based on data.sql)
             ps.setInt(4, employeeId);
             ps.setBoolean(5, true);
             ps.setTimestamp(6, java.sql.Timestamp.valueOf(LocalDateTime.now()));
+            ps.setInt(7, employeeId);
             
             return ps.executeUpdate() > 0;
             

@@ -38,3 +38,7 @@ Thumbs.db
 
 # Local DB configs
 src/main/resources/db.properties
+src/main/resources/META-INF/db.local.properties
+src/main/resources/META-INF/google.properties
+src/main/resources/META-INF/mail.properties
+src/main/resources/META-INF/mail.local.properties

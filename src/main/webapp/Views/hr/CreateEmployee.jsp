@@ -13,7 +13,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Create Employee - HRMS</title>
+        <title>Tạo nhân viên - BetterHR</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-dashboard.css">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -417,6 +417,8 @@
                 }
             }
         </style>
+        <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-theme.css">
     </head>
     <body>
         <!-- HR Dashboard Container -->
@@ -426,25 +428,25 @@
                 <div class="header-content">
                     <div class="logo-section">
                         <i class="fas fa-users"></i>
-                        <h1>Create Employee</h1>
+                        <h1>Tạo nhân viên</h1>
                     </div>
                     <div class="header-actions">
                         <div class="search-bar">
                             <i class="fas fa-search"></i>
-                            <input type="text" placeholder="Search employees...">
+                            <input type="text" placeholder="Tìm nhân viên...">
                         </div>
                         <div class="user-profile">
-                            <img src="${pageContext.request.contextPath}/image/logo/1.png" alt="Profile" class="profile-img">
-                            <span>HR Manager</span>
+                            <img src="${pageContext.request.contextPath}/image/logo/1.png" alt="Hồ sơ" class="profile-img">
+                            <span>Quản lý HR</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
                         <a href="${pageContext.request.contextPath}/HrHomeController" class="nav-btn">
                             <i class="fas fa-tachometer-alt"></i>
-                            HR Dashboard
+                            HR Home
                         </a>
                         <a href="${pageContext.request.contextPath}/homepage" class="nav-btn">
                             <i class="fas fa-home"></i>
-                            Homepage
+                            Trang chủ
                         </a>
                     </div>
                 </div>
@@ -458,16 +460,16 @@
                         <h3>NAVIGATION</h3>
                         <a href="${pageContext.request.contextPath}/HrHomeController" class="nav-item">
                             <i class="fas fa-home"></i>
-                            <span>HR Dashboard</span>
+                            <span>HR Home</span>
                         </a>
                        
                         <a href="${pageContext.request.contextPath}/hr/create-employee" class="nav-item active">
                             <i class="fas fa-user-plus"></i>
-                            <span>Create Employee</span>
+                            <span>Tạo nhân viên</span>
                         </a>
                         <a href="${pageContext.request.contextPath}/hr/employee-list" class="nav-item">
                             <i class="fas fa-users"></i>
-                            <span>Employee List</span>
+                            <span>Danh sách nhân viên</span>
                         </a>
                         <a href="${pageContext.request.contextPath}/postRecruitment" class="nav-item">
                             <i class="fas fa-briefcase"></i>
@@ -504,7 +506,7 @@
                 <div class="form-container">
                     <!-- Guest Selection Section -->
                     <div class="form-section">
-                        <h3 class="section-title">1. Select Guest Candidate</h3>
+                        <h3 class="section-title">1. Chọn ứng viên guest</h3>
                         <div class="guest-list">
                             <% 
                                 List<Guest> guests = (List<Guest>) request.getAttribute("guests");
@@ -519,8 +521,8 @@
                                         <div class="guest-name"><%= guest.getFullName() %></div>
                                         <div class="guest-details">
                                             Email: <%= guest.getEmail() %> | 
-                                            Phone: <%= guest.getPhone() %> | 
-                                            Applied: <%= guest.getAppliedDate() != null ? guest.getAppliedDate().toString() : "N/A" %>
+                                            Số điện thoại: <%= guest.getPhone() %> |
+                                            Ngày ứng tuyển: <%= guest.getAppliedDate() != null ? guest.getAppliedDate().toString() : "N/A" %>
                                         </div>
                                     </div>
                                     <div class="guest-status status-<%= guest.getStatus().toLowerCase() %>">
@@ -532,7 +534,7 @@
                                 } else {
                             %>
                                 <div style="text-align: center; padding: 20px; color: #7f8c8d;">
-                                    No available guests to convert to employees.
+                                    Chưa có guest phù hợp để chuyển thành nhân viên.
                                 </div>
                             <% } %>
                         </div>
@@ -540,11 +542,11 @@
                     
                     <!-- Employee Information Section -->
                     <div class="form-section">
-                        <h3 class="section-title">2. Employee Information</h3>
+                        <h3 class="section-title">2. Thông tin nhân viên</h3>
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="fullName">Full Name <span class="required">*</span></label>
+                                <label for="fullName">Họ và tên <span class="required">*</span></label>
                                 <input type="text" id="fullName" name="fullName" required readonly 
                                        style="background-color: #f8f9fa; cursor: not-allowed;">
                             </div>
@@ -557,7 +559,7 @@
                                        style="background-color: #f8f9fa; cursor: not-allowed;">
                             </div>
                             <div class="form-group">
-                                <label for="phone">Phone Number</label>
+                                <label for="phone">Số điện thoại</label>
                                 <input type="tel" id="phone" name="phone" readonly 
                                        style="background-color: #f8f9fa; cursor: not-allowed;">
                             </div>
@@ -565,23 +567,23 @@
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="gender">Gender</label>
+                                <label for="gender">Giới tính</label>
                                 <select id="gender" name="gender" required>
-                                    <option value="">Select Gender</option>
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                    <option value="Other">Other</option>
+                                    <option value="">Chọn giới tính</option>
+                                    <option value="Male">Nam</option>
+                                    <option value="Female">Nữ</option>
+                                    <option value="Other">Khác</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="dob">Date of Birth</label>
+                                <label for="dob">Ngày sinh</label>
                                 <input type="date" id="dob" name="dob">
                             </div>
                         </div>
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="address">Address</label>
+                                <label for="address">Địa chỉ</label>
                                 <textarea id="address" name="address" rows="3"></textarea>
                             </div>
                         </div>
@@ -589,13 +591,13 @@
                     
                     <!-- Employment Details Section -->
                     <div class="form-section">
-                        <h3 class="section-title">3. Employment Details</h3>
+                        <h3 class="section-title">3. Thông tin công việc</h3>
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="departmentId">Department <span class="required">*</span></label>
+                                <label for="departmentId">Phòng ban <span class="required">*</span></label>
                                 <select id="departmentId" name="departmentId" required>
-                                    <option value="">Select Department</option>
+                                    <option value="">Chọn phòng ban</option>
                                     <% 
                                         List<Department> departments = (List<Department>) request.getAttribute("departments");
                                         if (departments != null) {
@@ -609,32 +611,32 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="position">Position <span class="required">*</span></label>
+                                <label for="position">Vị trí <span class="required">*</span></label>
                                 <select id="position" name="position" required disabled>
-                                    <option value="">Please select Department first</option>
+                                    <option value="">Vui lòng chọn phòng ban trước</option>
                                 </select>
                             </div>
                         </div>
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="hireDate">Start Date <span class="required">*</span></label>
+                                <label for="hireDate">Ngày bắt đầu <span class="required">*</span></label>
                                 <input type="date" id="hireDate" name="hireDate" required>
                             </div>
                             <div class="form-group">
-                                <label for="endDate">End Date</label>
+                                <label for="endDate">Ngày kết thúc</label>
                                 <input type="date" id="endDate" name="endDate">
                             </div>
                         </div>
                         
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="status">Employment Status <span class="required">*</span></label>
+                                <label for="status">Trạng thái làm việc <span class="required">*</span></label>
                                 <select id="status" name="status" required>
-                                    <option value="">Select Status</option>
-                                    <option value="Active">Active</option>
-                                    <option value="Intern">Intern</option>
-                                    <option value="Probation">Probation</option>
+                                    <option value="">Chọn trạng thái</option>
+                                    <option value="Active">Chính thức</option>
+                                    <option value="Intern">Thực tập</option>
+                                    <option value="Probation">Thử việc</option>
                                 </select>
                             </div>
                         </div>
@@ -642,7 +644,7 @@
                     
                     <!-- System Account Section -->
                     <div class="form-section">
-                        <h3 class="section-title">4. System Account</h3>
+                        <h3 class="section-title">4. Tài khoản hệ thống</h3>
                         
                         <div class="form-row">
                             <div class="form-group">
@@ -659,7 +661,7 @@
                     <!-- Form Actions -->
                     <div class="form-actions">
                        
-                        <button type="submit" class="btn btn-success" id="createEmployeeBtn">Create Employee</button>
+                        <button type="submit" class="btn btn-success" id="createEmployeeBtn">Tạo nhân viên</button>
                     </div>
                 </div>
             </form>
@@ -723,7 +725,7 @@
                     // Clear position options
                     positionSelect.innerHTML = '';
                     
-                    if (selectedDeptName && selectedDeptName !== 'Select Department') {
+                    if (selectedDeptName && selectedDeptName !== 'Chọn phòng ban') {
                         // Enable position select
                         positionSelect.disabled = false;
                         
@@ -747,7 +749,7 @@
                         positionSelect.disabled = true;
                         const defaultOption = document.createElement('option');
                         defaultOption.value = '';
-                        defaultOption.textContent = 'Please select Department first';
+                        defaultOption.textContent = 'Vui lòng chọn phòng ban trước';
                         positionSelect.appendChild(defaultOption);
                     }
                 });
@@ -776,7 +778,7 @@
                         
                         // Enable create button
                         createEmployeeBtn.disabled = false;
-                        createEmployeeBtn.textContent = 'Create Employee';
+                        createEmployeeBtn.textContent = 'Tạo nhân viên';
                     });
                 });
                 
@@ -811,7 +813,7 @@
                     
                     // Show loading state
                     createEmployeeBtn.disabled = true;
-                    createEmployeeBtn.textContent = 'Creating Employee...';
+                    createEmployeeBtn.textContent = 'Đang tạo nhân viên...';
                     form.classList.add('loading');
                 });
                 

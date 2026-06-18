@@ -5,6 +5,7 @@
 
 package com.hrm.controller;
 
+import com.hrm.dao.DAO;
 import com.hrm.dao.DBConnection;
 import com.hrm.dao.SystemLogDAO;
 import com.hrm.model.entity.SystemUser;
@@ -70,7 +71,7 @@ public class ProfilepageController extends HttpServlet {
             
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error in ProfilepageController", e);
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An error occurred while processing the request");
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Đã xảy ra lỗi khi xử lý yêu cầu");
         }
     }
     
@@ -98,7 +99,7 @@ public class ProfilepageController extends HttpServlet {
             
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Error getting user profile data", e);
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error loading profile data");
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Không thể tải dữ liệu hồ sơ");
         }
     }
     
@@ -121,9 +122,9 @@ public class ProfilepageController extends HttpServlet {
             if (success) {
                 // Note: Profile data is stored in Employee table, not SystemUser
                 // Session user (SystemUser) doesn't need to be updated
-                request.setAttribute("successMessage", "Profile updated successfully!");
+                request.setAttribute("successMessage", "Cập nhật hồ sơ thành công.");
             } else {
-                request.setAttribute("errorMessage", "Failed to update profile. Please try again.");
+                request.setAttribute("errorMessage", "Không thể cập nhật hồ sơ. Vui lòng thử lại.");
             }
             
             // Reload profile page
@@ -131,7 +132,7 @@ public class ProfilepageController extends HttpServlet {
             
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error updating profile", e);
-            request.setAttribute("errorMessage", "An error occurred while updating profile.");
+            request.setAttribute("errorMessage", "Đã xảy ra lỗi khi cập nhật hồ sơ.");
             showProfilePage(request, response, user);
         }
     }
@@ -149,14 +150,14 @@ public class ProfilepageController extends HttpServlet {
             
             // Validate passwords
             if (!newPassword.equals(confirmPassword)) {
-                request.setAttribute("errorMessage", "New passwords do not match.");
+                request.setAttribute("errorMessage", "Mật khẩu xác nhận không khớp.");
                 showProfilePage(request, response, user);
                 return;
             }
             
             // Verify current password
             if (!verifyCurrentPassword(user.getUserId(), currentPassword)) {
-                request.setAttribute("errorMessage", "Current password is incorrect.");
+                request.setAttribute("errorMessage", "Mật khẩu hiện tại không đúng.");
                 showProfilePage(request, response, user);
                 return;
             }
@@ -165,16 +166,16 @@ public class ProfilepageController extends HttpServlet {
             boolean success = updatePassword(user.getUserId(), newPassword);
             
             if (success) {
-                request.setAttribute("successMessage", "Password changed successfully!");
+                request.setAttribute("successMessage", "Đổi mật khẩu thành công.");
             } else {
-                request.setAttribute("errorMessage", "Failed to change password. Please try again.");
+                request.setAttribute("errorMessage", "Không thể đổi mật khẩu. Vui lòng thử lại.");
             }
             
             showProfilePage(request, response, user);
             
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error changing password", e);
-            request.setAttribute("errorMessage", "An error occurred while changing password.");
+            request.setAttribute("errorMessage", "Đã xảy ra lỗi khi đổi mật khẩu.");
             showProfilePage(request, response, user);
         }
     }
@@ -333,14 +334,13 @@ public class ProfilepageController extends HttpServlet {
     private boolean verifyCurrentPassword(int userId, String password) {
         try (Connection conn = DBConnection.getConnection()) {
             if (conn != null) {
-                String query = "SELECT Password FROM SystemUser WHERE UserID = ?";
+                String query = "SELECT PasswordHash FROM SystemUser WHERE UserID = ?";
                 try (PreparedStatement stmt = conn.prepareStatement(query)) {
                     stmt.setInt(1, userId);
                     try (ResultSet rs = stmt.executeQuery()) {
                         if (rs.next()) {
-                            String storedPassword = rs.getString("Password");
-                            // In real application, use proper password hashing
-                            return storedPassword.equals(password);
+                            String storedPassword = rs.getString("PasswordHash");
+                            return DAO.getInstance().checkPassword(password, storedPassword);
                         }
                     }
                 }
@@ -358,7 +358,7 @@ public class ProfilepageController extends HttpServlet {
     private boolean updatePassword(int userId, String newPassword) {
         try (Connection conn = DBConnection.getConnection()) {
             if (conn != null) {
-                String query = "UPDATE SystemUser SET Password = ? WHERE UserID = ?";
+                String query = "UPDATE SystemUser SET PasswordHash = ?, UpdatedDate = NOW() WHERE UserID = ?";
                 try (PreparedStatement stmt = conn.prepareStatement(query)) {
                     stmt.setString(1, newPassword);
                     stmt.setInt(2, userId);

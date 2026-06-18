@@ -1,4 +1,4 @@
-<%-- 
+<%--
     Document   : Recruitment
     Created on : Oct 27, 2025, 1:45:23 PM
     Author     : admin
@@ -10,249 +10,247 @@
 <%@page import="java.time.format.DateTimeFormatter"%>
 <!DOCTYPE html>
 <html lang="vi">
-    <head>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recruitment - HRMS</title>
+    <title>Tuyển dụng - BetterHR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        :root {
+            --bh-green: #006241;
+            --bh-accent: #00754A;
+            --bh-house: #1E3932;
+            --bh-canvas: #f2f0eb;
+            --bh-ceramic: #edebe9;
+            --bh-text: rgba(0, 0, 0, 0.87);
+            --bh-muted: rgba(0, 0, 0, 0.58);
+            --bh-border: rgba(0, 0, 0, 0.14);
+            --bh-gold: #cba258;
+            --bh-red: #c82014;
+        }
+
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Inter, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.6;
-            color: #333;
-            background-color: #f8f9fa;
+            color: var(--bh-text);
+            background: var(--bh-canvas);
+        }
+
+        .container {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem 0;
+            background: var(--bh-house);
+            color: #ffffff;
+            padding: 22px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.10), 0 2px 2px rgba(0,0,0,0.06), 0 0 2px rgba(0,0,0,0.07);
         }
 
         .header-content {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 1rem;
+            gap: 24px;
         }
 
-        .home-btn {
-            background: rgba(239, 247, 247, 0.95);
-            color: white;
-            padding: 0.8rem 1.5rem;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        /* Style for the actual Homepage link used on this page */
         .btn-homepage {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.8rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 600;
+            gap: 8px;
+            padding: 9px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
             text-decoration: none;
-            color: #ffffff; /* make text/icon white */
-            background: rgba(255, 255, 255, 0.18); /* subtle translucent button */
-            transition: all 0.3s ease;
-        }
-
-        .btn-homepage i {
-            color: inherit; /* keep icon same color as text */
+            font-weight: 700;
+            font-size: 14px;
+            transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+            white-space: nowrap;
         }
 
         .btn-homepage:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: #ffffff;
+            color: var(--bh-green);
             transform: translateY(-2px);
-            color: #ffffff;
             text-decoration: none;
         }
 
-        .home-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-            color: white;
-            text-decoration: none;
+        .btn-homepage:active,
+        .apply-btn:active {
+            transform: scale(0.95);
         }
 
         .header-text {
-            text-align: center;
             flex: 1;
+            text-align: center;
         }
 
         .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-            font-weight: 700;
+            font-size: 30px;
+            line-height: 1.25;
+            font-weight: 800;
+            margin-bottom: 6px;
         }
 
         .header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 15px;
         }
 
         .hero-section {
-            background: white;
-            padding: 3rem 0;
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: var(--bh-ceramic);
+            padding: 56px 0 44px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
         }
 
         .hero-content {
             text-align: center;
         }
 
+        .hero-content h2,
+        .section-title h2 {
+            color: var(--bh-green);
+            font-weight: 800;
+            letter-spacing: 0;
+        }
+
         .hero-content h2 {
-            font-size: 2rem;
-            color: #2c3e50;
-            margin-bottom: 1rem;
+            font-size: 34px;
+            margin-bottom: 12px;
+        }
+
+        .hero-content p,
+        .section-title p {
+            color: var(--bh-muted);
+            font-size: 16px;
         }
 
         .hero-content p {
-            font-size: 1.1rem;
-            color: #666;
-            max-width: 600px;
+            max-width: 700px;
             margin: 0 auto;
         }
 
         .jobs-section {
-            padding: 2rem 0;
+            padding: 56px 0;
         }
 
         .section-title {
             text-align: center;
-            margin-bottom: 3rem;
+            margin-bottom: 34px;
         }
 
         .section-title h2 {
-            font-size: 2.2rem;
-color: #2c3e50;
-            margin-bottom: 0.5rem;
-        }
-
-        .section-title p {
-            font-size: 1.1rem;
-            color: #666;
+            font-size: 32px;
+            margin-bottom: 8px;
         }
 
         .jobs-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
+            grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+            gap: 24px;
         }
 
         .job-card {
-            background: white;
+            background: #ffffff;
+            border: 1px solid var(--bh-border);
             border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: 1px solid #e9ecef;
+            padding: 28px;
+            box-shadow: 0 0 0.5px rgba(0,0,0,0.14), 0 8px 24px rgba(0,0,0,0.08);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
         }
 
         .job-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 0 0.5px rgba(0,0,0,0.14), 0 12px 30px rgba(0,0,0,0.12);
         }
 
         .job-header {
-            margin-bottom: 1.5rem;
+            margin-bottom: 18px;
         }
 
         .job-title {
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
+            color: var(--bh-text);
+            font-size: 22px;
+            line-height: 1.35;
+            font-weight: 800;
+            margin-bottom: 10px;
         }
 
-        .job-location {
-            color: #666;
-            font-size: 0.95rem;
-            margin-bottom: 0.5rem;
+        .job-location,
+        .job-date {
+            color: var(--bh-muted);
+            font-size: 14px;
+        }
+
+        .job-location i,
+        .job-date i {
+            color: rgba(0, 0, 0, 0.42);
+            margin-right: 6px;
         }
 
         .job-salary {
-            color: #27ae60;
-            font-weight: 600;
-            font-size: 1.1rem;
+            color: var(--bh-accent);
+            font-weight: 800;
+            font-size: 16px;
+            margin-top: 8px;
         }
 
         .job-applicant {
-            color: #667eea;
-            font-weight: 600;
-            font-size: 1rem;
-            margin-top: 0.5rem;
+            color: var(--bh-green);
+            font-weight: 700;
+            font-size: 15px;
+            margin-top: 8px;
         }
 
         .job-status {
-            display: inline-block;
-            padding: 0.3rem 0.8rem;
-            border-radius: 15px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-top: 0.5rem;
-        }
-
-        .status-new {
-            background-color: #28a745;
-            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 10px;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 800;
+            background: #d4e9e2;
+            color: var(--bh-green);
         }
 
         .status-waiting {
-            background-color: #ffc107;
-            color: #333;
+            background: rgba(203, 162, 88, 0.18);
+            color: #80601f;
         }
 
-        .status-applied {
-            background-color: #17a2b8;
-            color: white;
-        }
-
+        .status-deleted,
         .status-close {
-            background-color: #6c757d;
-            color: white;
-        }
-
-        .status-deleted {
-            background-color: #dc3545;
-            color: white;
+            background: rgba(200, 32, 20, 0.08);
+            color: var(--bh-red);
         }
 
         .job-description {
-            color: #666;
-            margin-bottom: 1.5rem;
-            line-height: 1.6;
+            color: var(--bh-muted);
+            margin-bottom: 18px;
         }
 
         .job-requirements {
-            margin-bottom: 1.5rem;
+            margin-bottom: 18px;
         }
 
         .job-requirements h4 {
-            color: #2c3e50;
-            margin-bottom: 0.5rem;
-            font-size: 1rem;
+            color: var(--bh-text);
+            font-size: 15px;
+            font-weight: 800;
+            margin-bottom: 8px;
         }
 
         .job-requirements ul {
@@ -261,146 +259,189 @@ color: #2c3e50;
         }
 
         .job-requirements li {
-            color: #666;
-            margin-bottom: 0.3rem;
-            padding-left: 1rem;
             position: relative;
+            padding-left: 18px;
+            margin-bottom: 6px;
+            color: var(--bh-muted);
         }
 
-        .job-requirements li:before {
+        .job-requirements li::before {
             content: "•";
-            color: #667eea;
-            font-weight: bold;
             position: absolute;
             left: 0;
+            color: var(--bh-accent);
+            font-weight: 900;
         }
 
         .job-footer {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 1.5rem;
-            padding-top: 1rem;
-            border-top: 1px solid #e9ecef;
-        }
-
-        .job-date {
-            color: #999;
-            font-size: 0.9rem;
+            gap: 16px;
+            margin-top: 22px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(0, 0, 0, 0.12);
         }
 
         .apply-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 0.7rem 1.5rem;
-            border: none;
-            border-radius: 25px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid var(--bh-accent);
+            border-radius: 50px;
+            background: var(--bh-accent);
+            color: #ffffff;
+            padding: 10px 18px;
             text-decoration: none;
-            display: inline-block;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
         }
 
         .apply-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            background: var(--bh-green);
+            box-shadow: 0 6px 18px rgba(0, 98, 65, 0.24);
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .apply-btn.disabled {
+            border-color: rgba(0, 0, 0, 0.25);
+            background: rgba(0, 0, 0, 0.42);
+            cursor: not-allowed;
+            opacity: 0.78;
         }
 
         .company-info {
-            background: white;
-            padding: 3rem 0;
-            margin-top: 3rem;
-box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: #ffffff;
+            padding: 48px 0;
+            border-top: 1px solid rgba(0, 0, 0, 0.08);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
         }
 
         .company-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 22px;
             text-align: center;
+        }
+
+        .stat-item {
+            padding: 18px;
+            border-radius: 12px;
+            background: var(--bh-canvas);
         }
 
         .stat-item h3 {
-            font-size: 2.5rem;
-            color: #667eea;
-            margin-bottom: 0.5rem;
+            color: var(--bh-green);
+            font-size: 34px;
+            line-height: 1;
+            margin-bottom: 8px;
         }
 
         .stat-item p {
-            color: #666;
-            font-weight: 500;
+            color: var(--bh-muted);
+            font-weight: 700;
         }
 
         .contact-section {
-            background: #2c3e50;
-            color: white;
-            padding: 3rem 0;
+            background: var(--bh-house);
+            color: #ffffff;
+            padding: 48px 0;
             text-align: center;
+        }
+
+        .contact-section h2 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .contact-section > .container > p {
+            color: rgba(255, 255, 255, 0.72);
         }
 
         .contact-info {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 28px;
         }
 
         .contact-item {
-            padding: 1rem;
+            padding: 20px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
 
         .contact-item i {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-            color: #667eea;
+            color: var(--bh-gold);
+            font-size: 26px;
+            margin-bottom: 10px;
+        }
+
+        .contact-item h4 {
+            margin-bottom: 4px;
+        }
+
+        .contact-item p {
+            color: rgba(255, 255, 255, 0.72);
         }
 
         .alert {
-            padding: 1rem;
-            margin: 1rem 0;
+            padding: 14px 16px;
+            margin-bottom: 22px;
             border-radius: 8px;
-            font-weight: 500;
+            font-weight: 700;
         }
 
         .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background: #d4e9e2;
+            color: var(--bh-green);
+            border: 1px solid rgba(0, 98, 65, 0.22);
         }
 
         .alert-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background: rgba(200, 32, 20, 0.08);
+            color: var(--bh-red);
+            border: 1px solid rgba(200, 32, 20, 0.22);
         }
 
         @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
+            .header-content,
+            .job-footer {
+                align-items: stretch;
+                flex-direction: column;
             }
-            
+
+            .header-text {
+                text-align: left;
+            }
+
+            .hero-content h2,
+            .section-title h2 {
+                font-size: 28px;
+            }
+
             .jobs-grid {
                 grid-template-columns: 1fr;
             }
-            
-            .job-card {
-                padding: 1.5rem;
-            }
         }
     </style>
-    </head>
-    <body>
+</head>
+<body>
     <div class="header">
         <div class="container">
             <div class="header-content">
-                <a href="${pageContext.request.contextPath}/homepage" class="btn-homepage" title="Back to Homepage">
-                            <i class="fas fa-home"></i>
-                            <span>Homepage</span>
-                        </a>
+                <a href="${pageContext.request.contextPath}/homepage" class="btn-homepage" title="Quay về trang chủ">
+                    <i class="fas fa-home"></i>
+                    <span>Trang chủ</span>
+                </a>
                 <div class="header-text">
-                    <h1><i class="fas fa-briefcase"></i> Recruitment</h1>
-                    <p>Discover amazing career opportunities with us</p>
+                    <h1><i class="fas fa-briefcase"></i> Tuyển dụng</h1>
+                    <p>Khám phá các cơ hội nghề nghiệp tại BetterHR</p>
                 </div>
             </div>
         </div>
@@ -409,8 +450,8 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     <div class="hero-section">
         <div class="container">
             <div class="hero-content">
-                <h2>🚀 Unlock Your Career Potential</h2>
-                <p>The starting point of big dreams! We are looking for outstanding talents to grow and innovate together.</p>
+                <h2>Mở ra cơ hội phát triển sự nghiệp</h2>
+                <p>Chúng tôi tìm kiếm những nhân sự giàu năng lực để cùng xây dựng môi trường làm việc chuyên nghiệp, tử tế và hiệu quả.</p>
             </div>
         </div>
     </div>
@@ -418,13 +459,13 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     <div class="jobs-section">
         <div class="container">
             <div class="section-title">
-                <h2>Career Opportunities</h2>
-                <p>Explore attractive job positions</p>
+                <h2>Cơ hội nghề nghiệp</h2>
+                <p>Các vị trí đang tuyển dụng</p>
             </div>
 
             <% if (request.getAttribute("success") != null) { %>
                 <div class="alert alert-success">
-<i class="fas fa-check-circle"></i> <%= request.getAttribute("success") %>
+                    <i class="fas fa-check-circle"></i> <%= request.getAttribute("success") %>
                 </div>
             <% } %>
 
@@ -445,7 +486,7 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                     <div class="job-header">
                         <h3 class="job-title"><%= recruitment.getTitle() %></h3>
                         <div class="job-location">
-                            <i class="fas fa-map-marker-alt"></i> <%= recruitment.getLocation() %>
+                            <i class="fas fa-map-marker-alt"></i><%= recruitment.getLocation() %>
                         </div>
                         <% if (recruitment.getSalary() != null) { %>
                         <div class="job-salary">
@@ -453,11 +494,11 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                         </div>
                         <% } %>
                         <div class="job-applicant">
-                            <i class="fas fa-users"></i> Number of vacancies: <%= recruitment.getApplicant() %> People
+                            <i class="fas fa-users"></i> Số lượng tuyển: <%= recruitment.getApplicant() %> người
                         </div>
                         <% if (recruitment.getStatus() != null && "Applied".equals(recruitment.getStatus())) { %>
                         <div class="job-status status-applied">
-                            <i class="fas fa-info-circle"></i> Available
+                            <i class="fas fa-info-circle"></i> Đang tuyển
                         </div>
                         <% } %>
                     </div>
@@ -468,15 +509,15 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 
                     <% if (recruitment.getRequirement() != null && !recruitment.getRequirement().trim().isEmpty()) { %>
                     <div class="job-requirements">
-                        <h4>Requirements:</h4>
+                        <h4>Yêu cầu:</h4>
                         <ul>
-                            <% 
+                            <%
                                 String[] requirements = recruitment.getRequirement().split("\n");
                                 for (String req : requirements) {
                                     if (!req.trim().isEmpty()) {
                             %>
                             <li><%= req.trim() %></li>
-                            <% 
+                            <%
                                     }
                                 }
                             %>
@@ -486,25 +527,23 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 
                     <div class="job-footer">
                         <div class="job-date">
-                            <i class="fas fa-calendar"></i> 
+                            <i class="fas fa-calendar"></i>
                             <% if (recruitment.getPostedDate() != null) { %>
                                 <%= recruitment.getPostedDate().format(formatter) %>
                             <% } %>
                         </div>
 
-                        <% 
-                            // Chỉ hiển thị nút Apply vì chỉ có recruitment có Status = Applied mới được hiển thị
+                        <%
                             String status = recruitment.getStatus();
                             boolean canApply = status != null && status.equals("Applied");
                         %>
                         <% if (canApply) { %>
-
-                        <a href="${pageContext.request.contextPath}/RecruitmentController?action=apply&recruitmentId=<%= recruitment.getRecruitmentId() %>" 
+                        <a href="${pageContext.request.contextPath}/RecruitmentController?action=apply&recruitmentId=<%= recruitment.getRecruitmentId() %>"
                            class="apply-btn">
-                            <i class="fas fa-paper-plane"></i> Apply Now
+                            <i class="fas fa-paper-plane"></i> Ứng tuyển ngay
                         </a>
                         <% } else { %>
-                        <span class="apply-btn" style="background: #6c757d; cursor: not-allowed; opacity: 0.7;">
+                        <span class="apply-btn disabled">
                             <i class="fas fa-lock"></i> Đã đóng
                         </span>
                         <% } %>
@@ -515,8 +554,8 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                     } else {
                 %>
                 <div class="job-card" style="grid-column: 1 / -1; text-align: center;">
-                    <h3>No job postings available at the moment</h3>
-                    <p>Please check back later for new career opportunities.</p>
+                    <h3 class="job-title">Hiện chưa có tin tuyển dụng</h3>
+                    <p class="job-description">Vui lòng quay lại sau để xem các cơ hội mới.</p>
                 </div>
                 <%
                     }
@@ -528,26 +567,26 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     <div class="company-info">
         <div class="container">
             <div class="section-title">
-                <h2>Why Choose Us?</h2>
-                <p>Professional work environment and unlimited development opportunities</p>
+                <h2>Vì sao chọn BetterHR?</h2>
+                <p>Môi trường làm việc chuyên nghiệp, rõ ràng và nhiều cơ hội phát triển</p>
             </div>
-            
+
             <div class="company-stats">
                 <div class="stat-item">
                     <h3>500+</h3>
-                    <p>Employees</p>
+                    <p>Nhân sự</p>
                 </div>
                 <div class="stat-item">
                     <h3>50+</h3>
-                    <p>Projects</p>
+                    <p>Dự án</p>
                 </div>
                 <div class="stat-item">
                     <h3>15+</h3>
-                    <p>Years Experience</p>
+                    <p>Năm kinh nghiệm</p>
                 </div>
                 <div class="stat-item">
                     <h3>98%</h3>
-                    <p>Satisfaction</p>
+                    <p>Hài lòng</p>
                 </div>
             </div>
         </div>
@@ -555,9 +594,9 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 
     <div class="contact-section">
         <div class="container">
-            <h2>🥳 Connect With Us</h2>
-            <p>We do not charge any fees to candidates during the recruitment process</p>
-            
+            <h2>Kết nối với chúng tôi</h2>
+            <p>BetterHR không thu bất kỳ khoản phí nào từ ứng viên trong quá trình tuyển dụng</p>
+
             <div class="contact-info">
                 <div class="contact-item">
                     <i class="fas fa-envelope"></i>
@@ -566,37 +605,26 @@ box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                 </div>
                 <div class="contact-item">
                     <i class="fas fa-phone"></i>
-                    <h4>Phone</h4>
+                    <h4>Điện thoại</h4>
                     <p>0818886875</p>
                 </div>
                 <div class="contact-item">
                     <i class="fas fa-map-marker-alt"></i>
-                    <h4>Address</h4>
-                    <p>Fpt Hà Nội</p>
+                    <h4>Địa chỉ</h4>
+                    <p>FPT Hà Nội</p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
-
-        // Add animation to job cards on scroll
         const observerOptions = {
             threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
         };
 
         const observer = new IntersectionObserver(function(entries) {
-entries.forEach(entry => {
+            entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.style.opacity = '1';
                     entry.target.style.transform = 'translateY(0)';
@@ -611,5 +639,5 @@ entries.forEach(entry => {
             observer.observe(card);
         });
     </script>
-    </body>
+</body>
 </html>

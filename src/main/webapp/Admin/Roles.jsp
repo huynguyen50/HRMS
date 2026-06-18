@@ -4,10 +4,13 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Role Management - HRMS</title>
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"><title>Quản lý vai trò - HRMS</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/Admin_home.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/unified-layout.css">
@@ -25,10 +28,10 @@
         .filter-controls {
             display: flex;
             justify-content: flex-start;
-            align-items: flex-end; 
+            align-items: flex-end;
             margin-bottom: 20px;
-            gap: 20px; 
-            flex-wrap: wrap; 
+            gap: 20px;
+            flex-wrap: wrap;
             padding: 15px;
             background-color: #f8f9fa;
             border: 1px solid #e9ecef;
@@ -36,9 +39,9 @@
         }
         .filter-group {
             display: flex;
-            flex-direction: column; 
+            flex-direction: column;
             align-items: flex-start;
-            gap: 5px; 
+            gap: 5px;
         }
         .filter-group input[type="text"],
         .filter-group select {
@@ -47,11 +50,11 @@
             border-radius: 4px;
             font-size: 14px;
             min-width: 150px;
-            box-sizing: border-box; 
+            box-sizing: border-box;
             height: 38px;
         }
         .filter-buttons {
-            align-self: flex-end; 
+            align-self: flex-end;
             display: flex;
             gap: 10px;
         }
@@ -62,7 +65,7 @@
             cursor: pointer;
             font-size: 14px;
             line-height: 1.2;
-            height: 38px; 
+            height: 38px;
             box-sizing: border-box;
             white-space: nowrap;
         }
@@ -85,22 +88,22 @@
         }
 
         .modal {
-            display: none; 
-            position: fixed; 
-            z-index: 1000; 
-            left: 0; top: 0; 
-            width: 100%; height: 100%; 
-            overflow: auto; 
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            overflow: auto;
             background-color: rgba(0,0,0,0.4);
             justify-content: center;
             align-items: center;
         }
         .modal-content {
-            background-color: #fefefe; 
-            margin: auto; 
-            padding: 20px; 
-            border: 1px solid #888; 
-            width: 90%; 
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%;
             max-width: 500px;
             border-radius: 8px;
         }
@@ -113,9 +116,9 @@
             margin-bottom: 20px;
         }
         .close-btn {
-            color: #aaa; 
-            font-size: 28px; 
-            font-weight: bold; 
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
             cursor: pointer;
             background: none;
             border: none;
@@ -175,72 +178,84 @@
     <script>
         const contextPath = '${pageContext.request.contextPath}';
     </script>
-</head>
-<body>
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/admin-shared-theme.css?v=20260618d">
+    </head>
+<body class="admin-page">
     <div class="dashboard-container">
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
                     <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="Logo" width="32">
-                    <span>Admin Panel</span>
+                    <span>Quản trị</span>
                 </div>
             </div>
 
             <div class="sidebar-nav">
-                <a href="${pageContext.request.contextPath}/admin?action=dashboard"
-                   class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">🏠 Dashboard</a>
-
-                <a href="${pageContext.request.contextPath}/admin?action=departments"
-                   class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
-
-                <a href="${pageContext.request.contextPath}/admin/users"
-                   class="nav-item ${activePage == 'users' ? 'active' : ''}">👤 Users</a>
-
-                <a href="${pageContext.request.contextPath}/admin?action=role-permissions"
-                   class="nav-item ${activePage == 'role-permissions' ? 'active' : ''}">🛡️ Role Permissions</a>
-
-                <a href="${pageContext.request.contextPath}/admin?action=audit-log"
-                   class="nav-item ${activePage == 'audit-log' ? 'active' : ''}">📜 Audit Log</a>
-
-                <a href="${pageContext.request.contextPath}/admin?action=profile"
-                   class="nav-item ${activePage == 'profile' ? 'active' : ''}">⚙️ Profile</a>
-            </div>
-        </aside>
+                    <a href="${pageContext.request.contextPath}/admin?action=dashboard"
+                       class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        <span>Tổng quan</span>
+                    </a>
+                    <a href="${pageContext.request.contextPath}/admin?action=departments"
+                       class="nav-item ${activePage == 'departments' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">domain</span>
+                        <span>Phòng ban</span>
+                    </a>
+                    <a href="${pageContext.request.contextPath}/admin/users"
+                       class="nav-item ${activePage == 'users' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">group</span>
+                        <span>Người dùng</span>
+                    </a>
+                    <a href="${pageContext.request.contextPath}/admin?action=role-permissions"
+                       class="nav-item ${activePage == 'role-permissions' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">admin_panel_settings</span>
+                        <span>Phân quyền</span>
+                    </a>
+                    <a href="${pageContext.request.contextPath}/admin?action=audit-log"
+                       class="nav-item ${activePage == 'audit-log' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">history</span>
+                        <span>Nhật ký hệ thống</span>
+                    </a>
+                    <a href="${pageContext.request.contextPath}/admin?action=profile"
+                       class="nav-item ${activePage == 'profile' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">person</span>
+                        <span>Hồ sơ</span>
+                    </a>
+                </div>            </aside>
 
         <main class="main-content">
             <header class="top-bar">
+                <div class="search-box">
+                    <span class="material-symbols-outlined search-icon">search</span>
+                    <input class="search-input" type="text" placeholder="Tìm kiếm...">
+                </div>
                 <div class="top-bar-actions">
                     <div class="user-menu" onclick="toggleUserMenu()">
-                        <div class="user-info">
-                            <div class="user-name-display">
-                                <img src="https://i.pravatar.cc/32" alt="User">
-                                <div class="user-name-text">
-                                    <span class="name">${currentUserName != null ? fn:escapeXml(currentUserName) : 'Admin'}</span>
-                                    <span class="role">(admin)</span>
-                                </div>
-                                <span class="dropdown-arrow">▼</span>
+                            <div class="user-info">
+                                <img src="${pageContext.request.contextPath}/Admin/images/admin-user-avatar.png" alt="Quản trị viên">
+                                <span>Admin</span>
+                                <span class="dropdown-arrow material-symbols-outlined">expand_more</span>
+                            </div>
+                            <div class="dropdown-menu" id="userDropdown">
+                                <a href="${pageContext.request.contextPath}/admin?action=profile" class="dropdown-item">
+                                    <span class="material-symbols-outlined">person</span> Hồ sơ
+                                </a>
+                                <a href="${pageContext.request.contextPath}/homepage" class="dropdown-item">
+                                    <span class="material-symbols-outlined">home</span> Trang chủ
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="${pageContext.request.contextPath}/logout" class="dropdown-item">
+                                    <span class="material-symbols-outlined">logout</span> Đăng xuất
+                                </a>
                             </div>
                         </div>
-                        <div class="dropdown-menu" id="userDropdown">
-                            <a href="${pageContext.request.contextPath}/admin?action=profile" class="dropdown-item">
-                                <span class="icon">👤</span> Profile
-                            </a>
-                            <a href="${pageContext.request.contextPath}/homepage" class="dropdown-item">
-                                <span class="icon">🏠</span> Trang chủ
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <a href="${pageContext.request.contextPath}/logout" class="dropdown-item">
-                                <span class="icon">🚪</span> Logout
-                            </a>
-                        </div>
-                    </div>
                 </div>
             </header>
 
             <section class="dashboard-content">
                 <div class="page-header">
-                    <h1 class="page-title">Role Management</h1>
-                    <button class="btn-primary" onclick="showRoleModal()">+ Add New Role</button>
+                    <h1 class="page-title">Quản lý vai trò</h1>
+                    <button class="btn-primary" onclick="showRoleModal()">+ Thêm vai trò mới</button>
                 </div>
 
                 <c:if test="${not empty errorMessage}">
@@ -254,14 +269,14 @@
                 <div class="filter-section">
                     <div class="filter-controls">
                         <div class="filter-group">
-                            <label for="searchQueryInput">Search</label>
-                            <input type="text" id="searchQueryInput" name="search" 
-                                   placeholder="Role Name or ID..." 
+                            <label for="searchQueryInput">Tìm kiếm</label>
+                            <input type="text" id="searchQueryInput" name="search"
+                                   placeholder="Tên vai trò hoặc ID..."
                                    value="${searchQuery}" class="filter-input">
                         </div>
                         <div class="filter-buttons">
-                            <button type="button" onclick="applyFilters()" class="btn-primary">Apply Filter</button>
-                            <button type="button" onclick="clearAllFilters()" class="btn-secondary">Clear All</button>
+                            <button type="button" onclick="applyFilters()" class="btn-primary">Áp dụng lọc</button>
+                            <button type="button" onclick="clearAllFilters()" class="btn-secondary">Xóa tất cả</button>
                         </div>
                     </div>
                 </div>
@@ -269,17 +284,17 @@
                     <table class="roles-table">
                         <thead>
                             <tr>
-                                <th onclick="sortTable('RoleID')">Role ID
+                                <th onclick="sortTable('RoleID')">Mã vai trò
                                     <c:if test="${sortBy == 'RoleID' || sortBy == ''}">
                                         <span class="sort-arrow">${sortOrder == 'ASC' ? '▲' : '▼'}</span>
                                     </c:if>
                                 </th>
-                                <th onclick="sortTable('RoleName')">Role Name
+                                <th onclick="sortTable('RoleName')">Tên vai trò
                                     <c:if test="${sortBy == 'RoleName'}">
                                         <span class="sort-arrow">${sortOrder == 'ASC' ? '▲' : '▼'}</span>
                                     </c:if>
                                 </th>
-                                <th>Actions</th>
+                                <th>Thao tác</th>
                             </tr>
                         </thead>
                         <tbody id="rolesTableBody">
@@ -291,10 +306,10 @@
                                             <td>${fn:escapeXml(role.roleName)}</td>
                                             <td>
                                                 <button class="btn-action edit" onclick="showRoleModal(${role.roleId}, '${fn:escapeXml(role.roleName)}')">
-                                                    <i class="fa fa-pencil"></i> Edit
+                                                    <i class="fa fa-pencil"></i> Sửa
                                                 </button>
                                                 <button class="btn-action delete" onclick="deleteRole(${role.roleId}, '${fn:escapeXml(role.roleName)}')">
-                                                    <i class="fa fa-trash"></i> Delete
+                                                    <i class="fa fa-trash"></i> Xóa
                                                 </button>
                                             </td>
                                         </tr>
@@ -302,7 +317,7 @@
                                 </c:when>
                                 <c:otherwise>
                                     <tr>
-                                        <td colspan="3" style="text-align: center;">No roles found matching the criteria.</td>
+                                        <td colspan="3" style="text-align: center;">Không tìm thấy vai trò phù hợp với điều kiện lọc.</td>
                                     </tr>
                                 </c:otherwise>
                             </c:choose>
@@ -317,17 +332,17 @@
                         <c:set var="page" value="${page != null ? page : 1}" />
                         <c:set var="pageSize" value="${pageSize != null ? pageSize : 10}" />
                         <c:set var="totalPages" value="${totalPages != null ? totalPages : 1}" />
-                        
+
                         <%-- Tính toán hiển thị --%>
                         <c:set var="start" value="${total > 0 ? (page - 1) * pageSize + 1 : 0}" />
                         <c:set var="end" value="${page * pageSize}" />
                         <c:if test="${end > total}">
                             <c:set var="end" value="${total}" />
                         </c:if>
-                        <span>Showing ${start} - ${end} of ${total}</span>
-                        
+                        <span>Hiển thị ${start} - ${end} / ${total}</span>
+
                         <div class="page-size-selector">
-                            <label for="pageSizeSelect">Items per page:</label>
+                            <label for="pageSizeSelect">Số dòng mỗi trang:</label>
                             <select id="pageSizeSelect" onchange="changePageSize(this.value)">
                                 <option value="5" <c:if test="${pageSize == 5}">selected</c:if>>5</option>
                                 <option value="10" <c:if test="${pageSize == 10}">selected</c:if>>10</option>
@@ -338,7 +353,7 @@
                     </div>
 
                     <div class="pagination-controls">
-                        
+
                         <%-- Base URL trỏ về RoleServlet endpoint LIST --%>
                         <c:url var="baseUrl" value="/admin/role/list">
                             <c:param name="pageSize" value="${pageSize}" />
@@ -352,10 +367,10 @@
                                 <c:url var="prevUrl" value="${baseUrl}">
                                     <c:param name="page" value="${page - 1}" />
                                 </c:url>
-                                <a href="${prevUrl}" class="btn-pagination">← Prev</a>
+                                <a href="${prevUrl}" class="btn-pagination">&larr; Trước</a>
                             </c:when>
                             <c:otherwise>
-                                <span class="disabled">← Prev</span>
+                                <span class="disabled">&larr; Trước</span>
                             </c:otherwise>
                         </c:choose>
 
@@ -396,10 +411,10 @@
                                 <c:url var="nextUrl" value="${baseUrl}">
                                     <c:param name="page" value="${page + 1}" />
                                 </c:url>
-                                <a href="${nextUrl}" class="btn-pagination">Next →</a>
+                                <a href="${nextUrl}" class="btn-pagination">Sau &rarr;</a>
                             </c:when>
                             <c:otherwise>
-                                <span class="disabled">Next →</span>
+                                <span class="disabled">Sau &rarr;</span>
                             </c:otherwise>
                         </c:choose>
                     </div>
@@ -411,36 +426,36 @@
     <div id="roleModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modalTitle">Add New Role</h2>
+                <h2 id="modalTitle">Thêm vai trò mới</h2>
                 <button class="close-btn" onclick="closeRoleModal()">&times;</button>
             </div>
             <form id="roleForm">
                 <input type="hidden" id="roleId" name="roleId">
                 <div class="form-group">
-                    <label for="roleName">Role Name *</label>
-                    <input type="text" id="roleName" name="roleName" required placeholder="e.g., Manager, HR, Finance">
+                    <label for="roleName">Tên vai trò *</label>
+                    <input type="text" id="roleName" name="roleName" required placeholder="Ví dụ: Quản lý, HR, Tài chính">
                 </div>
 
                 <div class="form-actions">
-                    <button type="button" class="btn-cancel" onclick="closeRoleModal()">Cancel</button>
-                    <button type="submit" class="btn-submit">Save Role</button>
+                    <button type="button" class="btn-cancel" onclick="closeRoleModal()">Hủy</button>
+                    <button type="submit" class="btn-submit">Lưu vai trò</button>
                 </div>
             </form>
         </div>
     </div>
-    
+
     <div id="deleteModal" class="modal">
         <div class="modal-content" style="max-width: 400px;">
             <div class="modal-header">
-                <h2>Confirm Deletion</h2>
+                <h2>Xác nhận xóa</h2>
                 <button class="close-btn" onclick="closeDeleteModal()">&times;</button>
             </div>
-            <p>Are you sure you want to delete the role: <strong id="deleteRoleName"></strong> (ID: <strong id="deleteRoleId"></strong>)?</p>
+            <p>Bạn có chắc muốn xóa vai trò: <strong id="deleteRoleName"></strong> (ID: <strong id="deleteRoleId"></strong>)?</p>
             <form id="deleteForm">
                 <input type="hidden" id="confirmDeleteRoleId" name="roleId">
                 <div class="form-actions">
-                    <button type="button" class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
-                    <button type="submit" class="btn-submit" style="background-color: #dc3545;">Delete</button>
+                    <button type="button" class="btn-cancel" onclick="closeDeleteModal()">Hủy</button>
+                    <button type="submit" class="btn-submit" style="background-color: #dc3545;">Xóa</button>
                 </div>
             </form>
         </div>
@@ -453,7 +468,7 @@
         // Allow Enter key to trigger search from filter input
         document.addEventListener('DOMContentLoaded', function() {
             const filterSearchInput = document.getElementById('searchQueryInput');
-            
+
             if (filterSearchInput) {
                 filterSearchInput.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') {
@@ -466,42 +481,42 @@
 
         function applyFilters() {
             const urlParams = new URLSearchParams(window.location.search);
-            
+
             const search = document.getElementById('searchQueryInput').value.trim();
-            
+
             const pageSizeSelect = document.getElementById('pageSizeSelect');
             const currentPageSize = pageSizeSelect ? pageSizeSelect.value : '10';
 
             const currentSortBy = '${sortBy}';
             const currentSortOrder = '${sortOrder}';
-            
+
             urlParams.set('page', '1');
             urlParams.set('pageSize', currentPageSize);
-            
+
             if (search !== '') {
                 urlParams.set('search', search);
             } else {
                 urlParams.delete('search');
             }
-            
+
             if (currentSortBy && currentSortOrder) {
                 urlParams.set('sortBy', currentSortBy);
                 urlParams.set('sortOrder', currentSortOrder);
             }
-            
+
             window.location.href = ROLE_LIST_URL + '?' + urlParams.toString();
         }
-        
+
         function clearAllFilters() {
             window.location.href = ROLE_LIST_URL;
         }
 
         function changePageSize(newSize) {
             const urlParams = new URLSearchParams(window.location.search);
-            
+
             urlParams.set('pageSize', newSize);
             urlParams.set('page', '1');
-            
+
             if (urlParams.get('search') === '') urlParams.delete('search');
 
             window.location.href = ROLE_LIST_URL + '?' + urlParams.toString();
@@ -516,8 +531,8 @@
             if (currentSortBy === column) {
                 newSortOrder = (currentSortOrder === 'ASC') ? 'DESC' : 'ASC';
             }
-            
-            urlParams.set('page', '1'); 
+
+            urlParams.set('page', '1');
             urlParams.set('sortBy', column);
             urlParams.set('sortOrder', newSortOrder);
 
@@ -530,14 +545,14 @@
             const modal = document.getElementById('roleModal');
             document.getElementById('roleId').value = roleId || '';
             document.getElementById('roleName').value = roleName;
-            document.getElementById('modalTitle').textContent = roleId ? 'Edit Role' : 'Add New Role';
+            document.getElementById('modalTitle').textContent = roleId ? 'Sửa vai trò' : 'Thêm vai trò mới';
             modal.style.display = 'flex';
         }
-        
+
         function closeRoleModal() {
             document.getElementById('roleModal').style.display = 'none';
         }
-        
+
         function deleteRole(roleId, roleName) {
             document.getElementById('deleteRoleId').textContent = roleId;
             document.getElementById('deleteRoleName').textContent = roleName;
@@ -564,19 +579,19 @@
 
         document.getElementById('roleForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             const roleId = document.getElementById('roleId').value;
             const roleName = document.getElementById('roleName').value;
-            
+
             if (roleName.trim() === "") {
-                alert('Role name is required.');
+                alert('Vui lòng nhập tên vai trò.');
                 return;
             }
 
             const isEdit = roleId !== '';
             const method = isEdit ? 'PUT' : 'POST';
             const url = isEdit ? (ROLE_API_URL + '/' + roleId) : ROLE_API_URL;
-            console.log('Đang gửi fetch:', method, url); 
+            console.log('Đang gửi fetch:', method, url);
 
             fetch(url, {
                 method: method,
@@ -586,37 +601,37 @@
                 body: JSON.stringify({ roleName: roleName })
             })
             .then(response => {
-                console.log('Đã nhận response từ server. Status:', response.status);
+                console.log('Đã nhận phản hồi từ server. Trạng thái:', response.status);
 
                 if (!response.ok) {
-                    console.log('Response KHÔNG OK (lỗi 4xx/5xx). Đang đọc JSON lỗi...'); 
-                    
-                    return response.json().then(err => { 
+                    console.log('Response không OK (lỗi 4xx/5xx). Đang đọc JSON lỗi...');
+
+                    return response.json().then(err => {
                         console.log('Đã đọc JSON lỗi:', err);
-                        throw new Error(err.message || response.statusText); 
+                        throw new Error(err.message || response.statusText);
                     });
                 }
-                
-                console.log('Response OK (2xx). Đang đọc JSON thành công...'); 
+
+                console.log('Response OK (2xx). Đang đọc JSON thành công...');
                 return response.json();
             })
             .then(data => {
-                console.log('Fetch thành công, data:', data); 
+                console.log('Fetch thành công, data:', data);
                 closeRoleModal();
-                
+
                 window.location.href = ROLE_LIST_URL + window.location.search;
             })
             .catch(error => {
-                console.error('--- ĐÃ VÀO KHỐI CATCH ---'); 
-                console.error('Thông báo lỗi:', error.message); 
-                alert('Error: ' + error.message);
+                console.error('--- Đã vào khối catch ---');
+                console.error('Thông báo lỗi:', error.message);
+                alert('Lỗi: ' + error.message);
             });
-            
+
         });
-        
+
         document.getElementById('deleteForm').addEventListener('submit', function(e) {
-            e.preventDefault(); 
-            
+            e.preventDefault();
+
             const roleId = document.getElementById('confirmDeleteRoleId').value;
             const url = ROLE_API_URL + '/' + roleId;
 
@@ -631,11 +646,11 @@
             })
             .then(data => {
                 closeDeleteModal();
-                alert(data.message || 'Role deleted successfully!');
-                window.location.href = ROLE_LIST_URL + window.location.search; 
+                alert(data.message || 'Đã xóa vai trò thành công!');
+                window.location.href = ROLE_LIST_URL + window.location.search;
             })
             .catch(error => {
-                alert('Error: ' + error.message);
+                alert('Lỗi: ' + error.message);
             });
         });
 

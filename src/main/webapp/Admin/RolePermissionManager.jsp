@@ -5,7 +5,10 @@
 <html lang="vi">
     <head>
         <meta charset="UTF-8">
-        <title>Permission </title>
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"><title>Phân quyền</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/Admin_home.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/user-menu.css">
         <style>
@@ -329,127 +332,234 @@
                 }
             }
         </style>
+            <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/admin-shared-theme.css?v=20260618d">
+            <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/admin-permissions.css?v=20260618c">
     </head>
-    <body>
-        <div class="permission-wrapper">
-            <div class="role-permission-header">
-                <h1>Permission Matrix</h1>
-            
-            </div>
-
-            <c:choose>
-                <c:when test="${empty roles}">
-                    <div class="empty-state">
-                        <h2>No roles available</h2>
-                        <p>Please create a role before configuring permissions.</p>
+    <body class="admin-page role-permission-page">
+        <div class="dashboard-container permission-admin-shell">
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <div class="logo">
+                        <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="BetterHR" width="32">
+                        <span>BetterHR</span>
                     </div>
-                </c:when>
-                <c:otherwise>
-                    <div class="matrix-wrapper">
-                        <div class="matrix-header">
-                            <a href="${pageContext.request.contextPath}/admin?action=dashboard" class="back-link">
-                                ⬅ Back to Admin
-                            </a>
-                            <div class="matrix-actions">
-                                <button type="button" class="matrix-action-btn" id="saveStateBtn">💾 Save State</button>
-                                <button type="button" class="matrix-action-btn" id="grantAllBtn">✅ Enable All</button>
-                                <button type="button" class="matrix-action-btn danger" id="revokeAllBtn">🚫 Disable All</button>
+                </div>
+
+                <nav class="sidebar-nav" aria-label="Điều hướng quản trị">
+                    <a href="${pageContext.request.contextPath}/admin?action=dashboard"
+                       class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        <span>Tổng quan</span>
+                    </a>
+                    <a href="${pageContext.request.contextPath}/admin?action=departments"
+                       class="nav-item ${activePage == 'departments' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">domain</span>
+                        <span>Phòng ban</span>
+                    </a>
+                    <a href="${pageContext.request.contextPath}/admin/users"
+                       class="nav-item ${activePage == 'users' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">group</span>
+                        <span>Người dùng</span>
+                    </a>
+                    <a href="${pageContext.request.contextPath}/admin?action=role-permissions"
+                       class="nav-item active">
+                        <span class="material-symbols-outlined">admin_panel_settings</span>
+                        <span>Phân quyền</span>
+                    </a>
+                    <a href="${pageContext.request.contextPath}/admin?action=audit-log"
+                       class="nav-item ${activePage == 'audit-log' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">history</span>
+                        <span>Nhật ký hệ thống</span>
+                    </a>
+                    <a href="${pageContext.request.contextPath}/admin?action=profile"
+                       class="nav-item ${activePage == 'profile' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">person</span>
+                        <span>Hồ sơ</span>
+                    </a>
+                </nav>
+            </aside>
+
+            <main class="main-content">
+                <header class="top-bar permission-topbar">
+                    <div class="search-box">
+                        <span class="material-symbols-outlined search-icon">search</span>
+                        <input class="search-input" type="text" placeholder="Tìm kiếm...">
+                    </div>
+                    <div class="top-bar-actions">
+                        <button class="icon-button" type="button" aria-label="Thông báo">
+                            <span class="material-symbols-outlined">notifications</span>
+                        </button>
+                        <a class="icon-button active" href="${pageContext.request.contextPath}/admin?action=role-permissions" aria-label="Phân quyền">
+                            <span class="material-symbols-outlined">settings</span>
+                        </a>
+                        <a class="icon-button" href="${pageContext.request.contextPath}/admin?action=profile" aria-label="Trợ giúp">
+                            <span class="material-symbols-outlined">help</span>
+                        </a>
+                        <div class="user-menu" onclick="toggleUserMenu()">
+                            <div class="user-info">
+                                <img src="${pageContext.request.contextPath}/Admin/images/admin-user-avatar.png" alt="Quản trị viên">
+                                <span>Admin</span>
+                                <span class="dropdown-arrow material-symbols-outlined">expand_more</span>
+                            </div>
+                            <div class="dropdown-menu" id="userDropdown">
+                                <a href="${pageContext.request.contextPath}/admin?action=profile" class="dropdown-item">
+                                    <span class="material-symbols-outlined">person</span> Hồ sơ
+                                </a>
+                                <a href="${pageContext.request.contextPath}/homepage" class="dropdown-item">
+                                    <span class="material-symbols-outlined">home</span> Trang chủ
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="${pageContext.request.contextPath}/logout" class="dropdown-item">
+                                    <span class="material-symbols-outlined">logout</span> Đăng xuất
+                                </a>
                             </div>
                         </div>
-                        <div class="matrix-container">
-                            <div class="matrix-scroll">
-                                <table class="permission-matrix">
-                                    <thead>
-                                        <tr>
-                                            <th class="sticky-col">
-                                                <div class="category-info">
-                                                    <span class="category-info-title">Feature Group</span>
-                                                    <span class="category-info-desc">Detailed permissions appear on each row</span>
-                                                </div>
-                                            </th>
-                                            <c:forEach var="role" items="${roles}">
-                                                <c:set var="normalizedRoleName" value="${fn:toUpperCase(role.roleName)}"/>
-                                                <c:set var="displayRoleName" value="${role.roleName}"/>
-                                                <c:if test="${normalizedRoleName eq 'HR MANAGER'}">
-                                                    <c:set var="displayRoleName" value="HR"/>
-                                                </c:if>
-                                                <c:if test="${fn:toLowerCase(role.roleName) ne 'admin'}">
-                                                    <th class="matrix-role-header"
-                                                        data-role-id="${role.roleId}"
-                                                        data-permissions="${fn:escapeXml(rolePermissionCsv[role.roleId])}">
-                                                        ${displayRoleName}
-                                                    </th>
-                                                </c:if>
-                                            </c:forEach>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <c:forEach var="entry" items="${groupedPermissions}">
-                                            <c:set var="permissionIds" value=""/>
-                                            <c:set var="categoryDesc" value=""/>
-                                            <c:set var="totalPermissions" value="0"/>
-                                            <c:forEach var="permission" items="${entry.value}" varStatus="status">
-                                                <c:set var="permissionIds"
-                                                       value="${permissionIds}${status.index > 0 ? ',' : ''}${permission.permissionId}"/>
-                                                <c:if test="${status.first}">
-                                                    <c:set var="categoryDesc"
-                                                           value="${empty permission.description ? '' : permission.description}"/>
-                                                </c:if>
-                                                <c:set var="totalPermissions" value="${status.count}"/>
-                                            </c:forEach>
-                                            <c:if test="${empty categoryDesc}">
-                                                <c:set var="categoryDesc" value="Feature ${entry.key}"/>
-                                            </c:if>
-                                            <c:if test="${entry.key ne 'Department' and entry.key ne 'Role' and entry.key ne 'System' and entry.key ne 'User'}">
-                                                <tr class="category-row" data-category="${entry.key}" data-permission-ids="${permissionIds}">
-                                                    <td class="category-info sticky-col">
-                                                        <span class="category-info-title">${entry.key}</span>
-                                                        <span class="category-info-desc">${categoryDesc}</span>
-                                                        <span class="category-info-meta">${totalPermissions} detailed permissions</span>
-                                                        <div class="category-actions">
-                                                            <button type="button"
-                                                                    class="category-btn apply-all"
-                                                                    data-category="${entry.key}"
-                                                                    data-permission-ids="${permissionIds}">
-                                                                Enable all roles
-                                                            </button>
-                                                            <button type="button"
-                                                                    class="category-btn danger remove-all"
-                                                                    data-category="${entry.key}"
-                                                                    data-permission-ids="${permissionIds}">
-                                                                Disable all roles
-                                                            </button>
+                    </div>
+                </header>
+
+                <section class="permission-wrapper">
+                    <c:choose>
+                        <c:when test="${empty roles}">
+                            <div class="empty-state">
+                                <span class="material-symbols-outlined">admin_panel_settings</span>
+                                <h2>Chưa có vai trò</h2>
+                                <p>Vui lòng tạo vai trò trước khi cấu hình phân quyền.</p>
+                            </div>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="matrix-wrapper">
+                                <div class="permission-hero">
+                                    <div class="permission-hero-copy">
+                                        <span class="permission-eyebrow">Quản trị</span>
+                                        <h1>Quản lý phân quyền</h1>
+                                        <p>Cấu hình nhóm chức năng cho từng vai trò trong hệ thống BetterHR.</p>
+                                    </div>
+                                    <div class="matrix-actions">
+                                        <a href="${pageContext.request.contextPath}/admin?action=dashboard" class="matrix-action-btn secondary back-link">
+                                            <span class="material-symbols-outlined">arrow_back</span>
+                                            Về Admin
+                                        </a>
+                                        <button type="button" class="matrix-action-btn" id="saveStateBtn">Lưu trạng thái</button>
+                                        <button type="button" class="matrix-action-btn" id="grantAllBtn">Bật tất cả</button>
+                                        <button type="button" class="matrix-action-btn danger" id="revokeAllBtn">Tắt tất cả</button>
+                                    </div>
+                                </div>
+
+                                <div class="matrix-container">
+                                    <div class="matrix-scroll">
+                                        <table class="permission-matrix">
+                                            <thead>
+                                                <tr>
+                                                    <th class="sticky-col">
+                                                        <div class="category-info matrix-head-info">
+                                                            <span class="category-info-title">Nhóm chức năng</span>
+                                                            <span class="category-info-desc">Phân quyền theo từng vai trò</span>
                                                         </div>
-                                                    </td>
+                                                    </th>
                                                     <c:forEach var="role" items="${roles}">
-                                                        <c:set var="isAdminRole" value="${fn:toLowerCase(role.roleName) eq 'admin'}"/>
-                                                        <c:if test="${not isAdminRole}">
-                                                            <td class="matrix-cell">
-                                                                <label class="matrix-toggle" aria-label="Role ${role.roleName} - ${entry.key}">
-                                                                    <input type="checkbox"
-                                                                           class="matrix-checkbox"
-                                                                           data-role-id="${role.roleId}"
-                                                                           data-permission-ids="${permissionIds}">
-                                                                    <span class="matrix-slider"></span>
-                                                                </label>
-                                                            </td>
+                                                        <c:set var="normalizedRoleName" value="${fn:toUpperCase(role.roleName)}"/>
+                                                        <c:set var="displayRoleName" value="${role.roleName}"/>
+                                                        <c:if test="${normalizedRoleName eq 'HR MANAGER'}">
+                                                            <c:set var="displayRoleName" value="HR"/>
+                                                        </c:if>
+                                                        <c:if test="${fn:toLowerCase(role.roleName) ne 'admin'}">
+                                                            <th class="matrix-role-header"
+                                                                data-role-id="${role.roleId}"
+                                                                data-permissions="${fn:escapeXml(rolePermissionCsv[role.roleId])}">
+                                                                ${displayRoleName}
+                                                            </th>
                                                         </c:if>
                                                     </c:forEach>
+                                                    <th class="row-actions-header">Thao tác</th>
                                                 </tr>
-                                            </c:if>
-                                        </c:forEach>
-                                    </tbody>
-                                </table>
+                                            </thead>
+                                            <tbody>
+                                                <c:forEach var="entry" items="${groupedPermissions}">
+                                                    <c:set var="permissionIds" value=""/>
+                                                    <c:set var="categoryDesc" value=""/>
+                                                    <c:set var="totalPermissions" value="0"/>
+                                                    <c:forEach var="permission" items="${entry.value}" varStatus="status">
+                                                        <c:set var="permissionIds"
+                                                               value="${permissionIds}${status.index > 0 ? ',' : ''}${permission.permissionId}"/>
+                                                        <c:if test="${status.first}">
+                                                            <c:set var="categoryDesc"
+                                                                   value="${empty permission.description ? '' : permission.description}"/>
+                                                        </c:if>
+                                                        <c:set var="totalPermissions" value="${status.count}"/>
+                                                    </c:forEach>
+                                                    <c:if test="${empty categoryDesc}">
+                                                        <c:set var="categoryDesc" value="Feature ${entry.key}"/>
+                                                    </c:if>
+                                                    <c:if test="${entry.key ne 'Department' and entry.key ne 'Role' and entry.key ne 'System' and entry.key ne 'User'}">
+                                                        <tr class="category-row" data-category="${entry.key}" data-permission-ids="${permissionIds}">
+                                                            <td class="category-info sticky-col">
+                                                                <span class="category-info-title">${entry.key}</span>
+                                                                <span class="category-info-desc">${categoryDesc}</span>
+                                                                <span class="category-info-meta">${totalPermissions} quyền chi tiết</span>
+                                                            </td>
+                                                            <c:forEach var="role" items="${roles}">
+                                                                <c:set var="isAdminRole" value="${fn:toLowerCase(role.roleName) eq 'admin'}"/>
+                                                                <c:if test="${not isAdminRole}">
+                                                                    <td class="matrix-cell">
+                                                                        <label class="matrix-toggle" aria-label="Vai trò ${role.roleName} - ${entry.key}">
+                                                                            <input type="checkbox"
+                                                                                   class="matrix-checkbox"
+                                                                                   data-role-id="${role.roleId}"
+                                                                                   data-permission-ids="${permissionIds}">
+                                                                            <span class="matrix-slider"></span>
+                                                                        </label>
+                                                                    </td>
+                                                                </c:if>
+                                                            </c:forEach>
+                                                            <td class="row-actions-cell">
+                                                                <div class="category-actions">
+                                                                    <button type="button"
+                                                                            class="category-btn apply-all"
+                                                                            data-category="${entry.key}"
+                                                                            data-permission-ids="${permissionIds}">
+                                                                        Bật
+                                                                    </button>
+                                                                    <button type="button"
+                                                                            class="category-btn danger remove-all"
+                                                                            data-category="${entry.key}"
+                                                                            data-permission-ids="${permissionIds}">
+                                                                        Tắt
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </c:if>
+                                                </c:forEach>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                </c:otherwise>
-            </c:choose>
+                        </c:otherwise>
+                    </c:choose>
+                </section>
+            </main>
         </div>
 
         <div class="toast-container" id="toastContainer"></div>
 
         <script>
+            function toggleUserMenu() {
+                const userMenu = document.querySelector('.user-menu');
+                if (userMenu) {
+                    userMenu.classList.toggle('active');
+                }
+            }
+
+            document.addEventListener('click', function (event) {
+                if (!event.target.closest('.user-menu')) {
+                    const userMenu = document.querySelector('.user-menu');
+                    if (userMenu && userMenu.classList.contains('active')) {
+                        userMenu.classList.remove('active');
+                    }
+                }
+            });
+
             (function () {
                 const contextPath = '${pageContext.request.contextPath}';
                 const toastContainer = document.getElementById('toastContainer');
@@ -495,7 +605,7 @@
                 function showToast(message, type = 'info') {
                 const displayMessage = (message && String(message).trim().length > 0)
                         ? message
-                        : (type === 'error' ? 'An unexpected error occurred. Please try again.' : 'Action completed successfully.');
+                        : (type === 'error' ? 'Có lỗi xảy ra. Vui lòng thử lại.' : 'Thao tác đã hoàn tất.');
                     if (!toastContainer) {
                         return;
                     }
@@ -508,7 +618,7 @@
 
                 const closeBtn = document.createElement('button');
                 closeBtn.type = 'button';
-                closeBtn.setAttribute('aria-label', 'Close notification');
+                closeBtn.setAttribute('aria-label', 'Đóng thông báo');
                 closeBtn.innerHTML = '&times;';
                 closeBtn.addEventListener('click', () => toast.remove());
 
@@ -552,7 +662,7 @@
                         });
                         const data = await response.json();
                         if (!response.ok || data.status !== 'success') {
-                            throw new Error(data.message || 'Update failed.');
+                            throw new Error(data.message || 'Cập nhật thất bại.');
                         }
                         let set = roleAssignments.get(roleId);
                         if (!set) {
@@ -569,12 +679,12 @@
                         updateRoleHeader(roleId);
                         syncMatrix();
                         if (!silentSuccess) {
-                            showToast(data.message || 'Updated successfully.', 'success');
+                            showToast(data.message || 'Cập nhật thành công.', 'success');
                         }
                         return true;
                     } catch (error) {
                         checkbox.checked = !granted;
-                            showToast(error.message || 'Permission update failed.', 'error');
+                            showToast(error.message || 'Cập nhật phân quyền thất bại.', 'error');
                         return false;
                     } finally {
                         if (cell) {
@@ -588,7 +698,7 @@
                     const ids = parseIds(permissionIdsAttr);
                     if (ids.length === 0) {
                         if (!silent) {
-                            showToast('No detailed permissions found for this group.', 'error');
+                            showToast('Không tìm thấy quyền chi tiết cho nhóm này.', 'error');
                         }
                         return { updated: 0, total: 0 };
                     }
@@ -628,9 +738,9 @@
 
                     if (!silent) {
                         if (updatedCount === 0) {
-                            showToast(granted ? 'All roles were already enabled.' : 'All roles were already disabled.', 'info');
+                            showToast(granted ? 'Tất cả vai trò đã được bật.' : 'Tất cả vai trò đã được tắt.', 'info');
                         } else {
-                        showToast(granted ? 'Enabled this group for all roles.' : 'Disabled this group for all roles.', granted ? 'success' : 'warning');
+                        showToast(granted ? 'Đã bật nhóm này cho tất cả vai trò.' : 'Đã tắt nhóm này cho tất cả vai trò.', granted ? 'success' : 'warning');
                         }
                     }
 
@@ -646,9 +756,9 @@
                     }
                     syncMatrix();
                     if (totalUpdated === 0) {
-                        showToast(granted ? 'All permissions were already enabled.' : 'All permissions were already disabled.', 'info');
+                        showToast(granted ? 'Tất cả quyền đã được bật.' : 'Tất cả quyền đã được tắt.', 'info');
                     } else {
-                        showToast(granted ? 'Enabled every permission for all roles.' : 'Disabled every permission for all roles.', granted ? 'success' : 'warning');
+                        showToast(granted ? 'Đã bật toàn bộ quyền cho tất cả vai trò.' : 'Đã tắt toàn bộ quyền cho tất cả vai trò.', granted ? 'success' : 'warning');
                     }
                 }
 
@@ -656,14 +766,14 @@
                     saveStateBtn.addEventListener('click', () => {
                         const totalGranted = Array.from(roleAssignments.values())
                                 .reduce((sum, set) => sum + set.size, 0);
-                        showToast(`Current state saved (${totalGranted} active permissions).`, 'success');
+                        showToast(`Đã lưu trạng thái hiện tại (${totalGranted} quyền đang bật).`, 'success');
                     });
                 }
 
                 categoryApplyButtons.forEach(btn => {
                     btn.addEventListener('click', async () => {
                         if (lockChange) {
-                            showToast('Another action is in progress. Please wait.', 'info');
+                            showToast('Đang xử lý thao tác khác. Vui lòng chờ.', 'info');
                             return;
                         }
                         await toggleRowForAllRoles(btn.dataset.permissionIds || '', true, { sourceButton: btn });
@@ -673,7 +783,7 @@
                 categoryRemoveButtons.forEach(btn => {
                     btn.addEventListener('click', async () => {
                         if (lockChange) {
-                            showToast('Another action is in progress. Please wait.', 'info');
+                            showToast('Đang xử lý thao tác khác. Vui lòng chờ.', 'info');
                             return;
                         }
                         await toggleRowForAllRoles(btn.dataset.permissionIds || '', false, { sourceButton: btn });
@@ -683,7 +793,7 @@
                 if (grantAllBtn) {
                     grantAllBtn.addEventListener('click', async () => {
                         if (lockChange) {
-                            showToast('Another action is in progress. Please wait.', 'info');
+                            showToast('Đang xử lý thao tác khác. Vui lòng chờ.', 'info');
                             return;
                         }
                         grantAllBtn.disabled = true;
@@ -704,7 +814,7 @@
                 if (revokeAllBtn) {
                     revokeAllBtn.addEventListener('click', async () => {
                         if (lockChange) {
-                            showToast('Another action is in progress. Please wait.', 'info');
+                            showToast('Đang xử lý thao tác khác. Vui lòng chờ.', 'info');
                             return;
                         }
                         revokeAllBtn.disabled = true;
@@ -733,7 +843,7 @@
                         const roleId = parseInt(cb.dataset.roleId, 10);
                         const permissionIds = parseIds(cb.dataset.permissionIds);
                         if (!roleId || permissionIds.length === 0) {
-                            showToast('Unable to determine which permissions to update.', 'error');
+                            showToast('Không xác định được quyền cần cập nhật.', 'error');
                             cb.checked = !cb.checked;
                             return;
                         }
@@ -746,4 +856,3 @@
         </script>
     </body>
 </html>
-

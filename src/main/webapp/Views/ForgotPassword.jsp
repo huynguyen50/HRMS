@@ -1,164 +1,222 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
-<html>
+<html lang="vi">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>HRM - Forgot Password</title>
-        
-        <!-- Google Fonts -->
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-        <!-- Font Awesome -->
+        <title>BetterHR - Quên mật khẩu</title>
+        <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
         <style>
-            /* --- GENERAL STYLES --- */
+            :root {
+                --canvas-warm: #f2f0eb;
+                --surface-white: #ffffff;
+                --surface-low: #f7f5f0;
+                --primary: #006241;
+                --primary-dark: #1E3932;
+                --cta: #00754A;
+                --outline: #d4d0c8;
+                --text-primary: rgba(0, 0, 0, 0.87);
+                --text-secondary: rgba(0, 0, 0, 0.58);
+                --error: #c82014;
+                --error-bg: #fff3f1;
+                --radius-card: 12px;
+                --radius-pill: 999px;
+                --shadow-card: 0 18px 44px rgba(30, 57, 50, 0.12);
+            }
+
             * {
                 margin: 0;
                 padding: 0;
                 box-sizing: border-box;
             }
 
+            html {
+                min-height: 100%;
+                background: var(--canvas-warm);
+            }
+
             body {
-                font-family: 'Poppins', sans-serif;
-                background: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%);
+                font-family: "Hanken Grotesk", "Helvetica Neue", Arial, sans-serif;
+                color: var(--text-primary);
+                background:
+                    radial-gradient(circle at 12% 12%, rgba(0, 117, 74, 0.08), transparent 32%),
+                    var(--canvas-warm);
                 min-height: 100vh;
                 display: flex;
                 justify-content: center;
                 align-items: center;
+                padding: 32px 20px;
+                -webkit-font-smoothing: antialiased;
+                letter-spacing: 0;
             }
 
-            /* --- LOGIN CONTAINER (Sử dụng lại cho form Forgot) --- */
             .login-container {
-                background-color: #ffffff;
-                padding: 50px 40px;
-                border-radius: 20px;
-                box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+                background: var(--surface-white);
+                padding: 42px 40px 44px;
+                border: 1px solid rgba(30, 57, 50, 0.10);
+                border-radius: var(--radius-card);
+                box-shadow: var(--shadow-card);
                 width: 100%;
-                max-width: 420px;
+                max-width: 430px;
                 text-align: center;
-                transition: transform 0.3s ease;
-            }
-            .login-container:hover {
-                transform: translateY(-5px);
             }
 
             .login-header {
-                margin-bottom: 30px;
-            }
-            .login-header h1 {
-                color: #2563eb;
-                font-size: 2.5rem;
-                font-weight: 700;
-                margin-bottom: 10px;
-            }
-            .login-header p {
-                color: #6c757d;
-                font-size: 0.95rem;
+                margin-bottom: 28px;
             }
 
-            /* --- STYLE CHO NÚT "BACK" --- */
+            .login-header h1 {
+                color: var(--primary);
+                font-size: clamp(2rem, 5vw, 2.5rem);
+                line-height: 1.15;
+                font-weight: 800;
+                margin: 18px 0 12px;
+                letter-spacing: 0;
+            }
+
+            .login-header p {
+                color: var(--text-secondary);
+                font-size: 1rem;
+                line-height: 1.5;
+            }
+
             .back-link {
                 display: inline-flex;
                 align-items: center;
-                justify-content: flex-start; /* Căn lề trái */
+                justify-content: flex-start;
+                gap: 8px;
                 width: 100%;
-                color: #6c757d;
+                color: var(--text-secondary);
                 text-decoration: none;
-                font-size: 0.9rem;
-                margin-bottom: 20px;
-                transition: color 0.3s;
+                font-size: 0.95rem;
+                font-weight: 600;
+                transition: color 0.2s ease;
             }
+
             .back-link:hover {
-                color: #2563eb;
+                color: var(--primary);
                 text-decoration: none;
             }
 
-
-            /* --- FORM STYLES --- */
             .login-form {
                 text-align: left;
             }
+
             .input-group {
                 position: relative;
-                margin-bottom: 25px;
+                margin-bottom: 18px;
             }
+
             .input-group i {
                 position: absolute;
-                left: 15px;
+                left: 18px;
                 top: 50%;
                 transform: translateY(-50%);
-                color: #adb5bd;
-                font-size: 1.1rem;
-                transition: color 0.3s;
+                color: var(--text-secondary);
+                font-size: 1rem;
+                pointer-events: none;
+                transition: color 0.2s ease;
             }
+
             .login-form .form-control {
                 width: 100%;
-                padding: 12px 15px 12px 45px;
-                border: 2px solid #e9ecef;
-                border-radius: 10px;
+                min-height: 54px;
+                padding: 14px 16px 14px 50px;
+                border: 1px solid var(--outline);
+                border-radius: 8px;
                 font-size: 1rem;
-                background-color: #f8f9fa;
-                transition: all 0.3s ease;
-            }
-            .login-form .form-control:focus {
-                border-color: #2563eb;
-                box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
-                background-color: #fff;
-            }
-            .login-form .form-control:focus + i {
-                color: #2563eb;
+                color: var(--text-primary);
+                background: var(--surface-white);
+                outline: none;
+                transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
             }
 
-            /* --- BUTTONS --- */
+            .login-form .form-control::placeholder {
+                color: rgba(0, 0, 0, 0.42);
+            }
+
+            .login-form .form-control:focus {
+                border-color: var(--primary);
+                box-shadow: 0 0 0 4px rgba(0, 98, 65, 0.12);
+                background: #ffffff;
+            }
+
+            .login-form .form-control:focus + i {
+                color: var(--primary);
+            }
+
             .btn-login {
                 width: 100%;
-                background-color: #2563eb;
+                background: var(--cta);
                 color: #ffffff;
-                font-size: 1.1rem;
-                font-weight: 600;
+                font-size: 1rem;
+                font-weight: 800;
                 border: none;
-                border-radius: 10px;
-                padding: 12px;
+                border-radius: var(--radius-pill);
+                min-height: 54px;
+                padding: 14px 18px;
                 cursor: pointer;
-                transition: all 0.3s ease;
-                margin-bottom: 20px;
-            }
-            .btn-login:hover {
-                background-color: #1d4ed8;
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
+                transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+                margin-top: 8px;
             }
 
-            /* --- ERROR MESSAGE --- */
+            .btn-login:hover {
+                background: var(--primary);
+                box-shadow: 0 10px 24px rgba(0, 117, 74, 0.22);
+                transform: translateY(-1px);
+            }
+
+            .btn-login:active {
+                transform: scale(0.98);
+            }
+
             .error-message {
-                background-color: #f8d7da;
-                color: #721c24;
-                border: 1px solid #f5c6cb;
-                padding: 12px;
+                background: var(--error-bg);
+                color: var(--error);
+                border: 1px solid rgba(200, 32, 20, 0.24);
+                padding: 12px 14px;
                 border-radius: 8px;
-                font-size: 0.9rem;
-                margin-bottom: 20px;
+                font-size: 0.95rem;
+                font-weight: 700;
+                line-height: 1.4;
+                margin: 0 0 18px;
                 display: flex;
                 align-items: center;
                 gap: 10px;
+            }
+
+            @media (max-width: 520px) {
+                body {
+                    align-items: flex-start;
+                    padding-top: 28px;
+                }
+
+                .login-container {
+                    padding: 32px 24px 34px;
+                }
+
+                .login-header h1 {
+                    font-size: 2rem;
+                }
             }
         </style>
     </head>
     <body>
         <div class="login-container">
             <div class="login-header">
-                <a href="Login.jsp" class="back-link">
-                    <i class="fas fa-arrow-left"></i> Back to Login
+                <a href="${pageContext.request.contextPath}/login" class="back-link">
+                    <i class="fas fa-arrow-left"></i> Quay lại đăng nhập
                 </a>
-                <h1>Find Your Account</h1>
-                <p>Please enter your email to find your account</p>
+                <h1>Quên mật khẩu</h1>
+                <p>Nhập email tài khoản để nhận mã khôi phục.</p>
             </div>
 
             <form class="login-form" action="${pageContext.request.contextPath}/ForgotPassword" method="post">
                 <div class="input-group">
-                    <input type="email" name="email" value="" class="form-control" placeholder="Enter your email" required="" autofocus="">
+                    <input type="email" name="email" value="" class="form-control" placeholder="Email của bạn" required="" autofocus="">
                     <i class="fas fa-envelope"></i>
                 </div>
                 
@@ -169,7 +227,7 @@
                     </div>
                 </c:if>
 
-                <button type="submit" class="btn-login">Find Account</button>
+                <button type="submit" class="btn-login">Tiếp tục</button>
             </form>
         </div>
     </body>

@@ -14,7 +14,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Payroll Approval - HR Manager</title>
+        <title>Duyệt bảng lương - BetterHR</title>
         <link rel="stylesheet" href="<%=request.getContextPath()%>/css/style.css"/>
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -853,6 +853,8 @@
                 }
             }
         </style>
+        <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="<%=request.getContextPath()%>/css/hr-theme.css">
     </head>
     <body>
         <div class="hr-dashboard-container">
@@ -861,25 +863,25 @@
                 <div class="header-content">
                     <div class="logo-section">
                         <i class="fas fa-money-bill-wave"></i>
-                        <h1>Payroll Approval Management</h1>
+                        <h1>Duyệt bảng lương</h1>
                     </div>
                     <div class="header-actions">
                         <div class="search-box">
                             <i class="fas fa-search"></i>
-                            <input type="text" placeholder="Search payrolls...">
+                            <input type="text" placeholder="Tìm bảng lương...">
                         </div>
                         <div class="notification-bell">
                             <i class="fas fa-bell"></i>
                             <span class="notification-count">3</span>
                         </div>
                         <div class="user-profile">
-                            <img src="https://i.pravatar.cc/40" alt="HR User">
-                            <span>HR Manager</span>
+                            <img src="https://i.pravatar.cc/40" alt="Người dùng HR">
+                            <span>Quản lý HR</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
-                        <a href="${pageContext.request.contextPath}/homepage" class="btn-homepage" title="Back to Homepage">
+                        <a href="${pageContext.request.contextPath}/homepage" class="btn-homepage" title="Về trang chủ">
                             <i class="fas fa-home"></i>
-                            <span>Homepage</span>
+                            <span>Trang chủ</span>
                         </a>
                     </div>
                 </div>
@@ -909,11 +911,11 @@
                             <h3>Salary & Contracts</h3>
                             <a href="${pageContext.request.contextPath}/hr/payroll-approval" class="nav-item active">
                                 <i class="fas fa-money-bill-wave"></i>
-                                <span>Payroll Approval</span>
+                                <span>Duyệt bảng lương</span>
                             </a>
                             <a href="${pageContext.request.contextPath}/hr/approve-reject-contracts" class="nav-item">
                                 <i class="fas fa-file-contract"></i>
-                                <span>Pending Contracts Approval</span>
+                                <span>Duyệt hợp đồng</span>
                             </a>
                         </div>
                         
@@ -921,7 +923,7 @@
                             <h3>Recruitment</h3>
                             <a href="${pageContext.request.contextPath}/viewRecruitment" class="nav-item">
                                 <i class="fas fa-bullhorn"></i>
-                                <span>View Recruitment</span>
+                                <span>Tin tuyển dụng</span>
                             </a>
                             <a href="${pageContext.request.contextPath}/candidates" class="nav-item">
                                 <i class="fas fa-users"></i>
@@ -929,11 +931,11 @@
                             </a>
                             <a href="${pageContext.request.contextPath}/hr/create-employee" class="nav-item">
                                 <i class="fas fa-user-plus"></i>
-                                <span>Create Employee</span>
+                                <span>Tạo nhân viên</span>
                             </a>
                             <a href="${pageContext.request.contextPath}/hr/employee-list" class="nav-item">
                                 <i class="fas fa-list"></i>
-                                <span>Employee List</span>
+                                <span>Danh sách nhân viên</span>
                             </a>
                             <a href="${pageContext.request.contextPath}/Views/hr/HrHome.jsp#recruitment-system" class="nav-item">
                                 <i class="fas fa-clipboard-list"></i>
@@ -955,7 +957,7 @@
                 <div class="hr-content-area">
                     <!-- Page Title -->
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h1 class="h2">Payroll Approval Management</h1>
+                        <h1 class="h2">Duyệt bảng lương</h1>
                     </div>
 
                     <%-- Display success/error messages --%>
@@ -1025,12 +1027,12 @@
                             </a>
                             <a class="status-tab-btn ${statusFilter == 'Approved' ? 'active' : ''}" href="${approvedUrl}">
                                 <i class="fas fa-check-circle"></i>
-                                Approved
+                                Đã duyệt
                                 <span class="badge bg-success">${approvedCount}</span>
                             </a>
                             <a class="status-tab-btn ${statusFilter == 'Rejected' ? 'active' : ''}" href="${rejectedUrl}">
                                 <i class="fas fa-times-circle"></i>
-                                Rejected
+                                Từ chối
                                 <span class="badge bg-danger">${rejectedCount}</span>
                             </a>
                             <a class="status-tab-btn ${statusFilter == 'Paid' ? 'active' : ''}" href="${paidUrl}">
@@ -1065,7 +1067,7 @@
                                         </c:if>
                                     </c:url>
                                     <a class="btn btn-clear btn-small" href="${clearFiltersUrl}">
-                                        <i class="fas fa-times"></i> Clear Filters
+                                        <i class="fas fa-times"></i> Xóa bộ lọc
                                     </a>
                                 </c:if>
                             </div>
@@ -1075,9 +1077,9 @@
                                 <input type="hidden" name="pageSize" id="pageSizeField" value="${pageSize}"/>
                                 <div class="filters">
                                     <div class="form-group">
-                                        <label><i class="fas fa-user"></i> Employee</label>
+                                        <label><i class="fas fa-user"></i> Nhân viên</label>
                                         <select name="employeeFilter" id="employeeFilter">
-                                            <option value="">All Employees</option>
+                                            <option value="">Tất cả nhân viên</option>
                                             <c:forEach var="employee" items="${employees}">
                                                 <option value="${employee.employeeId}" 
                                                         ${employeeFilter == employee.employeeId.toString() ? 'selected' : ''}>
@@ -1087,14 +1089,14 @@
                                         </select>
                                     </div>
                                     <div class="form-group">
-                                        <label><i class="fas fa-calendar-alt"></i> Pay Period</label>
+                                        <label><i class="fas fa-calendar-alt"></i> Kỳ lương</label>
                                         <input type="month" name="payPeriod" id="payPeriod" value="${payPeriodFilter}"/>
                                     </div>
                                     <div class="form-group filter-actions">
                                         <label>&nbsp;</label>
                                         <div style="display: flex; gap: 8px;">
                                             <button type="submit" class="btn">
-                                                <i class="fas fa-search"></i> Apply
+                                                <i class="fas fa-search"></i> Áp dụng
                                             </button>
                                             <c:if test="${not empty employeeFilter || not empty payPeriodFilter}">
                                                 <c:url var="resetFiltersUrl" value="/hr/payroll-approval">
@@ -1103,7 +1105,7 @@
                                                     </c:if>
                                                 </c:url>
                                                 <a class="btn btn-secondary btn-small" href="${resetFiltersUrl}">
-                                                    <i class="fas fa-redo"></i> Clear
+                                                    <i class="fas fa-redo"></i> Xóa
                                                 </a>
                                             </c:if>
                                         </div>
@@ -1114,15 +1116,15 @@
 
                         <!-- Batch Actions Bar -->
                         <div id="batchActionsBar" style="display: none;">
-                            <span id="selectedCount" style="font-weight:600; color:#0369a1;">0 selected</span>
+                            <span id="selectedCount" style="font-weight:600; color:#0369a1;">0 mục đã chọn</span>
                             <button type="button" class="btn btn-small btn-success" onclick="approveSelectedPayrolls()" id="batchApproveBtn" style="display:none;">
-                                <i class="fas fa-check"></i> Approve Selected
+                                <i class="fas fa-check"></i> Duyệt mục đã chọn
                             </button>
                             <button type="button" class="btn btn-small btn-danger" onclick="rejectSelectedPayrolls()" id="batchRejectBtn" style="display:none;">
-                                <i class="fas fa-times"></i> Reject Selected
+                                <i class="fas fa-times"></i> Từ chối mục đã chọn
                             </button>
                             <button type="button" class="btn btn-small" onclick="clearSelection()" style="background:#6b7280; color:white;">
-                                <i class="fas fa-times"></i> Clear Selection
+                                <i class="fas fa-times"></i> Bỏ chọn
                             </button>
                         </div>
 
@@ -1132,17 +1134,17 @@
                                 <thead>
                                     <tr>
                                         <th style="width:40px; text-align:center;">
-                                            <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" title="Select All">
+                                            <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" title="Chọn tất cả">
                                         </th>
-                                        <th><i class="fas fa-user"></i> Employee</th>
-                                        <th><i class="fas fa-calendar"></i> Pay Period</th>
-                                        <th><i class="fas fa-money-bill"></i> Base Salary</th>
-                                        <th><i class="fas fa-plus-circle"></i> Allowance</th>
-                                        <th><i class="fas fa-gift"></i> Bonus</th>
-                                        <th><i class="fas fa-minus-circle"></i> Deduction</th>
-                                        <th><i class="fas fa-wallet"></i> Net Salary</th>
-                                        <th><i class="fas fa-info-circle"></i> Status</th>
-                                        <th><i class="fas fa-cog"></i> Actions</th>
+                                        <th><i class="fas fa-user"></i> Nhân viên</th>
+                                        <th><i class="fas fa-calendar"></i> Kỳ lương</th>
+                                        <th><i class="fas fa-money-bill"></i> Lương cơ bản</th>
+                                        <th><i class="fas fa-plus-circle"></i> Phụ cấp</th>
+                                        <th><i class="fas fa-gift"></i> Thưởng</th>
+                                        <th><i class="fas fa-minus-circle"></i> Khấu trừ</th>
+                                        <th><i class="fas fa-wallet"></i> Thực nhận</th>
+                                        <th><i class="fas fa-info-circle"></i> Trạng thái</th>
+                                        <th><i class="fas fa-cog"></i> Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1152,8 +1154,8 @@
                                                 <td colspan="10">
                                                     <div class="empty-state">
                                                         <i class="fas fa-inbox"></i>
-                                                        <h3>No Payrolls Found</h3>
-                                                        <p>There are no payrolls matching your current filters.</p>
+                                                        <h3>Không tìm thấy bảng lương</h3>
+                                                        <p>Không có bảng lương phù hợp với bộ lọc hiện tại.</p>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -1198,19 +1200,19 @@
                                                     <td>
                                                         <c:choose>
                                                             <c:when test="${payroll.status == 'Pending'}">
-                                                                <span class="status-badge status-Pending">Pending</span>
+                                                                <span class="status-badge status-Pending">Chờ duyệt</span>
                                                             </c:when>
                                                             <c:when test="${payroll.status == 'Approved'}">
-                                                                <span class="status-badge status-Approved">Approved</span>
+                                                                <span class="status-badge status-Approved">Đã duyệt</span>
                                                             </c:when>
                                                             <c:when test="${payroll.status == 'Rejected'}">
-                                                                <span class="status-badge status-Rejected">Rejected</span>
+                                                                <span class="status-badge status-Rejected">Từ chối</span>
                                                             </c:when>
                                                             <c:when test="${payroll.status == 'Draft'}">
-                                                                <span class="status-badge status-Draft">Draft</span>
+                                                                <span class="status-badge status-Draft">Nháp</span>
                                                             </c:when>
                                                             <c:when test="${payroll.status == 'Paid'}">
-                                                                <span class="status-badge status-Paid">Paid</span>
+                                                                <span class="status-badge status-Paid">Đã chi trả</span>
                                                             </c:when>
                                                             <c:otherwise>
                                                                 <span class="status-badge status-Draft">${payroll.status}</span>
@@ -1230,19 +1232,19 @@
                                                                     data-net-salary="${payroll.netSalary}"
                                                                     data-status="${payroll.status}"
                                                                     data-approved-date="${payroll.approvedDate}"
-                                                                    title="View Details">
-                                                                <i class="fas fa-eye"></i> View
+                                                                    title="Xem chi tiết">
+                                                                <i class="fas fa-eye"></i> Xem
                                                             </button>
                                                             <c:if test="${payroll.status == 'Pending'}">
                                                                 <button class="btn btn-small btn-success approve-payroll-btn" 
                                                                         data-payroll-id="${payroll.payrollId}"
-                                                                        title="Approve Payroll">
-                                                                    <i class="fas fa-check"></i> Approve
+                                                                        title="Duyệt bảng lương">
+                                                                    <i class="fas fa-check"></i> Duyệt
                                                                 </button>
                                                                 <button class="btn btn-small btn-danger reject-payroll-btn" 
                                                                         data-payroll-id="${payroll.payrollId}"
-                                                                        title="Reject Payroll">
-                                                                    <i class="fas fa-times"></i> Reject
+                                                                        title="Từ chối bảng lương">
+                                                                    <i class="fas fa-times"></i> Từ chối
                                                                 </button>
                                                             </c:if>
                                                         </div>
@@ -1268,9 +1270,9 @@
                             </c:if>
 
                             <div class="pagination-info">
-                                <span>Showing ${start} - ${end} of ${total} payrolls</span>
+                                <span>Hiển thị ${start} - ${end} trên ${total} bảng lương</span>
                                 <div class="page-size-selector">
-                                    <label for="pageSizeSelect">Items per page:</label>
+                                    <label for="pageSizeSelect">Số dòng mỗi trang:</label>
                                     <select id="pageSizeSelect" onchange="changePayrollPageSize(this.value)">
                                         <option value="5" <c:if test="${size == 5}">selected</c:if>>5</option>
                                         <option value="10" <c:if test="${size == 10}">selected</c:if>>10</option>
@@ -1296,10 +1298,10 @@
                                                 <c:param name="payPeriod" value="${payPeriodFilter}" />
                                             </c:if>
                                         </c:url>
-                                        <a href="${prevUrl}" class="btn-pagination">← Prev</a>
+                                        <a href="${prevUrl}" class="btn-pagination">← Trước</a>
                                     </c:when>
                                     <c:otherwise>
-                                        <span class="disabled">← Prev</span>
+                                        <span class="disabled">← Trước</span>
                                     </c:otherwise>
                                 </c:choose>
 
@@ -1386,10 +1388,10 @@
                                                 <c:param name="payPeriod" value="${payPeriodFilter}" />
                                             </c:if>
                                         </c:url>
-                                        <a href="${nextUrl}" class="btn-pagination">Next →</a>
+                                        <a href="${nextUrl}" class="btn-pagination">Sau →</a>
                                     </c:when>
                                     <c:otherwise>
-                                        <span class="disabled">Next →</span>
+                                        <span class="disabled">Sau →</span>
                                     </c:otherwise>
                                 </c:choose>
                             </div>
@@ -1403,8 +1405,8 @@
         <div id="payrollDetailModal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3><i class="fas fa-file-invoice-dollar"></i> Payroll Details</h3>
-                    <button class="close-btn" onclick="closePayrollModal()" title="Close">&times;</button>
+                    <h3><i class="fas fa-file-invoice-dollar"></i> Chi tiết bảng lương</h3>
+                    <button class="close-btn" onclick="closePayrollModal()" title="Đóng">&times;</button>
                 </div>
                 <div class="modal-body" id="payrollDetailContent">
                     <!-- Content will be loaded dynamically -->
@@ -1416,8 +1418,8 @@
         <div id="rejectPayrollModal" class="modal">
             <div class="modal-content" style="max-width: 600px;">
                 <div class="modal-header">
-                    <h3><i class="fas fa-times-circle"></i> Reject Payroll</h3>
-                    <button class="close-btn" onclick="closeRejectModal()" title="Close">&times;</button>
+                    <h3><i class="fas fa-times-circle"></i> Từ chối bảng lương</h3>
+                    <button class="close-btn" onclick="closeRejectModal()" title="Đóng">&times;</button>
                 </div>
                 <div class="modal-body">
                     <form id="rejectPayrollForm">
@@ -1427,26 +1429,26 @@
                         
                         <div class="form-group" style="margin-bottom: 20px;">
                             <label for="rejectNote" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-color);">
-                                Rejection Reason <span style="color: var(--error);">*</span>
+                                Lý do từ chối <span style="color: var(--error);">*</span>
                             </label>
                             <textarea 
                                 id="rejectNote" 
                                 name="rejectNote" 
                                 rows="5" 
                                 style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-family: inherit; font-size: 14px; resize: vertical;"
-                                placeholder="Please provide a reason for rejecting this payroll..."
+                                placeholder="Vui lòng nhập lý do từ chối bảng lương..."
                                 required></textarea>
                             <small style="color: var(--muted-color); margin-top: 4px; display: block;">
-                                This note will be visible to HR Staff for reference when correcting the payroll.
+                                Ghi chú này sẽ hiển thị cho HR Staff để đối chiếu khi chỉnh sửa bảng lương.
                             </small>
                         </div>
                         
                         <div class="form-actions" style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;">
                             <button type="button" class="btn btn-secondary" onclick="closeRejectModal()" style="padding: 10px 20px;">
-                                Cancel
+                                Hủy
                             </button>
                             <button type="submit" class="btn btn-danger" style="padding: 10px 20px;">
-                                <i class="fas fa-times"></i> Confirm Reject
+                                <i class="fas fa-times"></i> Xác nhận từ chối
                             </button>
                         </div>
                     </form>
@@ -1632,7 +1634,7 @@
                 const content = document.getElementById('payrollDetailContent');
                 content.innerHTML = '<div style="text-align:center; padding:32px; color: var(--muted-color);">'
                     + '<i class="fas fa-spinner fa-spin" style="font-size:32px; margin-bottom:12px;"></i>'
-                    + '<div>Loading payroll details...</div>'
+                    + '<div>Đang tải chi tiết bảng lương...</div>'
                     + '</div>';
                 modal.classList.add('active');
 
@@ -1723,10 +1725,10 @@
 
                 const parts = [];
                 parts.push('<div class="detail-section">');
-                parts.push('  <div class="detail-section-title"><i class="fas fa-user"></i> Employee Information</div>');
+                parts.push('  <div class="detail-section-title"><i class="fas fa-user"></i> Thông tin nhân viên</div>');
                 parts.push('  <div class="detail-grid">');
                 parts.push('    <div class="detail-item">');
-                parts.push('      <div class="detail-label">Employee Name</div>');
+                parts.push('      <div class="detail-label">Tên nhân viên</div>');
                 parts.push('      <div class="detail-value">' + employeeName + '</div>');
                 parts.push('    </div>');
                 parts.push('    <div class="detail-item">');
@@ -1739,7 +1741,7 @@
                 parts.push('    </div>');
                 if (approvedDate) {
                     parts.push('    <div class="detail-item">');
-                    parts.push('      <div class="detail-label">Approved Date</div>');
+                    parts.push('      <div class="detail-label">Ngày duyệt</div>');
                     parts.push('      <div class="detail-value">' + approvedDate + '</div>');
                     parts.push('    </div>');
                 }
@@ -1971,7 +1973,7 @@
             };
 
             window.approvePayroll = function(payrollId) {
-                if (confirm('Are you sure you want to approve this payroll?')) {
+                if (confirm('Bạn có chắc muốn duyệt bảng lương này?')) {
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.action = appContext + '/hr/payroll-approval';
@@ -2119,7 +2121,7 @@
                 }
                 
                 const count = selectedIds.length;
-                if (confirm('Are you sure you want to approve ' + count + ' selected payroll(s)?')) {
+                if (confirm('Bạn có chắc muốn duyệt ' + count + ' bảng lương đã chọn?')) {
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.action = appContext + '/hr/payroll-approval/batch-approve';
@@ -2186,7 +2188,7 @@
                 }
                 
                 const count = selectedIds.length;
-                if (confirm('Are you sure you want to reject ' + count + ' selected payroll(s)?\n\nYou will be asked to provide a rejection reason that will apply to all selected payrolls.')) {
+                if (confirm('Bạn có chắc muốn từ chối ' + count + ' bảng lương đã chọn?\n\nBạn sẽ cần nhập lý do từ chối áp dụng cho toàn bộ các mục đã chọn.')) {
                     // Store selected IDs in the hidden input for batch reject modal
                     const batchPayrollIdsInput = document.getElementById('batchRejectPayrollIds');
                     if (batchPayrollIdsInput) {

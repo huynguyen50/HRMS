@@ -91,30 +91,6 @@ public class HomepageController extends HttpServlet {
                 request.setAttribute("dashboardAccess", dashboardAccess);
                 request.setAttribute("isPublicView", forcePublicView);
                 
-                if (!forcePublicView) {
-                    // Check roleID first - roleID 3 redirects to deptHome.jsp
-                    if (currentUser.getRoleId() == 3) {
-                        response.sendRedirect(request.getContextPath() + "/dept?action=dashboard");
-                        return;
-                    }
-
-                    // Redirect to appropriate dashboard based on role
-                    String roleName = userRole.getRoleName().toLowerCase();
-                    switch (roleName) {
-                        case "admin":
-                            response.sendRedirect(request.getContextPath() + "/admin?action=dashboard");
-                            return;
-                        case "hr":
-                            response.sendRedirect(request.getContextPath() + "/Views/hr/HrHome.jsp");
-                            return;
-                        case "employee":
-                            response.sendRedirect(request.getContextPath() + "/Views/Employee/EmployeeHome.jsp");
-                            return;
-                        default:
-                            // Stay on homepage for other roles
-                            break;
-                    }
-                }
             } else {
                 request.setAttribute("isLoggedIn", false);
                 request.setAttribute("dashboardAccess", getGuestDashboardAccess());

@@ -9,7 +9,6 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import org.mindrot.jbcrypt.BCrypt;
 
 public class DAO {
 
@@ -28,46 +27,92 @@ public class DAO {
     }
 
     public SystemUser getAccountByUsername(String username) {
-        String sql = "SELECT * FROM SystemUser WHERE username = ?";
-        SystemUser sys = null;
-        try {
-            PreparedStatement ps = con.prepareStatement(sql);
+        String sql = "SELECT * FROM SystemUser WHERE LOWER(Username) = LOWER(?)";
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, username);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                sys = new SystemUser(rs.getInt("userId"), rs.getString("username"), rs.getString("password"), rs.getInt("roleId"),
-                        rs.getObject("lastLogin", java.time.LocalDateTime.class), rs.getBoolean("isActive"),
-                        rs.getObject("createdDate", java.time.LocalDateTime.class), rs.getInt("employeeId")
-                );
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapSystemUser(rs);
+                }
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             System.err.println("Error getting systemUser by username: " + e.getMessage());
         }
-        return sys;
+        return null;
+    }
+
+    public SystemUser getAccountByUsernameOrEmail(String login) {
+        String sql = "SELECT * FROM SystemUser WHERE LOWER(Username) = LOWER(?) OR LOWER(Email) = LOWER(?)";
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, login);
+            ps.setString(2, login);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapSystemUser(rs);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error getting systemUser by username/email: " + e.getMessage());
+        }
+        return null;
+    }
+
+    public SystemUser getAccountByEmail(String email) {
+        String sql = "SELECT * FROM SystemUser WHERE LOWER(Email) = LOWER(?)";
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapSystemUser(rs);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error getting systemUser by email: " + e.getMessage());
+        }
+        return null;
+    }
+
+    public SystemUser getAccountByGoogleId(String googleId) {
+        String sql = "SELECT * FROM SystemUser WHERE GoogleID = ?";
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, googleId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapSystemUser(rs);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error getting systemUser by GoogleID: " + e.getMessage());
+        }
+        return null;
     }
 
     public int changePassword(String username, String newPass) {
-        String hashedPassword = hashPassword(newPass);
-        String sql = "UPDATE SystemUser SET password=? WHERE username=?";
+        String sql = "UPDATE SystemUser SET PasswordHash=?, UpdatedDate=NOW() WHERE Username=?";
         try (Connection connection = DBConnection.getConnection();
              PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, hashedPassword);
+            ps.setString(1, newPass);
             ps.setString(2, username);
             return ps.executeUpdate();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             System.err.println("Error updating password for username " + username + ": " + e.getMessage());
             return 0;
         }
     }
 
     public boolean checkEmailExist(String email) {
-        String sql = "SELECT COUNT(*) FROM Employee WHERE email = ?";
-        try {
-            PreparedStatement ps = con.prepareStatement(sql);
+        String sql = "SELECT COUNT(*) FROM SystemUser WHERE LOWER(Email) = LOWER(?)";
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, email);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
                 return rs.getInt(1) > 0; // Nếu có ít nhất 1 dòng, email đã tồn tại
+            }
             }
         } catch (SQLException e) {
             System.err.println("Error checking email existence: " + e.getMessage());
@@ -265,18 +310,14 @@ public class DAO {
     }
 
     public SystemUser findSystemUserByEmpID(int employeeID) {
-        String sql = "SELECT * FROM systemuser WHERE employeeID = ?";
+        String sql = "SELECT * FROM SystemUser WHERE EmployeeID = ?";
         try {
             PreparedStatement ps = con.prepareStatement(sql);
             ps.setInt(1, employeeID);
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                SystemUser sys = new SystemUser(rs.getInt("userId"), rs.getString("username"), rs.getString("password"), rs.getInt("roleId"),
-                        rs.getObject("lastLogin", java.time.LocalDateTime.class), rs.getBoolean("isActive"),
-                        rs.getObject("createdDate", java.time.LocalDateTime.class), rs.getInt("employeeId")
-                );
-                return sys;
+                return mapSystemUser(rs);
             }
         } catch (Exception e) {
             System.err.println(e.getMessage());
@@ -908,11 +949,43 @@ public class DAO {
     }
 
     public String hashPassword(String plainTextPassword) {
-    return BCrypt.hashpw(plainTextPassword, BCrypt.gensalt());
+    return plainTextPassword;
 }
 
-public boolean checkPassword(String plainTextPassword, String hashedPassword) {
-    return BCrypt.checkpw(plainTextPassword, hashedPassword);
+public boolean checkPassword(String plainTextPassword, String storedPassword) {
+    return plainTextPassword != null && storedPassword != null && plainTextPassword.equals(storedPassword);
+}
+
+public boolean isSystemUsernameExists(String username) {
+    return getAccountByUsername(username) != null;
+}
+
+public boolean isSystemEmailExists(String email) {
+    return getAccountByEmail(email) != null;
+}
+
+public SystemUser createLocalUser(String username, String email, String password, int roleId) {
+    String sql = """
+        INSERT INTO SystemUser
+            (Username, Email, PasswordHash, GoogleID, AvatarUrl, LoginProvider, RoleID, EmployeeID,
+             FailedLoginAttempt, LockedUntil, LastLogin, IsActive, CreatedDate, UpdatedDate)
+        VALUES (?, ?, ?, NULL, NULL, 'LOCAL', ?, NULL, 0, NULL, NULL, TRUE, NOW(), NOW())
+    """;
+
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        ps.setString(1, username);
+        ps.setString(2, email);
+        ps.setString(3, password);
+        ps.setInt(4, roleId);
+        if (ps.executeUpdate() == 0) {
+            return null;
+        }
+        return getAccountByUsername(username);
+    } catch (SQLException e) {
+        System.err.println("Error creating local user: " + e.getMessage());
+        return null;
+    }
 }
 
 public List<SystemUser> getAllSystemUsers() {
@@ -923,17 +996,7 @@ public List<SystemUser> getAllSystemUsers() {
          ResultSet rs = ps.executeQuery()) {
         
         while (rs.next()) {
-            SystemUser user = new SystemUser(
-                rs.getInt("userId"), 
-                rs.getString("username"), 
-                rs.getString("password"), 
-                rs.getInt("roleId"),
-                rs.getObject("lastLogin", java.time.LocalDateTime.class), 
-                rs.getBoolean("isActive"),
-                rs.getObject("createdDate", java.time.LocalDateTime.class), 
-                rs.getInt("employeeId")
-            );
-            users.add(user);
+            users.add(mapSystemUser(rs));
         }
     } catch (SQLException e) {
         e.printStackTrace();
@@ -942,7 +1005,7 @@ public List<SystemUser> getAllSystemUsers() {
 }
 
 public boolean updateUserPassword(int userId, String hashedPassword) {
-    String sql = "UPDATE SystemUser SET password = ? WHERE userId = ?";
+    String sql = "UPDATE SystemUser SET PasswordHash = ?, UpdatedDate=NOW() WHERE UserID = ?";
     
     try (PreparedStatement ps = con.prepareStatement(sql)) {
         
@@ -956,6 +1019,172 @@ public boolean updateUserPassword(int userId, String hashedPassword) {
         e.printStackTrace();
         return false;
     }
+}
+
+public boolean updateGoogleAccount(int userId, String googleId, String avatarUrl) {
+    String sql = """
+        UPDATE SystemUser
+        SET GoogleID = ?, AvatarUrl = ?,
+            LastLogin = NOW(), FailedLoginAttempt = 0, LockedUntil = NULL, UpdatedDate = NOW()
+        WHERE UserID = ?
+    """;
+
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setString(1, googleId);
+        ps.setString(2, avatarUrl);
+        ps.setInt(3, userId);
+        return ps.executeUpdate() > 0;
+    } catch (SQLException e) {
+        System.err.println("Error linking Google account: " + e.getMessage());
+        return false;
+    }
+}
+
+public SystemUser createGoogleUser(String googleId, String email, String name, String avatarUrl, int roleId) {
+    String sql = """
+        INSERT INTO SystemUser
+            (Username, Email, PasswordHash, GoogleID, AvatarUrl, LoginProvider, RoleID, EmployeeID,
+             FailedLoginAttempt, LockedUntil, LastLogin, IsActive, CreatedDate)
+        VALUES (?, ?, NULL, ?, ?, 'GOOGLE', ?, NULL, 0, NULL, NOW(), TRUE, NOW())
+    """;
+
+    String username = buildGoogleUsername(email, name);
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        ps.setString(1, username);
+        ps.setString(2, email);
+        ps.setString(3, googleId);
+        ps.setString(4, avatarUrl);
+        ps.setInt(5, roleId);
+        if (ps.executeUpdate() == 0) {
+            return null;
+        }
+        try (ResultSet rs = ps.getGeneratedKeys()) {
+            if (rs.next()) {
+                return getAccountByEmail(email);
+            }
+        }
+    } catch (SQLException e) {
+        System.err.println("Error creating Google user: " + e.getMessage());
+    }
+    return null;
+}
+
+public int getRoleIdByName(String roleName) {
+    Integer roleId = findRoleIdByName(roleName);
+    return roleId != null ? roleId : 5;
+}
+
+private Integer findRoleIdByName(String roleName) {
+    String sql = "SELECT RoleID FROM Role WHERE RoleName = ? LIMIT 1";
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setString(1, roleName);
+        try (ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt("RoleID");
+            }
+        }
+    } catch (SQLException e) {
+        System.err.println("Error getting role by name: " + e.getMessage());
+    }
+    return null;
+}
+
+public int getOrCreateRoleIdByName(String roleName) {
+    Integer existingRoleId = findRoleIdByName(roleName);
+    if (existingRoleId != null) {
+        return existingRoleId;
+    }
+    if ("Employee".equalsIgnoreCase(roleName)) {
+        return 5;
+    }
+
+    String insertSql = "INSERT INTO Role (RoleName) VALUES (?)";
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(insertSql, Statement.RETURN_GENERATED_KEYS)) {
+        ps.setString(1, roleName);
+        ps.executeUpdate();
+        try (ResultSet rs = ps.getGeneratedKeys()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+    } catch (SQLException e) {
+        System.err.println("Error creating role " + roleName + ": " + e.getMessage());
+    }
+    return getRoleIdByName(roleName);
+}
+
+public void recordSuccessfulLogin(int userId) {
+    String sql = "UPDATE SystemUser SET LastLogin=NOW(), FailedLoginAttempt=0, LockedUntil=NULL, UpdatedDate=NOW() WHERE UserID=?";
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setInt(1, userId);
+        ps.executeUpdate();
+    } catch (SQLException e) {
+        System.err.println("Error recording successful login: " + e.getMessage());
+    }
+}
+
+public void recordFailedLogin(String username) {
+    String sql = """
+        UPDATE SystemUser
+        SET FailedLoginAttempt = FailedLoginAttempt + 1,
+            LockedUntil = CASE WHEN FailedLoginAttempt + 1 >= 5 THEN DATE_ADD(NOW(), INTERVAL 15 MINUTE) ELSE LockedUntil END,
+            UpdatedDate = NOW()
+        WHERE Username = ?
+    """;
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setString(1, username);
+        ps.executeUpdate();
+    } catch (SQLException e) {
+        System.err.println("Error recording failed login: " + e.getMessage());
+    }
+}
+
+private String buildGoogleUsername(String email, String name) {
+    String base = email != null && email.contains("@") ? email.substring(0, email.indexOf('@')) : name;
+    if (base == null || base.trim().isEmpty()) {
+        base = "google_user";
+    }
+    base = base.replaceAll("[^a-zA-Z0-9]", "");
+    if (base.isEmpty()) {
+        base = "googleuser";
+    }
+
+    String candidate = base;
+    int suffix = 1;
+    while (getAccountByUsername(candidate) != null) {
+        candidate = base + suffix++;
+    }
+    return candidate;
+}
+
+private SystemUser mapSystemUser(ResultSet rs) throws SQLException {
+    SystemUser user = new SystemUser();
+    user.setUserId(rs.getInt("UserID"));
+    user.setUsername(rs.getString("Username"));
+    user.setEmail(rs.getString("Email"));
+    user.setPasswordHash(rs.getString("PasswordHash"));
+    user.setGoogleId(rs.getString("GoogleID"));
+    user.setAvatarUrl(rs.getString("AvatarUrl"));
+    user.setLoginProvider(rs.getString("LoginProvider"));
+    user.setRoleId(rs.getObject("RoleID", Integer.class));
+    user.setEmployeeId(rs.getObject("EmployeeID", Integer.class));
+    user.setFailedLoginAttempt(rs.getInt("FailedLoginAttempt"));
+    Timestamp lockedUntil = rs.getTimestamp("LockedUntil");
+    user.setLockedUntil(lockedUntil != null ? lockedUntil.toLocalDateTime() : null);
+    Timestamp lastLogin = rs.getTimestamp("LastLogin");
+    user.setLastLogin(lastLogin != null ? lastLogin.toLocalDateTime() : null);
+    user.setIsActive(rs.getBoolean("IsActive"));
+    Timestamp createdDate = rs.getTimestamp("CreatedDate");
+    user.setCreatedDate(createdDate != null ? createdDate.toLocalDateTime() : null);
+    Timestamp updatedDate = rs.getTimestamp("UpdatedDate");
+    user.setUpdatedDate(updatedDate != null ? updatedDate.toLocalDateTime() : null);
+    return user;
 }
 public List<Integer> getEmployeeIdsByTaskId(int taskId) {
     List<Integer> empIds = new ArrayList<>();

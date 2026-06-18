@@ -83,6 +83,8 @@
                 text-align: center;
             }
         </style>
+        <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-theme.css">
     </head>
     <body>
         <div class="container">

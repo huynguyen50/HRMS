@@ -12,7 +12,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>HRM - Manage Waiting Recruitment Posts</title> <%-- THAY ĐỔI TIÊU ĐỀ --%>
+        <title>Quản lý tin tuyển dụng chờ duyệt - BetterHR</title> <%-- THAY ĐỔI TIÊU ĐỀ --%>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -429,6 +429,8 @@
                 }
             }
         </style>
+        <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-theme.css">
     </head>
     <body>
         <div class="hr-dashboard-container">
@@ -437,25 +439,25 @@
                 <div class="header-content">
                     <div class="logo-section">
                         <i class="fas fa-eye"></i>
-                        <h1>Manage Waiting Recruitment Posts</h1>
+                        <h1>Tin tuyển dụng chờ duyệt</h1>
                     </div>
                     <div class="header-actions">
                         <div class="search-box">
                             <i class="fas fa-search"></i>
-                            <input type="text" placeholder="Search recruitments...">
+                            <input type="text" placeholder="Tìm tin tuyển dụng...">
                         </div>
                         <div class="notification-bell">
                             <i class="fas fa-bell"></i>
                             <span class="notification-count">3</span>
                         </div>
                         <div class="user-profile">
-                            <img src="https://i.pravatar.cc/40" alt="HR User">
-                            <span>HR Manager</span>
+                            <img src="https://i.pravatar.cc/40" alt="Người dùng HR">
+                            <span>Quản lý HR</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
-                        <a href="${pageContext.request.contextPath}/Views/hr/HrHome.jsp" class="btn-homepage" title="Back to HR Dashboard">
+                        <a href="${pageContext.request.contextPath}/Views/hr/HrHome.jsp" class="btn-homepage" title="Quay lại HR Home">
                             <i class="fas fa-home"></i>
-                            <span>HR Dashboard</span>
+                            <span>HR Home</span>
                         </a>
                     </div>
                 </div>
@@ -467,18 +469,18 @@
                 <aside class="hr-sidebar">
                     <nav class="hr-nav">
                         <div class="nav-section">
-                            <h3>Navigation</h3>
+                            <h3>Điều hướng</h3>
                             <a href="${pageContext.request.contextPath}/Views/hr/HrHome.jsp" class="nav-item">
                                 <i class="fas fa-home"></i>
-                                <span>HR Dashboard</span>
+                                <span>HR Home</span>
                             </a>
                             <a href="${pageContext.request.contextPath}/HrHomeController" class="nav-item">
                                 <i class="fas fa-user-edit"></i>
-                                <span>Profile Management</span>
+                                <span>Quản lý hồ sơ</span>
                             </a>
                             <a href="${pageContext.request.contextPath}/hr/employee-list" class="nav-item">
                                 <i class="fas fa-users"></i>
-                                <span>Employee List</span>
+                                <span>Danh sách nhân viên</span>
                             </a>
                         </div>
 
@@ -490,7 +492,7 @@
                             </a>
                             <a href="${pageContext.request.contextPath}/viewRecruitment" class="nav-item active">
                                 <i class="fas fa-eye"></i>
-                                <span>View Recruitment</span>
+                                <span>Tin tuyển dụng</span>
                             </a>
                             <a href="${pageContext.request.contextPath}/candidates" class="nav-item">
                                 <i class="fas fa-user-plus"></i>
@@ -498,7 +500,7 @@
                             </a>
                             <a href="${pageContext.request.contextPath}/hr/create-employee" class="nav-item">
                                 <i class="fas fa-user-plus"></i>
-                                <span>Create Employee</span>
+                                <span>Tạo nhân viên</span>
                             </a>
                         </div>
                     </nav>
@@ -509,7 +511,7 @@
                     <!-- Tiêu đề trang -->
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <%-- THAY ĐỔI TIÊU ĐỀ --%>
-                        <h1 class="h2">Manage Waiting Recruitment Posts</h1>
+                        <h1 class="h2">Tin tuyển dụng chờ duyệt</h1>
                     </div>
 
                     <!-- FORM TÌM KIẾM VÀ LỌC -->
@@ -518,7 +520,7 @@
                             <form action="${pageContext.request.contextPath}/viewRecruitment" method="GET" class="row g-3 align-items-end">
                                 <!-- Cột tìm kiếm theo Title -->
                                 <div class="col-md-4">
-                                    <label class="form-label">Search by Title</label>
+                                    <label class="form-label">Tìm theo tiêu đề</label>
                                     <input type="text" class="form-control" name="searchByTitle" placeholder="Enter title..." value="${param.searchByTitle}">
                                 </div>
                                 <!-- Cột ngày bắt đầu -->
@@ -580,13 +582,13 @@
                                             <c:if test="${rec.status ne 'Applied'}">
                                                 <a href="${pageContext.request.contextPath}/viewRecruitment?action=apply&id=${rec.recruitmentId}" 
                                                    class="action-btn-custom btn btn-sm btn-outline-success ms-2"
-                                                   onclick="return confirm('Do you want to apply this recruitment? This action cannot be undone.');">
+                                                   onclick="return confirm('Bạn có chắc muốn duyệt tin tuyển dụng này? Thao tác này không thể hoàn tác.');">
                                                     <i class="fas fa-paper-plane me-1"></i> Apply
                                                 </a>
                                                 <a href="${pageContext.request.contextPath}/viewRecruitment?action=reject&id=${rec.recruitmentId}" 
                                                    class="action-btn-custom btn btn-sm btn-outline-danger ms-2"
-                                                   onclick="return confirm('Do you want to reject this recruitment? This action cannot be undone.');">
-                                                    <i class="fas fa-times me-1"></i> Reject
+                                                   onclick="return confirm('Bạn có chắc muốn từ chối tin tuyển dụng này? Thao tác này không thể hoàn tác.');">
+                                                    <i class="fas fa-times me-1"></i> Từ chối
                                                 </a>
                                             </c:if>
                                         </div>
@@ -656,7 +658,7 @@
                                                    function performSearch() {
                                                        const searchInput = document.getElementById('searchInput');
                                                        if (searchInput) {
-                                                           alert('Search functionality for "' + searchInput.value + '" is not yet implemented.');
+                                                           alert('Chức năng tìm kiếm cho "' + searchInput.value + '" chưa được triển khai.');
                                                        }
                                                    }
         </script>

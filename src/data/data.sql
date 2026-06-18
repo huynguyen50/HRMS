@@ -1,3 +1,5 @@
+﻿
+data base đã sửa thêm with gg
 -- =====================================================
 -- HRM DATABASE - SCRIPT GỘP HOÀN CHỈNH
 -- Kết hợp tất cả bảng, dữ liệu, hàm và stored procedures
@@ -10,56 +12,24 @@ COLLATE utf8mb4_unicode_ci;
 USE hrm_db;
 
 -- =====================================================
--- PHẦN I: XÓA CÁC BẢNG CŨ (NẾU CÓ)
--- =====================================================
-SET FOREIGN_KEY_CHECKS = 0;
-
-DROP TABLE IF EXISTS PayrollAudit;
-DROP TABLE IF EXISTS assignList;
-DROP TABLE IF EXISTS EmployeeDeduction;
-DROP TABLE IF EXISTS EmployeeAllowance;
-DROP TABLE IF EXISTS UserPermission;
-DROP TABLE IF EXISTS RolePermission;
-DROP TABLE IF EXISTS Permission;
-DROP TABLE IF EXISTS Dependent;
-DROP TABLE IF EXISTS TaxRate;
-DROP TABLE IF EXISTS InsuranceRate;
-DROP TABLE IF EXISTS DeductionType;
-DROP TABLE IF EXISTS AllowanceType;
-DROP TABLE IF EXISTS SystemLog;
-DROP TABLE IF EXISTS Attendance;
-DROP TABLE IF EXISTS Payroll;
-DROP TABLE IF EXISTS Guest;
-DROP TABLE IF EXISTS Recruitment;
-DROP TABLE IF EXISTS MailRequest;
-DROP TABLE IF EXISTS Task;
-DROP TABLE IF EXISTS SystemUser;
-DROP TABLE IF EXISTS Contract;
-DROP TABLE IF EXISTS Employee;
-DROP TABLE IF EXISTS Department;
-DROP TABLE IF EXISTS Role;
-
-SET FOREIGN_KEY_CHECKS = 1;
-
--- =====================================================
--- PHẦN II: TẠO CÁC BẢNG
+-- PHẦN I: TẠO CÁC BẢNG (TABLE CREATION)
 -- =====================================================
 
 -- 1. ROLE (Bảng vai trò)
-CREATE TABLE Role (
+CREATE TABLE IF NOT EXISTS Role (
     RoleID INT AUTO_INCREMENT PRIMARY KEY,
     RoleName VARCHAR(100) NOT NULL
 );
 
 -- 2. DEPARTMENT (Bảng phòng ban)
-CREATE TABLE Department (
+CREATE TABLE IF NOT EXISTS Department (
     DepartmentID INT AUTO_INCREMENT PRIMARY KEY,
     DeptName VARCHAR(100) NOT NULL UNIQUE,
     DeptManagerID INT NULL
 );
 
 -- 3. EMPLOYEE (Bảng nhân viên)
-CREATE TABLE Employee (
+CREATE TABLE IF NOT EXISTS Employee (
     EmployeeID INT AUTO_INCREMENT PRIMARY KEY,
     FullName VARCHAR(150) NOT NULL,
     Gender ENUM('Male','Female','Other') DEFAULT 'Other',
@@ -83,7 +53,7 @@ REFERENCES Employee(EmployeeID)
 ON DELETE SET NULL;
 
 -- 4. CONTRACT (Bảng hợp đồng)
-CREATE TABLE Contract (
+CREATE TABLE IF NOT EXISTS Contract (
     ContractID INT AUTO_INCREMENT PRIMARY KEY,
     EmployeeID INT NOT NULL,
     StartDate DATE NOT NULL,
@@ -100,7 +70,7 @@ CREATE TABLE Contract (
 );
 
 -- 5. MAIL REQUEST (Bảng yêu cầu mail)
-CREATE TABLE MailRequest (
+CREATE TABLE IF NOT EXISTS MailRequest (
     RequestID INT AUTO_INCREMENT PRIMARY KEY,
     EmployeeID INT NOT NULL,
     RequestType ENUM('Leave','Resignation','Petition') NOT NULL,
@@ -119,7 +89,7 @@ CREATE TABLE MailRequest (
 );
 
 -- 6. TASK (Bảng công việc - Hybrid version với AssignTo và assignList)
-CREATE TABLE Task (
+CREATE TABLE IF NOT EXISTS Task (
     TaskID INT AUTO_INCREMENT PRIMARY KEY,
     Title VARCHAR(200) NOT NULL,
     Description TEXT,
@@ -133,7 +103,7 @@ CREATE TABLE Task (
 );
 
 -- 7. RECRUITMENT (Bảng tuyển dụng)
-CREATE TABLE Recruitment (
+CREATE TABLE IF NOT EXISTS Recruitment (
     RecruitmentID INT AUTO_INCREMENT PRIMARY KEY,
     JobTitle VARCHAR(200) NOT NULL,
     JobDescription TEXT,
@@ -146,7 +116,7 @@ CREATE TABLE Recruitment (
 );
 
 -- 8. GUEST (Bảng ứng viên)
-CREATE TABLE Guest (
+CREATE TABLE IF NOT EXISTS Guest (
     GuestID INT AUTO_INCREMENT PRIMARY KEY,
     FullName VARCHAR(150) NOT NULL,
     Email VARCHAR(150),
@@ -161,7 +131,7 @@ CREATE TABLE Guest (
 );
 
 -- 9. PAYROLL (Bảng bảng lương)
-CREATE TABLE Payroll (
+CREATE TABLE IF NOT EXISTS Payroll (
     PayrollID INT AUTO_INCREMENT PRIMARY KEY,
     EmployeeID INT NOT NULL,
     PayPeriod VARCHAR(7) NOT NULL,
@@ -181,26 +151,56 @@ CREATE TABLE Payroll (
         ON DELETE SET NULL
 );
 
--- 10. SYSTEM USER (Bảng người dùng hệ thống)
-CREATE TABLE SystemUser (
+-- 10. SYSTEM USER (Phiên bản hỗ trợ Google Login)
+
+CREATE TABLE IF NOT EXISTS SystemUser (
     UserID INT AUTO_INCREMENT PRIMARY KEY,
+
     Username VARCHAR(100) UNIQUE NOT NULL,
-    Password VARCHAR(255) NOT NULL,
+
+    Email VARCHAR(150) UNIQUE NOT NULL,
+
+    PasswordHash VARCHAR(255) NULL,
+
+    GoogleID VARCHAR(255) UNIQUE NULL,
+
+    AvatarUrl VARCHAR(500) NULL,
+
+    LoginProvider ENUM(
+        'LOCAL',
+        'GOOGLE'
+    ) DEFAULT 'LOCAL',
+
     RoleID INT NOT NULL,
-    LastLogin DATETIME,
-    IsActive BOOLEAN DEFAULT TRUE,
-    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+
     EmployeeID INT UNIQUE,
-    CONSTRAINT fk_systemuser_role FOREIGN KEY (RoleID)
+
+    FailedLoginAttempt INT DEFAULT 0,
+
+    LockedUntil DATETIME NULL,
+
+    LastLogin DATETIME NULL,
+
+    IsActive BOOLEAN DEFAULT TRUE,
+
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    UpdatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
+    ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_systemuser_role
+        FOREIGN KEY (RoleID)
         REFERENCES Role(RoleID)
         ON DELETE CASCADE,
-    CONSTRAINT fk_systemuser_employee FOREIGN KEY (EmployeeID)
+
+    CONSTRAINT fk_systemuser_employee
+        FOREIGN KEY (EmployeeID)
         REFERENCES Employee(EmployeeID)
         ON DELETE SET NULL
 );
 
 -- 11. SYSTEM LOG (Bảng log hệ thống)
-CREATE TABLE SystemLog (
+CREATE TABLE IF NOT EXISTS SystemLog (
     LogID INT AUTO_INCREMENT PRIMARY KEY,
     UserID INT NOT NULL,
     Action VARCHAR(200) NOT NULL,
@@ -214,7 +214,7 @@ CREATE TABLE SystemLog (
 );
 
 -- 12. ATTENDANCE (Bảng chấm công)
-CREATE TABLE Attendance (
+CREATE TABLE IF NOT EXISTS Attendance (
     AttendanceID INT AUTO_INCREMENT PRIMARY KEY,
     EmployeeID INT NOT NULL,
     Date DATE NOT NULL,
@@ -229,7 +229,7 @@ CREATE TABLE Attendance (
 );
 
 -- 13. ASSIGNLIST (Bảng giao việc - Nhiều-Nhiều)
-CREATE TABLE assignList (
+CREATE TABLE IF NOT EXISTS assignList (
     id INT AUTO_INCREMENT PRIMARY KEY,
     TaskId INT NOT NULL,
     EmpId INT NOT NULL,
@@ -245,13 +245,13 @@ CREATE TABLE assignList (
 );
 
 -- 14. ALLOWANCE TYPE & EMPLOYEE ALLOWANCE
-CREATE TABLE AllowanceType (
+CREATE TABLE IF NOT EXISTS AllowanceType (
     AllowanceTypeID INT AUTO_INCREMENT PRIMARY KEY,
     AllowanceName VARCHAR(100) NOT NULL,
     Description TEXT
 );
 
-CREATE TABLE EmployeeAllowance (
+CREATE TABLE IF NOT EXISTS EmployeeAllowance (
     ID INT AUTO_INCREMENT PRIMARY KEY,
     EmployeeID INT NOT NULL,
     AllowanceTypeID INT NOT NULL,
@@ -264,13 +264,13 @@ CREATE TABLE EmployeeAllowance (
 );
 
 -- 15. DEDUCTION TYPE & EMPLOYEE DEDUCTION
-CREATE TABLE DeductionType (
+CREATE TABLE IF NOT EXISTS DeductionType (
     DeductionTypeID INT AUTO_INCREMENT PRIMARY KEY,
     DeductionName VARCHAR(100) NOT NULL,
     Description TEXT
 );
 
-CREATE TABLE EmployeeDeduction (
+CREATE TABLE IF NOT EXISTS EmployeeDeduction (
     ID INT AUTO_INCREMENT PRIMARY KEY,
     EmployeeID INT NOT NULL,
     DeductionTypeID INT NOT NULL,
@@ -283,7 +283,7 @@ CREATE TABLE EmployeeDeduction (
 );
 
 -- 16. INSURANCE RATE
-CREATE TABLE InsuranceRate (
+CREATE TABLE IF NOT EXISTS InsuranceRate (
     InsuranceID INT AUTO_INCREMENT PRIMARY KEY,
     Type ENUM('BHXH','BHYT','BHTN') NOT NULL,
     EmployeeRate DECIMAL(5,2) NOT NULL COMMENT 'Tỷ lệ NLĐ đóng (%)',
@@ -292,7 +292,7 @@ CREATE TABLE InsuranceRate (
 );
 
 -- 17. TAX RATE
-CREATE TABLE TaxRate (
+CREATE TABLE IF NOT EXISTS TaxRate (
     BracketID INT AUTO_INCREMENT PRIMARY KEY,
     IncomeMin DECIMAL(12,2),
     IncomeMax DECIMAL(12,2),
@@ -301,7 +301,7 @@ CREATE TABLE TaxRate (
 );
 
 -- 18. DEPENDENT (Người phụ thuộc)
-CREATE TABLE Dependent (
+CREATE TABLE IF NOT EXISTS Dependent (
     DependentID INT AUTO_INCREMENT PRIMARY KEY,
     EmployeeID INT NOT NULL,
     FullName VARCHAR(150),
@@ -312,7 +312,7 @@ CREATE TABLE Dependent (
 );
 
 -- 19. PAYROLL AUDIT (Bảng audit lưu lịch sử trả lương)
-CREATE TABLE PayrollAudit (
+CREATE TABLE IF NOT EXISTS PayrollAudit (
     AuditID INT AUTO_INCREMENT PRIMARY KEY,
     EmployeeID INT NOT NULL,
     PayPeriod VARCHAR(7) NOT NULL,
@@ -343,7 +343,7 @@ CREATE TABLE PayrollAudit (
 );
 
 -- 20. PERMISSION (Bảng quyền)
-CREATE TABLE Permission (
+CREATE TABLE IF NOT EXISTS Permission (
     PermissionID INT AUTO_INCREMENT PRIMARY KEY,
     PermissionCode VARCHAR(100) NOT NULL UNIQUE,
     PermissionName VARCHAR(200) NOT NULL,
@@ -353,7 +353,7 @@ CREATE TABLE Permission (
 );
 
 -- 21. ROLE_PERMISSION (Bảng gán quyền cho vai trò)
-CREATE TABLE RolePermission (
+CREATE TABLE IF NOT EXISTS RolePermission (
     RolePermissionID INT AUTO_INCREMENT PRIMARY KEY,
     RoleID INT NOT NULL,
     PermissionID INT NOT NULL,
@@ -368,7 +368,7 @@ CREATE TABLE RolePermission (
 );
 
 -- 22. USER_PERMISSION (Bảng phân quyền chi tiết cho người dùng)
-CREATE TABLE UserPermission (
+CREATE TABLE IF NOT EXISTS UserPermission (
     UserPermissionID INT AUTO_INCREMENT PRIMARY KEY,
     UserID INT NOT NULL,
     PermissionID INT NOT NULL,
@@ -389,7 +389,24 @@ CREATE TABLE UserPermission (
         ON DELETE SET NULL,
     UNIQUE KEY uq_user_permission (UserID, PermissionID, Scope, ScopeValue)
 );
+-- 23 :PasswordResetToken ( Forgot Password dùng để tajo 1 token gửi về mail để lấy lại mk)
+CREATE TABLE IF NOT EXISTS PasswordResetToken (
+    TokenID INT AUTO_INCREMENT PRIMARY KEY,
 
+    UserID INT NOT NULL,
+
+    Token VARCHAR(255) NOT NULL,
+
+    ExpiredAt DATETIME NOT NULL,
+
+    IsUsed BOOLEAN DEFAULT FALSE,
+
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (UserID)
+        REFERENCES SystemUser(UserID)
+        ON DELETE CASCADE
+);
 -- =====================================================
 -- PHẦN III: CHÈN DỮ LIỆU MẪU
 -- =====================================================
@@ -400,7 +417,8 @@ INSERT INTO Role (RoleName) VALUES
 ('HR Manager'),
 ('Dept Manager'),
 ('HR Staff'),
-('Employee');
+('Employee'),
+('Guest');
 
 -- ===== DEPARTMENT =====
 INSERT INTO Department (DeptName) VALUES
@@ -446,14 +464,73 @@ VALUES
 (10,'2022-02-01', NULL, 12000000, 1000000, 'Intern', 'Internship program', 'Active');
 
 -- ===== SYSTEM USER =====
-INSERT INTO SystemUser (Username, Password, RoleID, EmployeeID)
+INSERT INTO SystemUser
+(
+    Username,
+    Email,
+    PasswordHash,
+    GoogleID,
+    AvatarUrl,
+    LoginProvider,
+    RoleID,
+    EmployeeID
+)
 VALUES
-('admin123456', '12345678', 1, 1),
-('hrb123456', '12345678', 2, 2),
-('financec123', '12345678', 3, 3),
-('it_f', '12345678', 4, 5),
-('dev_f', '12345678', 5, 6),
-('market_h', '12345678', 5, 8);
+
+(
+    'admin',
+    'admin@hrm.com',
+    '12345678',
+    NULL,
+    NULL,
+    'LOCAL',
+    1,
+    1
+),
+
+(
+    'hrmanager',
+    'hrmanager@hrm.com',
+    '12345678',
+    NULL,
+    NULL,
+    'LOCAL',
+    2,
+    2
+),
+
+(
+    'finance',
+    'finance@hrm.com',
+    '12345678',
+    NULL,
+    NULL,
+    'LOCAL',
+    3,
+    3
+),
+
+(
+    'developer',
+    'developer@hrm.com',
+    '12345678',
+    NULL,
+    NULL,
+    'LOCAL',
+    5,
+    6
+),
+
+(
+    'google_user',
+    'googleuser@gmail.com',
+    NULL,
+    '115784512365478965214',
+    'https://lh3.googleusercontent.com/avatar',
+    'GOOGLE',
+    6,
+    NULL
+);
 
 -- ===== TASK =====
 INSERT INTO Task (Title, Description, AssignedBy, StartDate, DueDate, Status)
@@ -591,16 +668,46 @@ VALUES
 -- ===== PERMISSION =====
 INSERT INTO Permission (PermissionCode, PermissionName, Description, Category) VALUES
 ('VIEW_EMPLOYEES', 'View Employees', 'Xem danh sách nhân viên', 'Employee'),
+('CREATE_EMPLOYEE', 'Create Employee', 'Tạo nhân viên mới', 'Employee'),
+('EDIT_EMPLOYEE', 'Edit Employee', 'Chỉnh sửa thông tin nhân viên', 'Employee'),
+('DELETE_EMPLOYEE', 'Delete Employee', 'Xóa nhân viên', 'Employee'),
 ('VIEW_EMPLOYEE_DETAIL', 'View Employee Detail', 'Xem chi tiết nhân viên', 'Employee'),
+('MANAGE_DEPT_EMPLOYEES', 'Manage Department Employees', 'Quản lý nhân viên trong phòng ban', 'Employee'),
 ('VIEW_DEPARTMENTS', 'View Departments', 'Xem danh sách phòng ban', 'Department'),
+('CREATE_DEPARTMENT', 'Create Department', 'Tạo phòng ban mới', 'Department'),
+('EDIT_DEPARTMENT', 'Edit Department', 'Chỉnh sửa phòng ban', 'Department'),
+('DELETE_DEPARTMENT', 'Delete Department', 'Xóa phòng ban', 'Department'),
 ('VIEW_CONTRACTS', 'View Contracts', 'Xem hợp đồng', 'Contract'),
+('CREATE_CONTRACT', 'Create Contract', 'Tạo hợp đồng mới', 'Contract'),
+('EDIT_CONTRACT', 'Edit Contract', 'Chỉnh sửa hợp đồng', 'Contract'),
+('APPROVE_CONTRACT', 'Approve Contract', 'Phê duyệt hợp đồng', 'Contract'),
+('REJECT_CONTRACT', 'Reject Contract', 'Từ chối hợp đồng', 'Contract'),
 ('VIEW_RECRUITMENT', 'View Recruitment', 'Xem tin tuyển dụng', 'Recruitment'),
+('CREATE_RECRUITMENT', 'Create Recruitment', 'Tạo tin tuyển dụng', 'Recruitment'),
+('EDIT_RECRUITMENT', 'Edit Recruitment', 'Chỉnh sửa tin tuyển dụng', 'Recruitment'),
+('DELETE_RECRUITMENT', 'Delete Recruitment', 'Xóa tin tuyển dụng', 'Recruitment'),
+('MANAGE_APPLICANTS', 'Manage Applicants', 'Quản lý ứng viên', 'Recruitment'),
 ('VIEW_PAYROLLS', 'View Payrolls', 'Xem bảng lương', 'Payroll'),
 ('VIEW_ALL_PAYROLLS', 'View All Payrolls', 'Xem tất cả bảng lương', 'Payroll'),
+('CREATE_PAYROLL', 'Create Payroll', 'Tạo bảng lương', 'Payroll'),
+('EDIT_PAYROLL', 'Edit Payroll', 'Chỉnh sửa bảng lương', 'Payroll'),
+('APPROVE_PAYROLL', 'Approve Payroll', 'Phê duyệt bảng lương', 'Payroll'),
 ('VIEW_USERS', 'View Users', 'Xem danh sách người dùng', 'User'),
+('CREATE_USER', 'Create User', 'Tạo người dùng mới', 'User'),
+('EDIT_USER', 'Edit User', 'Chỉnh sửa người dùng', 'User'),
+('DELETE_USER', 'Delete User', 'Xóa người dùng', 'User'),
+('MANAGE_USER_PERMISSIONS', 'Manage User Permissions', 'Quản lý phân quyền người dùng', 'User'),
 ('VIEW_ROLES', 'View Roles', 'Xem vai trò', 'Role'),
+('CREATE_ROLE', 'Create Role', 'Tạo vai trò mới', 'Role'),
+('EDIT_ROLE', 'Edit Role', 'Chỉnh sửa vai trò', 'Role'),
+('DELETE_ROLE', 'Delete Role', 'Xóa vai trò', 'Role'),
 ('MANAGE_ROLE_PERMISSIONS', 'Manage Role Permissions', 'Quản lý quyền của vai trò', 'Role'),
 ('VIEW_LEAVES', 'View Leaves', 'Xem đơn nghỉ phép', 'Leave'),
+('CREATE_LEAVE', 'Create Leave', 'Tạo đơn nghỉ phép', 'Leave'),
+('APPROVE_LEAVE', 'Approve Leave', 'Phê duyệt đơn nghỉ phép', 'Leave'),
+('REJECT_LEAVE', 'Reject Leave', 'Từ chối đơn nghỉ phép', 'Leave'),
+('VIEW_DASHBOARD', 'View Dashboard', 'Xem dashboard', 'Dashboard'),
+('VIEW_HR_DASHBOARD', 'View HR Dashboard', 'Xem HR dashboard', 'Dashboard'),
 ('VIEW_REPORTS', 'View Reports', 'Xem báo cáo', 'Report'),
 ('VIEW_AUDIT_LOG', 'View Audit Log', 'Xem nhật ký hệ thống', 'System'),
 ('MANAGE_SYSTEM', 'Manage System', 'Quản lý hệ thống', 'System');
@@ -612,66 +719,37 @@ SELECT 1, PermissionID FROM Permission;
 INSERT INTO RolePermission (RoleID, PermissionID)
 SELECT 2, PermissionID FROM Permission
 WHERE PermissionCode IN (
-    'VIEW_EMPLOYEES', 'VIEW_EMPLOYEE_DETAIL',
-    'VIEW_DEPARTMENTS',
-    'VIEW_CONTRACTS',
-    'VIEW_RECRUITMENT',
-    'VIEW_PAYROLLS', 'VIEW_ALL_PAYROLLS',
-    'VIEW_USERS',
-    'VIEW_ROLES', 'MANAGE_ROLE_PERMISSIONS',
-    'VIEW_LEAVES',
-    'VIEW_REPORTS', 'VIEW_AUDIT_LOG'
+    'VIEW_EMPLOYEES', 'CREATE_EMPLOYEE', 'EDIT_EMPLOYEE', 'VIEW_EMPLOYEE_DETAIL',
+    'VIEW_CONTRACTS', 'CREATE_CONTRACT', 'EDIT_CONTRACT', 'APPROVE_CONTRACT',
+    'VIEW_RECRUITMENT', 'CREATE_RECRUITMENT', 'EDIT_RECRUITMENT', 'MANAGE_APPLICANTS',
+    'VIEW_LEAVES', 'APPROVE_LEAVE', 'REJECT_LEAVE',
+    'VIEW_DEPARTMENTS', 'VIEW_DASHBOARD', 'VIEW_HR_DASHBOARD', 'VIEW_PAYROLLS', 'VIEW_ALL_PAYROLLS'
 );
 
 INSERT INTO RolePermission (RoleID, PermissionID)
-SELECT 3, PermissionID FROM Permission 
+SELECT 3, PermissionID FROM Permission
 WHERE PermissionCode IN (
-    'VIEW_EMPLOYEES', 'VIEW_EMPLOYEE_DETAIL',
-    'VIEW_DEPARTMENTS', 'VIEW_CONTRACTS',
-    'VIEW_LEAVES',
-    'VIEW_PAYROLLS', 'VIEW_REPORTS'
+    'VIEW_EMPLOYEES', 'VIEW_EMPLOYEE_DETAIL', 'MANAGE_DEPT_EMPLOYEES',
+    'VIEW_DEPARTMENTS', 'VIEW_LEAVES', 'APPROVE_LEAVE', 'REJECT_LEAVE',
+    'VIEW_DASHBOARD'
 );
 
 INSERT INTO RolePermission (RoleID, PermissionID)
-SELECT 4, PermissionID FROM Permission 
+SELECT 4, PermissionID FROM Permission
 WHERE PermissionCode IN (
     'VIEW_EMPLOYEES', 'VIEW_EMPLOYEE_DETAIL',
-    'VIEW_DEPARTMENTS',
-    'VIEW_CONTRACTS',
-    'VIEW_RECRUITMENT',
-    'VIEW_PAYROLLS',
-    'VIEW_LEAVES',
-    'VIEW_REPORTS'
+    'VIEW_CONTRACTS', 'CREATE_CONTRACT', 'EDIT_CONTRACT',
+    'VIEW_RECRUITMENT', 'MANAGE_APPLICANTS',
+    'VIEW_DASHBOARD'
 );
 
 INSERT INTO RolePermission (RoleID, PermissionID)
-SELECT 5, PermissionID FROM Permission 
+SELECT 5, PermissionID FROM Permission
 WHERE PermissionCode IN (
-    'VIEW_EMPLOYEE_DETAIL', 'VIEW_CONTRACTS',
-    'VIEW_LEAVES',
-    'VIEW_PAYROLLS'
+    'VIEW_EMPLOYEE_DETAIL', 'VIEW_LEAVES', 'CREATE_LEAVE', 'VIEW_DASHBOARD', 'VIEW_CONTRACTS', 'VIEW_PAYROLLS'
 );
 
--- ===== USER_PERMISSION (Phân quyền động cho từng user) =====
-INSERT INTO UserPermission (UserID, PermissionID, IsGranted, Scope, ScopeValue, CreatedBy)
-SELECT 2, PermissionID, TRUE, 'ALL', NULL, 1
-FROM Permission WHERE PermissionCode = 'MANAGE_SYSTEM';
-
-INSERT INTO UserPermission (UserID, PermissionID, IsGranted, Scope, ScopeValue, CreatedBy)
-SELECT 3, PermissionID, TRUE, 'DEPARTMENT', 2, 1
-FROM Permission WHERE PermissionCode = 'VIEW_EMPLOYEES';
-
-INSERT INTO UserPermission (UserID, PermissionID, IsGranted, Scope, ScopeValue, CreatedBy)
-SELECT 3, PermissionID, TRUE, 'DEPARTMENT', 2, 1
-FROM Permission WHERE PermissionCode = 'VIEW_PAYROLLS';
-
-INSERT INTO UserPermission (UserID, PermissionID, IsGranted, Scope, ScopeValue, CreatedBy)
-SELECT 5, PermissionID, TRUE, 'SELF', NULL, 1
-FROM Permission WHERE PermissionCode = 'VIEW_PAYROLLS';
-
-INSERT INTO UserPermission (UserID, PermissionID, IsGranted, Scope, ScopeValue, CreatedBy)
-SELECT 2, PermissionID, TRUE, 'ALL', NULL, 1
-FROM Permission WHERE PermissionCode = 'VIEW_ALL_PAYROLLS';
+COMMIT;
 
 -- =====================================================
 -- PHẦN IV: CÁC HÀM TÍNH TOÁN LƯƠNG (PAYROLL FUNCTIONS)
@@ -688,7 +766,7 @@ CREATE FUNCTION fn_calculate_actual_working_days(
 READS SQL DATA
 BEGIN
     DECLARE v_total_days DECIMAL(10,2) DEFAULT 0;
-    
+
     -- Tính tổng công = SUM(WorkingHours / 8) + SUM(OvertimeHours / 8)
     SELECT COALESCE(
         SUM(
@@ -702,7 +780,7 @@ BEGIN
     WHERE EmployeeID = p_employee_id
     AND YEAR(Date) = p_year
     AND MONTH(Date) = p_month;
-    
+
     RETURN v_total_days;
 END$$
 DELIMITER ;
@@ -718,13 +796,13 @@ CREATE FUNCTION fn_calculate_overtime_hours(
 READS SQL DATA
 BEGIN
     DECLARE v_ot_hours DECIMAL(10,2) DEFAULT 0;
-    
+
     SELECT COALESCE(SUM(OvertimeHours), 0) INTO v_ot_hours
     FROM Attendance
     WHERE EmployeeID = p_employee_id
     AND YEAR(Date) = p_year
     AND MONTH(Date) = p_month;
-    
+
     RETURN v_ot_hours;
 END$$
 DELIMITER ;
@@ -742,10 +820,10 @@ BEGIN
     DECLARE v_paid_days DECIMAL(10,2) DEFAULT 0;
     DECLARE v_start_month DATE;
     DECLARE v_end_month DATE;
-    
+
     SET v_start_month = DATE(CONCAT(p_year, '-', LPAD(p_month, 2, '0'), '-01'));
     SET v_end_month = LAST_DAY(v_start_month);
-    
+
     SELECT COALESCE(
         SUM(
             DATEDIFF(
@@ -759,7 +837,7 @@ BEGIN
     AND LeaveType IN ('Annual', 'Sick', 'Maternity')
     AND StartDate <= v_end_month
     AND EndDate >= v_start_month;
-    
+
     RETURN v_paid_days;
 END$$
 DELIMITER ;
@@ -777,10 +855,10 @@ BEGIN
     DECLARE v_unpaid_days DECIMAL(10,2) DEFAULT 0;
     DECLARE v_start_month DATE;
     DECLARE v_end_month DATE;
-    
+
     SET v_start_month = DATE(CONCAT(p_year, '-', LPAD(p_month, 2, '0'), '-01'));
     SET v_end_month = LAST_DAY(v_start_month);
-    
+
     SELECT COALESCE(
         SUM(
             DATEDIFF(
@@ -794,7 +872,7 @@ BEGIN
     AND LeaveType = 'Unpaid'
     AND StartDate <= v_end_month
     AND EndDate >= v_start_month;
-    
+
     RETURN v_unpaid_days;
 END$$
 DELIMITER ;
@@ -811,13 +889,13 @@ READS SQL DATA
 BEGIN
     DECLARE v_daily_rate DECIMAL(12,2);
     DECLARE v_actual_salary DECIMAL(12,2);
-    
+
     -- Tính mức lương theo ngày = Lương cơ bản / 26
     SET v_daily_rate = p_base_salary / 26;
-    
+
     -- Lương thực tế = (Công thực tế + Ngày phép có trả) × Mức lương theo ngày
     SET v_actual_salary = (p_actual_days + p_paid_leave_days) * v_daily_rate;
-    
+
     RETURN v_actual_salary;
 END$$
 DELIMITER ;
@@ -834,13 +912,13 @@ READS SQL DATA
 BEGIN
     DECLARE v_hourly_rate DECIMAL(12,2);
     DECLARE v_ot_salary DECIMAL(12,2);
-    
+
     -- Tính mức lương theo giờ = Lương cơ bản / (26 × 8)
     SET v_hourly_rate = p_base_salary / 208;
-    
+
     -- Lương OT = OT hours × Mức lương theo giờ × Hệ số OT (1.5 hoặc 2.0)
     SET v_ot_salary = p_ot_hours * v_hourly_rate * p_ot_multiplier;
-    
+
     RETURN v_ot_salary;
 END$$
 DELIMITER ;
@@ -856,20 +934,20 @@ READS SQL DATA
 BEGIN
     DECLARE v_rate DECIMAL(5,2);
     DECLARE v_amount DECIMAL(12,2);
-    
+
     -- Lấy tỷ lệ bảo hiểm từ bảng InsuranceRate
     SELECT EmployeeRate INTO v_rate
     FROM InsuranceRate
     WHERE Type = p_insurance_type
     ORDER BY EffectiveDate DESC
     LIMIT 1;
-    
+
     IF v_rate IS NULL THEN
         SET v_rate = 0;
     END IF;
-    
+
     SET v_amount = p_base_salary * v_rate / 100;
-    
+
     RETURN v_amount;
 END$$
 DELIMITER ;
@@ -883,23 +961,23 @@ CREATE FUNCTION fn_calculate_personal_income_tax(
 READS SQL DATA
 BEGIN
     DECLARE v_tax DECIMAL(12,2) DEFAULT 0;
-    
+
     -- Nếu thu nhập âm hoặc = 0, không tính thuế
     IF p_taxable_income <= 0 THEN
         RETURN 0;
     END IF;
-    
+
     -- Tính thuế theo bậc từ bảng TaxRate
     SELECT (p_taxable_income * Rate / 100) - Deduction INTO v_tax
     FROM TaxRate
     WHERE p_taxable_income >= IncomeMin
     AND p_taxable_income <= IncomeMax
     LIMIT 1;
-    
+
     IF v_tax < 0 THEN
         SET v_tax = 0;
     END IF;
-    
+
     RETURN v_tax;
 END$$
 DELIMITER ;
@@ -913,7 +991,7 @@ DELIMITER $$
 CREATE PROCEDURE sp_GeneratePayrollImproved(
     IN p_pay_period VARCHAR(7),
     IN p_mode VARCHAR(10),
-    IN p_calculated_by INT 
+    IN p_calculated_by INT
 )
 BEGIN
     DECLARE done INT DEFAULT 0;
@@ -929,7 +1007,7 @@ BEGIN
     DECLARE v_bhxh DECIMAL(12,2);
     DECLARE v_bhyt DECIMAL(12,2);
     DECLARE v_bhtn DECIMAL(12,2);
-    
+
     -- Biến tính thuế
     DECLARE v_taxable_income DECIMAL(12,2);
     DECLARE v_dependents INT DEFAULT 0;
@@ -937,7 +1015,7 @@ BEGIN
     DECLARE v_dependent_deduction_per DECIMAL(12,2) DEFAULT 4400000;
     DECLARE v_total_relief DECIMAL(12,2);
     DECLARE v_tax_base_income DECIMAL(12,2);
-    
+
     DECLARE v_personal_tax DECIMAL(12,2);
     DECLARE v_other_deduction DECIMAL(12,2);
     DECLARE v_total_deduction DECIMAL(12,2);
@@ -978,7 +1056,7 @@ BEGIN
         -- Tính công thực tế
         SET v_actual_days = fn_calculate_actual_working_days(v_emp_id, v_year, v_month);
         SET v_paid_leave_days = fn_calculate_paid_leave_days(v_emp_id, v_year, v_month);
-        
+
         -- Tính lương cơ bản thực tế
         SET v_actual_base_salary = fn_calculate_actual_base_salary(v_base_salary, v_actual_days, v_paid_leave_days);
 
@@ -1005,11 +1083,11 @@ BEGIN
         SELECT COUNT(*) INTO v_dependents
         FROM Dependent
         WHERE EmployeeID = v_emp_id;
-        
+
         SET v_total_relief = v_personal_deduction + (v_dependents * v_dependent_deduction_per);
         SET v_tax_base_income = GREATEST(v_taxable_income - v_total_relief, 0);
         SET v_personal_tax = fn_calculate_personal_income_tax(v_tax_base_income);
-        
+
         -- Tính khấu trừ khác
         SET v_other_deduction = COALESCE(
             (SELECT SUM(Amount) FROM EmployeeDeduction
@@ -1031,7 +1109,7 @@ BEGIN
 
         -- Lấy số ngày nghỉ không phép
         SET v_unpaid_leave_days = fn_calculate_unpaid_leave_days(v_emp_id, v_year, v_month);
-        
+
         -- Ghi bảng PayrollAudit
         INSERT INTO PayrollAudit (
             EmployeeID, PayPeriod, BaseSalary, ActualWorkingDays, PaidLeaveDays, UnpaidLeaveDays,
@@ -1081,7 +1159,7 @@ BEGIN
         INSERT INTO EmployeeDeduction (EmployeeID, DeductionTypeID, Amount, Month)
         SELECT v_emp_id, DeductionTypeID, v_personal_tax, p_pay_period FROM DeductionType WHERE DeductionName='Personal Income Tax'
         ON DUPLICATE KEY UPDATE Amount = v_personal_tax;
-        
+
         -- Ghi bảng Payroll (tích hợp)
         INSERT INTO Payroll (EmployeeID, PayPeriod, BaseSalary, Allowance, Bonus, Deduction, NetSalary, Status)
         VALUES (
@@ -1111,5 +1189,3 @@ END$$
 DELIMITER ;
 
 COMMIT;
-
-

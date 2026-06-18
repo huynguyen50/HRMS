@@ -3,11 +3,14 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Department Management - HRMS</title>
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Quản lý phòng ban - HRMS</title>
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/Admin_home.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/unified-layout.css">
@@ -331,14 +334,14 @@
             }
 
             .sort-header .sort-icon.asc::before {
-                content: "▲";
+                content: "▼";
             }
 
             .sort-header .sort-icon.desc::before {
                 content: "▼";
             }
 
-            /* Updated filter controls section to match Role page style */
+            /* Cập nhật bộ lọc để đồng bộ với trang vai trò */
             .filter-controls {
                 display: flex;
                 justify-content: flex-start;
@@ -503,59 +506,75 @@
         <script>
         const contextPath = '${pageContext.request.contextPath}';
         </script>
+            <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/admin-shared-theme.css?v=20260618d">
     </head>
-    <body>
+    <body class="admin-page">
         <div class="dashboard-container">
             <!-- Sidebar -->
             <aside class="sidebar">
                 <div class="sidebar-header">
                     <div class="logo">
                         <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="Logo" width="32">
-                        <span>Admin Panel</span>
+                        <span>Quản trị</span>
                     </div>
                 </div>
 
                 <div class="sidebar-nav">
                     <a href="${pageContext.request.contextPath}/admin?action=dashboard"
-                       class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">🏠 Dashboard</a>
-                    <!-- Employees link removed -->
-                    <a href="${pageContext.request.contextPath}/departments?action=departments"
-                       class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
+                       class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        <span>Tổng quan</span>
+                    </a>
+                    <a href="${pageContext.request.contextPath}/admin?action=departments"
+                       class="nav-item ${activePage == 'departments' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">domain</span>
+                        <span>Phòng ban</span>
+                    </a>
                     <a href="${pageContext.request.contextPath}/admin/users"
-                       class="nav-item ${activePage == 'users' ? 'active' : ''}">👤 Users</a>
+                       class="nav-item ${activePage == 'users' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">group</span>
+                        <span>Người dùng</span>
+                    </a>
                     <a href="${pageContext.request.contextPath}/admin?action=role-permissions"
-                       class="nav-item ${activePage == 'role-permissions' ? 'active' : ''}">🛡️ Role Permissions</a>
+                       class="nav-item ${activePage == 'role-permissions' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">admin_panel_settings</span>
+                        <span>Phân quyền</span>
+                    </a>
                     <a href="${pageContext.request.contextPath}/admin?action=audit-log"
-                       class="nav-item ${activePage == 'audit-log' ? 'active' : ''}">📜 Audit Log</a>
+                       class="nav-item ${activePage == 'audit-log' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">history</span>
+                        <span>Nhật ký hệ thống</span>
+                    </a>
                     <a href="${pageContext.request.contextPath}/admin?action=profile"
-                       class="nav-item ${activePage == 'profile' ? 'active' : ''}">⚙️ Profile</a>
-                </div>
-            </aside>
+                       class="nav-item ${activePage == 'profile' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">person</span>
+                        <span>Hồ sơ</span>
+                    </a>
+                </div>            </aside>
 
             <main class="main-content">
                 <header class="top-bar">
+                    <div class="search-box">
+                        <span class="material-symbols-outlined search-icon">search</span>
+                        <input class="search-input" type="text" placeholder="Tìm kiếm...">
+                    </div>
                     <div class="top-bar-actions">
                         <div class="user-menu" onclick="toggleUserMenu()">
                             <div class="user-info">
-                                <div class="user-name-display">
-                                    <img src="https://i.pravatar.cc/32" alt="User">
-                                    <div class="user-name-text">
-                                        <span class="name">${currentUserName != null ? fn:escapeXml(currentUserName) : 'Admin'}</span>
-                                        <span class="role">(admin)</span>
-                                    </div>
-                                    <span class="dropdown-arrow">▼</span>
-                                </div>
+                                <img src="${pageContext.request.contextPath}/Admin/images/admin-user-avatar.png" alt="Quản trị viên">
+                                <span>Admin</span>
+                                <span class="dropdown-arrow material-symbols-outlined">expand_more</span>
                             </div>
                             <div class="dropdown-menu" id="userDropdown">
                                 <a href="${pageContext.request.contextPath}/admin?action=profile" class="dropdown-item">
-                                    <span class="icon">👤</span> Profile
+                                    <span class="material-symbols-outlined">person</span> Hồ sơ
                                 </a>
                                 <a href="${pageContext.request.contextPath}/homepage" class="dropdown-item">
-                                    <span class="icon">🏠</span> Trang chủ
+                                    <span class="material-symbols-outlined">home</span> Trang chủ
                                 </a>
                                 <div class="dropdown-divider"></div>
                                 <a href="${pageContext.request.contextPath}/logout" class="dropdown-item">
-                                    <span class="icon">🚪</span> Logout
+                                    <span class="material-symbols-outlined">logout</span> Đăng xuất
                                 </a>
                             </div>
                         </div>
@@ -565,8 +584,8 @@
                 <!-- Main Content -->
                 <section class="dashboard-content">
                     <div class="page-header">
-                        <h1 class="page-title">Department Management</h1>
-                        <button class="btn-primary" onclick="showDepartmentModal()">+ Add New Department</button>
+                        <h1 class="page-title">Quản lý phòng ban</h1>
+                        <button class="btn-primary" onclick="showDepartmentModal()">+ Thêm phòng ban mới</button>
                     </div>
 
                     <c:if test="${not empty errorMessage}">
@@ -580,14 +599,14 @@
                     <div class="filter-section">
                         <div class="filter-controls">
                             <div class="filter-group">
-                                <label for="searchQueryInput">Search</label>
+                                <label for="searchQueryInput">Tìm kiếm</label>
                                 <input type="text" id="searchQueryInput" name="search"
-                                       placeholder="Department Name or ID..."
+                                       placeholder="Tên phòng ban hoặc ID..."
                                        value="${searchKeyword}" class="filter-input">
                             </div>
                             <div class="filter-buttons">
-                                <button type="button" onclick="applyFilters()" class="btn-primary">Apply Filter</button>
-                                <button type="button" onclick="clearAllFilters()" class="btn-secondary">Clear All</button>
+                                <button type="button" onclick="applyFilters()" class="btn-primary">Áp dụng lọc</button>
+                                <button type="button" onclick="clearAllFilters()" class="btn-secondary">Xóa tất cả</button>
                             </div>
                         </div>
                     </div>
@@ -597,24 +616,24 @@
                         <table class="departments-table">
                             <thead>
                                 <tr>
-                                    <th onclick="sortTable('DepartmentID')">Department ID
+                                    <th onclick="sortTable('DepartmentID')">Mã phòng ban
                                         <c:if test="${sortBy == 'DepartmentID' || sortBy == ''}">
                                             <span class="sort-arrow">${sortOrder == 'ASC' ? '▲' : '▼'}</span>
                                         </c:if>
                                     </th>
-                                    <th onclick="sortTable('DeptName')">Department Name
+                                    <th onclick="sortTable('DeptName')">Tên phòng ban
                                         <c:if test="${sortBy == 'DeptName'}">
                                             <span class="sort-arrow">${sortOrder == 'ASC' ? '▲' : '▼'}</span>
                                         </c:if>
                                     </th>
-                                    <th>Manager</th>
-                                    <th onclick="sortTable('EmployeeCount')">Employee Count
+                                    <th>Quản lý</th>
+                                    <th onclick="sortTable('EmployeeCount')">Số nhân viên
                                         <c:if test="${sortBy == 'EmployeeCount'}">
                                             <span class="sort-arrow">${sortOrder == 'ASC' ? '▲' : '▼'}</span>
                                         </c:if>
                                     </th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody id="departmentsTableBody">
@@ -627,21 +646,21 @@
                                                 <td>
                                                     <c:choose>
                                                         <c:when test="${not empty dept.deptManagerId}">
-                                                            Manager ID: ${dept.deptManagerId}
+                                                            Mã quản lý: ${dept.deptManagerId}
                                                         </c:when>
                                                         <c:otherwise>
-                                                            <span style="color: #999;">Unassigned</span>
+                                                            <span style="color: #999;">Chưa phân công</span>
                                                         </c:otherwise>
                                                     </c:choose>
                                                 </td>
                                                 <td>${dept.employeeCount != null ? dept.employeeCount : 0}</td>
-                                                <td><span style="background: #d4edda; padding: 4px 8px; border-radius: 4px;">Active</span></td>
+                                                <td><span style="background: #d4edda; padding: 4px 8px; border-radius: 4px;">Hoạt động</span></td>
                                                 <td>
                                                     <button class="btn-action edit" onclick="showDepartmentModal(${dept.departmentId}, '${dept.deptName}', ${dept.deptManagerId})">
-                                                        <i class="fa fa-pencil"></i> Edit
+                                                        <i class="fa fa-pencil"></i> Sửa
                                                     </button>
                                                     <button class="btn-action delete" onclick="deleteDepartment(${dept.departmentId}, '${dept.deptName}')">
-                                                        <i class="fa fa-trash"></i> Delete
+                                                        <i class="fa fa-trash"></i> Xóa
                                                     </button>
                                                 </td>
                                             </tr>
@@ -649,7 +668,7 @@
                                     </c:when>
                                     <c:otherwise>
                                         <tr>
-                                            <td colspan="6" style="text-align: center;">No departments found matching the criteria.</td>
+                                            <td colspan="6" style="text-align: center;">Không tìm thấy phòng ban phù hợp với điều kiện lọc.</td>
                                         </tr>
                                     </c:otherwise>
                                 </c:choose>
@@ -669,10 +688,10 @@
                             <c:if test="${end > total}">
                                 <c:set var="end" value="${total}" />
                             </c:if>
-                            <span>Showing ${start} - ${end} of ${total}</span>
+                            <span>Hiển thị ${start} - ${end} / ${total}</span>
 
                             <div class="page-size-selector">
-                                <label for="pageSizeSelect">Items per page:</label>
+                                <label for="pageSizeSelect">Số dòng mỗi trang:</label>
                                 <select id="pageSizeSelect" onchange="changePageSize(this.value)">
                                     <option value="5" <c:if test="${pageSize == 5}">selected</c:if>>5</option>
                                     <option value="10" <c:if test="${pageSize == 10}">selected</c:if>>10</option>
@@ -695,10 +714,10 @@
                                     <c:url var="prevUrl" value="${baseUrl}">
                                         <c:param name="page" value="${page - 1}" />
                                     </c:url>
-                                    <a href="${prevUrl}" class="btn-pagination">← Prev</a>
+                                    <a href="${prevUrl}" class="btn-pagination">&larr; Trước</a>
                                 </c:when>
                                 <c:otherwise>
-                                    <span class="disabled">← Prev</span>
+                                    <span class="disabled">&larr; Trước</span>
                                 </c:otherwise>
                             </c:choose>
 
@@ -739,10 +758,10 @@
                                     <c:url var="nextUrl" value="${baseUrl}">
                                         <c:param name="page" value="${page + 1}" />
                                     </c:url>
-                                    <a href="${nextUrl}" class="btn-pagination">Next →</a>
+                                    <a href="${nextUrl}" class="btn-pagination">Sau &rarr;</a>
                                 </c:when>
                                 <c:otherwise>
-                                    <span class="disabled">Next →</span>
+                                    <span class="disabled">Sau &rarr;</span>
                                 </c:otherwise>
                             </c:choose>
                         </div>
@@ -751,24 +770,24 @@
             </main>
         </div>
 
-        <!-- Add/Edit Department Modal -->
+        <!-- Modal thêm/sửa phòng ban -->
         <div id="departmentModal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 id="modalTitle">Add New Department</h2>
+                    <h2 id="modalTitle">Thêm phòng ban mới</h2>
                     <button class="close-btn" onclick="closeDepartmentModal()">&times;</button>
                 </div>
                 <form id="departmentForm">
                     <input type="hidden" id="departmentId" name="departmentId">
                     <div class="form-group">
-                        <label for="departmentName">Department Name *</label>
-                        <input type="text" id="departmentName" name="departmentName" required placeholder="e.g., HR, Finance, IT">
+                        <label for="departmentName">Tên phòng ban *</label>
+                        <input type="text" id="departmentName" name="departmentName" required placeholder="VD: HR, Tài chính, IT">
                     </div>
 
                     <div class="form-group">
-                        <label for="departmentManager">Manager</label>
+                        <label for="departmentManager">Quản lý</label>
                         <select id="departmentManager" name="departmentManager">
-                            <option value="">-- Select Manager --</option>
+                            <option value="">-- Chọn quản lý --</option>
                             <c:forEach var="manager" items="${managers}">
                                 <option value="${manager.employeeId}">${manager.fullName}</option>
                             </c:forEach>
@@ -776,26 +795,26 @@
                     </div>
 
                     <div class="form-actions">
-                        <button type="button" class="btn-cancel" onclick="closeDepartmentModal()">Cancel</button>
-                        <button type="submit" class="btn-submit">Save Department</button>
+                        <button type="button" class="btn-cancel" onclick="closeDepartmentModal()">Hủy</button>
+                        <button type="submit" class="btn-submit">Lưu phòng ban</button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- Delete Department Modal -->
+        <!-- Modal xóa phòng ban -->
         <div id="deleteModal" class="modal">
             <div class="modal-content" style="max-width: 400px;">
                 <div class="modal-header">
-                    <h2>Confirm Deletion</h2>
+                    <h2>Xác nhận xóa</h2>
                     <button class="close-btn" onclick="closeDeleteModal()">&times;</button>
                 </div>
-                <p>Are you sure you want to delete the department: <strong id="deleteDepartmentName"></strong> (ID: <strong id="deleteDepartmentId"></strong>)?</p>
+                <p>Bạn có chắc muốn xóa phòng ban: <strong id="deleteDepartmentName"></strong> (ID: <strong id="deleteDepartmentId"></strong>)?</p>
                 <form id="deleteForm">
                     <input type="hidden" id="confirmDeleteDepartmentId" name="departmentId">
                     <div class="form-actions">
-                        <button type="button" class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
-                        <button type="submit" class="btn-submit" style="background-color: #dc3545;">Delete</button>
+                        <button type="button" class="btn-cancel" onclick="closeDeleteModal()">Hủy</button>
+                        <button type="submit" class="btn-submit" style="background-color: #dc3545;">Xóa</button>
                     </div>
                 </form>
             </div>
@@ -872,7 +891,7 @@
             document.getElementById('departmentId').value = departmentId || '';
             document.getElementById('departmentName').value = departmentName;
             document.getElementById('departmentManager').value = departmentManager || '';
-            document.getElementById('modalTitle').textContent = departmentId ? 'Edit Department' : 'Add New Department';
+            document.getElementById('modalTitle').textContent = departmentId ? 'Sửa phòng ban' : 'Thêm phòng ban mới';
             modal.style.display = 'flex';
         }
 
@@ -911,7 +930,7 @@
             const departmentManager = document.getElementById('departmentManager').value;
 
             if (departmentName.trim() === '') {
-                alert('Department Name is required.');
+                alert('Vui lòng nhập tên phòng ban.');
                 return;
             }
 
@@ -985,10 +1004,10 @@
         <script>
             // JSTL session messages
             <c:if test="${not empty successMessage}">
-            showToast("✓ ${successMessage}", "success");
+            showToast("Thành công: ${successMessage}", "success");
             </c:if>
             <c:if test="${not empty errorMessage}">
-            showToast("✗ ${errorMessage}", "error");
+            showToast("Lỗi: ${errorMessage}", "error");
             </c:if>
         </script>
 

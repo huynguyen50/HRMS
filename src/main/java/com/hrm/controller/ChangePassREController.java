@@ -1,7 +1,6 @@
 package com.hrm.controller;
 
 import com.hrm.dao.DAO;
-import com.hrm.model.entity.Employee;
 import com.hrm.model.entity.SystemUser;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -17,11 +16,12 @@ public class ChangePassREController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        String recoveryEmail = (String) session.getAttribute("recoveryEmail");
+        HttpSession session = request.getSession(false);
+        String recoveryEmail = session != null ? (String) session.getAttribute("recoveryEmail") : null;
+        Boolean recoveryVerified = session != null ? (Boolean) session.getAttribute("recoveryVerified") : null;
 
-        if (recoveryEmail == null) {
-            response.sendRedirect(request.getContextPath() + "/Views/ForgotPassword.jsp");
+        if (recoveryEmail == null || !Boolean.TRUE.equals(recoveryVerified)) {
+            response.sendRedirect(request.getContextPath() + "/ForgotPassword");
             return;
         }
         request.getRequestDispatcher("/Views/ChangePasswordRE.jsp").forward(request, response);
@@ -33,33 +33,38 @@ public class ChangePassREController extends HttpServlet {
         String newPass = request.getParameter("newPass");
         String confirmPass = request.getParameter("confirmPass");
         
-        HttpSession session = request.getSession();
-        String email = (String) session.getAttribute("recoveryEmail");
+        HttpSession session = request.getSession(false);
+        String email = session != null ? (String) session.getAttribute("recoveryEmail") : null;
+        Boolean recoveryVerified = session != null ? (Boolean) session.getAttribute("recoveryVerified") : null;
 
-        if(newPass.length()<8 || newPass.length()>16){
-            request.setAttribute("mess", "New password must be between 8 and 16 characters long!");
+        if (email == null || !Boolean.TRUE.equals(recoveryVerified)) {
+            response.sendRedirect(request.getContextPath() + "/ForgotPassword");
+            return;
+        }
+
+        if (newPass == null || confirmPass == null || newPass.length() < 8 || newPass.length() > 16) {
+            request.setAttribute("mess", "Mật khẩu mới phải có từ 8 đến 16 ký tự.");
             request.getRequestDispatcher("/Views/ChangePasswordRE.jsp").forward(request, response);
             return;
         }
         
         String allowPattern = "[a-zA-Z0-9]+";
         if(!newPass.matches(allowPattern)){
-            request.setAttribute("mess", "New password must contain no special characters!");
-            request.getRequestDispatcher("/Views/Login.jsp").forward(request, response);
-            return;
-        }
-        
-        if (!newPass.equals(confirmPass)) {
-            request.setAttribute("mess", "New password does not match with confirm password!");
+            request.setAttribute("mess", "Mật khẩu mới không được chứa ký tự đặc biệt.");
             request.getRequestDispatcher("/Views/ChangePasswordRE.jsp").forward(request, response);
             return;
         }
         
-        Employee empID = DAO.getInstance().findEmployeeByEmail(email);
-        SystemUser user = DAO.getInstance().findSystemUserByEmpID(empID.getEmployeeId());
+        if (!newPass.equals(confirmPass)) {
+            request.setAttribute("mess", "Mật khẩu xác nhận không khớp với mật khẩu mới.");
+            request.getRequestDispatcher("/Views/ChangePasswordRE.jsp").forward(request, response);
+            return;
+        }
+        
+        SystemUser user = DAO.getInstance().getAccountByEmail(email);
 
         if (user == null) {
-            request.setAttribute("mess", "An error occurred. Could not find your account.");
+            request.setAttribute("mess", "Đã xảy ra lỗi. Không tìm thấy tài khoản của bạn.");
             request.getRequestDispatcher("/Views/ChangePasswordRE.jsp").forward(request, response);
             return;
         }
@@ -68,9 +73,10 @@ public class ChangePassREController extends HttpServlet {
         if (result > 0) {
             session.removeAttribute("recoveryEmail");
             session.removeAttribute("pinCode");
-            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp?passChanged=true");
+            session.removeAttribute("recoveryVerified");
+            response.sendRedirect(request.getContextPath() + "/login?success=password_changed");
         } else {
-            request.setAttribute("mess", "Failed to change password. Please try again.");
+            request.setAttribute("mess", "Không thể đổi mật khẩu. Vui lòng thử lại.");
             request.getRequestDispatcher("/Views/ChangePasswordRE.jsp").forward(request, response);
         }
     }

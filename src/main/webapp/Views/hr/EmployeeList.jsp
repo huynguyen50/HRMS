@@ -12,7 +12,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Employee List - HR Management System</title>
+        <title>Danh sách nhân viên - BetterHR</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -509,6 +509,8 @@
                 }
             }
         </style>
+        <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-theme.css">
     </head>
     <body>
         <div class="hr-dashboard-container">
@@ -517,7 +519,7 @@
                 <div class="header-content">
                     <div class="logo-section">
                         <i class="fas fa-users-cog"></i>
-                        <h1>Employee Management</h1>
+                        <h1>Quản lý nhân viên</h1>
                     </div>
                     <div class="header-actions">
                         <div class="notification-bell">
@@ -525,13 +527,13 @@
                             <span class="notification-count">3</span>
                         </div>
                         <div class="user-profile">
-                            <img src="https://i.pravatar.cc/40" alt="HR User">
-                            <span>HR Manager</span>
+                            <img src="https://i.pravatar.cc/40" alt="Người dùng HR">
+                            <span>Quản lý HR</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
-                        <a href="/homepage" class="btn-homepage" title="Back to Homepage">
+                        <a href="/homepage" class="btn-homepage" title="Về trang chủ">
                             <i class="fas fa-home"></i>
-                            <span>Homepage</span>
+                            <span>Trang chủ</span>
                         </a>
                     </div>
                 </div>
@@ -543,18 +545,18 @@
                 <aside class="hr-sidebar">
                     <nav class="hr-nav">
                         <div class="nav-section">
-                            <h3>Navigation</h3>
+                            <h3>Điều hướng</h3>
                             <a href="${pageContext.request.contextPath}/Views/hr/HrHome.jsp" class="nav-item">
                                 <i class="fas fa-home"></i>
-                                <span>HR Dashboard</span>
+                                <span>HR Home</span>
                             </a>
                             <a href="${pageContext.request.contextPath}/HrHomeController" class="nav-item">
                                 <i class="fas fa-user-edit"></i>
-                                <span>Profile Management</span>
+                                <span>Quản lý hồ sơ</span>
                             </a>
                             <a href="${pageContext.request.contextPath}/hr/employee-list" class="nav-item active">
                                 <i class="fas fa-users"></i>
-                                <span>Employee List</span>
+                                <span>Danh sách nhân viên</span>
                             </a>
                         </div>
                         
@@ -570,7 +572,7 @@
                             </a>
                             <a href="${pageContext.request.contextPath}/hr/create-employee" class="nav-item">
                                 <i class="fas fa-user-plus"></i>
-                                <span>Create Employee</span>
+                                <span>Tạo nhân viên</span>
                             </a>
                         </div>
                         
@@ -589,11 +591,11 @@
                     <!-- Page Header -->
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <div>
-                            <h1 class="h2 mb-2">Employee List</h1>
+                            <h1 class="h2 mb-2">Danh sách nhân viên</h1>
                             <p class="text-muted">View and manage all employees in the system</p>
                         </div>
                         <a href="${pageContext.request.contextPath}/Views/hr/HrHome.jsp" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left me-2"></i>Back to HR Dashboard
+                            <i class="fas fa-arrow-left me-2"></i>Quay lại HR Home
                         </a>
                     </div>
 
@@ -601,7 +603,7 @@
                     <div class="card mb-4">
                         <div class="card-header">
                             <h5 class="mb-0">
-                                <i class="fas fa-filter me-2"></i>Search
+                                <i class="fas fa-filter me-2"></i>Tìm kiếm
                             </h5>
                         </div>
                         <div class="card-body">
@@ -609,16 +611,16 @@
                                 <input type="hidden" name="page" value="1" id="pageInput">
                                 <div class="row g-3">
                                     <div class="col-md-8">
-                                        <label for="search" class="form-label">Search</label>
+                                        <label for="search" class="form-label">Tìm kiếm</label>
                                         <input type="text" class="form-control" id="search" name="search" 
-                                               placeholder="Search by name or position..." 
+                                               placeholder="Tìm theo tên hoặc vị trí..."
                                                value="${searchKeyword}">
                                     </div>
                                 </div>
                                 <div class="row mt-3">
                                     <div class="col-12">
                                         <button type="submit" class="btn btn-primary me-2">
-                                            <i class="fas fa-search me-1"></i>Search
+                                            <i class="fas fa-search me-1"></i>Tìm kiếm
                                         </button>
                                         <a href="${pageContext.request.contextPath}/hr/employee-list" class="btn btn-outline-secondary">
                                             <i class="fas fa-times me-1"></i>Clear
@@ -653,7 +655,7 @@
                             <div class="col-md-3">
                                 <div class="stats-card">
                                     <div class="stats-number">${totalCount}</div>
-                                    <div class="stats-label">Total Employees</div>
+                                    <div class="stats-label">Tổng nhân viên</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -667,7 +669,7 @@
                                         </c:forEach>
                                         ${activeCount}
                                     </div>
-                                    <div class="stats-label">Active Employees</div>
+                                    <div class="stats-label">Nhân viên chính thức</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -681,7 +683,7 @@
                                         </c:forEach>
                                         ${probationCount}
                                     </div>
-                                    <div class="stats-label">On Probation</div>
+                                    <div class="stats-label">Đang thử việc</div>
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -695,7 +697,7 @@
                                         </c:forEach>
                                         ${internCount}
                                     </div>
-                                    <div class="stats-label">Interns</div>
+                                    <div class="stats-label">Thực tập sinh</div>
                                 </div>
                             </div>
                         </div>
@@ -705,15 +707,15 @@
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">
-                                <i class="fas fa-users me-2"></i>Employees
+                                <i class="fas fa-users me-2"></i>Nhân viên
                                 <c:if test="${not empty totalCount}">
-                                    <span class="badge bg-primary ms-2">${totalCount} total</span>
+                                    <span class="badge bg-primary ms-2">${totalCount} tổng</span>
                                 </c:if>
                             </h5>
                             <div class="text-muted">
-                                Showing ${(currentPage - 1) * pageSize + 1} to 
+                                Hiển thị ${(currentPage - 1) * pageSize + 1} đến
                                 ${currentPage * pageSize > totalCount ? totalCount : currentPage * pageSize} 
-                                of ${totalCount} entries
+                                trên ${totalCount} bản ghi
                             </div>
                         </div>
                         <div class="card-body p-0">
@@ -724,11 +726,11 @@
                                             <thead class="table-dark">
                                                 <tr>
                                                     <th style="width: 60px;">ID</th>
-                                                    <th style="width: 200px;">Name</th>
-                                                    <th style="width: 120px;">Position</th>
-                                                    <th style="width: 120px;">Department</th>
-                                                    <th style="width: 80px;">Status</th>
-                                                    <th style="width: 100px;">Actions</th>
+                                                    <th style="width: 200px;">Họ tên</th>
+                                                    <th style="width: 120px;">Vị trí</th>
+                                                    <th style="width: 120px;">Phòng ban</th>
+                                                    <th style="width: 80px;">Trạng thái</th>
+                                                    <th style="width: 100px;">Thao tác</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -759,7 +761,7 @@
                                                         </td>
                                                         <td>
                                                             <div class="btn-group btn-group-sm">
-                                                                <button class="btn btn-outline-warning btn-sm" title="Edit Employee" 
+                                                                <button class="btn btn-outline-warning btn-sm" title="Sửa nhân viên"
                                                                         style="padding: 0.25rem 0.5rem;" 
                                                                         data-employee-id="${employee.employeeId}"
                                                                         data-employee-name="${fn:escapeXml(employee.fullName)}"
@@ -772,12 +774,12 @@
                                                                         onclick="showEditModalFromData(this)">
                                                                     <i class="fas fa-edit" style="font-size: 0.8rem;"></i>
                                                                 </button>
-                                                                <button class="btn btn-outline-success btn-sm" title="Update Status" 
+                                                                <button class="btn btn-outline-success btn-sm" title="Cập nhật trạng thái"
                                                                         style="padding: 0.25rem 0.5rem;" 
                                                                         onclick="showStatusModal(${employee.employeeId}, '${employee.status}', '${employee.fullName}')">
                                                                     <i class="fas fa-user-check" style="font-size: 0.8rem;"></i>
                                                                 </button>
-                                                                <button class="btn btn-outline-danger btn-sm" title="Delete Employee" 
+                                                                <button class="btn btn-outline-danger btn-sm" title="Xóa nhân viên"
                                                                         style="padding: 0.25rem 0.5rem;" 
                                                                         onclick="confirmDeleteEmployee(${employee.employeeId}, '${fn:escapeXml(employee.fullName)}')">
                                                                     <i class="fas fa-trash" style="font-size: 0.8rem;"></i>
@@ -792,10 +794,10 @@
                                     <c:otherwise>
                                         <div class="no-data">
                                             <i class="fas fa-users-slash"></i>
-                                            <h3>No Employees Found</h3>
-                                            <p>There are no employees matching your criteria.</p>
+                                            <h3>Không tìm thấy nhân viên</h3>
+                                            <p>Không có nhân viên phù hợp với điều kiện tìm kiếm.</p>
                                             <a href="${pageContext.request.contextPath}/hr/create-employee" class="btn btn-primary mt-3">
-                                                <i class="fas fa-user-plus me-2"></i>Create First Employee
+                                                <i class="fas fa-user-plus me-2"></i>Tạo nhân viên đầu tiên
                                             </a>
                                         </div>
                                     </c:otherwise>
@@ -806,12 +808,12 @@
 
                     <!-- Pagination -->
                     <c:if test="${totalPages > 1}">
-                        <nav aria-label="Employee pagination" class="mt-4">
+                        <nav aria-label="Phân trang nhân viên" class="mt-4">
                             <ul class="pagination justify-content-center">
                                 <!-- Previous button -->
                                 <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
                                     <a class="page-link" href="${pageContext.request.contextPath}/hr/employee-list?page=${currentPage - 1}&search=${searchKeyword}">
-                                        <i class="fas fa-chevron-left"></i> Previous
+                                        <i class="fas fa-chevron-left"></i> Trước
                                     </a>
                                 </li>
                                 
@@ -846,7 +848,7 @@
                                 <!-- Next button -->
                                 <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
                                     <a class="page-link" href="${pageContext.request.contextPath}/hr/employee-list?page=${currentPage + 1}&search=${searchKeyword}">
-                                        Next <i class="fas fa-chevron-right"></i>
+                                        Sau <i class="fas fa-chevron-right"></i>
                                     </a>
                                 </li>
                             </ul>
@@ -861,8 +863,8 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="statusModalLabel">Update Employee Status</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <h5 class="modal-title" id="statusModalLabel">Cập nhật trạng thái nhân viên</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                     </div>
                     <form id="statusUpdateForm" method="POST" action="${pageContext.request.contextPath}/hr/employee-list">
                         <div class="modal-body">
@@ -870,28 +872,28 @@
                             <input type="hidden" name="employeeId" id="modalEmployeeId">
                             
                             <div class="mb-3">
-                                <label for="employeeName" class="form-label">Employee Name</label>
+                                <label for="employeeName" class="form-label">Tên nhân viên</label>
                                 <input type="text" class="form-control" id="employeeName" readonly>
                             </div>
                             
                             <div class="mb-3">
-                                <label for="currentStatus" class="form-label">Current Status</label>
+                                <label for="currentStatus" class="form-label">Trạng thái hiện tại</label>
                                 <input type="text" class="form-control" id="currentStatus" readonly>
                             </div>
                             
                             <div class="mb-3">
-                                <label for="newStatus" class="form-label">New Status</label>
+                                <label for="newStatus" class="form-label">Trạng thái mới</label>
                                 <select class="form-select" name="status" id="newStatus" required>
-                                    <option value="Active">Active</option>
-                                    <option value="Probation">Probation</option>
-                                    <option value="Intern">Intern</option>
+                                    <option value="Active">Chính thức</option>
+                                    <option value="Probation">Thử việc</option>
+                                    <option value="Intern">Thực tập</option>
                                 </select>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
                             <button type="submit" class="btn btn-success">
-                                <i class="fas fa-save me-2"></i>Update Status
+                                <i class="fas fa-save me-2"></i>Cập nhật trạng thái
                             </button>
                         </div>
                     </form>
@@ -904,8 +906,8 @@
             <div class="modal-dialog modal-lg">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="editModalLabel">Edit Employee Information</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <h5 class="modal-title" id="editModalLabel">Sửa thông tin nhân viên</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
                     </div>
                     <form id="editEmployeeForm" method="POST" action="${pageContext.request.contextPath}/hr/employee-list" onsubmit="return debugFormSubmit()">
                         <div class="modal-body">
@@ -914,7 +916,7 @@
                             
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="editFullName" class="form-label">Full Name *</label>
+                                    <label for="editFullName" class="form-label">Họ và tên *</label>
                                     <input type="text" class="form-control" id="editFullName" name="fullName" required>
                                 </div>
                                 <div class="col-md-6 mb-3">
@@ -925,30 +927,30 @@
                             
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="editPhone" class="form-label">Phone</label>
+                                    <label for="editPhone" class="form-label">Số điện thoại</label>
                                     <input type="tel" class="form-control" id="editPhone" name="phone">
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label for="editPosition" class="form-label">Position</label>
+                                    <label for="editPosition" class="form-label">Vị trí</label>
                                     <input type="text" class="form-control" id="editPosition" name="position" readonly style="background-color: #f8f9fa;">
                                 </div>
                             </div>
                             
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="editStartDate" class="form-label">Start Date</label>
+                                    <label for="editStartDate" class="form-label">Ngày bắt đầu</label>
                                     <input type="date" class="form-control" id="editStartDate" name="startDate">
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label for="editEndDate" class="form-label">End Date</label>
+                                    <label for="editEndDate" class="form-label">Ngày kết thúc</label>
                                     <input type="date" class="form-control" id="editEndDate" name="endDate">
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
                             <button type="submit" class="btn btn-warning">
-                                <i class="fas fa-save me-2"></i>Update Employee
+                                <i class="fas fa-save me-2"></i>Cập nhật nhân viên
                             </button>
                         </div>
                     </form>
@@ -1049,7 +1051,7 @@
             
             // Delete employee confirmation
             function confirmDeleteEmployee(employeeId, employeeName) {
-                if (confirm('Are you sure you want to delete employee "' + employeeName + '"?\n\nThis action cannot be undone and will also delete the associated system account.')) {
+                if (confirm('Bạn có chắc muốn xóa nhân viên "' + employeeName + '"?\n\nThao tác này không thể hoàn tác và cũng sẽ xóa tài khoản hệ thống liên kết.')) {
                     // Create a form to submit delete request
                     const form = document.createElement('form');
                     form.method = 'POST';
@@ -1074,7 +1076,7 @@
 
             // Initialize page
             document.addEventListener('DOMContentLoaded', function() {
-                console.log('Employee List page loaded successfully');
+                console.log('Trang danh sách nhân viên đã tải xong');
             });
         </script>
     </body>

@@ -23,8 +23,7 @@ public class SystemUserDAO {
         String validSortField = validateSortField(sortBy);
         String validSortOrder = "DESC".equalsIgnoreCase(sortOrder) ? "DESC" : "ASC";
 
-        String sql = "SELECT su.UserID, su.Username, su.RoleID, su.LastLogin, su.IsActive, "
-                  + "su.CreatedDate, su.EmployeeID, r.RoleName, e.FullName, d.DeptName "
+        String sql = "SELECT su.*, r.RoleName, e.FullName, d.DeptName "
                   + "FROM SystemUser su "
                   + "LEFT JOIN Role r ON su.RoleID = r.RoleID "
                   + "LEFT JOIN Employee e ON su.EmployeeID = e.EmployeeID "
@@ -60,7 +59,7 @@ public class SystemUserDAO {
                     SystemUser user = new SystemUser();
                     user.setUserId(rs.getInt("UserID"));
                     user.setUsername(rs.getString("Username"));
-                    user.setPassword(rs.getString("Password"));
+                    mapExtendedFields(rs, user);
                     user.setRoleId(rs.getInt("RoleID"));
                     user.setLastLogin(rs.getTimestamp("LastLogin") != null
                               ? rs.getTimestamp("LastLogin").toLocalDateTime() : null);
@@ -99,7 +98,7 @@ public class SystemUserDAO {
                     SystemUser user = new SystemUser();
                     user.setUserId(rs.getInt("UserID"));
                     user.setUsername(rs.getString("Username"));
-                    user.setPassword(rs.getString("Password"));
+                    mapExtendedFields(rs, user);
                     user.setRoleId(rs.getInt("RoleID"));
                     user.setLastLogin(rs.getTimestamp("LastLogin") != null
                               ? rs.getTimestamp("LastLogin").toLocalDateTime() : null);
@@ -138,7 +137,7 @@ public class SystemUserDAO {
                     SystemUser user = new SystemUser();
                     user.setUserId(rs.getInt("UserID"));
                     user.setUsername(rs.getString("Username"));
-                    user.setPassword(rs.getString("Password"));
+                    mapExtendedFields(rs, user);
                     user.setRoleId(rs.getInt("RoleID"));
                     user.setLastLogin(rs.getTimestamp("LastLogin") != null
                               ? rs.getTimestamp("LastLogin").toLocalDateTime() : null);
@@ -163,19 +162,20 @@ public class SystemUserDAO {
 
     public boolean insert(SystemUser user) {
         String sql = """
-            INSERT INTO SystemUser (Username, Password, RoleID, IsActive, CreatedDate, EmployeeID)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO SystemUser (Username, Email, PasswordHash, RoleID, IsActive, CreatedDate, EmployeeID, LoginProvider)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'LOCAL')
         """;
 
         try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, user.getUsername());
-            ps.setString(2, user.getPassword());
-            ps.setInt(3, user.getRoleId());
-            ps.setBoolean(4, user.isIsActive());
-            ps.setTimestamp(5, user.getCreatedDate() != null
+            ps.setString(2, resolveEmail(user));
+            ps.setString(3, user.getPasswordHash());
+            ps.setInt(4, user.getRoleId());
+            ps.setBoolean(5, user.isIsActive());
+            ps.setTimestamp(6, user.getCreatedDate() != null
                       ? Timestamp.valueOf(user.getCreatedDate()) : Timestamp.valueOf(LocalDateTime.now()));
-            ps.setObject(6, user.getEmployeeId(), Types.INTEGER);
+            ps.setObject(7, user.getEmployeeId(), Types.INTEGER);
 
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -186,21 +186,22 @@ public class SystemUserDAO {
 
     public boolean update(SystemUser user) {
         String sql = """
-            UPDATE SystemUser SET Username=?, Password=?, RoleID=?, IsActive=?, 
-                                LastLogin=?, EmployeeID=? 
+            UPDATE SystemUser SET Username=?, Email=?, PasswordHash=?, RoleID=?, IsActive=?,
+                                LastLogin=?, EmployeeID=?, UpdatedDate=NOW()
             WHERE UserID=?
         """;
 
         try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, user.getUsername());
-            ps.setString(2, user.getPassword());
-            ps.setInt(3, user.getRoleId());
-            ps.setBoolean(4, user.isIsActive());
-            ps.setTimestamp(5, user.getLastLogin() != null
+            ps.setString(2, resolveEmail(user));
+            ps.setString(3, user.getPasswordHash());
+            ps.setInt(4, user.getRoleId());
+            ps.setBoolean(5, user.isIsActive());
+            ps.setTimestamp(6, user.getLastLogin() != null
                       ? Timestamp.valueOf(user.getLastLogin()) : null);
-            ps.setObject(6, user.getEmployeeId(), Types.INTEGER);
-            ps.setInt(7, user.getUserId());
+            ps.setObject(7, user.getEmployeeId(), Types.INTEGER);
+            ps.setInt(8, user.getUserId());
 
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -223,7 +224,7 @@ public class SystemUserDAO {
     }
 
     public boolean changePassword(String username, String newPassword) {
-        String sql = "UPDATE SystemUser SET Password=? WHERE Username=?";
+        String sql = "UPDATE SystemUser SET PasswordHash=?, UpdatedDate=NOW() WHERE Username=?";
 
         try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
 
@@ -311,8 +312,7 @@ public class SystemUserDAO {
         String validSortOrder = "DESC".equalsIgnoreCase(sortOrder) ? "DESC" : "ASC";
 
         StringBuilder sql = new StringBuilder(
-                  "SELECT su.UserID, su.Username, su.RoleID, su.LastLogin, su.IsActive, "
-                  + "su.CreatedDate, su.EmployeeID, r.RoleName, e.FullName, d.DeptName "
+                  "SELECT su.*, r.RoleName, e.FullName, d.DeptName "
                   + "FROM SystemUser su "
                   + "LEFT JOIN Role r ON su.RoleID = r.RoleID "
                   + "LEFT JOIN Employee e ON su.EmployeeID = e.EmployeeID "
@@ -430,8 +430,7 @@ public class SystemUserDAO {
     }
 
     public SystemUser getUserById(int userId) throws SQLException {
-        String sql = "SELECT su.UserID, su.Username, su.RoleID, su.LastLogin, su.IsActive, "
-                  + "su.CreatedDate, su.EmployeeID, r.RoleName, e.FullName, d.DeptName "
+        String sql = "SELECT su.*, r.RoleName, e.FullName, d.DeptName "
                   + "FROM SystemUser su "
                   + "LEFT JOIN Role r ON su.RoleID = r.RoleID "
                   + "LEFT JOIN Employee e ON su.EmployeeID = e.EmployeeID "
@@ -449,30 +448,32 @@ public class SystemUserDAO {
     }
 
     public boolean createUser(SystemUser user) throws SQLException {
-        String sql = "INSERT INTO SystemUser (Username, Password, RoleID, EmployeeID, IsActive, CreatedDate) "
-                  + "VALUES (?, ?, ?, ?, ?, NOW())";
+        String sql = "INSERT INTO SystemUser (Username, Email, PasswordHash, RoleID, EmployeeID, IsActive, CreatedDate, LoginProvider) "
+                  + "VALUES (?, ?, ?, ?, ?, ?, NOW(), 'LOCAL')";
 
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, user.getUsername());
-            stmt.setString(2, user.getPassword());
-            stmt.setInt(3, user.getRoleId());
-            stmt.setObject(4, user.getEmployeeId());
-            stmt.setBoolean(5, user.isIsActive());
+            stmt.setString(2, resolveEmail(user));
+            stmt.setString(3, user.getPasswordHash());
+            stmt.setInt(4, user.getRoleId());
+            stmt.setObject(5, user.getEmployeeId());
+            stmt.setBoolean(6, user.isIsActive());
 
             return stmt.executeUpdate() > 0;
         }
     }
 
     public boolean updateUser(SystemUser user) throws SQLException {
-        String sql = "UPDATE SystemUser SET Username = ?, RoleID = ?, EmployeeID = ?, IsActive = ? "
+        String sql = "UPDATE SystemUser SET Username = ?, Email = ?, RoleID = ?, EmployeeID = ?, IsActive = ?, UpdatedDate=NOW() "
                   + "WHERE UserID = ?";
 
         try (Connection conn = DBConnection.getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, user.getUsername());
-            stmt.setInt(2, user.getRoleId());
-            stmt.setObject(3, user.getEmployeeId());
-            stmt.setBoolean(4, user.isIsActive());
-            stmt.setInt(5, user.getUserId());
+            stmt.setString(2, resolveEmail(user));
+            stmt.setInt(3, user.getRoleId());
+            stmt.setObject(4, user.getEmployeeId());
+            stmt.setBoolean(5, user.isIsActive());
+            stmt.setInt(6, user.getUserId());
 
             return stmt.executeUpdate() > 0;
         }
@@ -535,6 +536,7 @@ public class SystemUserDAO {
         SystemUser user = new SystemUser();
         user.setUserId(rs.getInt("UserID"));
         user.setUsername(rs.getString("Username"));
+        mapExtendedFields(rs, user);
         user.setRoleId(rs.getInt("RoleID"));
         user.setLastLogin(rs.getTimestamp("LastLogin") != null
                   ? rs.getTimestamp("LastLogin").toLocalDateTime() : null);
@@ -605,6 +607,7 @@ public class SystemUserDAO {
         SystemUser user = new SystemUser();
         user.setUserId(rs.getInt("UserID"));
         user.setUsername(rs.getString("Username"));
+        mapExtendedFields(rs, user);
         user.setLastLogin(rs.getTimestamp("LastLogin") != null 
                   ? rs.getTimestamp("LastLogin").toLocalDateTime() : null);
         user.setIsActive(rs.getBoolean("IsActive"));
@@ -635,6 +638,54 @@ public class SystemUserDAO {
             user.setEmployee(employee);
         }
         return user;
+    }
+
+    private void mapExtendedFields(ResultSet rs, SystemUser user) throws SQLException {
+        user.setEmail(getNullableString(rs, "Email"));
+        user.setPasswordHash(getNullableString(rs, "PasswordHash"));
+        user.setGoogleId(getNullableString(rs, "GoogleID"));
+        user.setAvatarUrl(getNullableString(rs, "AvatarUrl"));
+        user.setLoginProvider(getNullableString(rs, "LoginProvider"));
+        if (hasColumn(rs, "FailedLoginAttempt")) {
+            user.setFailedLoginAttempt(rs.getInt("FailedLoginAttempt"));
+        }
+        Timestamp lockedUntil = hasColumn(rs, "LockedUntil") ? rs.getTimestamp("LockedUntil") : null;
+        user.setLockedUntil(lockedUntil != null ? lockedUntil.toLocalDateTime() : null);
+        Timestamp updatedDate = hasColumn(rs, "UpdatedDate") ? rs.getTimestamp("UpdatedDate") : null;
+        user.setUpdatedDate(updatedDate != null ? updatedDate.toLocalDateTime() : null);
+    }
+
+    private String getNullableString(ResultSet rs, String columnName) throws SQLException {
+        return hasColumn(rs, columnName) ? rs.getString(columnName) : null;
+    }
+
+    private boolean hasColumn(ResultSet rs, String columnName) throws SQLException {
+        ResultSetMetaData metaData = rs.getMetaData();
+        for (int i = 1; i <= metaData.getColumnCount(); i++) {
+            if (columnName.equalsIgnoreCase(metaData.getColumnLabel(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String resolveEmail(SystemUser user) throws SQLException {
+        if (user.getEmail() != null && !user.getEmail().trim().isEmpty()) {
+            return user.getEmail().trim();
+        }
+        if (user.getEmployeeId() != null) {
+            String sql = "SELECT Email FROM Employee WHERE EmployeeID = ?";
+            try (Connection conn = DBConnection.getConnection();
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setInt(1, user.getEmployeeId());
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next() && rs.getString("Email") != null && !rs.getString("Email").trim().isEmpty()) {
+                        return rs.getString("Email").trim();
+                    }
+                }
+            }
+        }
+        return user.getUsername() + "@betterhr.local";
     }
 
 
@@ -668,8 +719,7 @@ public class SystemUserDAO {
         int offset = (page - 1) * pageSize;
         List<Object> params = new ArrayList<>();
 
-        String baseSelect = "SELECT su.UserID, su.Username, su.RoleID, su.LastLogin, su.IsActive, "
-                  + "su.CreatedDate, su.EmployeeID, r.RoleName, e.FullName, d.DeptName "
+        String baseSelect = "SELECT su.*, r.RoleName, e.FullName, d.DeptName "
                   + "FROM SystemUser su "
                   + "LEFT JOIN Role r ON su.RoleID = r.RoleID "
                   + "LEFT JOIN Employee e ON su.EmployeeID = e.EmployeeID "

@@ -3,11 +3,14 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Admin Profile - HRMS</title>
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Hồ sơ quản trị - HRMS</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/Admin_home.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/unified-layout.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/user-menu.css">
@@ -35,7 +38,7 @@
                 width: 120px;
                 height: 120px;
                 border-radius: 50%;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: #00754a;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -145,7 +148,7 @@
 
             .form-control:focus {
                 outline: none;
-                border-color: #667eea;
+                border-color: #00754a;
                 box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
             }
 
@@ -172,7 +175,7 @@
             }
 
             .btn-primary {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background: #00754a;
                 color: white;
             }
 
@@ -183,8 +186,8 @@
 
             .btn-secondary {
                 background: white;
-                color: #667eea;
-                border: 2px solid #667eea;
+                color: #00754a;
+                border: 2px solid #00754a;
             }
 
             .btn-secondary:hover {
@@ -299,69 +302,86 @@
                 border: 1px solid rgba(239, 68, 68, 0.2);
             }
         </style>
+            <link rel="stylesheet" href="${pageContext.request.contextPath}/Admin/css/admin-shared-theme.css?v=20260618d">
     </head>
-    <body>
+    <body class="admin-page">
         <div class="dashboard-container">
             <!-- Sidebar -->
             <aside class="sidebar">
                 <div class="sidebar-header">
                     <div class="logo">
                         <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="Logo" width="32">
-                        <span>Admin Panel</span>
+                        <span>Quản trị</span>
                     </div>
                 </div>
-                
+
                 <div class="sidebar-nav">
                     <a href="${pageContext.request.contextPath}/admin?action=dashboard"
-                       class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">🏠 Dashboard</a>
+                       class="nav-item ${activePage == 'dashboard' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        <span>Tổng quan</span>
+                    </a>
                     <a href="${pageContext.request.contextPath}/admin?action=departments"
-                       class="nav-item ${activePage == 'departments' ? 'active' : ''}">🏢 Departments</a>
+                       class="nav-item ${activePage == 'departments' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">domain</span>
+                        <span>Phòng ban</span>
+                    </a>
                     <a href="${pageContext.request.contextPath}/admin/users"
-                       class="nav-item ${activePage == 'users' ? 'active' : ''}">👤 Users</a>
+                       class="nav-item ${activePage == 'users' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">group</span>
+                        <span>Người dùng</span>
+                    </a>
                     <a href="${pageContext.request.contextPath}/admin?action=role-permissions"
-                       class="nav-item ${activePage == 'role-permissions' ? 'active' : ''}">🛡️ Role Permissions</a>
+                       class="nav-item ${activePage == 'role-permissions' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">admin_panel_settings</span>
+                        <span>Phân quyền</span>
+                    </a>
                     <a href="${pageContext.request.contextPath}/admin?action=audit-log"
-                       class="nav-item ${activePage == 'audit-log' ? 'active' : ''}">📜 Audit Log</a>
+                       class="nav-item ${activePage == 'audit-log' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">history</span>
+                        <span>Nhật ký hệ thống</span>
+                    </a>
                     <a href="${pageContext.request.contextPath}/admin?action=profile"
-                       class="nav-item ${activePage == 'profile' ? 'active' : ''}">⚙️ Profile</a>
-                </div>
-            </aside>
+                       class="nav-item ${activePage == 'profile' ? 'active' : ''}">
+                        <span class="material-symbols-outlined">person</span>
+                        <span>Hồ sơ</span>
+                    </a>
+                </div>            </aside>
 
             <!-- Main Content -->
             <main class="main-content">
                 <!-- Top Bar -->
                 <header class="top-bar">
+                    <div class="search-box">
+                        <span class="material-symbols-outlined search-icon">search</span>
+                        <input class="search-input" type="text" placeholder="Tìm kiếm...">
+                    </div>
                     <div class="top-bar-actions">
                         <div class="user-menu" onclick="toggleUserMenu()">
                             <div class="user-info">
-                                <div class="user-name-display">
-                                    <img src="https://i.pravatar.cc/32" alt="User">
-                                    <div class="user-name-text">
-                                        <span class="name">${currentUserName != null ? fn:escapeXml(currentUserName) : 'Admin'}</span>
-                                        <span class="role">(admin)</span>
-                                    </div>
-                                    <span class="dropdown-arrow">▼</span>
-                                </div>
+                                <img src="${pageContext.request.contextPath}/Admin/images/admin-user-avatar.png" alt="Quản trị viên">
+                                <span>Admin</span>
+                                <span class="dropdown-arrow material-symbols-outlined">expand_more</span>
                             </div>
                             <div class="dropdown-menu" id="userDropdown">
                                 <a href="${pageContext.request.contextPath}/admin?action=profile" class="dropdown-item">
-                                    <span class="icon">👤</span> Profile
+                                    <span class="material-symbols-outlined">person</span> Hồ sơ
                                 </a>
                                 <a href="${pageContext.request.contextPath}/homepage" class="dropdown-item">
-                                    <span class="icon">🏠</span> Trang chủ
+                                    <span class="material-symbols-outlined">home</span> Trang chủ
                                 </a>
                                 <div class="dropdown-divider"></div>
                                 <a href="${pageContext.request.contextPath}/logout" class="dropdown-item">
-                                    <span class="icon">🚪</span> Logout
+                                    <span class="material-symbols-outlined">logout</span> Đăng xuất
                                 </a>
                             </div>
                         </div>
                     </div>
                 </header>
 
-                <!-- Dashboard Content -->
+                <!-- Nội dung tổng quan -->
                 <section class="dashboard-content">
-                    <h1 class="page-title">My Profile</h1>
+                    <h1 class="page-title">Hồ sơ của tôi</h1>
 
                     <!-- Success/Error Messages -->
                     <c:if test="${not empty successMessage}">
@@ -372,13 +392,13 @@
                     </c:if>
                     <c:if test="${not empty errorMessage}">
                         <div class="alert alert-error">
-                            <span>✗</span>
+                            <span>!</span>
                             <span>${errorMessage}</span>
                         </div>
                     </c:if>
 
                     <div class="profile-container">
-                        <!-- Profile Header Card -->
+                        <!-- Thẻ đầu hồ sơ -->
                         <div class="profile-card profile-header-card">
                             <div class="profile-avatar">
                                 <c:choose>
@@ -411,17 +431,17 @@
                                 </c:choose>
                             </div>
                             <div class="profile-status ${currentUser.isActive ? 'active' : 'inactive'}">
-                                ${currentUser.isActive ? 'Active' : 'Inactive'}
+                                ${currentUser.isActive ? 'Hoạt động' : 'Không hoạt động'}
                             </div>
 
                             <!-- Account Information -->
                             <div class="info-section" style="text-align: left; margin-top: 24px;">
                                 <div class="info-item">
-                                    <span class="info-label">User ID</span>
+                                    <span class="info-label">Mã người dùng</span>
                                     <span class="info-value">#${currentUser.userId}</span>
                                 </div>
                                 <div class="info-item">
-                                    <span class="info-label">Username</span>
+                                    <span class="info-label">Tên đăng nhập</span>
                                     <span class="info-value">${currentUser.username}</span>
                                 </div>
                                 <c:if test="${not empty currentUser.employee}">
@@ -454,7 +474,7 @@
                                 </c:if>
                                 <c:if test="${not empty lastLoginTimestamp}">
                                     <div class="info-item">
-                                        <span class="info-label">Last Login</span>
+                                        <span class="info-label">Lần đăng nhập cuối</span>
                                         <span class="info-value">
                                             <fmt:formatDate value="${lastLoginTimestamp}" pattern="MMM dd, yyyy HH:mm"/>
                                         </span>
@@ -463,28 +483,28 @@
                             </div>
                         </div>
 
-                        <!-- Profile Details Card -->
+                        <!-- Thẻ chi tiết hồ sơ -->
                         <div class="profile-card">
                             <div class="info-section">
                                 <h2 class="info-section-title">
-                                    <span>🔐</span>
-                                    Change Password
+                                    <span class="material-symbols-outlined">lock_reset</span>
+                                    Đổi mật khẩu
                                 </h2>
-                                <form action="${pageContext.request.contextPath}/Views/ChangePassword.jsp" method="GET">
+                                <form action="${pageContext.request.contextPath}/Xems/ChangePassword.jsp" method="GET">
                                     <div class="form-group">
-                                        <label class="form-label" for="currentPassword">Current Password</label>
-                                        <input type="password" id="currentPassword" class="form-control" placeholder="Enter current password" disabled>
+                                        <label class="form-label" for="currentPassword">Mật khẩu hiện tại</label>
+                                        <input type="password" id="currentPassword" class="form-control" placeholder="Nhập mật khẩu hiện tại" disabled>
                                     </div>
                                     <div class="form-group">
-                                        <label class="form-label" for="newPassword">New Password</label>
-                                        <input type="password" id="newPassword" class="form-control" placeholder="Enter new password" disabled>
+                                        <label class="form-label" for="newPassword">Mật khẩu mới</label>
+                                        <input type="password" id="newPassword" class="form-control" placeholder="Nhập mật khẩu mới" disabled>
                                     </div>
                                     <div class="form-group">
-                                        <label class="form-label" for="confirmPassword">Confirm New Password</label>
-                                        <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm new password" disabled>
+                                        <label class="form-label" for="confirmPassword">Xác nhận mật khẩu mới</label>
+                                        <input type="password" id="confirmPassword" class="form-control" placeholder="Xác nhận mật khẩu mới" disabled>
                                     </div>
                                     <div class="btn-group">
-                                        <button type="submit" class="btn btn-primary">Change Password</button>
+                                        <button type="submit" class="btn btn-primary">Đổi mật khẩu</button>
                                     </div>
                                 </form>
                             </div>
@@ -494,7 +514,7 @@
                     <!-- Recent Activity -->
                     <div class="profile-card" style="margin-top: 24px;">
                         <h2 class="info-section-title">
-                            <span>📋</span>
+                            <span class="material-symbols-outlined">history</span>
                             Recent Activity
                         </h2>
                         <div class="activity-list">
@@ -502,7 +522,7 @@
                                 <c:when test="${not empty recentLogs}">
                                     <c:forEach var="log" items="${recentLogs}">
                                         <div class="activity-item">
-                                            <div class="activity-icon 
+                                            <div class="activity-icon
                                                 <c:choose>
                                                     <c:when test="${log.action == 'LOGIN'}">login</c:when>
                                                     <c:when test="${log.action == 'PROFILE_UPDATE' || log.action == 'UPDATE'}">update</c:when>
@@ -510,10 +530,10 @@
                                                     <c:otherwise>default</c:otherwise>
                                                 </c:choose>">
                                                 <c:choose>
-                                                    <c:when test="${log.action == 'LOGIN'}">🔓</c:when>
-                                                    <c:when test="${log.action == 'PROFILE_UPDATE' || log.action == 'UPDATE'}">✏️</c:when>
-                                                    <c:when test="${log.action == 'PASSWORD_CHANGE' || log.action == 'CHANGE_PASSWORD'}">🔑</c:when>
-                                                    <c:otherwise>⚙️</c:otherwise>
+                                                    <c:when test="${log.action == 'LOGIN'}"><span class="material-symbols-outlined">login</span></c:when>
+                                                    <c:when test="${log.action == 'PROFILE_UPDATE' || log.action == 'UPDATE'}"><span class="material-symbols-outlined">edit</span></c:when>
+                                                    <c:when test="${log.action == 'PASSWORD_CHANGE' || log.action == 'CHANGE_PASSWORD'}"><span class="material-symbols-outlined">key</span></c:when>
+                                                    <c:otherwise><span class="material-symbols-outlined">settings</span></c:otherwise>
                                                 </c:choose>
                                             </div>
                                             <div class="activity-content">
@@ -540,8 +560,8 @@
                                 </c:when>
                                 <c:otherwise>
                                     <div class="empty-state">
-                                        <div class="empty-state-icon">📭</div>
-                                        <div>No recent activity</div>
+                                        <div class="empty-state-icon"><span class="material-symbols-outlined">inbox</span></div>
+                                        <div>Chưa có hoạt động gần đây</div>
                                     </div>
                                 </c:otherwise>
                             </c:choose>
@@ -577,4 +597,3 @@
         </script>
     </body>
 </html>
-

@@ -21,9 +21,16 @@ public class SessionSecurityFilter implements Filter {
             "",
             "/",
             "/login",
+            "/register",
+            "/auth/google",
+            "/auth/google/callback",
+            "/loginByGmail",
             "/logout",
             "/homepage",
+            "/ForgotPassword",
+            "/changepassRE",
             "/Views/Login.jsp",
+            "/Views/Register.jsp",
             "/Views/Homepage.jsp",
             "/Views/AccessDenied.jsp",
             "/Recovery",
@@ -59,7 +66,7 @@ public class SessionSecurityFilter implements Filter {
             return;
         }
 
-        if (isStaticResource(path) || isPublicPath(path)) {
+        if (isStaticResource(path) || isPublicPath(httpRequest, path)) {
             chain.doFilter(request, response);
             return;
         }
@@ -71,7 +78,11 @@ public class SessionSecurityFilter implements Filter {
             if (isJsonRequest(httpRequest)) {
                 httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             } else {
-                httpResponse.sendRedirect(contextPath + "/login");
+                String loginUrl = contextPath + "/login";
+                if (isRecruitmentApplyPath(httpRequest, path)) {
+                    loginUrl += "?error=login_required";
+                }
+                httpResponse.sendRedirect(loginUrl);
             }
             return;
         }
@@ -84,7 +95,7 @@ public class SessionSecurityFilter implements Filter {
         // no-op
     }
 
-    private boolean isPublicPath(String path) {
+    private boolean isPublicPath(HttpServletRequest request, String path) {
         if (path == null) {
             return true;
         }
@@ -95,11 +106,25 @@ public class SessionSecurityFilter implements Filter {
             return true;
         }
         if (path.startsWith("/RecruitmentController")) {
+            String action = request.getParameter("action");
+            return action == null || action.isBlank() || "list".equals(action) || "view".equals(action);
+        }
+        if (path.startsWith("/Views/Recruitment")) {
             return true;
         }
-        if (path.startsWith("/Views/Recruitment") || path.startsWith("/Views/ApplyForm")
-                || path.startsWith("/Views/Success")) {
+        return false;
+    }
+
+    private boolean isRecruitmentApplyPath(HttpServletRequest request, String path) {
+        if (path == null) {
+            return false;
+        }
+        if (path.startsWith("/Views/ApplyForm") || path.startsWith("/Views/Success")) {
             return true;
+        }
+        if (path.startsWith("/RecruitmentController")) {
+            String action = request.getParameter("action");
+            return "apply".equals(action) || "submitApplication".equals(action);
         }
         return false;
     }

@@ -9,14 +9,15 @@
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>HR Dashboard - Human Resource Management System</title>
+        <title>HR Home - BetterHR</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-dashboard.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-dashboard-backup.css">
+        <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         
@@ -699,6 +700,415 @@
                 color: #64748b !important;
                 font-size: 0.85rem !important;
             }
+
+            /* BetterHR visual refresh: layout/image-only styling, no route or logic changes */
+            :root {
+                --bh-primary: #00482f;
+                --bh-primary-soft: #006241;
+                --bh-secondary: #00754a;
+                --bh-secondary-soft: #d8f2e5;
+                --bh-gold: #cba258;
+                --bh-canvas: #fbf9f4;
+                --bh-ceramic: #edebe9;
+                --bh-surface: #ffffff;
+                --bh-surface-low: #f5f3ee;
+                --bh-border: #d9d4ca;
+                --bh-text: #1b1c19;
+                --bh-muted: rgba(0, 0, 0, 0.58);
+                --bh-danger: #c82014;
+                --bh-shadow: 0 0 0.5px rgba(0, 0, 0, 0.14), 0 8px 24px rgba(0, 0, 0, 0.08);
+            }
+
+            * {
+                box-sizing: border-box !important;
+            }
+
+            body,
+            .hr-dashboard-container {
+                background:
+                    radial-gradient(circle at top right, rgba(0, 117, 74, 0.08), transparent 30%),
+                    var(--bh-canvas) !important;
+                color: var(--bh-text) !important;
+                font-family: "Hanken Grotesk", "Segoe UI", Arial, sans-serif !important;
+            }
+
+            .hr-header {
+                background: rgba(255, 255, 255, 0.94) !important;
+                color: var(--bh-text) !important;
+                border-bottom: 1px solid var(--bh-border) !important;
+                box-shadow: 0 2px 18px rgba(0, 0, 0, 0.06) !important;
+                backdrop-filter: blur(14px) !important;
+                position: sticky !important;
+                top: 0 !important;
+                z-index: 20 !important;
+            }
+
+            .header-content {
+                max-width: 1480px !important;
+                min-height: 76px !important;
+            }
+
+            .logo-section i {
+                width: 46px !important;
+                height: 46px !important;
+                border-radius: 12px !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                background: var(--bh-primary-soft) !important;
+                color: #fff !important;
+                box-shadow: inset 0 -10px 20px rgba(0, 0, 0, 0.08) !important;
+            }
+
+            .logo-section h1 {
+                color: var(--bh-primary) !important;
+                font-weight: 800 !important;
+                letter-spacing: 0 !important;
+            }
+
+            .search-box {
+                background: var(--bh-surface-low) !important;
+                border: 1px solid transparent !important;
+                border-radius: 999px !important;
+                box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04) !important;
+            }
+
+            .search-box:focus-within {
+                border-color: rgba(0, 117, 74, 0.35) !important;
+                box-shadow: 0 0 0 4px rgba(0, 117, 74, 0.12) !important;
+            }
+
+            .search-box input {
+                background: transparent !important;
+                color: var(--bh-text) !important;
+            }
+
+            .notification-bell,
+            .user-profile,
+            .btn-homepage {
+                border: 1px solid var(--bh-border) !important;
+                background: var(--bh-surface) !important;
+                color: var(--bh-primary) !important;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
+            }
+
+            .notification-count {
+                background: var(--bh-danger) !important;
+                color: #fff !important;
+                border: 2px solid #fff !important;
+            }
+
+            .user-profile img,
+            .employee-info img,
+            .employee-basic-info img,
+            .candidate-info img {
+                border: 2px solid #fff !important;
+                box-shadow: 0 4px 16px rgba(0, 72, 47, 0.18) !important;
+                object-fit: cover !important;
+            }
+
+            .hr-main-content {
+                max-width: 1480px !important;
+                align-items: flex-start !important;
+            }
+
+            .hr-sidebar {
+                background: rgba(255, 255, 255, 0.96) !important;
+                border: 1px solid var(--bh-border) !important;
+                border-radius: 16px !important;
+                box-shadow: var(--bh-shadow) !important;
+                position: sticky !important;
+                top: 96px !important;
+            }
+
+            .nav-section-title {
+                color: var(--bh-muted) !important;
+                font-size: 0.75rem !important;
+                font-weight: 800 !important;
+                letter-spacing: 0.06em !important;
+                text-transform: uppercase !important;
+            }
+
+            .nav-item {
+                border-radius: 12px !important;
+                color: var(--bh-muted) !important;
+                font-weight: 700 !important;
+            }
+
+            .nav-item:hover {
+                background: var(--bh-surface-low) !important;
+                color: var(--bh-primary) !important;
+                transform: translateX(3px) !important;
+            }
+
+            .nav-item.active {
+                background: var(--bh-secondary-soft) !important;
+                color: var(--bh-primary) !important;
+                box-shadow: inset 3px 0 0 var(--bh-secondary) !important;
+            }
+
+            .nav-item i {
+                color: currentColor !important;
+                width: 22px !important;
+                text-align: center !important;
+            }
+
+            .hr-content-area {
+                background: rgba(255, 255, 255, 0.92) !important;
+                border: 1px solid var(--bh-border) !important;
+                border-radius: 18px !important;
+                box-shadow: var(--bh-shadow) !important;
+            }
+
+            .section-header {
+                border-bottom: 1px solid var(--bh-border) !important;
+                padding-bottom: 1.25rem !important;
+                margin-bottom: 1.75rem !important;
+            }
+
+            .section-header h2,
+            .quick-access h3,
+            .hr-functions h3,
+            .system-overview h3,
+            .approval-header h3,
+            .history-header h3 {
+                color: var(--bh-primary) !important;
+                font-weight: 800 !important;
+                letter-spacing: 0 !important;
+            }
+
+            .section-header p,
+            .welcome-text p,
+            .stat-card p,
+            .access-card p,
+            .status-info p,
+            .overview-info p,
+            .function-content p,
+            .approval-header p {
+                color: var(--bh-muted) !important;
+            }
+
+            .welcome-card,
+            .overview-welcome {
+                background:
+                    linear-gradient(135deg, rgba(0, 98, 65, 0.96), rgba(0, 72, 47, 0.92)),
+                    var(--bh-primary) !important;
+                border-radius: 18px !important;
+                box-shadow: 0 18px 40px rgba(0, 72, 47, 0.18) !important;
+                overflow: hidden !important;
+                position: relative !important;
+            }
+
+            .welcome-card::after,
+            .overview-welcome::after {
+                content: "" !important;
+                position: absolute !important;
+                inset: auto -80px -110px auto !important;
+                width: 260px !important;
+                height: 260px !important;
+                border-radius: 999px !important;
+                background: rgba(216, 242, 229, 0.18) !important;
+            }
+
+            .welcome-icon,
+            .overview-welcome .welcome-icon,
+            .function-icon,
+            .overview-icon,
+            .main-stats-grid .stat-card .stat-icon {
+                background: var(--bh-secondary-soft) !important;
+                color: var(--bh-primary) !important;
+                border-radius: 14px !important;
+                box-shadow: inset 0 0 0 1px rgba(0, 117, 74, 0.12) !important;
+            }
+
+            .overview-welcome .welcome-icon,
+            .welcome-card .welcome-icon {
+                background: rgba(255, 255, 255, 0.16) !important;
+                color: #fff !important;
+                border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            }
+
+            .main-stats-grid .stat-card,
+            .access-card,
+            .function-card,
+            .overview-card,
+            .request-card,
+            .request-item,
+            .status-card,
+            .job-posting-card,
+            .candidate-card,
+            .chart-container,
+            .payroll-card,
+            .info-card {
+                background: var(--bh-surface) !important;
+                border: 1px solid var(--bh-border) !important;
+                border-radius: 14px !important;
+                box-shadow: 0 2px 14px rgba(0, 0, 0, 0.05) !important;
+            }
+
+            .main-stats-grid .stat-card:hover,
+            .access-card:hover,
+            .function-card:hover,
+            .overview-card:hover,
+            .request-card:hover,
+            .status-card:hover,
+            .job-posting-card:hover,
+            .candidate-card:hover,
+            .payroll-card:hover {
+                border-color: rgba(0, 117, 74, 0.32) !important;
+                box-shadow: 0 12px 30px rgba(0, 72, 47, 0.10) !important;
+                transform: translateY(-3px) !important;
+            }
+
+            .main-stats-grid .stat-card {
+                border-left-width: 4px !important;
+            }
+
+            .main-stats-grid .stat-card.primary,
+            .main-stats-grid .stat-card.success {
+                border-left-color: var(--bh-secondary) !important;
+            }
+
+            .main-stats-grid .stat-card.warning {
+                border-left-color: var(--bh-gold) !important;
+            }
+
+            .main-stats-grid .stat-card.info {
+                border-left-color: var(--bh-primary) !important;
+            }
+
+            .main-stats-grid .stat-card .stat-number,
+            .overview-number,
+            .status-text {
+                color: var(--bh-primary) !important;
+                font-weight: 800 !important;
+            }
+
+            .access-card i,
+            .function-link i,
+            .action-card i,
+            .info-card i {
+                color: var(--bh-secondary) !important;
+            }
+
+            .access-card h4,
+            .function-content h4,
+            .overview-info h4,
+            .status-info h4,
+            .request-info h4,
+            .job-header h3,
+            .candidate-details h4 {
+                color: var(--bh-text) !important;
+                font-weight: 800 !important;
+            }
+
+            .function-link,
+            .btn-primary,
+            .btn-filter,
+            .btn-approve,
+            .status-tab-btn.active {
+                background: var(--bh-secondary) !important;
+                border-color: var(--bh-secondary) !important;
+                color: #fff !important;
+                border-radius: 999px !important;
+                box-shadow: 0 8px 18px rgba(0, 117, 74, 0.20) !important;
+            }
+
+            .btn-secondary,
+            .btn-reset,
+            .btn-view,
+            .tab-btn,
+            .filter-btn,
+            .status-tab-btn {
+                border-color: var(--bh-border) !important;
+                color: var(--bh-primary) !important;
+                background: var(--bh-surface-low) !important;
+                border-radius: 999px !important;
+            }
+
+            .tab-btn.active,
+            .filter-btn.active {
+                background: var(--bh-secondary-soft) !important;
+                color: var(--bh-primary) !important;
+                border-color: rgba(0, 117, 74, 0.25) !important;
+            }
+
+            .btn-danger,
+            .btn-reject {
+                background: var(--bh-danger) !important;
+                color: #fff !important;
+                border-color: var(--bh-danger) !important;
+                border-radius: 999px !important;
+            }
+
+            .form-select,
+            .approval-filters select,
+            .approval-filters input,
+            .history-filters select,
+            .history-filters input,
+            .status-select {
+                background: var(--bh-surface) !important;
+                border: 1px solid var(--bh-border) !important;
+                border-radius: 10px !important;
+                color: var(--bh-text) !important;
+                outline: none !important;
+            }
+
+            .form-select:focus,
+            .approval-filters select:focus,
+            .approval-filters input:focus,
+            .history-filters select:focus,
+            .history-filters input:focus,
+            .status-select:focus {
+                border-color: var(--bh-secondary) !important;
+                box-shadow: 0 0 0 4px rgba(0, 117, 74, 0.12) !important;
+            }
+
+            .status-icon.online {
+                background: var(--bh-secondary-soft) !important;
+                color: var(--bh-secondary) !important;
+            }
+
+            .empty-state,
+            .no-data,
+            .loading-state {
+                background: var(--bh-surface-low) !important;
+                border: 1px dashed var(--bh-border) !important;
+                border-radius: 14px !important;
+                color: var(--bh-muted) !important;
+            }
+
+            @media (max-width: 900px) {
+                .hr-main-content {
+                    display: block !important;
+                    padding: 1rem !important;
+                }
+
+                .hr-sidebar {
+                    position: static !important;
+                    width: 100% !important;
+                    margin-bottom: 1rem !important;
+                }
+
+                .header-content {
+                    padding: 0 1rem !important;
+                    gap: 1rem !important;
+                    flex-wrap: wrap !important;
+                }
+
+                .header-actions {
+                    width: 100% !important;
+                    justify-content: flex-start !important;
+                    overflow-x: auto !important;
+                    padding-bottom: 0.25rem !important;
+                }
+
+                .overview-welcome,
+                .welcome-card {
+                    align-items: flex-start !important;
+                    flex-direction: column !important;
+                }
+            }
             .btn-homepage {
                 background: rgba(255,255,255,0.2) !important;
                 color: white !important;
@@ -1120,34 +1530,552 @@
                 padding: 1.5rem !important;
                 height: fit-content !important;
             }
+
+            /* BetterHR final visual overrides - placed last to keep the UI consistent */
+            .hr-dashboard-container {
+                background:
+                    radial-gradient(circle at top right, rgba(0, 117, 74, 0.08), transparent 30%),
+                    var(--bh-canvas) !important;
+            }
+
+            .hr-header {
+                background: rgba(255, 255, 255, 0.94) !important;
+                color: var(--bh-text) !important;
+                border-bottom: 1px solid var(--bh-border) !important;
+                box-shadow: 0 2px 18px rgba(0, 0, 0, 0.06) !important;
+            }
+
+            .hr-main-content {
+                max-width: 1480px !important;
+                align-items: flex-start !important;
+            }
+
+            .hr-sidebar {
+                width: 280px !important;
+                background: rgba(255, 255, 255, 0.96) !important;
+                border: 1px solid var(--bh-border) !important;
+                border-radius: 16px !important;
+                box-shadow: var(--bh-shadow) !important;
+                position: sticky !important;
+                top: 96px !important;
+            }
+
+            .hr-content-area {
+                background: rgba(255, 255, 255, 0.92) !important;
+                border: 1px solid var(--bh-border) !important;
+                border-radius: 18px !important;
+                box-shadow: var(--bh-shadow) !important;
+            }
+
+            .btn-homepage {
+                background: var(--bh-surface) !important;
+                color: var(--bh-primary) !important;
+                border: 1px solid var(--bh-border) !important;
+                border-radius: 999px !important;
+                box-shadow: 0 2px 10px rgba(0, 72, 47, 0.08) !important;
+            }
+
+            .btn-homepage:hover {
+                background: var(--bh-secondary-soft) !important;
+                color: var(--bh-primary) !important;
+                box-shadow: 0 8px 20px rgba(0, 72, 47, 0.12) !important;
+            }
+
+            .status-tab-btn:hover,
+            .approval-filters select:focus,
+            .approval-filters input:focus {
+                border-color: var(--bh-secondary) !important;
+                color: var(--bh-primary) !important;
+                box-shadow: 0 0 0 4px rgba(0, 117, 74, 0.12) !important;
+            }
+
+            .status-tab-btn.active,
+            .btn-primary,
+            .btn-filter,
+            .btn-approve {
+                background: var(--bh-secondary) !important;
+                border-color: var(--bh-secondary) !important;
+                color: #fff !important;
+            }
+
+            .payroll-card-title h4,
+            .detail-value-small,
+            .payroll-title,
+            .employee-name,
+            .history-header h3,
+            .approval-header h3 {
+                color: var(--bh-primary) !important;
+            }
+
+            .detail-value-small.amount,
+            .detail-value.amount,
+            .detail-value.net-amount {
+                color: var(--bh-secondary) !important;
+            }
+
+            .payroll-card-item.status-approved,
+            .payroll-card.status-approved {
+                border-left-color: var(--bh-secondary) !important;
+            }
+
+            .payroll-card-item.status-paid,
+            .payroll-card.status-paid {
+                border-left-color: var(--bh-primary) !important;
+            }
+
+            .payroll-card-item,
+            .payroll-card {
+                border-radius: 14px !important;
+                border-color: var(--bh-border) !important;
+                box-shadow: 0 2px 14px rgba(0, 0, 0, 0.05) !important;
+            }
+        </style>
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-theme.css?v=hrhome-20260618-2">
+        <style>
+            :root {
+                --bh-green-900: #00482f;
+                --bh-green-700: #006241;
+                --bh-green-600: #00754a;
+                --bh-green-100: #dff4e8;
+                --bh-green-50: #eef8f1;
+                --bh-canvas: #edebe9;
+                --bh-card: #ffffff;
+                --bh-border: #d9d2c7;
+                --bh-text: #1f1f1f;
+                --bh-muted: #6f6b66;
+                --bh-danger: #c82014;
+                --bh-gold: #cba258;
+                --bh-radius: 8px;
+                --bh-shadow: 0 14px 34px rgba(31, 31, 31, 0.08);
+            }
+
+            body .hr-home-shell {
+                min-height: 100vh !important;
+                background: var(--bh-canvas) !important;
+                color: var(--bh-text) !important;
+                font-family: "Hanken Grotesk", Inter, Arial, sans-serif !important;
+                letter-spacing: 0 !important;
+            }
+
+            body .hr-home-shell .hr-header {
+                position: fixed !important;
+                top: 0 !important;
+                right: 0 !important;
+                left: 260px !important;
+                z-index: 50 !important;
+                height: 72px !important;
+                padding: 0 !important;
+                background: rgba(251, 249, 244, 0.98) !important;
+                color: var(--bh-text) !important;
+                border-bottom: 1px solid var(--bh-border) !important;
+                box-shadow: none !important;
+            }
+
+            body .hr-home-shell .header-content {
+                max-width: none !important;
+                min-height: 72px !important;
+                padding: 0 32px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                gap: 24px !important;
+            }
+
+            body .hr-home-shell .logo-section,
+            body .hr-home-shell .header-actions,
+            body .hr-home-shell .user-profile {
+                color: var(--bh-text) !important;
+            }
+
+            body .hr-home-shell .topbar-title h1 {
+                margin: 0 !important;
+                color: var(--bh-green-900) !important;
+                font-size: 1.85rem !important;
+                font-weight: 800 !important;
+            }
+
+            body .hr-home-shell .logo-section i {
+                width: 42px !important;
+                height: 42px !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                border-radius: var(--bh-radius) !important;
+                background: var(--bh-green-100) !important;
+                color: var(--bh-green-700) !important;
+                font-size: 1.35rem !important;
+            }
+
+            body .hr-home-shell .search-box input {
+                width: 300px !important;
+                min-width: 300px !important;
+                height: 44px !important;
+                padding: 0 16px 0 44px !important;
+                border: 1px solid var(--bh-border) !important;
+                border-radius: 999px !important;
+                background: #f7f3ed !important;
+                color: var(--bh-text) !important;
+                box-shadow: inset 0 1px 0 rgba(255,255,255,0.8) !important;
+            }
+
+            body .hr-home-shell .search-box input::placeholder {
+                color: #817b73 !important;
+                opacity: 1 !important;
+            }
+
+            body .hr-home-shell .notification-bell,
+            body .hr-home-shell .user-profile,
+            body .hr-home-shell .btn-homepage {
+                min-height: 44px !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                gap: 10px !important;
+                padding: 0 16px !important;
+                border: 1px solid var(--bh-border) !important;
+                border-radius: 999px !important;
+                background: #fffefa !important;
+                color: var(--bh-text) !important;
+                box-shadow: 0 1px 2px rgba(31, 31, 31, 0.08) !important;
+                text-decoration: none !important;
+            }
+
+            body .hr-home-shell .notification-count {
+                background: var(--bh-danger) !important;
+                color: #fff !important;
+            }
+
+            body .hr-home-shell .hr-main-content {
+                display: block !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 104px 40px 44px 300px !important;
+                background: transparent !important;
+            }
+
+            body .hr-home-shell .hr-sidebar {
+                position: fixed !important;
+                inset: 0 auto 0 0 !important;
+                z-index: 60 !important;
+                width: 260px !important;
+                height: 100vh !important;
+                padding: 24px 16px !important;
+                overflow-y: auto !important;
+                border: 0 !important;
+                border-right: 1px solid var(--bh-border) !important;
+                border-radius: 0 !important;
+                background: #fffefa !important;
+                box-shadow: none !important;
+            }
+
+            body .hr-home-shell .hr-sidebar-brand {
+                display: grid !important;
+                grid-template-columns: 40px 1fr !important;
+                align-items: center !important;
+                gap: 12px !important;
+                margin-bottom: 30px !important;
+            }
+
+            body .hr-home-shell .brand-mark {
+                width: 40px !important;
+                height: 40px !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                border-radius: var(--bh-radius) !important;
+                background: var(--bh-green-100) !important;
+                color: var(--bh-green-900) !important;
+                font-weight: 900 !important;
+            }
+
+            body .hr-home-shell .hr-sidebar-brand strong,
+            body .hr-home-shell .hr-sidebar-brand span {
+                display: block !important;
+                line-height: 1.25 !important;
+            }
+
+            body .hr-home-shell .hr-sidebar-brand strong {
+                color: var(--bh-green-900) !important;
+                font-size: 1rem !important;
+                font-weight: 800 !important;
+            }
+
+            body .hr-home-shell .hr-sidebar-brand span {
+                color: var(--bh-muted) !important;
+                font-size: 0.78rem !important;
+            }
+
+            body .hr-home-shell .nav-section {
+                margin: 0 0 10px !important;
+                padding: 0 !important;
+                border: 0 !important;
+            }
+
+            body .hr-home-shell .nav-section h3 {
+                margin: 20px 8px 8px !important;
+                padding-bottom: 8px !important;
+                border-bottom: 1px solid #e7ded2 !important;
+                color: #6b7890 !important;
+                font-size: 0.78rem !important;
+                font-weight: 800 !important;
+                text-transform: uppercase !important;
+            }
+
+            body .hr-home-shell .nav-item {
+                min-height: 44px !important;
+                margin: 2px 0 !important;
+                padding: 0 14px !important;
+                display: flex !important;
+                align-items: center !important;
+                gap: 12px !important;
+                border-radius: var(--bh-radius) !important;
+                color: var(--bh-muted) !important;
+                font-weight: 800 !important;
+                text-decoration: none !important;
+                transform: none !important;
+                box-shadow: none !important;
+            }
+
+            body .hr-home-shell .nav-item.active,
+            body .hr-home-shell .nav-item:hover {
+                background: var(--bh-green-100) !important;
+                color: var(--bh-green-900) !important;
+            }
+
+            body .hr-home-shell .nav-item i {
+                width: 20px !important;
+                color: var(--bh-green-600) !important;
+                font-size: 1rem !important;
+            }
+
+            body .hr-home-shell .hr-content-area {
+                max-width: 1180px !important;
+                padding: 0 !important;
+                border: 0 !important;
+                border-radius: 0 !important;
+                background: transparent !important;
+                box-shadow: none !important;
+            }
+
+            body .hr-home-shell .content-section {
+                display: none !important;
+            }
+
+            body .hr-home-shell .content-section.active {
+                display: block !important;
+            }
+
+            body .hr-home-shell .comprehensive-overview {
+                padding: 0 !important;
+                background: transparent !important;
+            }
+
+            body .hr-home-shell .hr-home-hero {
+                display: flex !important;
+                align-items: center !important;
+                gap: 18px !important;
+                margin-bottom: 28px !important;
+                padding: 32px 36px !important;
+                border: 0 !important;
+                border-radius: var(--bh-radius) !important;
+                background: var(--bh-green-700) !important;
+                color: #fff !important;
+                box-shadow: var(--bh-shadow) !important;
+            }
+
+            body .hr-home-shell .hero-icon {
+                width: 54px !important;
+                height: 54px !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                border-radius: var(--bh-radius) !important;
+                background: rgba(255,255,255,0.14) !important;
+                color: #fff !important;
+                flex: 0 0 auto !important;
+            }
+
+            body .hr-home-shell .hero-icon i {
+                color: #fff !important;
+                font-size: 1.35rem !important;
+                margin: 0 !important;
+            }
+
+            body .hr-home-shell .hr-home-hero h2 {
+                margin: 0 0 8px !important;
+                color: #fff !important;
+                font-size: 2rem !important;
+                line-height: 1.1 !important;
+            }
+
+            body .hr-home-shell .hr-home-hero p {
+                margin: 0 !important;
+                color: rgba(255,255,255,0.84) !important;
+                font-size: 1rem !important;
+                line-height: 1.55 !important;
+            }
+
+            body .hr-home-shell .quick-access-heading {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                margin: 0 0 14px !important;
+            }
+
+            body .hr-home-shell .quick-access-heading h3 {
+                margin: 0 !important;
+                color: var(--bh-green-900) !important;
+                font-size: 1.12rem !important;
+                font-weight: 800 !important;
+            }
+
+            body .hr-home-shell .quick-access-heading a {
+                color: var(--bh-green-700) !important;
+                font-weight: 800 !important;
+                text-decoration: none !important;
+            }
+
+            body .hr-home-shell .access-grid {
+                display: grid !important;
+                grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+                gap: 18px !important;
+            }
+
+            body .hr-home-shell .access-card {
+                min-height: 178px !important;
+                padding: 22px !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 10px !important;
+                border: 1px solid var(--bh-border) !important;
+                border-radius: var(--bh-radius) !important;
+                background: var(--bh-card) !important;
+                color: var(--bh-text) !important;
+                box-shadow: 0 1px 2px rgba(31,31,31,0.12) !important;
+                text-align: left !important;
+                text-decoration: none !important;
+                transform: none !important;
+            }
+
+            body .hr-home-shell .access-card:hover {
+                border-color: rgba(0,117,74,0.42) !important;
+                box-shadow: var(--bh-shadow) !important;
+                transform: translateY(-2px) !important;
+            }
+
+            body .hr-home-shell .access-icon {
+                width: 34px !important;
+                height: 34px !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                border-radius: 999px !important;
+                background: var(--bh-green-100) !important;
+                color: var(--bh-green-700) !important;
+            }
+
+            body .hr-home-shell .access-icon i {
+                color: inherit !important;
+                display: inline-flex !important;
+                margin: 0 !important;
+                font-size: 0.95rem !important;
+            }
+
+            body .hr-home-shell .access-icon-warning {
+                background: rgba(200,32,20,0.08) !important;
+                color: var(--bh-danger) !important;
+            }
+
+            body .hr-home-shell .access-icon-gold {
+                background: rgba(203,162,88,0.18) !important;
+                color: #8a6400 !important;
+            }
+
+            body .hr-home-shell .access-card h4 {
+                margin: 4px 0 0 !important;
+                color: var(--bh-text) !important;
+                font-size: 1.04rem !important;
+                font-weight: 800 !important;
+            }
+
+            body .hr-home-shell .access-card p {
+                flex: 1 !important;
+                margin: 0 !important;
+                color: var(--bh-muted) !important;
+                font-size: 0.9rem !important;
+                line-height: 1.45 !important;
+            }
+
+            body .hr-home-shell .access-card strong {
+                color: var(--bh-green-700) !important;
+                font-size: 0.86rem !important;
+                line-height: 1 !important;
+            }
+
+            body .hr-home-shell .access-card strong i,
+            body .hr-home-shell .quick-access-heading a i {
+                display: inline-flex !important;
+                margin: 0 0 0 4px !important;
+                color: inherit !important;
+                font-size: 0.82rem !important;
+                transform: none !important;
+            }
+
+            body .hr-home-shell .system-status {
+                display: grid !important;
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 14px !important;
+                margin-top: 32px !important;
+            }
+
+            body .hr-home-shell .system-status .quick-access-heading {
+                grid-column: 1 / -1 !important;
+            }
+
+            body .hr-home-shell .status-card {
+                display: flex !important;
+                align-items: center !important;
+                gap: 14px !important;
+                padding: 18px !important;
+                border: 1px solid var(--bh-border) !important;
+                border-radius: var(--bh-radius) !important;
+                background: var(--bh-card) !important;
+                box-shadow: 0 1px 2px rgba(31,31,31,0.12) !important;
+            }
+
+            @media (max-width: 1100px) {
+                body .hr-home-shell .access-grid {
+                    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                }
+            }
         </style>
     </head>
     <body>
-        <div class="hr-dashboard-container">
+        <div class="hr-dashboard-container hr-home-shell">
             <!-- Header -->
             <header class="hr-header">
                 <div class="header-content">
-                    <div class="logo-section">
-                        <i class="fas fa-users-cog"></i>
-                        <h1>HR Dashboard</h1>
+                    <div class="logo-section topbar-title">
+                        <i class="fas fa-chart-line"></i>
+                        <h1>HR Home</h1>
                     </div>
                     <div class="header-actions">
                         <div class="search-box">
                             <i class="fas fa-search"></i>
-                            <input type="text" placeholder="Search employees, departments...">
+                            <input type="text" placeholder="Tìm nhân viên, phòng ban...">
                         </div>
                         <div class="notification-bell">
                             <i class="fas fa-bell"></i>
                             <span class="notification-count">5</span>
                         </div>
                         <div class="user-profile">
-                            <img src="https://i.pravatar.cc/40" alt="HR User">
-                            <span>HR Manager</span>
+                            <img src="https://i.pravatar.cc/40" alt="Người dùng HR">
+                            <span>Quản lý HR</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
-                        <a href="${pageContext.request.contextPath}/homepage" class="btn-homepage" title="Back to Homepage">
+                        <a href="${pageContext.request.contextPath}/homepage" class="btn-homepage" title="Về trang chủ">
                             <i class="fas fa-home"></i>
-                            <span>Homepage</span>
+                            <span>Trang chủ</span>
                         </a>
                     </div>
                 </div>
@@ -1157,120 +2085,84 @@
             <main class="hr-main-content">
                 <!-- Sidebar -->
                 <aside class="hr-sidebar">
+                    <div class="hr-sidebar-brand">
+                        <div class="brand-mark">B</div>
+                        <div>
+                            <strong>BetterHR</strong>
+                            <span>Cổng quản trị nhân sự</span>
+                        </div>
+                    </div>
                     <nav class="hr-nav">
                         <div class="nav-section">
                             
                             <a href="#hr-home" class="nav-item active" data-section="hr-home">
                                 <i class="fas fa-home"></i>
-                                <span>HR Home</span>
+                                <span>Tổng quan HR</span>
                             </a>
                         </div>
                         
                         <div class="nav-section">
-                            <h3>Requests & Approvals</h3>
+                            <h3>Yêu cầu</h3>
                             <a href="#requests-approval" class="nav-item" data-section="requests-approval">
                                 <i class="fas fa-clipboard-check"></i>
-                                <span>Requests & Recommendations</span>
+                                <span>Duyệt đề xuất</span>
                             </a>
                         </div>
                         
                         <div class="nav-section">
-                            <h3>Salary & Contracts</h3>
+                            <h3>Lương & hợp đồng</h3>
                             <a href="${pageContext.request.contextPath}/hr/payroll-approval" class="nav-item">
                                 <i class="fas fa-money-bill-wave"></i>
-                                <span>Payroll Approval</span>
+                                <span>Duyệt bảng lương</span>
                             </a>
                             <a href="${pageContext.request.contextPath}/hr/approve-reject-contracts" class="nav-item">
                                 <i class="fas fa-file-contract"></i>
-                                <span>Pending Contracts Approval</span>
+                                <span>Duyệt hợp đồng</span>
                             </a>
                         </div>
                         
                         <div class="nav-section">
-                            <h3>Recruitment</h3>
+                            <h3>Tuyển dụng</h3>
                             <a href="${pageContext.request.contextPath}/viewRecruitment" class="nav-item">
                                 <i class="fas fa-bullhorn"></i>
-                                <span>View Recruitment</span>
+                                <span>Tin tuyển dụng</span>
                             </a>
                             <a href="${pageContext.request.contextPath}/hr/create-employee" class="nav-item">
                                 <i class="fas fa-user-plus"></i>
-                                <span>Create Employee</span>
+                                <span>Tạo nhân viên</span>
                             </a>
                             <a href="${pageContext.request.contextPath}/hr/employee-list" class="nav-item">
                                 <i class="fas fa-list"></i>
-                                <span>Employee List</span>
+                                <span>Danh sách nhân viên</span>
                             </a>
                             <a href="#recruitment-system" class="nav-item" data-section="recruitment-system">
                                 <i class="fas fa-clipboard-list"></i>
-                                <span>Recruitment System</span>
+                                <span>Quy trình tuyển dụng</span>
                             </a>
                         </div>
                         
                         <div class="nav-section">
-                            <h3>Reports</h3>
+                            <h3>Báo cáo</h3>
                             <a href="#reports-analytics" class="nav-item" data-section="reports-analytics">
                                 <i class="fas fa-chart-bar"></i>
-                                <span>Reports & Analytics</span>
+                                <span>Báo cáo & phân tích</span>
                             </a>
                         </div>
                     </nav>
+                    <div class="hr-sidebar-user">
+                        <img src="https://i.pravatar.cc/40" alt="Người dùng HR">
+                        <div>
+                            <strong>Quản lý HR</strong>
+                            <span>BetterHR</span>
+                        </div>
+                    </div>
                 </aside>
 
                 <!-- Content Area -->
                 <div class="hr-content-area">
                     <!-- HR Home Section -->
                     <section id="hr-home" class="content-section active">
-                        <div class="section-header">
-                            <h2>🏠 HR Home</h2>
-                            <p>Welcome to the Human Resource Management System</p>
-                        </div>
-                        
                         <div class="comprehensive-overview">
-                            <div class="overview-welcome">
-                                <div class="welcome-icon">
-                                    <i class="fas fa-users-cog"></i>
-                                </div>
-                                <div class="welcome-text">
-                                    <h3>HR Management Dashboard</h3>
-                                    <p>Comprehensive overview of your human resource management system</p>
-                                </div>
-                            </div>
-                            
-                            <!-- Main Statistics Grid -->
-                            <div class="main-stats-grid">
-                                <div class="stat-card primary">
-                                <div class="stat-icon">
-                                    <i class="fas fa-users"></i>
-                                </div>
-                                <div class="stat-content">
-                                        <h3>Total Employees</h3>
-                                        <span class="stat-number">${not empty employees ? employees.size() : 0}</span>
-                                        <p>Active employees in system</p>
-                                </div>
-                            </div>
-                                
-                                <div class="stat-card success">
-                                <div class="stat-icon">
-                                        <i class="fas fa-user-check"></i>
-                                </div>
-                                <div class="stat-content">
-                                        <h3>Active Staff</h3>
-                                        <span class="stat-number">${not empty employees ? employees.size() : 0}</span>
-                                        <p>Currently working employees</p>
-                                </div>
-                            </div>
-                                
-                                <div class="stat-card warning">
-                                <div class="stat-icon">
-                                        <i class="fas fa-building"></i>
-                                </div>
-                                <div class="stat-content">
-                                        <h3>Departments</h3>
-                                        <span class="stat-number">${not empty departments ? departments.size() : 0}</span>
-                                        <p>Organizational departments</p>
-                                </div>
-                            </div>
-                            
                             <%
                                 // Load pending contracts count
                                 int pendingContractsCount = 0;
@@ -1282,23 +2174,23 @@
                                 }
                                 pageContext.setAttribute("pendingContractsCount", pendingContractsCount);
                             %>
-                            <a href="${pageContext.request.contextPath}/hr/approve-reject-contracts" style="text-decoration: none; color: inherit;">
-                                <div class="stat-card info" style="cursor: pointer;">
-                                    <div class="stat-icon">
-                                        <i class="fas fa-file-contract"></i>
-                                    </div>
-                                    <div class="stat-content">
-                                        <h3>Pending Contracts</h3>
-                                        <span class="stat-number">${pendingContractsCount}</span>
-                                        <p>Contracts pending approval</p>
-                                    </div>
+
+                            <div class="hr-home-hero">
+                                <div class="hero-icon">
+                                    <i class="fas fa-house-user"></i>
                                 </div>
-                            </a>
-                        </div>
+                                <div>
+                                    <h2>HR Home</h2>
+                                    <p>Chào mừng bạn quay lại hệ thống quản trị nhân sự BetterHR. Hôm nay bạn muốn xử lý công việc nào?</p>
+                                </div>
+                            </div>
 
                             <!-- Quick Access Functions -->
                             <div class="quick-access">
-                                <h3>Quick Access</h3>
+                                <div class="quick-access-heading">
+                                    <h3>Truy cập nhanh</h3>
+                                    <a href="${pageContext.request.contextPath}/homepage">Về trang chủ <i class="fas fa-arrow-right"></i></a>
+                                </div>
                                 <div class="access-grid">
                                     
 <!--                                    <a href="${pageContext.request.contextPath}/EmploymentStatusController" class="access-card">
@@ -1307,45 +2199,53 @@
                                         <p>Update employment status</p>
                                     </a>-->
                                     <a href="${pageContext.request.contextPath}/viewRecruitment" class="access-card">
-                                        <i class="fas fa-bullhorn"></i>
-                                        <h4>Post Recruitment</h4>
-                                        <p>Create job postings</p>
+                                        <span class="access-icon"><i class="fas fa-bullhorn"></i></span>
+                                        <h4>Đăng tin tuyển dụng</h4>
+                                        <p>Tạo, kiểm tra và quản lý các vị trí đang tuyển.</p>
+                                        <strong>Mở đợt tuyển dụng <i class="fas fa-arrow-right"></i></strong>
                                     </a>
                                     
                                  
                                     <a href="${pageContext.request.contextPath}/hr/create-employee" class="access-card">
-                                        <i class="fas fa-user-plus"></i>
-                                        <h4>Create Employee</h4>
-                                        <p>Convert candidates to employees</p>
+                                        <span class="access-icon"><i class="fas fa-user-plus"></i></span>
+                                        <h4>Tạo nhân viên</h4>
+                                        <p>Chuyển ứng viên đã duyệt thành hồ sơ nhân viên.</p>
+                                        <strong>Tạo mới nhân viên <i class="fas fa-arrow-right"></i></strong>
                                     </a>
                                     <a href="${pageContext.request.contextPath}/hr/employee-list" class="access-card">
-                                        <i class="fas fa-list"></i>
-                                        <h4>Employee List</h4>
-                                        <p>View all employees</p>
+                                        <span class="access-icon"><i class="fas fa-list"></i></span>
+                                        <h4>Danh sách nhân viên</h4>
+                                        <p>Xem, lọc và quản lý toàn bộ hồ sơ nhân sự.</p>
+                                        <strong>Danh sách nhân viên <i class="fas fa-arrow-right"></i></strong>
                                     </a>
                                     <a href="${pageContext.request.contextPath}/hr/approve-reject-contracts" class="access-card">
-                                        <i class="fas fa-file-contract"></i>
-                                        <h4>Approve Contracts</h4>
-                                        <p>Review and approve contracts pending approval (${pendingContractsCount})</p>
+                                        <span class="access-icon access-icon-warning"><i class="fas fa-file-contract"></i></span>
+                                        <h4>Duyệt hợp đồng</h4>
+                                        <p>Kiểm tra các hợp đồng đang chờ duyệt (${pendingContractsCount}).</p>
+                                        <strong>Phê duyệt hợp đồng <i class="fas fa-arrow-right"></i></strong>
                                     </a>
                                     <a href="${pageContext.request.contextPath}/hr/payroll-approval?status=Pending" class="access-card">
-                                        <i class="fas fa-money-bill-wave"></i>
-                                        <h4>Payroll Approval</h4>
-                                        <p>Review and approve payrolls submitted by HR Staff</p>
+                                        <span class="access-icon access-icon-gold"><i class="fas fa-money-bill-wave"></i></span>
+                                        <h4>Duyệt bảng lương</h4>
+                                        <p>Rà soát và phê duyệt bảng lương do HR Staff gửi lên.</p>
+                                        <strong>Phê duyệt lương <i class="fas fa-arrow-right"></i></strong>
                                     </a>
                                 </div>
                             </div>
                             
                             <!-- System Status -->
                             <div class="system-status">
+                                <div class="quick-access-heading">
+                                    <h3>Hoạt động hệ thống gần đây</h3>
+                                </div>
                                 <div class="status-card">
                                     <div class="status-icon online">
                                         <i class="fas fa-database"></i>
                                     </div>
                                     <div class="status-info">
-                                        <h4>System Status</h4>
-                                        <span class="status-text">Online</span>
-                                        <p>All systems operational</p>
+                                        <h4>Hệ thống</h4>
+                                        <span class="status-text">Đang hoạt động</span>
+                                        <p>Các chức năng HR sẵn sàng sử dụng.</p>
                                     </div>
                                 </div>
                                 <div class="status-card">
@@ -1353,9 +2253,9 @@
                                         <i class="fas fa-clock"></i>
                                     </div>
                                     <div class="status-info">
-                                        <h4>Last Updated</h4>
+                                        <h4>Cập nhật gần nhất</h4>
                                         <span class="status-text" id="lastUpdatedTime"></span>
-                                        <p>System refresh time</p>
+                                        <p>Thời điểm làm mới dữ liệu trên trang.</p>
                                     </div>
                                 </div>
                             </div>
@@ -1366,14 +2266,14 @@
                     <!-- Profile Management Section -->
                     <section id="ProfileManagementController" class="content-section">
                         <div class="section-header">
-                            <h2>Profile Management</h2>
-                            <p>Approve or reject employee personal information update requests</p>
+                            <h2>Quản lý hồ sơ</h2>
+                            <p>Duyệt hoặc từ chối các yêu cầu cập nhật thông tin cá nhân của nhân viên</p>
                         </div>
                         
                         <div class="management-tabs">
-                            <button class="tab-btn active" data-tab="pending-profiles">Pending</button>
-                            <button class="tab-btn" data-tab="approved-profiles">Approved</button>
-                            <button class="tab-btn" data-tab="rejected-profiles">Rejected</button>
+                            <button class="tab-btn active" data-tab="pending-profiles">Chờ duyệt</button>
+                            <button class="tab-btn" data-tab="approved-profiles">Đã duyệt</button>
+                            <button class="tab-btn" data-tab="rejected-profiles">Từ chối</button>
                         </div>
                         
                         <div class="tab-content">
@@ -1397,26 +2297,26 @@
                                             </div>
                                         </div>
                                         <div class="request-details">
-                                                        <h5>Employee Information:</h5>
+                                                        <h5>Thông tin nhân viên:</h5>
                                                         <ul>
                                                             <li><strong>Email:</strong> ${employee.email}</li>
-                                                            <li><strong>Phone:</strong> ${employee.phone}</li>
-                                                            <li><strong>Address:</strong> ${employee.address}</li>
-                                                            <li><strong>Status:</strong> ${employee.status}</li>
+                                                            <li><strong>Số điện thoại:</strong> ${employee.phone}</li>
+                                                            <li><strong>Địa chỉ:</strong> ${employee.address}</li>
+                                                            <li><strong>Trạng thái:</strong> ${employee.status}</li>
                                             </ul>
                                         </div>
                                         <div class="request-actions">
                                             <button class="btn-approve">
                                                 <i class="fas fa-check"></i>
-                                                            Approve
+                                                            Duyệt
                                             </button>
                                             <button class="btn-reject">
                                                 <i class="fas fa-times"></i>
-                                                            Reject
+                                                            Từ chối
                                             </button>
                                             <button class="btn-view-details">
                                                 <i class="fas fa-eye"></i>
-                                                            View Details
+                                                            Xem chi tiết
                                             </button>
                                         </div>
                                     </div>
@@ -1425,8 +2325,8 @@
                                         <c:otherwise>
                                             <div class="no-data">
                                                 <i class="fas fa-users-slash"></i>
-                                                <h3>No employee profiles found</h3>
-                                                <p>There are no employee profiles to display at the moment.</p>
+                                                <h3>Chưa có hồ sơ nhân viên</h3>
+                                                <p>Hiện chưa có hồ sơ nhân viên cần hiển thị.</p>
                                                 </div>
                                         </c:otherwise>
                                     </c:choose>
@@ -1496,14 +2396,14 @@
                     <!-- Requests and Recommendations Section -->
                     <section id="requests-approval" class="content-section">
                         <div class="section-header">
-                            <h2>Requests and Recommendations</h2>
-                            <p>Review, approve or reject submitted requests</p>
+                            <h2>Yêu cầu và đề xuất</h2>
+                            <p>Rà soát, phê duyệt hoặc từ chối các yêu cầu đã gửi</p>
                         </div>
                         
                         <div class="requests-tabs">
-                            <button class="tab-btn active" data-tab="pending-requests">Pending</button>
-                            <button class="tab-btn" data-tab="approved-requests">Approved</button>
-                            <button class="tab-btn" data-tab="rejected-requests">Rejected</button>
+                            <button class="tab-btn active" data-tab="pending-requests">Chờ duyệt</button>
+                            <button class="tab-btn" data-tab="approved-requests">Đã duyệt</button>
+                            <button class="tab-btn" data-tab="rejected-requests">Từ chối</button>
                         </div>
                         
                         <div class="tab-content">
@@ -1511,40 +2411,40 @@
                                 <div class="request-list">
                                     <div class="request-item">
                                         <div class="request-info">
-                                            <h4>Leave Request</h4>
-                                            <p><strong>Requester:</strong> Nguyen Van E - IT Department</p>
-                                            <p><strong>Type:</strong> Personal Leave</p>
-                                            <p><strong>Duration:</strong> 15/12/2024 - 20/12/2024</p>
-                                            <p><strong>Reason:</strong> Family Leave</p>
+                                            <h4>Yêu cầu nghỉ phép</h4>
+                                            <p><strong>Người gửi:</strong> Nguyen Van E - Phòng IT</p>
+                                            <p><strong>Loại yêu cầu:</strong> Nghỉ việc cá nhân</p>
+                                            <p><strong>Thời gian:</strong> 15/12/2024 - 20/12/2024</p>
+                                            <p><strong>Lý do:</strong> Việc gia đình</p>
                                         </div>
                                         <div class="request-actions">
                                             <button class="btn-approve">
                                                 <i class="fas fa-check"></i>
-                                                Approve
+                                                Duyệt
                                             </button>
                                             <button class="btn-reject">
                                                 <i class="fas fa-times"></i>
-                                                Reject
+                                                Từ chối
                                             </button>
                                         </div>
                                     </div>
                                     
                                     <div class="request-item">
                                         <div class="request-info">
-                                            <h4>Salary Increase Request</h4>
-                                            <p><strong>Requester:</strong> Tran Thi F - Marketing Department</p>
-                                            <p><strong>Type:</strong> Salary Increase Proposal</p>
-                                            <p><strong>Proposed Increase:</strong> 15%</p>
-                                            <p><strong>Reason:</strong> Successfully completed projects and made positive contributions</p>
+                                            <h4>Đề xuất tăng lương</h4>
+                                            <p><strong>Người gửi:</strong> Tran Thi F - Phòng Marketing</p>
+                                            <p><strong>Loại yêu cầu:</strong> Đề xuất điều chỉnh lương</p>
+                                            <p><strong>Mức đề xuất:</strong> 15%</p>
+                                            <p><strong>Lý do:</strong> Hoàn thành tốt dự án và có đóng góp tích cực</p>
                                         </div>
                                         <div class="request-actions">
                                             <button class="btn-approve">
                                                 <i class="fas fa-check"></i>
-                                                Approve
+                                                Duyệt
                                             </button>
                                             <button class="btn-reject">
                                                 <i class="fas fa-times"></i>
-                                                Reject
+                                                Từ chối
                                             </button>
                                         </div>
                                     </div>
@@ -1556,13 +2456,13 @@
                     <!-- Payroll Management Section -->
                     <section id="payroll-management" class="content-section">
                         <div class="section-header">
-                            <h2>Payroll Management</h2>
-                            <p>Review and approve payrolls submitted by HR Staff, view payroll history</p>
+                            <h2>Quản lý bảng lương</h2>
+                            <p>Rà soát, phê duyệt bảng lương do HR Staff gửi lên và xem lịch sử xử lý</p>
                         </div>
                         
                         <div class="payroll-tabs">
-                            <button class="tab-btn active" data-tab="payroll-approval">Payroll Approval</button>
-                            <button class="tab-btn" data-tab="payroll-history">Payroll History</button>
+                            <button class="tab-btn active" data-tab="payroll-approval">Duyệt bảng lương</button>
+                            <button class="tab-btn" data-tab="payroll-history">Lịch sử bảng lương</button>
                         </div>
                         
                         <div class="tab-content">
@@ -1570,23 +2470,23 @@
                             <div id="payroll-approval" class="tab-panel active">
                                 <div class="payroll-approval-section">
                                     <div class="approval-header">
-                                        <h3><i class="fas fa-clipboard-check"></i> Payroll Approval</h3>
-                                        <p>Review and approve or reject payrolls submitted by HR Staff</p>
+                                        <h3><i class="fas fa-clipboard-check"></i> Duyệt bảng lương</h3>
+                                        <p>Kiểm tra, phê duyệt hoặc từ chối bảng lương do HR Staff gửi lên</p>
                                     </div>
                                     
                                     <!-- Status Tabs -->
                                     <div class="status-tabs-container">
                                         <a class="status-tab-btn ${payrollStatus == 'Pending' ? 'active' : ''}" data-status="Pending" href="${pageContext.request.contextPath}/HrHomeController?section=payroll-management&payrollStatus=Pending">
-                                            <i class="fas fa-clock"></i> Pending <span class="badge" id="pendingCount">${pendingCount != null ? pendingCount : 0}</span>
+                                            <i class="fas fa-clock"></i> Chờ duyệt <span class="badge" id="pendingCount">${pendingCount != null ? pendingCount : 0}</span>
                                         </a>
                                         <a class="status-tab-btn ${payrollStatus == 'Approved' ? 'active' : ''}" data-status="Approved" href="${pageContext.request.contextPath}/HrHomeController?section=payroll-management&payrollStatus=Approved">
-                                            <i class="fas fa-check-circle"></i> Approved <span class="badge" id="approvedCount">${approvedCount != null ? approvedCount : 0}</span>
+                                            <i class="fas fa-check-circle"></i> Đã duyệt <span class="badge" id="approvedCount">${approvedCount != null ? approvedCount : 0}</span>
                                         </a>
                                         <a class="status-tab-btn ${payrollStatus == 'Rejected' ? 'active' : ''}" data-status="Rejected" href="${pageContext.request.contextPath}/HrHomeController?section=payroll-management&payrollStatus=Rejected">
-                                            <i class="fas fa-times-circle"></i> Rejected <span class="badge" id="rejectedCount">${rejectedCount != null ? rejectedCount : 0}</span>
+                                            <i class="fas fa-times-circle"></i> Từ chối <span class="badge" id="rejectedCount">${rejectedCount != null ? rejectedCount : 0}</span>
                                         </a>
                                         <a class="status-tab-btn ${payrollStatus == 'Paid' ? 'active' : ''}" data-status="Paid" href="${pageContext.request.contextPath}/HrHomeController?section=payroll-management&payrollStatus=Paid">
-                                            <i class="fas fa-money-bill-wave"></i> Paid <span class="badge" id="paidCount">${paidCount != null ? paidCount : 0}</span>
+                                            <i class="fas fa-money-bill-wave"></i> Đã chi trả <span class="badge" id="paidCount">${paidCount != null ? paidCount : 0}</span>
                                         </a>
                                     </div>
                                     
@@ -1595,14 +2495,14 @@
                                         <input type="hidden" name="section" value="payroll-management"/>
                                         <input type="hidden" name="payrollStatus" value="${payrollStatus != null ? payrollStatus : 'Pending'}"/>
                                         <select id="employeeFilter" name="employeeFilter" onchange="this.form.submit()">
-                                            <option value="">All Employees</option>
+                                            <option value="">Tất cả nhân viên</option>
                                             <c:forEach var="employee" items="${employees}">
                                                 <option value="${employee.employeeId}" ${payrollEmployeeFilter == employee.employeeId ? 'selected' : ''}>${employee.fullName} (ID: ${employee.employeeId})</option>
                                             </c:forEach>
                                         </select>
                                         <input type="month" id="monthFilter" name="monthFilter" value="${payrollMonthFilter}" onchange="this.form.submit()"/>
-                                        <button type="submit" class="btn btn-filter">Apply</button>
-                                        <a class="btn btn-reset" href="${pageContext.request.contextPath}/HrHomeController?section=payroll-management">Reset</a>
+                                        <button type="submit" class="btn btn-filter">Áp dụng</button>
+                                        <a class="btn btn-reset" href="${pageContext.request.contextPath}/HrHomeController?section=payroll-management">Đặt lại</a>
                                     </form>
                                     
                                     <!-- Payrolls List -->
@@ -1627,35 +2527,35 @@
                                                                 <div class="employee-name">
                                                                     <i class="fas fa-user"></i> ${payroll.employeeName}
                                                                 </div>
-                                                                <div class="payroll-id">Payroll ID: #${payroll.payrollId} | Period: ${payroll.payPeriod}</div>
+                                                                <div class="payroll-id">Mã bảng lương: #${payroll.payrollId} | Kỳ lương: ${payroll.payPeriod}</div>
                                                             </div>
                                                             <span class="status-badge ${status}">${status}</span>
                                                         </div>
 
                                                         <div class="payroll-details">
                                                             <div class="detail-item">
-                                                                <span class="detail-label">Base Salary</span>
+                                                                <span class="detail-label">Lương cơ bản</span>
                                                                 <span class="detail-value amount"><%= nf.format(baseSalary != null ? baseSalary : BigDecimal.ZERO) %> VNĐ</span>
                                                             </div>
                                                             <div class="detail-item">
-                                                                <span class="detail-label">OT Salary</span>
+                                                                <span class="detail-label">Lương OT</span>
                                                                 <span class="detail-value amount"><%= nf.format(bonus != null ? bonus : BigDecimal.ZERO) %> VNĐ</span>
                                                             </div>
                                                             <div class="detail-item">
-                                                                <span class="detail-label">Allowance</span>
+                                                                <span class="detail-label">Phụ cấp</span>
                                                                 <span class="detail-value amount"><%= nf.format(allowance != null ? allowance : BigDecimal.ZERO) %> VNĐ</span>
                                                             </div>
                                                             <div class="detail-item">
-                                                                <span class="detail-label">Deduction</span>
+                                                                <span class="detail-label">Khấu trừ</span>
                                                                 <span class="detail-value deduction"><%= nf.format(deduction != null ? deduction : BigDecimal.ZERO) %> VNĐ</span>
                                                             </div>
                                                             <div class="detail-item">
-                                                                <span class="detail-label">Net Salary</span>
+                                                                <span class="detail-label">Lương thực nhận</span>
                                                                 <span class="detail-value net-amount"><%= nf.format(netSalary != null ? netSalary : BigDecimal.ZERO) %> VNĐ</span>
                                                             </div>
                                                             <c:if test="${not empty payroll.approvedDate}">
                                                                 <div class="detail-item">
-                                                                    <span class="detail-label">Approved Date</span>
+                                                                    <span class="detail-label">Ngày duyệt</span>
                                                                     <span class="detail-value">${payroll.approvedDate}</span>
                                                                 </div>
                                                             </c:if>
@@ -1663,14 +2563,14 @@
 
                                                         <div class="payroll-actions">
                                                             <button type="button" class="btn btn-view" data-payroll-id="${payroll.payrollId}">
-                                                                <i class="fas fa-eye"></i> View Details
+                                                                <i class="fas fa-eye"></i> Xem chi tiết
                                                             </button>
                                                             <c:if test="${status == 'Pending'}">
                                                                 <button type="button" class="btn btn-approve" data-payroll-id="${payroll.payrollId}" data-employee="${payroll.employeeName}" data-period="${payroll.payPeriod}">
-                                                                    <i class="fas fa-check"></i> Approve
+                                                                    <i class="fas fa-check"></i> Duyệt
                                                                 </button>
                                                                 <button type="button" class="btn btn-reject" data-payroll-id="${payroll.payrollId}" data-employee="${payroll.employeeName}" data-period="${payroll.payPeriod}">
-                                                                    <i class="fas fa-times"></i> Reject
+                                                                    <i class="fas fa-times"></i> Từ chối
                                                                 </button>
                                                             </c:if>
                                                         </div>
@@ -1680,8 +2580,8 @@
                                             <c:otherwise>
                                                 <div class="empty-state">
                                                     <i class="fas fa-inbox"></i>
-                                                    <h3>No Payrolls Found</h3>
-                                                    <p>There are no payrolls with status "${payrollStatus != null ? payrollStatus : 'Pending'}" matching your filters.</p>
+                                                    <h3>Không tìm thấy bảng lương</h3>
+                                                    <p>Không có bảng lương phù hợp với trạng thái "${payrollStatus != null ? payrollStatus : 'Pending'}" và bộ lọc hiện tại.</p>
                                                 </div>
                                             </c:otherwise>
                                         </c:choose>
@@ -1693,28 +2593,28 @@
                             <div id="payroll-history" class="tab-panel">
                                 <div class="payroll-history-section">
                                     <div class="history-header">
-                                        <h3><i class="fas fa-history"></i> Payroll History</h3>
-                                        <p>View all approved and paid payrolls</p>
+                                        <h3><i class="fas fa-history"></i> Lịch sử bảng lương</h3>
+                                        <p>Xem các bảng lương đã được duyệt hoặc đã chi trả</p>
                                     </div>
                                     
                                     <div class="history-filters">
                                         <select id="historyEmployeeFilter">
-                                            <option value="">All Employees</option>
+                                            <option value="">Tất cả nhân viên</option>
                                             <c:forEach var="employee" items="${employees}">
                                                 <option value="${employee.employeeId}">${employee.fullName} (ID: ${employee.employeeId})</option>
                                             </c:forEach>
                                         </select>
                                         <input type="month" id="historyMonthFilter"/>
                                         <button class="btn-primary" onclick="loadPayrollHistory()">
-                                            <i class="fas fa-search"></i> Search
+                                            <i class="fas fa-search"></i> Tìm kiếm
                                         </button>
                                     </div>
                                     
                                     <div id="payrollHistoryList" class="payrolls-list">
                                         <div class="empty-state">
                                             <i class="fas fa-inbox"></i>
-                                            <h3>No Payroll History</h3>
-                                            <p>Use filters above to search for payroll history</p>
+                                            <h3>Chưa có lịch sử bảng lương</h3>
+                                            <p>Sử dụng bộ lọc phía trên để tra cứu lịch sử bảng lương.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1725,14 +2625,14 @@
                     <!-- Recruitment System Section -->
                     <section id="recruitment-system" class="content-section">
                         <div class="section-header">
-                            <h2>Recruitment</h2>
-                            <p>Create and post job openings, review and screen applications, schedule interviews</p>
+                            <h2>Tuyển dụng</h2>
+                            <p>Tạo tin tuyển dụng, rà soát hồ sơ ứng viên và theo dõi lịch phỏng vấn</p>
                         </div>
                         
                         <div class="recruitment-tabs">
-                            <button class="tab-btn active" data-tab="job-postings">Job Postings</button>
-                            <button class="tab-btn" data-tab="candidate-screening">Candidate Screening</button>
-                            <button class="tab-btn" data-tab="interview-scheduling">Interview Scheduling</button>
+                            <button class="tab-btn active" data-tab="job-postings">Tin tuyển dụng</button>
+                            <button class="tab-btn" data-tab="candidate-screening">Sàng lọc ứng viên</button>
+                            <button class="tab-btn" data-tab="interview-scheduling">Lịch phỏng vấn</button>
                         </div>
                         
                         <div class="tab-content">
@@ -1741,7 +2641,7 @@
                                     <div class="section-actions">
                                         <button class="btn-primary" onclick="showJobPostingForm()">
                                             <i class="fas fa-plus"></i>
-                                            Create New Job Posting
+                                            Tạo tin tuyển dụng mới
                                         </button>
                                     </div>
                                     
@@ -1749,24 +2649,24 @@
                                         <div class="job-posting-card">
                                             <div class="job-header">
                                                 <h4>Senior Java Developer</h4>
-                                                <span class="job-status active">Hiring</span>
+                                                <span class="job-status active">Đang tuyển</span>
                                             </div>
                                             <div class="job-details">
-                                                <p><strong>Department:</strong> IT Department</p>
-                                                <p><strong>Salary:</strong> 20,000,000 - 30,000,000 VNĐ</p>
-                                                <p><strong>Experience:</strong> 3-5 years</p>
-                                                <p><strong>Posted Date:</strong> 10/12/2024</p>
-                                                <p><strong>Applicants:</strong> 25</p>
+                                                <p><strong>Phòng ban:</strong> Phòng IT</p>
+                                                <p><strong>Lương:</strong> 20,000,000 - 30,000,000 VNĐ</p>
+                                                <p><strong>Kinh nghiệm:</strong> 3-5 năm</p>
+                                                <p><strong>Ngày đăng:</strong> 10/12/2024</p>
+                                                <p><strong>Ứng viên:</strong> 25</p>
                                             </div>
                                             <div class="job-actions">
                                                 <button class="btn-secondary">
                                                     <i class="fas fa-edit"></i>
-                                                    Edit
+                                                    Sửa
                                                 </button>
                                              
                                                 <button class="btn-danger">
                                                     <i class="fas fa-pause"></i>
-                                                    Pause
+                                                    Tạm dừng
                                                 </button>
                                             </div>
                                         </div>
@@ -1774,23 +2674,23 @@
                                         <div class="job-posting-card">
                                             <div class="job-header">
                                                 <h4>Marketing Specialist</h4>
-                                                <span class="job-status active">Hiring</span>
+                                                <span class="job-status active">Đang tuyển</span>
                                             </div>
                                             <div class="job-details">
-                                                <p><strong>Department:</strong> Marketing Department</p>
-                                                <p><strong>Salary:</strong> 12,000,000 - 18,000,000 VNĐ</p>
-                                                <p><strong>Experience:</strong> 2-3 years</p>
-                                                <p><strong>Posted Date:</strong> 08/12/2024</p>
-                                                <p><strong>Applicants:</strong> 18</p>
+                                                <p><strong>Phòng ban:</strong> Phòng Marketing</p>
+                                                <p><strong>Lương:</strong> 12,000,000 - 18,000,000 VNĐ</p>
+                                                <p><strong>Kinh nghiệm:</strong> 2-3 năm</p>
+                                                <p><strong>Ngày đăng:</strong> 08/12/2024</p>
+                                                <p><strong>Ứng viên:</strong> 18</p>
                                             </div>
                                             <div class="job-actions">
                                                 <button class="btn-secondary">
                                                     <i class="fas fa-edit"></i>
-                                                    Edit
+                                                    Sửa
                                                 </button>
                                                 <button class="btn-danger">
                                                     <i class="fas fa-pause"></i>
-                                                    Pause
+                                                    Tạm dừng
                                                 </button>
                                             </div>
                                         </div>
@@ -1802,46 +2702,46 @@
                                 <div class="candidate-screening">
                                     <div class="screening-filters">
                                         <select class="form-select">
-                                            <option>All Positions</option>
+                                            <option>Tất cả vị trí</option>
                                             <option>Senior Java Developer</option>
                                             <option>Marketing Specialist</option>
                                         </select>
                                         <select class="form-select">
-                                            <option>All Status</option>
-                                            <option>New Application</option>
-                                            <option>Screened</option>
-                                            <option>Interviewed</option>
-                                            <option>Hired</option>
-                                            <option>Rejected</option>
+                                            <option>Tất cả trạng thái</option>
+                                            <option>Hồ sơ mới</option>
+                                            <option>Đã sàng lọc</option>
+                                            <option>Đã phỏng vấn</option>
+                                            <option>Đã tuyển</option>
+                                            <option>Từ chối</option>
                                         </select>
                                     </div>
                                     
                                     <div class="candidates-list">
                                         <div class="candidate-card">
                                             <div class="candidate-info">
-                                                <img src="https://i.pravatar.cc/50" alt="Candidate">
+                                                <img src="https://i.pravatar.cc/50" alt="Ứng viên">
                                                 <div>
                                                     <h4>Pham Van G</h4>
                                                     <p>Senior Java Developer</p>
-                                                    <p><strong>Experience:</strong> 4 years</p>
-                                                    <p><strong>Application Date:</strong> 12/12/2024</p>
+                                                    <p><strong>Kinh nghiệm:</strong> 4 năm</p>
+                                                    <p><strong>Ngày ứng tuyển:</strong> 12/12/2024</p>
                                                 </div>
                                             </div>
                                             <div class="candidate-status">
-                                                <span class="status-badge new">New Application</span>
+                                                <span class="status-badge new">Hồ sơ mới</span>
                                             </div>
                                             <div class="candidate-actions">
                                                 <button class="btn-primary">
                                                     <i class="fas fa-eye"></i>
-                                                    View CV
+                                                    Xem CV
                                                 </button>
                                                 <button class="btn-success">
                                                     <i class="fas fa-check"></i>
-                                                    Select for Interview
+                                                    Chọn phỏng vấn
                                                 </button>
                                                 <button class="btn-danger">
                                                     <i class="fas fa-times"></i>
-                                                    Reject
+                                                    Từ chối
                                                 </button>
                                             </div>
                                         </div>
@@ -1854,14 +2754,14 @@
                     <!-- Reports and Analytics Section -->
                     <section id="reports-analytics" class="content-section">
                         <div class="section-header">
-                            <h2>Reports & Analytics</h2>
-                            <p>Generate reports on personnel, departments and system performance</p>
+                            <h2>Báo cáo và phân tích</h2>
+                            <p>Tổng hợp báo cáo nhân sự, phòng ban và hiệu suất vận hành hệ thống</p>
                         </div>
                         
                         <div class="reports-tabs">
-                            <button class="tab-btn active" data-tab="hr-reports">HR Reports</button>
-                            <button class="tab-btn" data-tab="department-reports">Department Reports</button>
-                            <button class="tab-btn" data-tab="system-analytics">System Analytics</button>
+                            <button class="tab-btn active" data-tab="hr-reports">Báo cáo HR</button>
+                            <button class="tab-btn" data-tab="department-reports">Báo cáo phòng ban</button>
+                            <button class="tab-btn" data-tab="system-analytics">Phân tích hệ thống</button>
                         </div>
                         
                         <div class="tab-content">
@@ -1869,44 +2769,44 @@
                                 <div class="reports-dashboard">
                                     <div class="report-filters">
                                         <div class="filter-group">
-                                            <label>Time Period:</label>
+                                            <label>Thời gian:</label>
                                             <select class="form-select">
-                                                <option>This Month</option>
-                                                <option>This Quarter</option>
-                                                <option>This Year</option>
-                                                <option>Custom</option>
+                                                <option>Tháng này</option>
+                                                <option>Quý này</option>
+                                                <option>Năm nay</option>
+                                                <option>Tùy chỉnh</option>
                                             </select>
                                         </div>
                                         <div class="filter-group">
-                                            <label>Department:</label>
+                                            <label>Phòng ban:</label>
                                             <select class="form-select">
-                                                <option>All Departments</option>
-                                                <option>IT Department</option>
-                                                <option>Marketing Department</option>
-                                                <option>HR Department</option>
+                                                <option>Tất cả phòng ban</option>
+                                                <option>Phòng IT</option>
+                                                <option>Phòng Marketing</option>
+                                                <option>Phòng HR</option>
                                             </select>
                                         </div>
                                         <button class="btn-primary">
                                             <i class="fas fa-download"></i>
-                                            Export Report
+                                            Xuất báo cáo
                                         </button>
                                     </div>
                                     
                                     <div class="charts-grid">
                                         <div class="chart-container">
-                                            <h4>Personnel Overview</h4>
+                                            <h4>Tổng quan nhân sự</h4>
                                             <canvas id="employeeOverviewChart"></canvas>
                                         </div>
                                         <div class="chart-container">
-                                            <h4>Distribution by Department</h4>
+                                            <h4>Phân bổ theo phòng ban</h4>
                                             <canvas id="departmentDistributionChart"></canvas>
                                         </div>
                                         <div class="chart-container">
-                                            <h4>Monthly Recruitment</h4>
+                                            <h4>Tuyển dụng theo tháng</h4>
                                             <canvas id="recruitmentChart"></canvas>
                                         </div>
                                         <div class="chart-container">
-                                            <h4>Turnover Rate</h4>
+                                            <h4>Tỷ lệ biến động nhân sự</h4>
                                             <canvas id="turnoverChart"></canvas>
                                         </div>
                                     </div>
@@ -2020,7 +2920,7 @@
             function confirmStatusUpdate(form) {
                 const employeeName = form.closest('.status-card').querySelector('h4').textContent;
                 const newStatus = form.querySelector('select[name="status"]').value;
-                return confirm(`Are you sure you want to update ${employeeName}'s status to ${newStatus}?`);
+                return confirm(`Bạn có chắc muốn cập nhật trạng thái của ${employeeName} thành ${newStatus}?`);
             }
             
             // Handle form submissions with AJAX to avoid page reload
@@ -2038,7 +2938,7 @@
                         .then(response => response.text())
                         .then(data => {
                             // Show success message
-                            showMessage('Status updated successfully!', 'success');
+                            showMessage('Cập nhật trạng thái thành công!', 'success');
                             // Update the UI
                             const statusSpan = this.closest('.status-card').querySelector('.current-status');
                             const newStatus = formData.get('status');
@@ -2046,7 +2946,7 @@
                             statusSpan.className = `current-status ${newStatus.toLowerCase()}`;
                         })
                         .catch(error => {
-                            showMessage('Error updating status: ' + error.message, 'error');
+                            showMessage('Lỗi khi cập nhật trạng thái: ' + error.message, 'error');
                         });
                     });
                 });
@@ -2128,8 +3028,8 @@
                 document.querySelectorAll('.btn-approve').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const payrollId = this.dataset.payrollId;
-                        const employeeName = this.dataset.employee || this.closest('.payroll-card')?.querySelector('.employee-name')?.textContent?.trim() || 'Employee';
-                        const payPeriod = this.dataset.period || this.closest('.payroll-card')?.querySelector('.payroll-id')?.textContent?.match(/Period: (.+)/)?.[1] || '';
+                        const employeeName = this.dataset.employee || this.closest('.payroll-card')?.querySelector('.employee-name')?.textContent?.trim() || 'Nhân viên';
+                        const payPeriod = this.dataset.period || this.closest('.payroll-card')?.querySelector('.payroll-id')?.textContent?.match(/Kỳ lương: (.+)/)?.[1] || '';
                         if (payrollId) approvePayroll(payrollId, employeeName, payPeriod);
                     });
                 });
@@ -2138,8 +3038,8 @@
                 document.querySelectorAll('.btn-reject').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const payrollId = this.dataset.payrollId;
-                        const employeeName = this.dataset.employee || this.closest('.payroll-card')?.querySelector('.employee-name')?.textContent?.trim() || 'Employee';
-                        const payPeriod = this.dataset.period || this.closest('.payroll-card')?.querySelector('.payroll-id')?.textContent?.match(/Period: (.+)/)?.[1] || '';
+                        const employeeName = this.dataset.employee || this.closest('.payroll-card')?.querySelector('.employee-name')?.textContent?.trim() || 'Nhân viên';
+                        const payPeriod = this.dataset.period || this.closest('.payroll-card')?.querySelector('.payroll-id')?.textContent?.match(/Kỳ lương: (.+)/)?.[1] || '';
                         if (payrollId) rejectPayroll(payrollId, employeeName, payPeriod);
                     });
                 });
@@ -2154,7 +3054,7 @@
             }
             
             function approvePayroll(payrollId, employeeName, payPeriod) {
-                if (confirm('Are you sure you want to approve this payroll?\n\nEmployee: ' + employeeName + '\nPeriod: ' + payPeriod)) {
+                if (confirm('Bạn có chắc muốn duyệt bảng lương này?\n\nNhân viên: ' + employeeName + '\nKỳ lương: ' + payPeriod)) {
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.action = '${pageContext.request.contextPath}/hr/payroll-approval/approve';
@@ -2177,7 +3077,7 @@
             }
             
             function rejectPayroll(payrollId, employeeName, payPeriod) {
-                const reason = prompt('Enter rejection reason (optional):');
+                const reason = prompt('Nhập lý do từ chối (không bắt buộc):');
                 if (reason !== null) {
                     const form = document.createElement('form');
                     form.method = 'POST';
@@ -2219,7 +3119,7 @@
                 const historyList = document.getElementById('payrollHistoryList');
                 if (!historyList) return;
                 
-                historyList.innerHTML = '<div class="loading-state"><i class="fas fa-spinner fa-spin"></i><p>Loading payroll history...</p></div>';
+                historyList.innerHTML = '<div class="loading-state"><i class="fas fa-spinner fa-spin"></i><p>Đang tải lịch sử bảng lương...</p></div>';
                 
                 // Build URL - show Approved and Paid payrolls
                 let url = '${pageContext.request.contextPath}/hr/payroll-approval?status=Approved';
@@ -2243,15 +3143,15 @@
                                 historyList.innerHTML = cardsHTML;
                                 attachPayrollEventListeners();
                             } else {
-                                historyList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><h3>No Payroll History Found</h3><p>No approved payrolls match your filters.</p></div>';
+                                historyList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><h3>Không tìm thấy lịch sử bảng lương</h3><p>Không có bảng lương đã duyệt phù hợp với bộ lọc.</p></div>';
                             }
                         } else {
-                            historyList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><h3>No Payroll History Found</h3><p>No approved payrolls match your filters.</p></div>';
+                            historyList.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><h3>Không tìm thấy lịch sử bảng lương</h3><p>Không có bảng lương đã duyệt phù hợp với bộ lọc.</p></div>';
                         }
                     })
                     .catch(err => {
-                        console.error('Error loading payroll history:', err);
-                        historyList.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>Error Loading History</h3><p>' + err.message + '</p></div>';
+                        console.error('Lỗi tải lịch sử bảng lương:', err);
+                        historyList.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><h3>Lỗi tải lịch sử</h3><p>' + err.message + '</p></div>';
                     });
             }
             

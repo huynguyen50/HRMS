@@ -13,7 +13,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Approve/Reject Contracts - HRMS</title>
+        <title>Duyệt hợp đồng - BetterHR</title>
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-dashboard.css">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -516,6 +516,8 @@
                 background: #d1d5db;
             }
         </style>
+        <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-theme.css">
     </head>
     <body>
         <div class="hr-dashboard-container">
@@ -524,12 +526,12 @@
                 <div class="header-content">
                     <div class="logo-section">
                         <i class="fas fa-file-contract"></i>
-                        <h1>Approve/Reject Contracts</h1>
+                        <h1>Duyệt hợp đồng</h1>
                     </div>
                     <div class="header-actions">
                         <a href="${pageContext.request.contextPath}/Views/hr/HrHome.jsp" class="btn-homepage">
                             <i class="fas fa-arrow-left"></i>
-                            <span>Back to Dashboard</span>
+                            <span>Quay lại HR Home</span>
                         </a>
                     </div>
                 </div>
@@ -539,8 +541,8 @@
             <div class="container">
                 <!-- Page Header -->
                 <div class="page-header">
-                    <h2><i class="fas fa-clipboard-check"></i> Pending Contracts Approval</h2>
-                    <p>Review and approve or reject contracts pending approval</p>
+                    <h2><i class="fas fa-clipboard-check"></i> Hợp đồng chờ duyệt</h2>
+                    <p>Rà soát, phê duyệt hoặc từ chối các hợp đồng đang chờ xử lý</p>
                 </div>
 
                 <!-- Success/Error Messages -->
@@ -653,11 +655,11 @@
                                 <div class="contract-actions">
                                     <button type="button" class="btn btn-approve" onclick="approveContract(${contract.contractId})">
                                         <i class="fas fa-check"></i>
-                                        Approve
+                                        Duyệt
                                     </button>
                                     <button type="button" class="btn btn-reject" onclick="showRejectModal(${contract.contractId})">
                                         <i class="fas fa-times"></i>
-                                        Reject
+                                        Từ chối
                                     </button>
                                 </div>
                             </div>
@@ -678,22 +680,22 @@
         <div id="rejectModal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3><i class="fas fa-times-circle"></i> Reject Contract</h3>
+                    <h3><i class="fas fa-times-circle"></i> Từ chối hợp đồng</h3>
                 </div>
                 <form id="rejectForm" method="POST" action="${pageContext.request.contextPath}/hr/approve-reject-contracts">
                     <input type="hidden" name="action" value="reject">
                     <input type="hidden" name="contractId" id="rejectContractId">
                     <div class="modal-body">
                         <div class="form-group">
-                            <label for="rejectionReason">Rejection Reason <span style="color: var(--danger-color);">*</span></label>
+                            <label for="rejectionReason">Lý do từ chối <span style="color: var(--danger-color);">*</span></label>
                             <textarea id="rejectionReason" name="rejectionReason" required placeholder="Enter rejection reason..."></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-cancel" onclick="closeRejectModal()">Cancel</button>
+                        <button type="button" class="btn btn-cancel" onclick="closeRejectModal()">Hủy</button>
                         <button type="submit" class="btn btn-reject">
                             <i class="fas fa-times"></i>
-                            Confirm Rejection
+                            Xác nhận từ chối
                         </button>
                     </div>
                 </form>
@@ -744,7 +746,7 @@
             }
 
             function approveContract(contractId) {
-                if (confirm('Are you sure you want to approve this contract?')) {
+                if (confirm('Bạn có chắc muốn duyệt hợp đồng này?')) {
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.action = '${pageContext.request.contextPath}/hr/approve-reject-contracts';
