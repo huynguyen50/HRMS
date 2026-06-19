@@ -27,6 +27,12 @@ Related Code: `AdminController`, `DashboardDAO`, `EmployeeDAO`, `DepartmentDAO`,
 - Tong user.
 - Thong ke hoat dong, phong ban, permission, status distribution neu DAO tra ve.
 
+## UI contract
+- Dashboard admin dung sidebar/topbar BetterHR dong bo voi cac trang Admin khac.
+- Card thong ke co nhan tieng Viet va mau theo BetterHR palette.
+- Chart phong ban va trang thai nhan vien phai co kich thuoc on dinh, khong tran layout.
+- Neu chart chua co du lieu that, UI phai hien empty state tieng Viet thay vi loi JS.
+
 ## Hien trang code
 - Da co dashboard HTML va JSON.
 - JSON trong `AdminController` con duoc build thu cong bang `StringBuilder`.
@@ -37,3 +43,5 @@ Related Code: `AdminController`, `DashboardDAO`, `EmployeeDAO`, `DepartmentDAO`,
 - [ ] User khong co quyen bi chan truoc khi vao controller.
 - [ ] JSON dashboard set dung content type va encoding.
 - [ ] Loi database khong lam lo stack trace ra UI.
+- [ ] Dashboard khong con UI cu de len UI moi.
+- [ ] Tat ca nhan/label hien tieng Viet.

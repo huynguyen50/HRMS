@@ -6,20 +6,16 @@
 package com.hrm.controller.hr;
 
 import com.hrm.dao.DAO;
-import com.hrm.dao.DBConnection;
 import com.hrm.dao.DepartmentDAO;
 import com.hrm.dao.EmployeeDAO;
 import com.hrm.dao.GuestDAO;
 import com.hrm.model.entity.Department;
 import com.hrm.model.entity.Employee;
 import com.hrm.model.entity.Guest;
+import com.hrm.model.entity.SystemUser;
 import com.hrm.util.PermissionUtil;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -193,9 +189,24 @@ public class CreateEmployeeController extends HttpServlet {
                 }
             }
             
-            // Check if username already exists
-            if (dao.getAccountByUsername(username) != null) {
+            email = email.trim().toLowerCase();
+            username = username.trim();
+
+            SystemUser existingUserByEmail = dao.getAccountByEmail(email);
+            SystemUser existingUserByUsername = dao.getAccountByUsername(username);
+            if (existingUserByUsername != null
+                    && (existingUserByEmail == null
+                    || existingUserByUsername.getUserId() != existingUserByEmail.getUserId())) {
                 request.setAttribute(ERROR_ATTRIBUTE, "Username already exists. Please choose a different username.");
+                doGet(request, response);
+                return;
+            }
+
+            int guestRoleId = dao.getOrCreateRoleIdByName("Guest");
+            int employeeRoleId = dao.getOrCreateRoleIdByName("Employee");
+            if (existingUserByEmail != null
+                    && (existingUserByEmail.getEmployeeId() != null || existingUserByEmail.getRoleId() != guestRoleId)) {
+                request.setAttribute(ERROR_ATTRIBUTE, "Email already belongs to a non-guest account.");
                 doGet(request, response);
                 return;
             }
@@ -215,7 +226,7 @@ public class CreateEmployeeController extends HttpServlet {
             employee.setDob(dob);
             employee.setAddress(address);
             employee.setPhone(phone);
-            employee.setEmail(email.trim());
+            employee.setEmail(email);
             employee.setDepartmentId(departmentId);
             employee.setPosition(position != null ? position : "Employee");
             employee.setHireDate(hireDate);
@@ -246,8 +257,17 @@ public class CreateEmployeeController extends HttpServlet {
             
             System.out.println("Employee inserted successfully with ID: " + insertedEmployee.getEmployeeId());
             
-            // Create system user account using the generated EmployeeID
-            boolean userCreated = createSystemUser(insertedEmployee.getEmployeeId(), username, password);
+            boolean userCreated;
+            if (existingUserByEmail != null) {
+                userCreated = dao.promoteGuestToEmployee(
+                        existingUserByEmail.getUserId(),
+                        insertedEmployee.getEmployeeId(),
+                        username,
+                        password,
+                        employeeRoleId);
+            } else {
+                userCreated = dao.createEmployeeUser(insertedEmployee.getEmployeeId(), username, password, employeeRoleId);
+            }
             
             if (!userCreated) {
                 // Rollback: delete the employee if user creation failed
@@ -281,35 +301,6 @@ public class CreateEmployeeController extends HttpServlet {
         return PermissionUtil.ensurePermission(request, response, REQUIRED_PERMISSION, DENIED_MESSAGE);
     }
     
-    private boolean createSystemUser(int employeeId, String username, String password) {
-        String sql = """
-            INSERT INTO SystemUser
-                (Username, Email, PasswordHash, RoleID, EmployeeID, IsActive, CreatedDate, LoginProvider)
-            SELECT ?, e.Email, ?, ?, ?, ?, ?, 'LOCAL'
-            FROM Employee e
-            WHERE e.EmployeeID = ?
-        """;
-        
-        try (Connection con = DBConnection.getConnection();
-             PreparedStatement ps = con.prepareStatement(sql)) {
-            
-            ps.setString(1, username.trim());
-            ps.setString(2, password);
-            ps.setInt(3, 5); // RoleID 5 = Employee role (based on data.sql)
-            ps.setInt(4, employeeId);
-            ps.setBoolean(5, true);
-            ps.setTimestamp(6, java.sql.Timestamp.valueOf(LocalDateTime.now()));
-            ps.setInt(7, employeeId);
-            
-            return ps.executeUpdate() > 0;
-            
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-    
-
     /** 
      * Returns CreateEmployeeController short description of the servlet.
      * @return CreateEmployeeController String containing servlet description

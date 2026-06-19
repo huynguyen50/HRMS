@@ -9,6 +9,8 @@ Cho phep nguoi dung da co tai khoan dang nhap vao HRMS bang username/email va ma
 
 ## Route va giao dien
 - `GET /login`: hien thi `/Views/Login.jsp`.
+- `GET /login?success=registered`: hien thong bao tao tai khoan thanh cong.
+- `GET /login?success=registered_mail_failed`: hien thong bao account da tao nhung email xac nhan chua gui duoc.
 - `POST /login`: xu ly form dang nhap.
 - Form hien tai gui parameter `user`, `pass`, `rememberMe`.
 - Parameter `user` co the la username hoac email.
@@ -26,8 +28,10 @@ Cho phep nguoi dung da co tai khoan dang nhap vao HRMS bang username/email va ma
 10. `HomepageController` hien thi trang chu va cac dashboard duoc cap quyen theo role.
 
 ## Luong loi
-- Username hoac password rong: forward lai `/Views/Login.jsp` va set `mess = "Username and password cannot be empty!"`.
-- Sai username hoac password: forward lai `/Views/Login.jsp` va set `mess = "Wrong username or password!"`.
+- Username/email hoac password rong/sai dinh dang: forward lai `/Views/Login.jsp` va set `mess` tieng Viet.
+- Sai username/email hoac password: forward lai `/Views/Login.jsp` va set `mess` tieng Viet.
+- Account Google-only khong co password: forward lai login va yeu cau tiep tuc voi Google.
+- DB khong ket noi duoc: forward lai login va hien thong bao tieng Viet.
 - Session cu ton tai: invalidate truoc khi tao session moi de giam rui ro session fixation.
 
 ## Bao mat va rang buoc ky thuat
@@ -41,6 +45,7 @@ Cho phep nguoi dung da co tai khoan dang nhap vao HRMS bang username/email va ma
 - Da co remember-me cookie chi luu `username`.
 - Da co check active/locked account trong controller login.
 - Da co failed-login counter va lock tam thoi theo `FailedLoginAttempt`/`LockedUntil`.
+- Da co success message cho `registered`, `registered_mail_failed`, `password_changed`.
 - Chua co ghi audit log dang nhap.
 
 ## Acceptance Criteria

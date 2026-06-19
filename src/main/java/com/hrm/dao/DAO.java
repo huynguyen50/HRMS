@@ -1041,6 +1041,51 @@ public boolean updateGoogleAccount(int userId, String googleId, String avatarUrl
     }
 }
 
+public boolean promoteGuestToEmployee(int userId, int employeeId, String username, String password, int employeeRoleId) {
+    String sql = """
+        UPDATE SystemUser
+        SET Username = ?, PasswordHash = ?, RoleID = ?, EmployeeID = ?,
+            LoginProvider = 'LOCAL', IsActive = TRUE, UpdatedDate = NOW()
+        WHERE UserID = ? AND EmployeeID IS NULL
+    """;
+
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setString(1, username);
+        ps.setString(2, password);
+        ps.setInt(3, employeeRoleId);
+        ps.setInt(4, employeeId);
+        ps.setInt(5, userId);
+        return ps.executeUpdate() > 0;
+    } catch (SQLException e) {
+        System.err.println("Error promoting guest user to employee: " + e.getMessage());
+        return false;
+    }
+}
+
+public boolean createEmployeeUser(int employeeId, String username, String password, int employeeRoleId) {
+    String sql = """
+        INSERT INTO SystemUser
+            (Username, Email, PasswordHash, RoleID, EmployeeID, IsActive, CreatedDate, UpdatedDate, LoginProvider)
+        SELECT ?, e.Email, ?, ?, ?, TRUE, NOW(), NOW(), 'LOCAL'
+        FROM Employee e
+        WHERE e.EmployeeID = ?
+    """;
+
+    try (Connection connection = DBConnection.getConnection();
+         PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setString(1, username);
+        ps.setString(2, password);
+        ps.setInt(3, employeeRoleId);
+        ps.setInt(4, employeeId);
+        ps.setInt(5, employeeId);
+        return ps.executeUpdate() > 0;
+    } catch (SQLException e) {
+        System.err.println("Error creating employee user: " + e.getMessage());
+        return false;
+    }
+}
+
 public SystemUser createGoogleUser(String googleId, String email, String name, String avatarUrl, int roleId) {
     String sql = """
         INSERT INTO SystemUser
@@ -1073,7 +1118,10 @@ public SystemUser createGoogleUser(String googleId, String email, String name, S
 
 public int getRoleIdByName(String roleName) {
     Integer roleId = findRoleIdByName(roleName);
-    return roleId != null ? roleId : 5;
+    if (roleId == null) {
+        throw new IllegalStateException("Role not found: " + roleName);
+    }
+    return roleId;
 }
 
 private Integer findRoleIdByName(String roleName) {
@@ -1114,7 +1162,11 @@ public int getOrCreateRoleIdByName(String roleName) {
     } catch (SQLException e) {
         System.err.println("Error creating role " + roleName + ": " + e.getMessage());
     }
-    return getRoleIdByName(roleName);
+    Integer roleId = findRoleIdByName(roleName);
+    if (roleId != null) {
+        return roleId;
+    }
+    throw new IllegalStateException("Role not found or created: " + roleName);
 }
 
 public void recordSuccessfulLogin(int userId) {

@@ -1,7 +1,7 @@
 # Cross-cutting Spec: Auth Security Hardening
 Status: Approved
 Priority: High
-Related Code: `LoginController`, `LogoutController`, `DAO`, `SessionSecurityFilter`, `ForgotPassController`, `RecoveryController`, `ChangePassREController`, `EmailSender`
+Related Code: `LoginController`, `RegisterController`, `LogoutController`, `DAO`, `SessionSecurityFilter`, `ForgotPassController`, `RecoveryController`, `ChangePassREController`, `EmailSender`
 
 ## Muc tieu
 Lam ro cac yeu cau bao mat cho dang nhap, session, cookie, reset password va cau hinh SMTP.
@@ -31,6 +31,7 @@ Lam ro cac yeu cau bao mat cho dang nhap, session, cookie, reset password va cau
 - `/Recovery`
 - `/changepassRE`
 - `/Views/ForgotPassword.jsp`
+- `/Views/Register.jsp`
 
 ## Reset password security
 1. User nhap email tai `/ForgotPassword`.
@@ -55,6 +56,7 @@ Lam ro cac yeu cau bao mat cho dang nhap, session, cookie, reset password va cau
 4. Them rate limit gui PIN theo email/IP.
 5. Luu reset token/PIN vao DB voi expiry/revoked thay vi chi dung session neu can bao mat cao hon.
 6. Them audit log cho `LOGIN_SUCCESS`, `LOGIN_FAILED`, `RESET_PASSWORD`, `CHANGE_PASSWORD`.
+7. Them rate limit/captcha cho public register neu bi spam.
 
 ## Acceptance Criteria
 - [ ] Cookie remember-me khong chua password.
@@ -66,6 +68,7 @@ Lam ro cac yeu cau bao mat cho dang nhap, session, cookie, reset password va cau
 - [ ] Mo truc tiep `/changepassRE` khi chua verify PIN bi redirect ve `/ForgotPassword`.
 - [ ] SMTP secret khong nam trong Java source.
 - [ ] File mail config local khong bi commit.
+- [ ] Register public validate duplicate username/email, tao role `Guest` va khong tu gan `EmployeeID`.
 
 ## Missing Work
 - [ ] Chua co BCrypt/Argon2, day la hardening tuong lai neu project doi yeu cau.

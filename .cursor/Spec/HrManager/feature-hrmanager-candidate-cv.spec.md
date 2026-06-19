@@ -17,6 +17,7 @@ Related Code: `ViewCV`, `Views/hr/ViewCV.jsp`, `GuestDAO`
 ## Hien trang code
 - `RoleAuthorizationFilter` cho role 2 va role 4 vao `/viewCV`.
 - JSP hien tai nam trong `/Views/hr/ViewCV.jsp`.
+- Trang lien quan HR Manager phai dung tieng Viet va BetterHR theme.
 
 ## Acceptance Criteria
 - [ ] HR Manager xem duoc CV hop le.
@@ -26,3 +27,4 @@ Related Code: `ViewCV`, `Views/hr/ViewCV.jsp`, `GuestDAO`
 ## Missing Work
 - [ ] Dinh nghia ro action approve/reject candidate neu HR Manager la nguoi quyet dinh.
 - [ ] Tach view CV rieng cho HR Staff/HR Manager neu UI khac nhau.
+- [ ] Chuan hoa message email gui ung vien neu approve/reject.

@@ -35,6 +35,13 @@ Admin quan ly nen tang he thong gom dashboard, user, role, permission, departmen
 - `UserController` dung `/admin/users`.
 - `DepartmentController` dung `/departments`.
 
+## UI contract
+- Tat ca trang Admin dung BetterHR theme theo `_Common/ui-language-theme.spec.md`.
+- Sidebar Admin giu brand `BetterHR` va subtitle tieng Viet nhu `Cong quan tri`.
+- Menu active phai hien ro, khong mat mau/chu.
+- Topbar search/notification/profile co the la UI neu chua co backend rieng, khong tu y them logic.
+- Tat ca text hien thi trong Admin phai la tieng Viet, tru logo `BetterHR` va gia tri ky thuat.
+
 ## Missing Work cap module
 - [ ] Them `/departments` vao filter bao ve admin/permission.
 - [ ] Chuan hoa logging, bo `System.out.println` va `printStackTrace` trong controller production.

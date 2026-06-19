@@ -13,7 +13,7 @@ Related Code: `AdminController`, `RolePermissionServlet`, `RolePermissionDAO`, `
 1. Admin vao `/admin?action=role-permissions`.
 2. Controller kiem tra session.
 3. Lay danh sach role va permission summary.
-4. Group permission theo category, category null/blank thanh `Khác`.
+4. Group permission theo category, category null/blank thanh `Khac`.
 5. Forward den `Admin/RolePermissionManager.jsp`.
 
 ## Luong API GET
@@ -32,12 +32,21 @@ Related Code: `AdminController`, `RolePermissionServlet`, `RolePermissionDAO`, `
 - API da ton tai.
 - Body rong/sai hien tra JSON error message va HTTP 400, khong tra object rong.
 - Permission filter yeu cau `MANAGE_ROLE_PERMISSIONS`.
+- RoleID 1 Admin duoc phep quan ly role permissions theo `PermissionUtil`/filter hien tai; user khac van phai co `MANAGE_ROLE_PERMISSIONS`.
+
+## UI contract
+- Trang phan quyen dung layout Admin BetterHR, khong bi de UI cu len UI moi.
+- Checkbox role permission phai bam duoc va co state ro rang.
+- Nut `Luu trang thai`, `Bat tat ca`, `Tat tat ca`, `Ve Admin` hien tieng Viet.
+- Toast loi/thanh cong phai gom nhom hop ly, khong spam nhieu toast trung nhau khi user thieu quyen.
 
 ## Acceptance Criteria
 - [ ] GET API tra JSON UTF-8.
 - [ ] Permission duoc group theo category.
 - [ ] POST body thieu `roleId` hoac permission list bi tra 400.
 - [ ] User thieu `MANAGE_ROLE_PERMISSIONS` bi chan.
+- [ ] Admin RoleID 1 mo va luu trang phan quyen duoc ngay ca khi seed role permission thieu.
+- [ ] Checkbox tren UI co the toggle neu user co quyen.
 
 ## Missing Work
 - [ ] Them test cho grant/revoke nhieu permission cung luc.

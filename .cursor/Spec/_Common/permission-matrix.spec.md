@@ -10,7 +10,7 @@ Chuan hoa bang phan quyen cho toan bo HRMS de moi actor chi truy cap dung route 
 | Role ID | Actor | Khu vuc chinh |
 | --- | --- | --- |
 | 1 | Admin | `/admin`, `/admin/*`, `/departments`, `/Admin/*` |
-| 2 | HR Manager | `/hr/*`, `/Views/hr/*`, `/viewRecruitment`, `/viewCV`, `/detailWaitingRecruitment` |
+| 2 | HR Manager | `/HrHomeController`, `/hr/*`, `/Views/hr/*`, `/viewRecruitment`, `/viewCV`, `/detailWaitingRecruitment` |
 | 3 | Dept Manager | `/dept`, `/taskManager`, `/postTask`, `/viewTask` |
 | 4 | HR Staff | `/hrstaff`, `/Views/HrStaff/*`, `/postRecruitments`, `/candidates`, `/viewCV`, payroll, contracts |
 | 5 | Employee | `/Views/Employee/*`, `/employee/*`, employee home/profile/payroll/contract/leave |
@@ -25,6 +25,14 @@ Chuan hoa bang phan quyen cho toan bo HRMS de moi actor chi truy cap dung route 
 | `/dept`, `/taskManager`, `/postTask`, `/viewTask` | `VIEW_DEPARTMENTS` | `ModulePermissionFilter` |
 | `/employee`, `/employee/*` | `VIEW_EMPLOYEE_DETAIL` | `ModulePermissionFilter` |
 | `/viewRecruitment` | `VIEW_RECRUITMENT` | `ViewRecruitment` + filters |
+| `/HrHomeController` | Role 2 | `RoleAuthorizationFilter` |
+| `/hr/employee-list`, `/hr/create-employee` | `VIEW_EMPLOYEES` hien tai | `PermissionUtil` trong controller |
+| `/hr/approve-reject-contracts` | `VIEW_CONTRACTS` hien tai | `PermissionUtil` trong controller |
+| `/hr/payroll-approval` | `VIEW_USERS` hien tai | `PermissionUtil` trong controller |
+
+## Rule dac biet
+- RoleID 1 Admin la super admin trong code permission hien tai va khong duoc bi chan khoi chuc nang role permission chi vi thieu seed `MANAGE_ROLE_PERMISSIONS`.
+- User khac Admin van phai qua permission tu `RolePermission`/`UserPermission`.
 
 ## Permission seed trong data.sql
 `src/data/data.sql` hien seed cac permission:
@@ -48,6 +56,8 @@ Chuan hoa bang phan quyen cho toan bo HRMS de moi actor chi truy cap dung route 
 - [ ] Dua `/departments` vao filter Admin/permission.
 - [ ] Tach `/viewTask` cua Employee ra route rieng de khong bi permission `VIEW_DEPARTMENTS`.
 - [ ] Dinh nghia permission rieng cho payroll approval va contract approval neu muon tach khoi permission view.
+- [ ] Xem lai `/hr/payroll-approval` dang dung `VIEW_USERS`; nen doi sang `VIEW_PAYROLLS` hoac `APPROVE_PAYROLL`.
+- [ ] Xem lai create/update/delete employee dang dung `VIEW_EMPLOYEES`; nen them `MANAGE_EMPLOYEES` neu can.
 - [ ] Viet test cho cac route nhay cam: admin, payroll, employee data, task.
 
 ## Acceptance Criteria

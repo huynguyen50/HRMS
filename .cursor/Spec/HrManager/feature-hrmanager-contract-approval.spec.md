@@ -5,15 +5,22 @@ Priority: High
 Related Code: `ApproveRejectContractController`, `ContractDAO`, `Views/hr/ApproveRejectContract.jsp`
 
 ## Route
-- Route do `ApproveRejectContractController` khai bao.
+- `GET /hr/approve-reject-contracts`
+- `POST /hr/approve-reject-contracts`
 - JSP: `/Views/hr/ApproveRejectContract.jsp`.
 
 ## Luong chinh
-1. HR Manager vao man hinh duyet hop dong.
-2. Controller lay danh sach contract cho duyet.
-3. HR Manager approve hoac reject.
-4. Controller cap nhat status contract.
-5. Redirect ve danh sach kem thong bao.
+1. HR Manager vao `/hr/approve-reject-contracts`.
+2. `ApproveRejectContractController` kiem tra permission `VIEW_CONTRACTS`.
+3. Controller lay danh sach contract cho duyet.
+4. HR Manager approve hoac reject.
+5. Controller cap nhat status contract.
+6. Redirect ve danh sach kem thong bao.
+
+## UI contract
+- JSP phai theo BetterHR theme va hien thi tieng Viet.
+- Link tu HR Home vao `/hr/approve-reject-contracts`.
+- Gia tri status gui backend giu dung theo code/data hien tai.
 
 ## Acceptance Criteria
 - [ ] Chi HR Manager co quyen moi duyet hop dong.
@@ -21,5 +28,5 @@ Related Code: `ApproveRejectContractController`, `ContractDAO`, `Views/hr/Approv
 - [ ] Khong duyet contract khong ton tai.
 
 ## Missing Work
-- [ ] Chuan hoa route trong spec sau khi doc/giu on dinh annotation controller.
+- [ ] Xem lai permission `VIEW_CONTRACTS` co du cho approve/reject hay can them `APPROVE_CONTRACTS`.
 - [ ] Them audit log approve/reject.

@@ -56,8 +56,8 @@ public class RegisterController extends HttpServlet {
             return;
         }
 
-        int employeeRoleId = dao.getRoleIdByName("Employee");
-        SystemUser createdUser = dao.createLocalUser(username, email, password, employeeRoleId);
+        int guestRoleId = dao.getOrCreateRoleIdByName("Guest");
+        SystemUser createdUser = dao.createLocalUser(username, email, password, guestRoleId);
         if (createdUser == null) {
             forwardRegister(request, response, "Không thể tạo tài khoản. Vui lòng thử lại.");
             return;

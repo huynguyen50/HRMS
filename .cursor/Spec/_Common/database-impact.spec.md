@@ -18,6 +18,7 @@ Lap ban do bang du lieu bi doc/ghi theo module de khi implement khong tac dong s
 ## Auth
 | Feature | Read | Write |
 | --- | --- | --- |
+| Register local | `SystemUser`, `Role` | `SystemUser` voi `RoleID=Guest`, `EmployeeID=NULL`; email qua SMTP neu cau hinh |
 | Login | `SystemUser`, `Role`, `RolePermission`, `UserPermission` neu check permission | HTTP session, cookie, `SystemUser.LastLogin` neu implement |
 | Logout | HTTP session, cookie | HTTP session, cookie |
 | Change password | `SystemUser` | `SystemUser.PasswordHash` |
@@ -65,6 +66,7 @@ Lap ban do bang du lieu bi doc/ghi theo module de khi implement khong tac dong s
 ## HR Manager
 | Feature | Read | Write |
 | --- | --- | --- |
+| HR Home | `Employee`, `Department`, `Payroll` neu section payroll, `Contract` neu hien pending contract count | none neu chi dashboard |
 | Recruitment review | `Recruitment` | `Recruitment.Status` |
 | CV review | `Guest`, `Recruitment` | `Guest.Status` neu co |
 | Employee management | `Employee`, `Department`, `Role`, `SystemUser` | `Employee`, `SystemUser` |

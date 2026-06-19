@@ -15,6 +15,7 @@ Dung `/homepage` lam cua vao trung tam. Sau moi luong dang nhap local/Google hoa
 2. Neu chua co `systemUser` trong session, `HomepageController` set `dashboardAccess` mac dinh cho guest.
 3. He thong forward den `/Views/Homepage.jsp`.
 4. Guest xem trang public va danh sach link public.
+5. Nut `Dang ky` tren homepage tro toi `/register`, khong tro nham ve `/login`.
 
 ## Luong da dang nhap
 1. User truy cap `/homepage`.
@@ -41,6 +42,7 @@ Dung `/homepage` lam cua vao trung tam. Sau moi luong dang nhap local/Google hoa
 - [ ] Homepage hien dashboard/menu theo role hien tai.
 - [ ] Role khong hop le hoac thieu role fallback ve quyen Guest/public.
 - [ ] Nut/link dashboard tren homepage tro dung route code hien tai.
+- [ ] Nut `Dang ky` tren homepage mo dung `/register`.
 
 ## Missing Work
 - [ ] Chuan hoa mapping role ID/role name trong tai lieu he thong de tranh nham lan.

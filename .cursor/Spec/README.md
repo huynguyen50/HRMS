@@ -1,6 +1,6 @@
 # HRMS Spec Index
 Status: Approved
-Updated: 2026-06-15
+Updated: 2026-06-18
 
 ## Muc tieu
 Thu muc `.cursor/Spec` luu cac spec theo actor va module, viet theo luong code hien tai cua HRMS. Moi spec can neu ro actor, route, controller/JSP lien quan, luong chinh, hien trang code va missing work.
@@ -24,6 +24,7 @@ Thu muc `.cursor/Spec` luu cac spec theo actor va module, viet theo luong code h
 - `_Common/route-conflict-resolution.spec.md`: xu ly xung dot route `/viewTask`.
 - `_Common/database-impact.spec.md`: bang doc/ghi theo module.
 - `_Common/test-plan.spec.md`: bo test toi thieu theo module.
+- `_Common/ui-language-theme.spec.md`: chuan giao dien, mau sac, font chu va tieng Viet tren JSP.
 
 ## Nguyen tac cap nhat spec
 - Spec phai uu tien dung voi route/controller hien co.
@@ -31,10 +32,13 @@ Thu muc `.cursor/Spec` luu cac spec theo actor va module, viet theo luong code h
 - Password auth hien tai dung `SystemUser.PasswordHash` theo logic plain text cua du an; neu doi sang hash/BCrypt thi phai cap nhat code va spec cung luc.
 - Session login dung attribute `systemUser`.
 - JSP va noi dung UI cua du an nen hien thi tieng Viet, giu ten logo BetterHR.
+- Khi chi sua UI, khong doi route, form action, input name/value hoac attribute controller.
 
 ## Cac canh bao can xu ly trong code
 - `/departments` chua duoc dua vao filter bao ve admin.
 - Employee `ViewTask` va Dept `ViewTask` dang trung mapping `/viewTask`.
 - Auth password recovery dung PIN session, can rate limit neu hardening sau nay.
 - Google Login da co backend OAuth2, can dam bao config Google local/env dung.
+- Register local da gui email BetterHR sau khi tao account; role mac dinh phai la `Guest`, `EmployeeID = NULL`.
+- HR Manager Home dung `/HrHomeController`; khong link truc tiep JSP neu can nap data.
 - Mot so controller con `printStackTrace`/`System.out`, nen thay bang logger.
