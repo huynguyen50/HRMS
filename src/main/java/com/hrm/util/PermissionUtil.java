@@ -42,8 +42,8 @@ public final class PermissionUtil {
             return null;
         }
         Object user = session.getAttribute("systemUser");
-        if (user instanceof SystemUser systemUser) {
-            return systemUser;
+        if (user instanceof SystemUser) {
+            return (SystemUser) user;
         }
         return null;
     }
@@ -145,7 +145,7 @@ public final class PermissionUtil {
             return false;
         }
         Integer roleId = user.getRoleId();
-        return roleId != null && roleId == requiredRoleId;
+        return roleId != null && (roleId == ROLE_ADMIN || roleId == requiredRoleId);
     }
 
     /**

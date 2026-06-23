@@ -12,7 +12,8 @@ Thu muc `.cursor/Spec` luu cac spec theo actor va module, viet theo luong code h
 - `Employee`: home, view task, profile, payroll/contract, leave.
 - `HrStaff`: recruitment post, candidate, contract, payroll, allowance/deduction.
 - `HrManager`: recruitment review, CV, employee, contract approval, payroll approval.
-- `PublicCandidate`: ung vien public xem job va nop don.
+- `Guest`: actor Guest Candidate xem homepage public, xem job va nop don ung tuyen.
+- `PublicCandidate`: spec cu cua ung vien public, giu de doi chieu; spec chinh nen doc trong `Guest`.
 
 ## Cross-cutting specs
 - `_Common/permission-matrix.spec.md`: bang role, route, permission va filter.
@@ -23,6 +24,7 @@ Thu muc `.cursor/Spec` luu cac spec theo actor va module, viet theo luong code h
 - `_Common/upload-cv.spec.md`: rule upload CV cho ung vien public.
 - `_Common/route-conflict-resolution.spec.md`: xu ly xung dot route `/viewTask`.
 - `_Common/database-impact.spec.md`: bang doc/ghi theo module.
+- `_Common/notification.spec.md`: thong bao dung chung cho moi actor theo `SystemUser.UserID`.
 - `_Common/test-plan.spec.md`: bo test toi thieu theo module.
 - `_Common/ui-language-theme.spec.md`: chuan giao dien, mau sac, font chu va tieng Viet tren JSP.
 
@@ -40,5 +42,8 @@ Thu muc `.cursor/Spec` luu cac spec theo actor va module, viet theo luong code h
 - Auth password recovery dung PIN session, can rate limit neu hardening sau nay.
 - Google Login da co backend OAuth2, can dam bao config Google local/env dung.
 - Register local da gui email BetterHR sau khi tao account; role mac dinh phai la `Guest`, `EmployeeID = NULL`.
+- Guest Candidate la actor public chinh; Phase 2 dung `Application`, `Interview`, `Offer` cho workflow ung tuyen.
+- Account Guest chi duoc chuyen sang Employee khi offer duoc accepted/hired theo spec Guest Phase 2.
+- `Notification` la module chung cho moi actor, Guest chi la mot noi hien thi notification.
 - HR Manager Home dung `/HrHomeController`; khong link truc tiep JSP neu can nap data.
 - Mot so controller con `printStackTrace`/`System.out`, nen thay bang logger.

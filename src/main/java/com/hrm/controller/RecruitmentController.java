@@ -9,6 +9,7 @@ import com.hrm.dao.RecruitmentDAO;
 import com.hrm.dao.GuestDAO;
 import com.hrm.model.entity.Recruitment;
 import com.hrm.model.entity.Guest;
+import com.hrm.model.entity.SystemUser;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -207,6 +208,10 @@ public class RecruitmentController extends HttpServlet {
                 }
                 
                 Guest guest = new Guest();
+                SystemUser currentUser = getCurrentUser(request);
+                if (currentUser != null) {
+                    guest.setUserId(currentUser.getUserId());
+                }
                 guest.setFullName(fullName);
                 guest.setEmail(email);
                 guest.setPhone(phone);
@@ -265,8 +270,13 @@ public class RecruitmentController extends HttpServlet {
     }
 
     private boolean isLoggedIn(HttpServletRequest request) {
+        return getCurrentUser(request) != null;
+    }
+
+    private SystemUser getCurrentUser(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
-        return session != null && session.getAttribute("systemUser") != null;
+        Object user = session != null ? session.getAttribute("systemUser") : null;
+        return user instanceof SystemUser ? (SystemUser) user : null;
     }
     
     private String getFileName(Part part) {

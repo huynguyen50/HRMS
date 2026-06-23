@@ -19,6 +19,7 @@ public final class RoleRedirectUtil {
             case 3 -> "/dept?action=dashboard";
             case 4 -> "/hrstaff";
             case 5 -> "/Views/Employee/EmployeeHome.jsp";
+            case 6 -> "/guest/dashboard";
             default -> "/homepage";
         };
     }

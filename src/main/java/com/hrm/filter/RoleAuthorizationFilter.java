@@ -23,21 +23,23 @@ public class RoleAuthorizationFilter implements Filter {
     private static final Map<String, Set<Integer>> ROLE_PATTERNS = new LinkedHashMap<>();
 
     static {
-        addPattern(Set.of(2), "/hr/", "/Views/hr/", "/HrHomeController", "/postRecruitments",
+        addPattern(Set.of(1, 2), "/hr/", "/Views/hr/", "/HrHomeController", "/postRecruitments",
                 "/detailRecruitment", "/detailRecruitmentCreate", "/viewRecruitment",
                 "/viewCV", "/candidates", "/detailWaitingRecruitment", "/SimpleHrController");
 
-        addPattern(Set.of(4), "/postRecruitments", "/candidates", "/viewCV",
+        addPattern(Set.of(1, 4), "/postRecruitments", "/candidates", "/viewCV",
                 "/detailRecruitmentCreate", "/detailRecruitment");
 
-        addPattern(Set.of(4), "/hrstaff", "/hrstaff/", "/Views/HrStaff/", "/hrstaff/payroll",
+        addPattern(Set.of(1, 4), "/hrstaff", "/hrstaff/", "/Views/HrStaff/", "/hrstaff/payroll",
                 "/hrstaff/contracts", "/hrstaff/tasks");
 
-        addPattern(Set.of(3), "/dept", "/dept/", "/taskManager", "/viewTask", "/postTask",
+        addPattern(Set.of(1, 3), "/dept", "/dept/", "/taskManager", "/viewTask", "/postTask",
                 "/Dept", "/DeptController");
 
-        addPattern(Set.of(5), "/Views/Employee/", "/employee", "/employee/", "/ViewPayroll",
+        addPattern(Set.of(1, 5), "/Views/Employee/", "/employee", "/employee/", "/ViewPayroll",
                 "/ViewContract", "/EmployeeHome", "/LeaveManagement");
+
+        addPattern(Set.of(1, 6), "/guest", "/guest/", "/Views/Guest/");
     }
 
     private static void addPattern(Set<Integer> roles, String... patterns) {

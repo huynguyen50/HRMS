@@ -9,6 +9,7 @@ import com.hrm.dao.DAO;
 import com.hrm.model.entity.Employee;
 import com.hrm.model.entity.SystemUser;
 import com.hrm.model.entity.Task;
+import com.hrm.util.PermissionUtil;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
@@ -80,12 +81,13 @@ public class TaskManager extends HttpServlet {
         }
         
         SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
-        if (currentUser == null || currentUser.getRoleId() != 3) {
+        if (!canAccessDept(currentUser)) {
             response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
             return;
         }
         
-        int employeeId = currentUser.getEmployeeId();
+        Integer employeeIdObj = currentUser.getEmployeeId();
+        int employeeId = employeeIdObj != null ? employeeIdObj : 0;
 
         int page = 1;
         int pageSize = 5;
@@ -138,5 +140,13 @@ public class TaskManager extends HttpServlet {
     @Override
     public String getServletInfo() {
         return "Department Task Manager";
+    }
+
+    private boolean canAccessDept(SystemUser user) {
+        if (user == null) {
+            return false;
+        }
+        int roleId = user.getRoleId();
+        return roleId == PermissionUtil.ROLE_ADMIN || roleId == PermissionUtil.ROLE_DEPT_MANAGER;
     }
 }

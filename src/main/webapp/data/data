@@ -118,13 +118,19 @@ CREATE TABLE IF NOT EXISTS Recruitment (
 -- 8. GUEST (Bảng ứng viên)
 CREATE TABLE IF NOT EXISTS Guest (
     GuestID INT AUTO_INCREMENT PRIMARY KEY,
+    UserID INT NULL,
     FullName VARCHAR(150) NOT NULL,
     Email VARCHAR(150),
     Phone VARCHAR(50),
     CV TEXT,
+    Avatar VARCHAR(500) NULL,
+    Gender VARCHAR(20) NULL,
+    DateOfBirth DATE NULL,
+    Address VARCHAR(255) NULL,
     Status ENUM('Rejected','Hired','Processing') DEFAULT 'Processing',
     RecruitmentID INT NULL,
     AppliedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UpdatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_guest_recruitment FOREIGN KEY (RecruitmentID)
         REFERENCES Recruitment(RecruitmentID)
         ON DELETE SET NULL

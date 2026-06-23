@@ -3,6 +3,7 @@ package com.hrm.controller.dept;
 import com.hrm.dao.EmployeeDAO;
 import com.hrm.dao.DepartmentDAO;
 import com.hrm.model.entity.SystemUser;
+import com.hrm.util.PermissionUtil;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -29,7 +30,7 @@ public class DeptController extends HttpServlet {
         }
         
         SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
-        if (currentUser == null || currentUser.getRoleId() != 3) {
+        if (!canAccessDept(currentUser)) {
             response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
             return;
         }
@@ -95,6 +96,14 @@ public class DeptController extends HttpServlet {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    private boolean canAccessDept(SystemUser user) {
+        if (user == null) {
+            return false;
+        }
+        int roleId = user.getRoleId();
+        return roleId == PermissionUtil.ROLE_ADMIN || roleId == PermissionUtil.ROLE_DEPT_MANAGER;
     }
 
     private int getActiveEmployeesCount(int departmentId) {

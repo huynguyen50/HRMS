@@ -118,13 +118,19 @@ CREATE TABLE IF NOT EXISTS Recruitment (
 -- 8. GUEST (Bảng ứng viên)
 CREATE TABLE IF NOT EXISTS Guest (
     GuestID INT AUTO_INCREMENT PRIMARY KEY,
+    UserID INT NULL,
     FullName VARCHAR(150) NOT NULL,
     Email VARCHAR(150),
     Phone VARCHAR(50),
     CV TEXT,
+    Avatar VARCHAR(500) NULL,
+    Gender VARCHAR(20) NULL,
+    DateOfBirth DATE NULL,
+    Address VARCHAR(255) NULL,
     Status ENUM('Rejected','Hired','Processing') DEFAULT 'Processing',
     RecruitmentID INT NULL,
     AppliedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UpdatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_guest_recruitment FOREIGN KEY (RecruitmentID)
         REFERENCES Recruitment(RecruitmentID)
         ON DELETE SET NULL
@@ -196,6 +202,132 @@ CREATE TABLE IF NOT EXISTS SystemUser (
     CONSTRAINT fk_systemuser_employee
         FOREIGN KEY (EmployeeID)
         REFERENCES Employee(EmployeeID)
+        ON DELETE SET NULL
+);
+
+-- 10B. GUEST PHASE 2 WORKFLOW (Bảng quy trình ứng tuyển)
+CREATE TABLE IF NOT EXISTS `Application` (
+    ApplicationID INT AUTO_INCREMENT PRIMARY KEY,
+    GuestID INT NOT NULL,
+    RecruitmentID INT NOT NULL,
+    AppliedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    Status ENUM(
+        'Applied',
+        'Screening',
+        'Interview',
+        'Offered',
+        'Rejected',
+        'Withdrawn',
+        'Hired'
+    ) DEFAULT 'Applied',
+    CurrentStep ENUM(
+        'Applied',
+        'Screening',
+        'Interview',
+        'Offer',
+        'Hired',
+        'Rejected',
+        'Withdrawn'
+    ) DEFAULT 'Applied',
+    CV TEXT,
+    CoverLetter TEXT,
+    Source VARCHAR(50) DEFAULT 'BetterHR',
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UpdatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_application_guest_recruitment (GuestID, RecruitmentID),
+    INDEX idx_application_guest (GuestID),
+    INDEX idx_application_recruitment (RecruitmentID),
+    INDEX idx_application_status (Status),
+    CONSTRAINT fk_application_guest FOREIGN KEY (GuestID)
+        REFERENCES Guest(GuestID)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_application_recruitment FOREIGN KEY (RecruitmentID)
+        REFERENCES Recruitment(RecruitmentID)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Interview (
+    InterviewID INT AUTO_INCREMENT PRIMARY KEY,
+    ApplicationID INT NOT NULL,
+    RoundNo INT NOT NULL DEFAULT 1,
+    ScheduledAt DATETIME NOT NULL,
+    Location VARCHAR(255),
+    MeetingLink VARCHAR(500),
+    InterviewerEmployeeID INT NULL,
+    Status ENUM(
+        'Scheduled',
+        'Completed',
+        'Cancelled',
+        'NoShow',
+        'Rescheduled'
+    ) DEFAULT 'Scheduled',
+    Result ENUM(
+        'Pending',
+        'Passed',
+        'Failed'
+    ) DEFAULT 'Pending',
+    Note TEXT,
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UpdatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_interview_application (ApplicationID),
+    INDEX idx_interview_schedule (ScheduledAt),
+    CONSTRAINT fk_interview_application FOREIGN KEY (ApplicationID)
+        REFERENCES `Application`(ApplicationID)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_interview_employee FOREIGN KEY (InterviewerEmployeeID)
+        REFERENCES Employee(EmployeeID)
+        ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS `Offer` (
+    OfferID INT AUTO_INCREMENT PRIMARY KEY,
+    ApplicationID INT NOT NULL,
+    Position VARCHAR(150),
+    OfferedSalary DECIMAL(12,2),
+    StartDate DATE,
+    ExpiredAt DATETIME,
+    Status ENUM(
+        'Draft',
+        'Sent',
+        'Accepted',
+        'Rejected',
+        'Expired',
+        'Cancelled'
+    ) DEFAULT 'Draft',
+    SentAt DATETIME NULL,
+    RespondedAt DATETIME NULL,
+    Note TEXT,
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UpdatedDate DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_offer_application (ApplicationID),
+    INDEX idx_offer_status (Status),
+    CONSTRAINT fk_offer_application FOREIGN KEY (ApplicationID)
+        REFERENCES `Application`(ApplicationID)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS `Notification` (
+    NotificationID INT AUTO_INCREMENT PRIMARY KEY,
+    UserID INT NOT NULL,
+    ApplicationID INT NULL,
+    Title VARCHAR(200) NOT NULL,
+    Message TEXT NOT NULL,
+    Type ENUM(
+        'Application',
+        'Interview',
+        'Offer',
+        'System'
+    ) DEFAULT 'System',
+    IsRead BOOLEAN DEFAULT FALSE,
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ReadDate DATETIME NULL,
+    INDEX idx_notification_user_read (UserID, IsRead, CreatedDate),
+    INDEX idx_notification_application (ApplicationID),
+    CONSTRAINT fk_notification_user FOREIGN KEY (UserID)
+        REFERENCES SystemUser(UserID)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_notification_application FOREIGN KEY (ApplicationID)
+        REFERENCES `Application`(ApplicationID)
         ON DELETE SET NULL
 );
 
@@ -573,7 +705,170 @@ VALUES
 ('Nguyen Tien Khanh', 'khanh@example.com', '0981111111', 'link_cv_k.pdf', 'Processing', 1),
 ('Le Thi Lanh', 'lanh@example.com', '0982222222', 'link_cv_l.pdf', 'Processing', 1),
 ('Pham Van Manh', 'manh@example.com', '0983333333', 'link_cv_m.pdf', 'Processing', 1),
-('Do Thi Ngoc', 'ngoc@example.com', '0984444444', 'link_cv_n.pdf', 'Processing', 1);
+('Do Thi Ngoc', 'ngoc@example.com', '0984444444', 'link_cv_n.pdf', 'Hired', 1);
+
+INSERT INTO Guest (UserID, FullName, Email, Phone, CV, Status, RecruitmentID)
+SELECT UserID, 'Google Candidate', Email, '0985555555', 'google_candidate_cv.pdf', 'Processing', 1
+FROM SystemUser
+WHERE Email = 'googleuser@gmail.com';
+
+-- ===== GUEST PHASE 2 SAMPLE WORKFLOW =====
+INSERT INTO `Application` (
+    GuestID,
+    RecruitmentID,
+    AppliedDate,
+    Status,
+    CurrentStep,
+    CV,
+    CreatedDate,
+    UpdatedDate
+)
+SELECT
+    g.GuestID,
+    g.RecruitmentID,
+    COALESCE(g.AppliedDate, NOW()),
+    CASE g.Status
+        WHEN 'Hired' THEN 'Hired'
+        WHEN 'Rejected' THEN 'Rejected'
+        ELSE 'Applied'
+    END,
+    CASE g.Status
+        WHEN 'Hired' THEN 'Hired'
+        WHEN 'Rejected' THEN 'Rejected'
+        ELSE 'Applied'
+    END,
+    g.CV,
+    COALESCE(g.AppliedDate, NOW()),
+    COALESCE(g.UpdatedDate, NOW())
+FROM Guest g
+WHERE g.RecruitmentID IS NOT NULL
+  AND NOT EXISTS (
+      SELECT 1
+      FROM `Application` a
+      WHERE a.GuestID = g.GuestID
+        AND a.RecruitmentID = g.RecruitmentID
+  );
+
+INSERT INTO Interview (
+    ApplicationID,
+    RoundNo,
+    ScheduledAt,
+    Location,
+    MeetingLink,
+    InterviewerEmployeeID,
+    Status,
+    Result,
+    Note
+)
+SELECT
+    a.ApplicationID,
+    1,
+    DATE_SUB(NOW(), INTERVAL 5 DAY),
+    'Phong hop BetterHR',
+    NULL,
+    1,
+    'Completed',
+    'Passed',
+    'Ung vien phu hop voi vi tri.'
+FROM `Application` a
+WHERE a.Status = 'Hired'
+ORDER BY a.ApplicationID
+LIMIT 1;
+
+INSERT INTO Interview (
+    ApplicationID,
+    RoundNo,
+    ScheduledAt,
+    Location,
+    MeetingLink,
+    InterviewerEmployeeID,
+    Status,
+    Result,
+    Note
+)
+SELECT
+    a.ApplicationID,
+    1,
+    DATE_ADD(NOW(), INTERVAL 3 DAY),
+    'Online',
+    'https://meet.google.com/betterhr-demo',
+    2,
+    'Scheduled',
+    'Pending',
+    'Phong van vong 1 voi HR.'
+FROM `Application` a
+WHERE a.Status = 'Applied'
+ORDER BY a.ApplicationID
+LIMIT 1;
+
+INSERT INTO `Offer` (
+    ApplicationID,
+    Position,
+    OfferedSalary,
+    StartDate,
+    ExpiredAt,
+    Status,
+    SentAt,
+    Note
+)
+SELECT
+    a.ApplicationID,
+    COALESCE(r.JobTitle, 'Nhan vien BetterHR'),
+    COALESCE(r.Salary, 15000000),
+    DATE_ADD(CURDATE(), INTERVAL 14 DAY),
+    DATE_ADD(NOW(), INTERVAL 7 DAY),
+    'Sent',
+    NOW(),
+    'Thu moi nhan viec mau cho quy trinh Phase 2.'
+FROM `Application` a
+JOIN Recruitment r ON r.RecruitmentID = a.RecruitmentID
+WHERE a.Status = 'Hired'
+ORDER BY a.ApplicationID
+LIMIT 1;
+
+INSERT INTO `Notification` (
+    UserID,
+    ApplicationID,
+    Title,
+    Message,
+    Type,
+    IsRead
+)
+SELECT
+    g.UserID,
+    a.ApplicationID,
+    'Ho so ung tuyen da duoc ghi nhan',
+    'BetterHR da ghi nhan ho so cua ban. Vui long theo doi trang thai tren cong ung vien.',
+    'Application',
+    FALSE
+FROM `Application` a
+JOIN Guest g ON g.GuestID = a.GuestID
+WHERE g.UserID IS NOT NULL
+ORDER BY a.ApplicationID
+LIMIT 5;
+
+INSERT INTO `Notification` (
+    UserID,
+    ApplicationID,
+    Title,
+    Message,
+    Type,
+    IsRead
+)
+SELECT
+    g.UserID,
+    i.ApplicationID,
+    'Lich phong van moi',
+    'Ban co lich phong van moi tren BetterHR. Hay kiem tra thoi gian va hinh thuc phong van.',
+    'Interview',
+    FALSE
+FROM Interview i
+JOIN `Application` a ON a.ApplicationID = i.ApplicationID
+JOIN Guest g ON g.GuestID = a.GuestID
+WHERE g.UserID IS NOT NULL
+  AND i.Status = 'Scheduled'
+ORDER BY i.ScheduledAt
+LIMIT 5;
 
 -- ===== ALLOWANCE TYPE =====
 INSERT INTO AllowanceType (AllowanceName, Description) VALUES

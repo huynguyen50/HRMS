@@ -217,14 +217,16 @@ stats.setTotalProjects(rs.getInt("total"));
             case "admin":
                 access.setCanAccessAdmin(true);
                 access.setCanAccessHR(true);
+                access.setCanAccessDept(true);
                 access.setCanAccessEmployee(true);
                 access.setCanAccessGuest(true);
                 access.setAdminUrl("/admin?action=dashboard");
                 access.setHrUrl("/Views/hr/HrHome.jsp");
+                access.setDeptUrl("/dept");
                 access.setCanAccessHrStaff(true);
                 access.setHrStaffUrl("/hrstaff");
                 access.setEmployeeUrl("/Views/Employee/EmployeeHome.jsp");
-                access.setGuestUrl("/Views/Homepage.jsp");
+                access.setGuestUrl("/guest/dashboard");
                 break;
                 
             case "hr":
@@ -238,16 +240,28 @@ stats.setTotalProjects(rs.getInt("total"));
                 access.setHrUrl("/Views/hr/HrHome.jsp");
                 access.setHrStaffUrl("/hrstaff");
                 access.setEmployeeUrl("/Views/Employee/EmployeeHome.jsp");
-                access.setGuestUrl("/Views/Homepage.jsp");
+                access.setGuestUrl("/guest/dashboard");
+                break;
+
+            case "dept":
+                access.setCanAccessAdmin(false);
+                access.setCanAccessHR(false);
+                access.setCanAccessHrStaff(false);
+                access.setCanAccessDept(true);
+                access.setCanAccessEmployee(false);
+                access.setCanAccessGuest(true);
+                access.setDeptUrl("/dept");
+                access.setGuestUrl("/guest/dashboard");
                 break;
                 
             case "employee":
                 access.setCanAccessAdmin(false);
                 access.setCanAccessHR(false);
+                access.setCanAccessDept(false);
                 access.setCanAccessEmployee(true);
                 access.setCanAccessGuest(true);
                 access.setEmployeeUrl("/Views/Employee/EmployeeHome.jsp");
-                access.setGuestUrl("/Views/Homepage.jsp");
+                access.setGuestUrl("/guest/dashboard");
                 break;
                 
             default:
@@ -264,9 +278,10 @@ stats.setTotalProjects(rs.getInt("total"));
         DashboardAccess access = new DashboardAccess();
         access.setCanAccessAdmin(false);
         access.setCanAccessHR(false);
+        access.setCanAccessDept(false);
         access.setCanAccessEmployee(false);
         access.setCanAccessGuest(true);
-        access.setGuestUrl("/Views/Homepage.jsp");
+        access.setGuestUrl("/guest/dashboard");
         return access;
     }
     
@@ -277,11 +292,13 @@ stats.setTotalProjects(rs.getInt("total"));
         private boolean canAccessAdmin = false;
         private boolean canAccessHR = false;
         private boolean canAccessHrStaff = false;
+        private boolean canAccessDept = false;
         private boolean canAccessEmployee = false;
         private boolean canAccessGuest = false;
         private String adminUrl;
         private String hrUrl;
         private String hrStaffUrl;
+        private String deptUrl;
         private String employeeUrl;
         private String guestUrl;
         
@@ -294,6 +311,9 @@ stats.setTotalProjects(rs.getInt("total"));
         
         public boolean isCanAccessHrStaff() { return canAccessHrStaff; }
         public void setCanAccessHrStaff(boolean canAccessHrStaff) { this.canAccessHrStaff = canAccessHrStaff; }
+
+        public boolean isCanAccessDept() { return canAccessDept; }
+        public void setCanAccessDept(boolean canAccessDept) { this.canAccessDept = canAccessDept; }
 
         public boolean isCanAccessEmployee() { return canAccessEmployee; }
         public void setCanAccessEmployee(boolean canAccessEmployee) { this.canAccessEmployee = canAccessEmployee; }
@@ -309,6 +329,9 @@ public void setCanAccessGuest(boolean canAccessGuest) { this.canAccessGuest = ca
         
         public String getHrStaffUrl() { return hrStaffUrl; }
         public void setHrStaffUrl(String hrStaffUrl) { this.hrStaffUrl = hrStaffUrl; }
+
+        public String getDeptUrl() { return deptUrl; }
+        public void setDeptUrl(String deptUrl) { this.deptUrl = deptUrl; }
 
         public String getEmployeeUrl() { return employeeUrl; }
         public void setEmployeeUrl(String employeeUrl) { this.employeeUrl = employeeUrl; }

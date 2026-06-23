@@ -287,7 +287,10 @@ public class RoleDAO {
         if (name.contains("hr")) {
             return "hr";
         }
-        if (name.contains("employee") || name.contains("manager")) {
+        if (name.contains("dept") || name.contains("department")) {
+            return "dept";
+        }
+        if (name.contains("employee")) {
             return "employee";
         }
         return "guest";
