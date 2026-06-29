@@ -1,127 +1,121 @@
 package com.hrm.controller.dept;
 
-import com.hrm.dao.EmployeeDAO;
 import com.hrm.dao.DepartmentDAO;
-import com.hrm.model.entity.SystemUser;
-import com.hrm.util.PermissionUtil;
+import com.hrm.dao.DeptDashboardDAO;
+import com.hrm.dao.EmployeeDAO;
+import com.hrm.dao.MailRequestDAO;
+import com.hrm.model.entity.Department;
+import com.hrm.model.entity.Employee;
+import com.hrm.util.DeptManagerScope;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 @WebServlet(name = "DeptController", urlPatterns = {"/dept"})
 public class DeptController extends HttpServlet {
 
-    private EmployeeDAO employeeDAO = new EmployeeDAO();
-    private DepartmentDAO departmentDAO = new DepartmentDAO();
+    private final EmployeeDAO employeeDAO = new EmployeeDAO();
+    private final DepartmentDAO departmentDAO = new DepartmentDAO();
+    private final DeptDashboardDAO deptDashboardDAO = new DeptDashboardDAO();
+    private final MailRequestDAO mailRequestDAO = new MailRequestDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-        // Check authentication - only roleID 3 can access
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+        DeptManagerScope scope = DeptManagerScope.from(request, employeeDAO);
+        if (scope == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
-        
-        SystemUser currentUser = (SystemUser) session.getAttribute("systemUser");
-        if (!canAccessDept(currentUser)) {
-            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+
+        if (!scope.hasDepartment()) {
+            request.setAttribute("activePage", "dashboard");
+            request.setAttribute("pageTitle", "Tổng quan nhóm");
+            request.setAttribute("pageSubtitle", "Tài khoản cần được gán với nhân viên và phòng ban.");
+            request.setAttribute("scopeError", "Tài khoản chưa được gán phòng ban.");
+            request.getRequestDispatcher("/Views/DeptManager/deptHome.jsp").forward(request, response);
             return;
         }
-        
+
         String action = request.getParameter("action");
-        if (action == null) {
+        if (action == null || action.isBlank()) {
             action = "dashboard";
         }
 
         switch (action) {
+            case "employees":
+                loadEmployees(request, response, scope);
+                break;
+            case "calendar":
+                loadSimpleDeptPage(request, response, scope, "calendar", "Lịch nhóm",
+                        "Lịch nghỉ đã duyệt và các mốc công việc của phòng ban.",
+                        "/Views/DeptManager/calendar.jsp");
+                break;
+            case "performance":
+                loadSimpleDeptPage(request, response, scope, "performance", "Đánh giá hiệu suất",
+                        "Theo dõi hiệu suất theo nhân viên trong phòng ban.",
+                        "/Views/DeptManager/performance.jsp");
+                break;
+            case "reports":
+                loadSimpleDeptPage(request, response, scope, "reports", "Báo cáo phòng ban",
+                        "Tổng hợp nhân viên, công việc và nghỉ phép.",
+                        "/Views/DeptManager/reports.jsp");
+                break;
             case "dashboard":
-                loadDashboard(request, response, currentUser);
-                break;
-            case "taskManager":
-                request.getRequestDispatcher("/Views/DeptManager/postTask.jsp").forward(request, response);
-                break;
             default:
-                loadDashboard(request, response, currentUser);
+                loadDashboard(request, response, scope);
+                break;
         }
     }
 
-    private void loadDashboard(HttpServletRequest request, HttpServletResponse response, SystemUser currentUser)
+    private void loadDashboard(HttpServletRequest request, HttpServletResponse response, DeptManagerScope scope)
             throws ServletException, IOException {
-        
-        request.setAttribute("activePage", "dashboard");
-        
-        // Get department ID from current user
-        int departmentId = getDepartmentIdForUser(currentUser);
-        
-        // Get department name
-        String departmentName = "N/A";
-        if (departmentId > 0) {
-            com.hrm.model.entity.Department department = departmentDAO.getById(departmentId);
-            if (department != null && department.getDeptName() != null) {
-                departmentName = department.getDeptName();
-            }
-        }
-        
-        // Get statistics
-        int totalEmployees = employeeDAO.getEmployeeCountByDepartment(departmentId);
-        int activeEmployees = getActiveEmployeesCount(departmentId);
-        
-        request.setAttribute("totalEmployees", totalEmployees);
-        request.setAttribute("activeEmployees", activeEmployees);
-        request.setAttribute("departmentName", departmentName);
-        
+        prepareCommonAttributes(request, scope, "dashboard", "Tổng quan nhóm",
+                "Theo dõi nhân viên, công việc và nghỉ phép trong phòng ban.");
         request.getRequestDispatcher("/Views/DeptManager/deptHome.jsp").forward(request, response);
     }
 
-    private int getDepartmentIdForUser(SystemUser user) {
-        try {
-            Integer employeeId = user.getEmployeeId();
-            if (employeeId != null) {
-                com.hrm.model.entity.Employee employee = employeeDAO.getById(employeeId);
-                if (employee != null) {
-                    Integer deptId = employee.getDepartmentId();
-                    if (deptId != null) {
-                        return deptId;
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return 0;
+    private void loadEmployees(HttpServletRequest request, HttpServletResponse response, DeptManagerScope scope)
+            throws ServletException, IOException {
+        prepareCommonAttributes(request, scope, "employees", "Nhân viên phòng ban",
+                "Danh sách nhân viên thuộc phòng ban của bạn.");
+        request.getRequestDispatcher("/Views/DeptManager/employees.jsp").forward(request, response);
     }
 
-    private boolean canAccessDept(SystemUser user) {
-        if (user == null) {
-            return false;
-        }
-        int roleId = user.getRoleId();
-        return roleId == PermissionUtil.ROLE_ADMIN || roleId == PermissionUtil.ROLE_DEPT_MANAGER;
+    private void loadSimpleDeptPage(HttpServletRequest request, HttpServletResponse response, DeptManagerScope scope,
+                                    String activePage, String title, String subtitle, String jsp)
+            throws ServletException, IOException {
+        prepareCommonAttributes(request, scope, activePage, title, subtitle);
+        request.getRequestDispatcher(jsp).forward(request, response);
     }
 
-    private int getActiveEmployeesCount(int departmentId) {
-        try {
-            int count = 0;
-            java.util.List<com.hrm.model.entity.Employee> allEmployees = employeeDAO.getAll();
-            for (com.hrm.model.entity.Employee emp : allEmployees) {
-                Integer deptId = emp.getDepartmentId();
-                if (deptId != null && deptId.intValue() == departmentId 
-                    && "Active".equalsIgnoreCase(emp.getStatus())) {
-                    count++;
-                }
-            }
-            return count;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return 0;
-        }
+    private void prepareCommonAttributes(HttpServletRequest request, DeptManagerScope scope,
+                                         String activePage, String title, String subtitle) {
+        int departmentId = scope.getDepartmentId();
+        int managerEmployeeId = scope.getApproverEmployeeId();
+        Department department = departmentDAO.getById(departmentId);
+        Employee employee = scope.getEmployee();
+        List<Employee> employees = employeeDAO.getByDepartmentId(departmentId);
+        Map<String, Integer> dashboardCounts = deptDashboardDAO.getDashboardCounts(departmentId, managerEmployeeId);
+
+        request.setAttribute("activePage", activePage);
+        request.setAttribute("pageTitle", title);
+        request.setAttribute("pageSubtitle", subtitle);
+        request.setAttribute("departmentName", department != null ? department.getDeptName() : "N/A");
+        request.setAttribute("dashboardCounts", dashboardCounts);
+        request.setAttribute("employees", employees);
+        request.setAttribute("approvedLeaves", mailRequestDAO.getLeaveRequestsByDepartment(departmentId, "Approved"));
+        request.setAttribute("userName", employee != null && employee.getFullName() != null
+                ? employee.getFullName()
+                : scope.getUser().getUsername());
+        request.setAttribute("userPosition", employee != null && employee.getPosition() != null
+                ? employee.getPosition()
+                : "Dept Manager");
     }
 
     @Override
@@ -130,4 +124,3 @@ public class DeptController extends HttpServlet {
         doGet(request, response);
     }
 }
-

@@ -23,8 +23,8 @@ import java.time.LocalDateTime;
 public class DetailRecruitmentCreate extends HttpServlet {
 
     private static final String REQUIRED_PERMISSION = "VIEW_RECRUITMENT";
-    private static final String REQUIRED_ROLE_MESSAGE = "This section is restricted to HR Staff.";
-    private static final String PERMISSION_DENIED_MESSAGE = "You do not have permission to manage recruitment posts.";
+    private static final String REQUIRED_ROLE_MESSAGE = "Khu vực này chỉ dành cho nhân viên nhân sự.";
+    private static final String PERMISSION_DENIED_MESSAGE = "Bạn không có quyền quản lý tin tuyển dụng.";
     private static final String LOGIN_PATH = "/login";
     private static final String CREATE_VIEW = "/Views/HrStaff/CreateNewRecruitment.jsp";
 
@@ -63,13 +63,13 @@ public class DetailRecruitmentCreate extends HttpServlet {
             salary = Double.parseDouble(salaryStr);
             applicant = Integer.parseInt(applicantStr);
         } catch (NumberFormatException ex) {
-            request.setAttribute("mess", "Salary and applicant must be valid numbers.");
+            request.setAttribute("mess", "Mức lương và số lượng tuyển phải là số hợp lệ.");
             request.getRequestDispatcher(CREATE_VIEW).forward(request, response);
             return;
         }
 
         if (salary <= 0 || applicant <= 0) {
-            request.setAttribute("mess", "Salary and applicant must be a positive number!");
+            request.setAttribute("mess", "Mức lương và số lượng tuyển phải là số dương!");
             request.getRequestDispatcher(CREATE_VIEW).forward(request, response);
             return;
         }
@@ -80,14 +80,14 @@ public class DetailRecruitmentCreate extends HttpServlet {
         if (result > 0) {
             response.sendRedirect(request.getContextPath() + "/postRecruitments");
         } else {
-            request.setAttribute("mess", "Failed to create recruitment. Please try again.");
+            request.setAttribute("mess", "Không thể tạo tin tuyển dụng. Vui lòng thử lại.");
             request.getRequestDispatcher(CREATE_VIEW).forward(request, response);
         }
     }
 
     @Override
     public String getServletInfo() {
-        return "Short description";
+        return "Tạo tin tuyển dụng";
     }
 
     private boolean ensureAccess(HttpServletRequest request, HttpServletResponse response)

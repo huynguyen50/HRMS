@@ -7,11 +7,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>HRM - Create Recruitment</title>
+        <title>Tạo tin tuyển dụng - BetterHR</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -349,35 +349,47 @@
                 padding: 40px 0;
             }
         </style>
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-theme.css?v=hr-staff-shell-20260627-1">
     </head>
-    <body>
+    <body class="hr-staff-page-shell">
+        <%
+            request.setAttribute("hrStaffSidebarActive", "recruitment");
+            request.setAttribute("hrStaffPageTitle", "Tạo tin tuyển dụng");
+            request.setAttribute("hrStaffSearchPlaceholder", "Tìm kiếm tin tuyển dụng...");
+            request.setAttribute("hrStaffProfileSubtitle", "Quản trị tuyển dụng");
+        %>
+        <div class="staff-shell">
+            <%@ include file="_HrStaffSidebar.jspf" %>
+            <main class="staff-main">
+                <%@ include file="_HrStaffTopbar.jspf" %>
+                <section class="staff-content">
         <div class="top-bar">
             <div class="container">
-                <nav class="top-nav" role="navigation" aria-label="Top navigation">
-                    <a href="${pageContext.request.contextPath}/home.jsp" aria-label="Go to Home section">
+                <nav class="top-nav" role="navigation" aria-label="Điều hướng nhanh">
+                    <a href="${pageContext.request.contextPath}/home.jsp" aria-label="Đi tới trang chủ">
                         <i class="fas fa-home" aria-hidden="true"></i>
-                        <span>Home</span>
+                        <span>Trang chủ</span>
                     </a>
-                    <a href="${pageContext.request.contextPath}/candidates" aria-label="Go to Candidate List">
+                    <a href="${pageContext.request.contextPath}/candidates" aria-label="Đi tới danh sách ứng viên">
                         <i class="fas fa-users" aria-hidden="true"></i>
-                        <span>ViewCandidate</span>
+                        <span>Ứng viên</span>
                     </a>
                 </nav>
-                <aside class="social-icons" aria-label="Social media links">
-                    <a href="https://www.facebook.com/ucvan.254010" target="_blank" rel="noopener noreferrer" title="Follow us on Facebook" aria-label="Facebook">
+                <aside class="social-icons" aria-label="Liên kết mạng xã hội">
+                    <a href="https://www.facebook.com/ucvan.254010" target="_blank" rel="noopener noreferrer" title="Theo dõi trên Facebook" aria-label="Facebook">
                         <i class="fab fa-facebook-f" aria-hidden="true"></i>
                     </a>
-                    <a href="https://www.linkedin.com/in/%C4%91%E1%BB%A9c-v%C4%83n-46045537b/" target="_blank" rel="noopener noreferrer" title="Connect with us on LinkedIn" aria-label="LinkedIn">
+                    <a href="https://www.linkedin.com/in/%C4%91%E1%BB%A9c-v%C4%83n-46045537b/" target="_blank" rel="noopener noreferrer" title="Kết nối trên LinkedIn" aria-label="LinkedIn">
                         <i class="fab fa-linkedin-in" aria-hidden="true"></i>
                     </a>
-                    <a href="https://www.instagram.com/ducvan04/" target="_blank" rel="noopener noreferrer" title="Follow us on Instagram" aria-label="Instagram">
+                    <a href="https://www.instagram.com/ducvan04/" target="_blank" rel="noopener noreferrer" title="Theo dõi trên Instagram" aria-label="Instagram">
                         <i class="fab fa-instagram" aria-hidden="true"></i>
                     </a>
                 </aside>
-                <div class="search-container" role="search" aria-label="Search the website">
-                    <label for="searchInput" class="sr-only">Search the website</label>
-                    <input type="text" id="searchInput" placeholder="Search..." aria-label="Search the website" autocomplete="off" spellcheck="false">
-                    <button type="button" onclick="performSearch()" aria-label="Search" title="Search">
+                <div class="search-container" role="search" aria-label="Tìm kiếm trên trang">
+                    <label for="searchInput" class="sr-only">Tìm kiếm trên trang</label>
+                    <input type="text" id="searchInput" placeholder="Tìm kiếm..." aria-label="Tìm kiếm trên trang" autocomplete="off" spellcheck="false">
+                    <button type="button" onclick="performSearch()" aria-label="Tìm kiếm" title="Tìm kiếm">
                         <i class="fas fa-search" aria-hidden="true"></i>
                     </button>
                 </div>
@@ -385,10 +397,10 @@
         </div>
 
         <header class="header">
-            <nav class="navbar navbar-expand-lg" aria-label="Main navigation">
+            <nav class="navbar navbar-expand-lg" aria-label="Điều hướng chính">
                 <div class="container">
                     <a class="navbar-brand" href="#">
-                        <i class="fas fa-users-cog me-2"></i>Human Resources Management
+                        <i class="fas fa-users-cog me-2"></i>Quản lý nhân sự
                     </a>
                     <div class="collapse navbar-collapse" id="navbarNav">
                         <ul class="navbar-nav ms-auto">
@@ -405,21 +417,21 @@
                             <li class="nav-item">
                                 <c:if test="${not empty sessionScope.systemUser}">
                                     <div class="profile-dropdown">
-                                        <div class="profile-avatar" onclick="toggleProfileDropdown()" title="Profile Menu">
+                                        <div class="profile-avatar" onclick="toggleProfileDropdown()" title="Menu hồ sơ">
                                             <i class="fas fa-user"></i>
                                         </div>
                                         <div class="profile-dropdown-menu" id="profileDropdown">
                                             <a href="${pageContext.request.contextPath}/profilepage" class="profile-dropdown-item">
-                                                <i class="fas fa-user"></i> Profile
+                                                <i class="fas fa-user"></i> Hồ sơ
                                             </a>
                                             <a href="${pageContext.request.contextPath}/Admin/AdminHome.jsp" class="profile-dropdown-item">
-                                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                                                <i class="fas fa-tachometer-alt"></i> Bảng điều khiển
                                             </a>
                                             <a href="${pageContext.request.contextPath}/Views/ChangePassword.jsp" class="profile-dropdown-item">
-                                                <i class="fas fa-key"></i> Change Password
+                                                <i class="fas fa-key"></i> Đổi mật khẩu
                                             </a>
                                             <a href="javascript:void(0)" onclick="handleLogout()" class="profile-dropdown-item logout">
-                                                <i class="fas fa-sign-out-alt"></i> Logout
+                                                <i class="fas fa-sign-out-alt"></i> Đăng xuất
                                             </a>
                                         </div>
                                     </div>
@@ -434,9 +446,9 @@
         <main class="main-content-area">
             <div class="container">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h1 class="h2">Create Recruitment Details</h1>
+                    <h1 class="h2">Tạo chi tiết tin tuyển dụng</h1>
                     <a href="${pageContext.request.contextPath}/postRecruitments" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-1"></i> Back to List
+                        <i class="fas fa-arrow-left me-1"></i> Quay lại danh sách
                     </a>
                 </div>
 
@@ -446,35 +458,35 @@
                             <input type="hidden" name="id" value="">
 
                             <div class="mb-3">
-                                <label for="titleInput" class="form-label">Title</label>
-                                <input type="text" class="form-control" id="titleInput" name="Title" value="${title}" placeholder="Enter recruitment title" maxlength="50" required>
+                                <label for="titleInput" class="form-label">Tiêu đề</label>
+                                <input type="text" class="form-control" id="titleInput" name="Title" value="${title}" placeholder="Nhập tiêu đề tuyển dụng" maxlength="50" required>
                             </div>
 
                             <div class="mb-3">
-                                <label for="descriptionInput" class="form-label">Description</label>
-                                <textarea class="form-control" id="descriptionInput" name="Description" placeholder="Enter detailed description" maxlength="1000" rows="5" required>${description}</textarea>
+                                <label for="descriptionInput" class="form-label">Mô tả</label>
+                                <textarea class="form-control" id="descriptionInput" name="Description" placeholder="Nhập mô tả chi tiết" maxlength="1000" rows="5" required>${description}</textarea>
                             </div>
 
                             <div class="mb-3">
-                                <label for="requirementInput" class="form-label">Requirement</label>
-                                <input type="text" class="form-control" id="requirementInput" name="Requirement" value="${requirement}" placeholder="Enter key requirements" maxlength="50" required>
+                                <label for="requirementInput" class="form-label">Yêu cầu</label>
+                                <input type="text" class="form-control" id="requirementInput" name="Requirement" value="${requirement}" placeholder="Nhập yêu cầu chính" maxlength="50" required>
                             </div>
 
                             <div class="mb-3">
-                                <label for="locationInput" class="form-label">Location</label>
-                                <input type="text" class="form-control" id="locationInput" name="Location" value="${location}" placeholder="Enter job location" maxlength="50" required>
+                                <label for="locationInput" class="form-label">Địa điểm</label>
+                                <input type="text" class="form-control" id="locationInput" name="Location" value="${location}" placeholder="Nhập địa điểm làm việc" maxlength="50" required>
                             </div>
 
                             <div class="mb-3">
-                                <label for="applicantInput" class="form-label">Applicant</label>
-                                <input type="number" class="form-control" id="applicantInput" name="Applicant" value="${applicant}" placeholder="Enter job applicant" step="1" required>
+                                <label for="applicantInput" class="form-label">Số lượng tuyển</label>
+                                <input type="number" class="form-control" id="applicantInput" name="Applicant" value="${applicant}" placeholder="Nhập số lượng cần tuyển" step="1" required>
                             </div>
 
                             <div class="mb-3">
-                                <label for="salaryInput" class="form-label">Salary</label>
+                                <label for="salaryInput" class="form-label">Mức lương</label>
                                 <div class="input-group">
-                                    <input type="number" class="form-control" id="salaryInput" name="Salary" value="${salary}" placeholder="Enter salary" required>
-                                    <span class="input-group-text">đ</span>
+                                    <input type="number" class="form-control" id="salaryInput" name="Salary" value="${salary}" placeholder="Nhập mức lương" required>
+                                    <span class="input-group-text">VNĐ</span>
                                 </div>
                             </div>
                             <c:if test="${not empty mess}">
@@ -482,7 +494,7 @@
                             </c:if>
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save me-1"></i> Create
+                                    <i class="fas fa-save me-1"></i> Tạo mới
                                 </button>
                             </div>
                         </form>
@@ -495,18 +507,18 @@
             <div class="container">
                 <div class="row">
                     <div class="col-lg-4">
-                        <h5 class="footer-title">Human Resources Management</h5>
-                        <p>We are committed to providing the best solutions for customers with professional team and extensive experience.</p>
+                        <h5 class="footer-title">Quản lý nhân sự</h5>
+                        <p>BetterHR hỗ trợ quản lý hồ sơ, hợp đồng và tuyển dụng với quy trình rõ ràng, hiện đại.</p>
                     </div>
                     <div class="col-lg-2">
-                        <h6>Quick Links</h6>
+                        <h6>Liên kết nhanh</h6>
                         <ul class="list-unstyled">
-                            <li><a href="#about" class="footer-link">About Us</a></li>
-                            <li><a href="#contact" class="footer-link">Contact</a></li>
+                            <li><a href="#about" class="footer-link">Giới thiệu</a></li>
+                            <li><a href="#contact" class="footer-link">Liên hệ</a></li>
                         </ul>
                     </div>
                     <div class="col-lg-3">
-                        <h6>Contact Information</h6>
+                        <h6>Thông tin liên hệ</h6>
                         <ul class="list-unstyled">
                             <li><i class="fas fa-phone me-2"></i>0818886875</li>
                             <li><i class="fas fa-envelope me-2"></i>ducnvhe180815@gmail.com</li>
@@ -517,16 +529,19 @@
                 <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
                 <div class="row">
                     <div class="col-12 text-center">
-                        <p>&copy; 2024 Human Resources Management. All rights reserved.</p>
+                        <p>&copy; 2024 BetterHR. Đã đăng ký bản quyền.</p>
                     </div>
                 </div>
             </div>
         </footer>
+                </section>
+            </main>
+        </div>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
             function handleLogout() {
-                if (confirm('Are you sure you want to logout?')) {
+                if (confirm('Bạn có chắc muốn đăng xuất không?')) {
                     window.location.href = '${pageContext.request.contextPath}/logout';
                 }
             }

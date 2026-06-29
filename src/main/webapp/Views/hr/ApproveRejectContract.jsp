@@ -517,10 +517,10 @@
             }
         </style>
         <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-theme.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-theme.css?v=hr-manager-shell-20260627-4">
     </head>
     <body>
-        <div class="hr-dashboard-container">
+        <div class="hr-dashboard-container hr-manager-page-shell">
             <!-- Header -->
             <header class="hr-header">
                 <div class="header-content">
@@ -529,7 +529,7 @@
                         <h1>Duyệt hợp đồng</h1>
                     </div>
                     <div class="header-actions">
-                        <a href="${pageContext.request.contextPath}/Views/hr/HrHome.jsp" class="btn-homepage">
+                        <a href="${pageContext.request.contextPath}/HrHomeController" class="btn-homepage">
                             <i class="fas fa-arrow-left"></i>
                             <span>Quay lại HR Home</span>
                         </a>
@@ -538,6 +538,11 @@
             </header>
 
             <!-- Main Content -->
+            <main class="hr-main-content">
+                <c:set var="hrSidebarActive" value="contracts" />
+                <%@ include file="_HrManagerSidebar.jspf" %>
+
+                <div class="hr-content-area">
             <div class="container">
                 <!-- Page Header -->
                 <div class="page-header">
@@ -674,6 +679,8 @@
                     </c:otherwise>
                 </c:choose>
             </div>
+                </div>
+            </main>
         </div>
 
         <!-- Reject Modal -->

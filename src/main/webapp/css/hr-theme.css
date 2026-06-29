@@ -1787,3 +1787,1116 @@ body .hr-home-shell .access-icon i {
     color: inherit !important;
     font-size: 0.95rem !important;
 }
+
+/* Shared HR Manager child-page shell
+   Keeps pages opened from HR Manager dashboard visually consistent. */
+body .hr-manager-page-shell {
+    min-height: 100vh !important;
+    background: #edebe9 !important;
+    color: #1b1c19 !important;
+    font-family: "Hanken Grotesk", Inter, "Segoe UI", Arial, sans-serif !important;
+}
+
+body .hr-manager-page-shell .hr-header {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    left: 260px !important;
+    z-index: 40 !important;
+    min-height: 72px !important;
+    padding: 0 !important;
+    background: rgba(251, 249, 244, 0.96) !important;
+    color: #00482f !important;
+    border-bottom: 1px solid #d8d1c7 !important;
+    box-shadow: none !important;
+    backdrop-filter: blur(14px) !important;
+}
+
+body .hr-manager-page-shell .header-content {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 72px !important;
+    margin: 0 !important;
+    padding: 0 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 20px !important;
+}
+
+body .hr-manager-page-shell .logo-section {
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+}
+
+body .hr-manager-page-shell .logo-section > i {
+    width: 44px !important;
+    height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 12px !important;
+    background: #dff6ea !important;
+    color: #006241 !important;
+    font-size: 20px !important;
+}
+
+body .hr-manager-page-shell .logo-section h1 {
+    margin: 0 !important;
+    color: #00482f !important;
+    font-size: 1.8rem !important;
+    line-height: 1.1 !important;
+    letter-spacing: -0.03em !important;
+}
+
+body .hr-manager-page-shell .header-actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 12px !important;
+}
+
+body .hr-manager-page-shell .search-box {
+    min-height: 44px !important;
+    min-width: min(360px, 34vw) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 0 16px !important;
+    border: 1px solid #d8d1c7 !important;
+    border-radius: 999px !important;
+    background: #fbf9f4 !important;
+    color: #647068 !important;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.04) !important;
+}
+
+body .hr-manager-page-shell .search-box input {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #1b1c19 !important;
+    font-weight: 700 !important;
+}
+
+body .hr-manager-page-shell .notification-bell,
+body .hr-manager-page-shell .user-profile,
+body .hr-manager-page-shell .btn-homepage,
+body .hr-manager-page-shell .nav-btn {
+    min-height: 44px !important;
+    border: 1px solid #d8d1c7 !important;
+    border-radius: 999px !important;
+    background: #ffffff !important;
+    color: #00482f !important;
+    box-shadow: 0 8px 18px rgba(30, 57, 50, 0.06) !important;
+}
+
+body .hr-manager-page-shell .btn-homepage,
+body .hr-manager-page-shell .nav-btn {
+    padding: 0 18px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    font-weight: 900 !important;
+    text-decoration: none !important;
+}
+
+body .hr-manager-page-shell .hr-main-content {
+    display: block !important;
+    width: auto !important;
+    max-width: none !important;
+    min-height: 100vh !important;
+    margin: 0 !important;
+    padding: 104px 32px 48px 292px !important;
+    background: linear-gradient(180deg, #dff6ea 0%, #e7f7ef 48%, #edebe9 100%) !important;
+}
+
+body .hr-manager-page-shell .hr-sidebar {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    z-index: 50 !important;
+    width: 260px !important;
+    height: 100vh !important;
+    padding: 18px 16px 24px !important;
+    overflow-y: auto !important;
+    border-width: 0 1px 0 0 !important;
+    border-style: solid !important;
+    border-color: #d8d1c7 !important;
+    border-radius: 0 !important;
+    background: #fbf9f4 !important;
+    color: #1b1c19 !important;
+    box-shadow: none !important;
+}
+
+body .hr-manager-page-shell .hr-sidebar::before {
+    content: "BetterHR\A Cổng quản trị nhân sự";
+    position: absolute !important;
+    top: 18px !important;
+    left: 20px !important;
+    min-height: 42px !important;
+    padding-left: 58px !important;
+    display: flex !important;
+    align-items: center !important;
+    white-space: pre-line !important;
+    color: #00482f !important;
+    font-weight: 900 !important;
+    line-height: 1.25 !important;
+}
+
+body .hr-manager-page-shell .hr-sidebar::after {
+    content: "B";
+    position: absolute !important;
+    top: 12px !important;
+    left: 20px !important;
+    width: 42px !important;
+    height: 42px !important;
+    display: grid !important;
+    place-items: center !important;
+    border-radius: 12px !important;
+    background: #dff6ea !important;
+    color: #00482f !important;
+    font-weight: 900 !important;
+}
+
+body .hr-manager-page-shell .hr-sidebar::before,
+body .hr-manager-page-shell .hr-sidebar::after {
+    content: none !important;
+    display: none !important;
+}
+
+body .hr-manager-page-shell .hr-sidebar-brand {
+    display: grid !important;
+    grid-template-columns: 42px 1fr !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin: 0 4px 32px !important;
+}
+
+body .hr-manager-page-shell .brand-mark {
+    width: 42px !important;
+    height: 42px !important;
+    display: grid !important;
+    place-items: center !important;
+    border-radius: 12px !important;
+    background: #dff6ea !important;
+    color: #00482f !important;
+    font-weight: 900 !important;
+}
+
+body .hr-manager-page-shell .hr-sidebar-brand strong {
+    display: block !important;
+    color: #00482f !important;
+    font-size: 1rem !important;
+    line-height: 1.15 !important;
+}
+
+body .hr-manager-page-shell .hr-sidebar-brand span {
+    display: block !important;
+    margin-top: 2px !important;
+    color: #647068 !important;
+    font-size: 0.78rem !important;
+    line-height: 1.25 !important;
+}
+
+body .hr-manager-page-shell .hr-nav {
+    display: grid !important;
+    gap: 8px !important;
+}
+
+body .hr-manager-page-shell .nav-section {
+    margin: 0 !important;
+    padding: 0 0 14px !important;
+    border: 0 !important;
+    color: inherit !important;
+}
+
+body .hr-manager-page-shell .nav-section + .nav-section {
+    border-top: 1px solid #d8d1c7 !important;
+    padding-top: 14px !important;
+}
+
+body .hr-manager-page-shell .nav-section h3 {
+    margin: 0 8px 8px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    color: #647068 !important;
+    font-size: 0.76rem !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.02em !important;
+}
+
+body .hr-manager-page-shell .nav-item {
+    min-height: 46px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin: 2px 0 !important;
+    padding: 0 14px !important;
+    border-radius: 9px !important;
+    background: transparent !important;
+    color: #525f57 !important;
+    font-weight: 850 !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+    transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease !important;
+}
+
+body .hr-manager-page-shell .nav-item i {
+    width: 20px !important;
+    color: #00754a !important;
+    font-size: 1rem !important;
+    text-align: center !important;
+}
+
+body .hr-manager-page-shell .nav-item:hover {
+    transform: translateX(2px) !important;
+    background: #eef8f2 !important;
+    color: #00482f !important;
+}
+
+body .hr-manager-page-shell .nav-item.active {
+    background: #dff6ea !important;
+    color: #00482f !important;
+}
+
+body .hr-manager-page-shell .hr-content-area,
+body .hr-manager-page-shell .container {
+    width: min(1180px, 100%) !important;
+    max-width: 1180px !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+body .hr-manager-page-shell .page-header,
+body .hr-manager-page-shell .section-header,
+body .hr-manager-page-shell .approval-header,
+body .hr-manager-page-shell .history-header {
+    margin: 0 0 18px !important;
+    padding: 26px 28px !important;
+    border: 1px solid #d8d1c7 !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+    color: #00482f !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 14px 30px rgba(30, 57, 50, 0.08) !important;
+}
+
+body .hr-manager-page-shell .hr-content-area > .d-flex:first-child,
+body .hr-manager-page-shell .hr-content-area > .page-title,
+body .hr-manager-page-shell .hr-content-area > h1:first-child {
+    margin: 0 0 18px !important;
+    padding: 0 !important;
+}
+
+body .hr-manager-page-shell .h2,
+body .hr-manager-page-shell .page-header h2,
+body .hr-manager-page-shell .section-header h2 {
+    margin: 0 !important;
+    color: #00482f !important;
+    font-size: clamp(1.8rem, 3vw, 2.35rem) !important;
+    line-height: 1.12 !important;
+    letter-spacing: -0.04em !important;
+}
+
+body .hr-manager-page-shell .page-header p,
+body .hr-manager-page-shell .section-header p {
+    margin: 8px 0 0 !important;
+    color: #647068 !important;
+}
+
+body .hr-manager-page-shell .card,
+body .hr-manager-page-shell .contract-card,
+body .hr-manager-page-shell .employee-card,
+body .hr-manager-page-shell .payroll-card,
+body .hr-manager-page-shell .table-container,
+body .hr-manager-page-shell .form-section,
+body .hr-manager-page-shell .form-container,
+body .hr-manager-page-shell .empty-state {
+    border: 1px solid #d8d1c7 !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+    color: #1b1c19 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 14px 30px rgba(30, 57, 50, 0.08) !important;
+}
+
+body .hr-manager-page-shell .card {
+    margin-bottom: 18px !important;
+}
+
+body .hr-manager-page-shell #payrollApprovalContent {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+body .hr-manager-page-shell .payroll-approval-card {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    min-height: 320px !important;
+}
+
+body .hr-manager-page-shell .card-body {
+    padding: 22px !important;
+}
+
+body .hr-manager-page-shell .recruitment-card,
+body .hr-manager-page-shell .list-group-item,
+body .hr-manager-page-shell .request-card,
+body .hr-manager-page-shell .contract-card {
+    margin-bottom: 16px !important;
+    border: 1px solid #d8d1c7 !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 10px 24px rgba(30, 57, 50, 0.07) !important;
+}
+
+body .hr-manager-page-shell input[type="text"],
+body .hr-manager-page-shell input[type="email"],
+body .hr-manager-page-shell input[type="number"],
+body .hr-manager-page-shell input[type="month"],
+body .hr-manager-page-shell input[type="date"],
+body .hr-manager-page-shell select,
+body .hr-manager-page-shell textarea,
+body .hr-manager-page-shell .form-control,
+body .hr-manager-page-shell .form-select {
+    min-height: 42px !important;
+    border: 1px solid #d8d1c7 !important;
+    border-radius: 9px !important;
+    background: #fbf9f4 !important;
+    color: #1b1c19 !important;
+    font-weight: 650 !important;
+    box-shadow: none !important;
+}
+
+body .hr-manager-page-shell input:focus,
+body .hr-manager-page-shell select:focus,
+body .hr-manager-page-shell textarea:focus,
+body .hr-manager-page-shell .form-control:focus,
+body .hr-manager-page-shell .form-select:focus {
+    border-color: #00754a !important;
+    box-shadow: 0 0 0 3px rgba(0, 117, 74, 0.14) !important;
+    outline: 0 !important;
+}
+
+body .hr-manager-page-shell .form-label,
+body .hr-manager-page-shell label {
+    color: #1b1c19 !important;
+    font-weight: 850 !important;
+}
+
+body .hr-manager-page-shell .btn,
+body .hr-manager-page-shell button,
+body .hr-manager-page-shell .btn-primary,
+body .hr-manager-page-shell .btn-success,
+body .hr-manager-page-shell .btn-approve,
+body .hr-manager-page-shell .btn-filter,
+body .hr-manager-page-shell .submit-btn,
+body .hr-manager-page-shell .save-btn {
+    min-height: 42px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    border-radius: 999px !important;
+    border: 0 !important;
+    background: #00754a !important;
+    color: #ffffff !important;
+    font-weight: 900 !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+}
+
+body .hr-manager-page-shell .btn:hover,
+body .hr-manager-page-shell button:hover,
+body .hr-manager-page-shell .btn-primary:hover,
+body .hr-manager-page-shell .btn-success:hover,
+body .hr-manager-page-shell .btn-approve:hover {
+    background: #00482f !important;
+    color: #ffffff !important;
+    transform: translateY(-1px) !important;
+}
+
+body .hr-manager-page-shell .btn-secondary,
+body .hr-manager-page-shell .btn-outline-secondary,
+body .hr-manager-page-shell .btn-reset,
+body .hr-manager-page-shell .back-btn,
+body .hr-manager-page-shell .cancel-btn,
+body .hr-manager-page-shell .btn-cancel {
+    border: 1px solid #d8d1c7 !important;
+    background: #ffffff !important;
+    color: #00482f !important;
+}
+
+body .hr-manager-page-shell .btn-danger,
+body .hr-manager-page-shell .btn-reject {
+    background: #c82014 !important;
+    color: #ffffff !important;
+}
+
+body .hr-manager-page-shell .badge,
+body .hr-manager-page-shell .status-badge,
+body .hr-manager-page-shell .status-tab-btn,
+body .hr-manager-page-shell .job-status {
+    border-radius: 999px !important;
+    font-weight: 900 !important;
+}
+
+body .hr-manager-page-shell table {
+    border-radius: 8px !important;
+    overflow: hidden !important;
+}
+
+body .hr-manager-page-shell th {
+    background: #fbf9f4 !important;
+    color: #647068 !important;
+    font-size: 0.75rem !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+}
+
+body .hr-manager-page-shell .pagination,
+body .hr-manager-page-shell .page-navigation {
+    display: flex !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    margin-top: 18px !important;
+}
+
+body .hr-manager-page-shell .page-link,
+body .hr-manager-page-shell .page-item {
+    min-width: 38px !important;
+    min-height: 38px !important;
+    border: 1px solid #d8d1c7 !important;
+    border-radius: 999px !important;
+    color: #00482f !important;
+    font-weight: 900 !important;
+}
+
+@media (max-width: 980px) {
+    body .hr-manager-page-shell .hr-header {
+        position: static !important;
+        left: 0 !important;
+    }
+
+    body .hr-manager-page-shell .hr-sidebar {
+        position: static !important;
+        width: auto !important;
+        height: auto !important;
+        padding: 86px 16px 16px !important;
+        border-width: 0 0 1px !important;
+    }
+
+    body .hr-manager-page-shell .hr-main-content {
+        padding: 20px !important;
+    }
+
+    body .hr-manager-page-shell .header-content {
+        padding: 12px 18px !important;
+        flex-wrap: wrap !important;
+    }
+}
+
+@media (max-width: 640px) {
+    body .hr-manager-page-shell .search-box,
+    body .hr-manager-page-shell .user-profile {
+        display: none !important;
+    }
+
+    body .hr-manager-page-shell .logo-section h1 {
+        font-size: 1.35rem !important;
+    }
+
+    body .hr-manager-page-shell .hr-content-area,
+    body .hr-manager-page-shell .container {
+        width: 100% !important;
+    }
+}
+
+/* BetterHR HR Staff dashboard shell - shared by every HR Staff page */
+body.hr-staff-page-shell {
+    --bh-primary: #00482f;
+    --bh-primary-strong: #006241;
+    --bh-secondary: #00754a;
+    --bh-soft-green: #dff6ea;
+    --bh-mint: #97f6c0;
+    --bh-gold: #cba258;
+    --bh-gold-soft: #f6ead1;
+    --bh-error: #c82014;
+    --bh-error-soft: #fdebea;
+    --bh-canvas: #edebe9;
+    --bh-surface: #fbf9f4;
+    --bh-card: #ffffff;
+    --bh-border: #d8d1c7;
+    --bh-border-soft: #e7e1d8;
+    --bh-text: #1b1c19;
+    --bh-muted: #647068;
+    --bh-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 14px 30px rgba(30, 57, 50, 0.08);
+    margin: 0 !important;
+    min-height: 100vh !important;
+    background: var(--bh-canvas) !important;
+    color: var(--bh-text) !important;
+    font-family: Inter, "Segoe UI", Arial, sans-serif !important;
+}
+
+body.hr-staff-page-shell *,
+body.hr-staff-page-shell *::before,
+body.hr-staff-page-shell *::after {
+    box-sizing: border-box;
+}
+
+body.hr-staff-page-shell a {
+    text-decoration: none;
+}
+
+body.hr-staff-page-shell button,
+body.hr-staff-page-shell input,
+body.hr-staff-page-shell select,
+body.hr-staff-page-shell textarea {
+    font-family: inherit;
+}
+
+body.hr-staff-page-shell .staff-shell {
+    min-height: 100vh !important;
+    display: grid !important;
+    grid-template-columns: 260px minmax(0, 1fr) !important;
+    background: var(--bh-canvas) !important;
+}
+
+body.hr-staff-page-shell .staff-sidebar {
+    position: sticky !important;
+    top: 0 !important;
+    height: 100vh !important;
+    padding: 22px 16px !important;
+    background: var(--bh-primary) !important;
+    color: #fff !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 24px !important;
+    box-shadow: 1px 0 0 rgba(0, 0, 0, 0.12) !important;
+    z-index: 10 !important;
+    overflow-y: auto !important;
+}
+
+body.hr-staff-page-shell .staff-sidebar .brand {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 0 4px !important;
+    color: #fff !important;
+}
+
+body.hr-staff-page-shell .staff-sidebar .brand-mark {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 12px !important;
+    display: grid !important;
+    place-items: center !important;
+    flex: 0 0 auto !important;
+    background: var(--bh-mint) !important;
+    color: var(--bh-primary) !important;
+    font-weight: 900 !important;
+    box-shadow: inset 0 0 0 1px rgba(0, 72, 47, 0.1) !important;
+}
+
+body.hr-staff-page-shell .staff-sidebar .brand strong {
+    display: block !important;
+    color: #fff !important;
+    font-size: 20px !important;
+    line-height: 1.15 !important;
+    letter-spacing: -0.01em !important;
+}
+
+body.hr-staff-page-shell .staff-sidebar .brand span {
+    display: block !important;
+    margin-top: 2px !important;
+    color: rgba(255, 255, 255, 0.72) !important;
+    font-size: 12px !important;
+    line-height: 1.3 !important;
+}
+
+body.hr-staff-page-shell .sidebar-section {
+    display: grid !important;
+    gap: 8px !important;
+}
+
+body.hr-staff-page-shell .section-title {
+    margin: 14px 12px 6px !important;
+    color: rgba(255, 255, 255, 0.64) !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+}
+
+body.hr-staff-page-shell .nav-link {
+    min-height: 46px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 12px 14px !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.82) !important;
+    font-weight: 800 !important;
+    line-height: 1.25 !important;
+    box-shadow: none !important;
+    transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease !important;
+}
+
+body.hr-staff-page-shell .nav-link i {
+    width: 18px !important;
+    color: currentColor !important;
+    text-align: center !important;
+    font-size: 15px !important;
+}
+
+body.hr-staff-page-shell .nav-link:hover {
+    transform: translateX(2px) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #fff !important;
+}
+
+body.hr-staff-page-shell .nav-link.active {
+    background: var(--bh-mint) !important;
+    color: var(--bh-primary) !important;
+}
+
+body.hr-staff-page-shell .sidebar-footer {
+    margin-top: auto !important;
+    padding: 14px !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 14px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #fff !important;
+}
+
+body.hr-staff-page-shell .sidebar-footer strong {
+    display: block !important;
+    color: #fff !important;
+    font-size: 14px !important;
+}
+
+body.hr-staff-page-shell .sidebar-footer span {
+    display: block !important;
+    margin-top: 4px !important;
+    color: rgba(255, 255, 255, 0.68) !important;
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+}
+
+body.hr-staff-page-shell .help-button {
+    margin-top: 12px !important;
+    width: 100% !important;
+    min-height: 40px !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: #fff !important;
+    color: var(--bh-primary) !important;
+    font-weight: 900 !important;
+    cursor: pointer !important;
+}
+
+body.hr-staff-page-shell .staff-main {
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+body.hr-staff-page-shell .topbar {
+    position: sticky !important;
+    top: 0 !important;
+    min-height: 72px !important;
+    height: auto !important;
+    padding: 14px 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 20px !important;
+    background: rgba(251, 249, 244, 0.92) !important;
+    border-bottom: 1px solid var(--bh-border) !important;
+    color: var(--bh-text) !important;
+    box-shadow: none !important;
+    backdrop-filter: blur(14px) !important;
+    z-index: 8 !important;
+}
+
+body.hr-staff-page-shell .topbar-title {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    min-width: 220px !important;
+}
+
+body.hr-staff-page-shell .topbar-icon {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 12px !important;
+    display: grid !important;
+    place-items: center !important;
+    background: var(--bh-soft-green) !important;
+    color: var(--bh-primary) !important;
+    font-size: 20px !important;
+}
+
+body.hr-staff-page-shell .topbar-title h1 {
+    margin: 0 !important;
+    color: var(--bh-primary) !important;
+    font-size: 26px !important;
+    line-height: 1.1 !important;
+    letter-spacing: -0.03em !important;
+}
+
+body.hr-staff-page-shell .topbar-actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 12px !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+}
+
+body.hr-staff-page-shell .search-box {
+    width: min(360px, 100%) !important;
+    min-height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 0 14px !important;
+    border: 1px solid var(--bh-border) !important;
+    border-radius: 999px !important;
+    background: var(--bh-surface) !important;
+    color: var(--bh-muted) !important;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.04) !important;
+}
+
+body.hr-staff-page-shell .search-box input {
+    width: 100% !important;
+    min-height: auto !important;
+    padding: 0 !important;
+    border: 0 !important;
+    outline: 0 !important;
+    background: transparent !important;
+    color: var(--bh-text) !important;
+    font-weight: 700 !important;
+    box-shadow: none !important;
+}
+
+body.hr-staff-page-shell .icon-button,
+body.hr-staff-page-shell .home-button {
+    min-height: 44px !important;
+    border: 1px solid var(--bh-border) !important;
+    background: var(--bh-card) !important;
+    color: var(--bh-primary) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    font-weight: 900 !important;
+    box-shadow: 0 8px 18px rgba(30, 57, 50, 0.06) !important;
+}
+
+body.hr-staff-page-shell .icon-button {
+    position: relative !important;
+    width: 44px !important;
+    padding: 0 !important;
+    border-radius: 999px !important;
+}
+
+body.hr-staff-page-shell .home-button {
+    padding: 0 18px !important;
+    border-radius: 999px !important;
+}
+
+body.hr-staff-page-shell .notification-dot {
+    position: absolute !important;
+    top: -4px !important;
+    right: -2px !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    padding: 0 5px !important;
+    border-radius: 999px !important;
+    display: grid !important;
+    place-items: center !important;
+    background: var(--bh-error) !important;
+    color: #fff !important;
+    font-size: 11px !important;
+    font-weight: 900 !important;
+}
+
+body.hr-staff-page-shell .avatar-chip {
+    min-height: 46px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 5px 14px 5px 5px !important;
+    border: 1px solid var(--bh-border) !important;
+    border-radius: 999px !important;
+    background: var(--bh-card) !important;
+    color: var(--bh-text) !important;
+    box-shadow: 0 8px 18px rgba(30, 57, 50, 0.06) !important;
+}
+
+body.hr-staff-page-shell .avatar {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 999px !important;
+    display: grid !important;
+    place-items: center !important;
+    flex: 0 0 auto !important;
+    background: var(--bh-soft-green) !important;
+    color: var(--bh-primary) !important;
+    font-weight: 900 !important;
+    box-shadow: inset 0 0 0 2px #fff !important;
+}
+
+body.hr-staff-page-shell .avatar-chip strong {
+    display: block !important;
+    color: var(--bh-text) !important;
+    font-size: 14px !important;
+    line-height: 1.15 !important;
+}
+
+body.hr-staff-page-shell .avatar-chip span {
+    display: block !important;
+    margin-top: 2px !important;
+    color: var(--bh-muted) !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+}
+
+body.hr-staff-page-shell .staff-content,
+body.hr-staff-page-shell .page-content {
+    width: min(1240px, calc(100% - 56px)) !important;
+    margin: 0 auto !important;
+    padding: 28px 0 40px !important;
+}
+
+body.hr-staff-page-shell .staff-content > .topbar,
+body.hr-staff-page-shell .staff-content > .top-bar,
+body.hr-staff-page-shell .staff-content > .header,
+body.hr-staff-page-shell .staff-content > .footer,
+body.hr-staff-page-shell .staff-content > .layout > .sidebar,
+body.hr-staff-page-shell .staff-content > .container > .sidebar {
+    display: none !important;
+}
+
+body.hr-staff-page-shell .staff-content > .layout,
+body.hr-staff-page-shell .staff-content > .container,
+body.hr-staff-page-shell .staff-content > .main-content-area,
+body.hr-staff-page-shell .staff-content > .main-content-area > .container {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: auto !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+body.hr-staff-page-shell .staff-content .content {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+}
+
+body.hr-staff-page-shell .staff-content .hero,
+body.hr-staff-page-shell .staff-content .card,
+body.hr-staff-page-shell .staff-content .table-card,
+body.hr-staff-page-shell .staff-content .table-container,
+body.hr-staff-page-shell .staff-content .modal-content {
+    border: 1px solid var(--bh-border) !important;
+    border-radius: 8px !important;
+    background: var(--bh-card) !important;
+    color: var(--bh-text) !important;
+    box-shadow: var(--bh-shadow) !important;
+}
+
+body.hr-staff-page-shell .staff-content .hero {
+    padding: 26px 28px !important;
+    background: linear-gradient(135deg, var(--bh-primary) 0%, var(--bh-primary-strong) 55%, #0f7f55 100%) !important;
+    color: #fff !important;
+}
+
+body.hr-staff-page-shell .staff-content .hero .muted {
+    color: rgba(255, 255, 255, 0.78) !important;
+}
+
+body.hr-staff-page-shell .staff-content .card {
+    padding: 22px !important;
+    margin-bottom: 18px !important;
+}
+
+body.hr-staff-page-shell .staff-content .card-header,
+body.hr-staff-page-shell .staff-content .page-header,
+body.hr-staff-page-shell .staff-content .table-header {
+    border-color: var(--bh-border-soft) !important;
+}
+
+body.hr-staff-page-shell .staff-content h1,
+body.hr-staff-page-shell .staff-content h2,
+body.hr-staff-page-shell .staff-content h3,
+body.hr-staff-page-shell .staff-content .page-title,
+body.hr-staff-page-shell .staff-content .card-header h2 {
+    color: var(--bh-primary) !important;
+    letter-spacing: -0.02em;
+}
+
+body.hr-staff-page-shell .staff-content .muted,
+body.hr-staff-page-shell .staff-content label,
+body.hr-staff-page-shell .staff-content .filter-group label,
+body.hr-staff-page-shell .staff-content .filter-field label,
+body.hr-staff-page-shell .staff-content .help-text {
+    color: var(--bh-muted) !important;
+}
+
+body.hr-staff-page-shell .staff-content input,
+body.hr-staff-page-shell .staff-content select,
+body.hr-staff-page-shell .staff-content textarea,
+body.hr-staff-page-shell .staff-content .form-control,
+body.hr-staff-page-shell .staff-content .form-select {
+    min-height: 42px !important;
+    border: 1px solid var(--bh-border) !important;
+    border-radius: 9px !important;
+    background: var(--bh-surface) !important;
+    color: var(--bh-text) !important;
+    box-shadow: none !important;
+}
+
+body.hr-staff-page-shell .staff-content input:focus,
+body.hr-staff-page-shell .staff-content select:focus,
+body.hr-staff-page-shell .staff-content textarea:focus,
+body.hr-staff-page-shell .staff-content .form-control:focus,
+body.hr-staff-page-shell .staff-content .form-select:focus {
+    border-color: var(--bh-secondary) !important;
+    box-shadow: 0 0 0 3px rgba(0, 117, 74, 0.14) !important;
+    outline: 0 !important;
+}
+
+body.hr-staff-page-shell .staff-content table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+}
+
+body.hr-staff-page-shell .staff-content thead,
+body.hr-staff-page-shell .staff-content th {
+    background: var(--bh-surface) !important;
+    color: var(--bh-muted) !important;
+}
+
+body.hr-staff-page-shell .staff-content th,
+body.hr-staff-page-shell .staff-content td {
+    border-color: var(--bh-border-soft) !important;
+}
+
+body.hr-staff-page-shell .staff-content .btn,
+body.hr-staff-page-shell .staff-content button[type="submit"],
+body.hr-staff-page-shell .staff-content .btn-primary,
+body.hr-staff-page-shell .staff-content .btn-success,
+body.hr-staff-page-shell .staff-content .btn.secondary,
+body.hr-staff-page-shell .staff-content .btn-secondary {
+    min-height: 40px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    padding: 0 16px !important;
+    background: var(--bh-primary) !important;
+    color: #fff !important;
+    font-weight: 900 !important;
+    text-decoration: none !important;
+    box-shadow: 0 10px 24px rgba(0, 72, 47, 0.12) !important;
+}
+
+body.hr-staff-page-shell .staff-content .btn:hover,
+body.hr-staff-page-shell .staff-content button[type="submit"]:hover {
+    transform: translateY(-1px) !important;
+    background: var(--bh-primary-strong) !important;
+}
+
+body.hr-staff-page-shell .staff-content .btn-danger,
+body.hr-staff-page-shell .staff-content .btn.danger,
+body.hr-staff-page-shell .staff-content .btn-delete {
+    background: var(--bh-error) !important;
+}
+
+body.hr-staff-page-shell .staff-content .status-badge,
+body.hr-staff-page-shell .staff-content .status,
+body.hr-staff-page-shell .staff-content .status-pill {
+    border-radius: 999px !important;
+    font-weight: 900 !important;
+}
+
+body.hr-staff-page-shell .staff-content .empty-state,
+body.hr-staff-page-shell .staff-content .empty {
+    border-radius: 8px !important;
+    background: var(--bh-surface) !important;
+    color: var(--bh-muted) !important;
+}
+
+@media (max-width: 1180px) {
+    body.hr-staff-page-shell .staff-shell {
+        grid-template-columns: 1fr !important;
+    }
+
+    body.hr-staff-page-shell .staff-sidebar {
+        position: relative !important;
+        height: auto !important;
+        border-radius: 0 0 18px 18px !important;
+    }
+
+    body.hr-staff-page-shell .sidebar-section {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    body.hr-staff-page-shell .section-title,
+    body.hr-staff-page-shell .sidebar-footer {
+        grid-column: 1 / -1 !important;
+    }
+}
+
+@media (max-width: 860px) {
+    body.hr-staff-page-shell .topbar {
+        position: relative !important;
+        align-items: flex-start !important;
+        flex-direction: column !important;
+        padding: 18px !important;
+    }
+
+    body.hr-staff-page-shell .topbar-actions {
+        width: 100% !important;
+        flex-wrap: wrap !important;
+        justify-content: flex-start !important;
+    }
+
+    body.hr-staff-page-shell .staff-content,
+    body.hr-staff-page-shell .page-content {
+        width: min(100% - 28px, 1240px) !important;
+        padding-top: 18px !important;
+    }
+}
+
+@media (max-width: 560px) {
+    body.hr-staff-page-shell .sidebar-section {
+        grid-template-columns: 1fr !important;
+    }
+
+    body.hr-staff-page-shell .avatar-chip span,
+    body.hr-staff-page-shell .home-button span {
+        display: none !important;
+    }
+}

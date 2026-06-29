@@ -80,6 +80,9 @@ public class SessionSecurityFilter implements Filter {
             } else {
                 String loginUrl = contextPath + "/login";
                 if (isRecruitmentApplyPath(httpRequest, path)) {
+                    String query = httpRequest.getQueryString();
+                    String target = requestUri + (query != null && !query.isBlank() ? "?" + query : "");
+                    httpRequest.getSession(true).setAttribute("redirectAfterLogin", target);
                     loginUrl += "?error=login_required";
                 }
                 httpResponse.sendRedirect(loginUrl);

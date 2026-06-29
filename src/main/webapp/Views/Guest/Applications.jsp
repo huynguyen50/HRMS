@@ -15,18 +15,15 @@
 <body>
 <div class="candidate-shell">
     <aside class="candidate-sidebar">
-        <div class="candidate-brand">
+        <a class="candidate-brand" href="${pageContext.request.contextPath}/homepage" aria-label="Về trang chủ BetterHR">
             <strong>Better Jobs</strong>
             <span>Cổng ứng viên BetterHR</span>
-        </div>
+        </a>
 
         <nav class="candidate-nav">
             <a href="${pageContext.request.contextPath}/guest/dashboard"><i class="fa-solid fa-table-columns"></i> Bảng điều khiển</a>
-            <a href="${pageContext.request.contextPath}/RecruitmentController"><i class="fa-solid fa-briefcase"></i> Việc làm hiện có</a>
             <a class="active" href="${pageContext.request.contextPath}/guest/applications"><i class="fa-solid fa-list-check"></i> Đơn ứng tuyển</a>
             <a href="${pageContext.request.contextPath}/guest/profile"><i class="fa-solid fa-user"></i> Hồ sơ của tôi</a>
-            <a href="${pageContext.request.contextPath}/Views/ChangePassword.jsp"><i class="fa-solid fa-shield-halved"></i> Đổi mật khẩu</a>
-            <a href="${pageContext.request.contextPath}/homepage"><i class="fa-solid fa-house"></i> Trang chủ</a>
             <a href="${pageContext.request.contextPath}/logout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a>
         </nav>
 
@@ -131,15 +128,15 @@
                                                 <c:otherwise>Thỏa thuận</c:otherwise>
                                             </c:choose>
                                         </td>
-                                        <td class="candidate-muted">${app.guest.appliedDate}</td>
+                                        <td class="candidate-muted">${app.application.appliedDate}</td>
                                         <td>
-                                            <span class="candidate-status ${app.guest.status == 'Rejected' ? 'rejected' : app.guest.status == 'Hired' ? 'hired' : ''}">
-                                                ${app.guest.statusLabel}
+                                            <span class="candidate-status ${app.application.statusCssClass}">
+                                                ${app.application.statusLabel}
                                             </span>
                                         </td>
                                         <td>
                                             <c:choose>
-                                                <c:when test="${not empty app.guest.cv}">
+                                                <c:when test="${not empty app.application.cv}">
                                                     <span class="candidate-status"><i class="fa-solid fa-file"></i>&nbsp;Đã nộp</span>
                                                 </c:when>
                                                 <c:otherwise>Chưa có</c:otherwise>

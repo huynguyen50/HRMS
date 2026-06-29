@@ -1,80 +1,102 @@
-# Feature: Guest nop ho so ung tuyen
-Status: Approved
-Actor: Guest Candidate
-Priority: High
-Related Code: `RecruitmentController`, `GuestDAO`, `Views/ApplyForm.jsp`
+# Tính năng: Guest nộp hồ sơ ứng tuyển
+Trạng thái: Đã triển khai luồng CandidateProfile
+Tác nhân: Guest Candidate
+Độ ưu tiên: Cao
+Mã nguồn liên quan: `RecruitmentController`, `CandidateProfileDAO`, `ApplicationDAO`, `EmailSender`, `Views/ApplyForm.jsp`, `Views/ApplyVerifyEmail.jsp`, `Views/ApplyConfirm.jsp`, `Views/Success.jsp`
 
-## Route hien tai
+## Route hiện tại
 - `GET /RecruitmentController?action=apply&recruitmentId={recruitmentId}`
-- `POST /RecruitmentController` voi `action=submitApplication`
+- `POST /RecruitmentController?action=saveCandidateProfile`
+- `POST /RecruitmentController?action=verifyCandidateProfileEmail`
+- `POST /RecruitmentController?action=resendCandidateProfileCode`
+- `POST /RecruitmentController?action=confirmApplication`
 
-## Luong chua dang nhap
-1. Guest chua dang nhap bam `Ung tuyen ngay`.
-2. He thong redirect sang `/login?error=login_required`.
-3. Sau khi dang nhap thanh cong, auth hien tai dua user ve `/homepage`.
-4. Phase sau co the bo sung `returnUrl` de quay lai job vua xem.
+## Mục tiêu
+Guest chỉ nhập hồ sơ ứng tuyển một lần. Sau khi đã có `CandidateProfile` đã xác nhận email, các lần ứng tuyển sau chỉ cần xác nhận ứng tuyển, không nhập lại họ tên/email/số điện thoại/ngày sinh/địa chỉ/kinh nghiệm/CV.
 
-## Luong GET da dang nhap
-1. Guest da dang nhap bam `Ung tuyen ngay`.
-2. Controller kiem tra session `systemUser`.
-3. Controller doc `recruitmentId`.
-4. Controller lay chi tiet recruitment theo id.
-5. Neu recruitment khong ton tai hoac khong o status public, hien loi va quay lai job list.
-6. Neu hop le, forward den `/Views/ApplyForm.jsp`.
+## Luồng khi chưa đăng nhập
+1. Guest bấm `Ứng tuyển ngay`.
+2. Hệ thống yêu cầu đăng nhập hoặc đăng ký.
+3. URL công việc hiện tại được lưu vào `redirectAfterLogin`.
+4. Sau khi đăng nhập local hoặc Google thành công, hệ thống quay lại đúng job đang xem.
 
-## Luong POST Phase 1
-1. Guest nhap ho ten, email, phone.
-2. Guest upload CV.
-3. Controller validate du lieu.
-4. Controller luu file CV vao thu muc upload.
-5. Controller tao record trong bang `Guest`.
-6. `Guest.Status` mac dinh `Processing`.
-7. `Guest.RecruitmentID` luu job dang nop.
-8. Thanh cong redirect `/Views/Success.jsp`.
+## Luồng khi đã đăng nhập
+1. Controller lấy `systemUser` trong session.
+2. Controller lấy hoặc tạo/liên kết `Guest` theo tài khoản đăng nhập.
+3. Controller kiểm tra `Recruitment` hợp lệ.
+4. Controller kiểm tra đã tồn tại `Application` theo `GuestID + RecruitmentID` chưa.
+5. Nếu đã ứng tuyển, hiển thị thông báo `Bạn đã ứng tuyển công việc này.` và không tạo thêm application.
+6. Nếu chưa có `CandidateProfile` hoặc profile chưa xác nhận email, hiển thị form hồ sơ.
+7. Nếu đã có `CandidateProfile` hợp lệ, chuyển thẳng sang màn xác nhận ứng tuyển.
 
-## Luong POST Phase 2
-Khi code sang bang `Application`:
-1. `Guest` chi luu profile ung vien.
-2. Controller lay hoac tao `Guest` profile theo `SystemUser.UserID`.
-3. Controller kiem tra duplicate theo `GuestID + RecruitmentID`.
-4. Moi lan apply hop le tao record trong `Application`.
-5. `Application.Status` mac dinh `Applied`.
-6. `Application.CurrentStep` mac dinh `Applied`.
-7. `Guest.RecruitmentID` se khong con la nguon du lieu chinh.
-8. Tao notification loai `Application` cho user dang nop ho so.
+## Form hồ sơ ứng tuyển
+Form chỉ dùng khi Guest chưa có hồ sơ ứng tuyển hợp lệ.
+
+Thông tin cá nhân:
+- Họ và tên.
+- Số điện thoại.
+- Email.
+- Ngày sinh.
+- Địa chỉ/nơi ở hiện tại.
+
+Thông tin nghề nghiệp:
+- Vị trí mong muốn.
+- Mức lương mong muốn.
+- Kinh nghiệm làm việc.
+
+CV:
+- Upload file bắt buộc khi tạo hồ sơ lần đầu.
+- Chỉ chấp nhận `.pdf`, `.doc`, `.docx`.
+- Tối đa 10MB.
+- Lưu đường dẫn file vào `CandidateProfile.CVFilePath`.
+
+## Xác nhận email trước khi lưu profile
+1. Sau khi Guest bấm `Lưu hồ sơ & Tiếp tục`, controller validate dữ liệu và lưu bản nháp vào session.
+2. Hệ thống gửi mã xác nhận 6 chữ số tới email trong hồ sơ.
+3. Mã xác nhận và thời điểm hết hạn được lưu trong `HttpSession`.
+4. Không lưu mã xác nhận vào database.
+5. Khi Guest nhập mã đúng và còn hạn, hệ thống insert/update `CandidateProfile`.
+6. Sau khi lưu thành công, hệ thống chuyển sang màn xác nhận ứng tuyển.
+
+## Màn xác nhận ứng tuyển
+Hiển thị Guest sắp ứng tuyển vào:
+- Tên công việc.
+- Phòng ban nếu dữ liệu recruitment hiện có hỗ trợ.
+- Địa điểm.
+- Mức lương.
+
+Nút chính: `Xác nhận ứng tuyển`.
+
+## Tạo Application
+Khi Guest xác nhận:
+- Tạo record trong `Application`.
+- Gán `GuestID`.
+- Gán `RecruitmentID`.
+- Gán `CandidateProfileID`.
+- Gán `CV` từ `CandidateProfile.CVFilePath`.
+- `Status = Applied`.
+- `CurrentStep = Applied`.
+- `Source = Portal`.
+- `AppliedDate = NOW()`.
+
+`Application` không lặp lại toàn bộ thông tin cá nhân. Khi cần xem thông tin ứng viên, hệ thống join sang `CandidateProfile`.
 
 ## Validation
-- Ho ten bat buoc.
-- Email dung format.
-- Phone dung format co ban.
-- Recruitment id phai ton tai.
-- CV bat buoc trong Phase 1 theo form hien tai.
-- CV chi chap nhan `.pdf`, `.doc`, `.docx`, `.txt`.
-- CV toi da 5MB theo `@MultipartConfig` hien tai.
-
-## Duplicate rule
-Hien code dang:
-- Chan trung phone trong bang `Guest`.
-- Cho phep trung email.
-
-Business rule de nghi cho Phase 1:
-- Khong cho mot account Guest nop trung cung mot job.
-- Neu chua co `UserID`, tam dung email + RecruitmentID de canh bao trung.
-- Khi da co `UserID`, dung `UserID + RecruitmentID`.
+- Họ tên bắt buộc.
+- Email đúng định dạng.
+- Số điện thoại đúng định dạng cơ bản.
+- Ngày sinh không lớn hơn ngày hiện tại.
+- CV đúng định dạng PDF/DOC/DOCX.
+- CV tối đa 10MB.
+- `recruitmentId` phải tồn tại.
+- Không cho ứng tuyển trùng `GuestID + RecruitmentID`.
 
 ## Acceptance Criteria
-- [ ] Chua login khong mo duoc form apply.
-- [ ] Dang login va recruitment hop le thi mo duoc form apply.
-- [ ] Submit thieu ho ten/email/phone/CV hien loi tieng Viet.
-- [ ] Recruitment id khong ton tai khong tao record.
-- [ ] Submit hop le tao record bang `Guest` trong Phase 1.
-- [ ] Submit hop le tao record bang `Application` trong Phase 2.
-- [ ] Phase 2 khong tao duplicate application cung `GuestID + RecruitmentID`.
-- [ ] Submit thanh cong sang success page.
-
-## Missing Work
-- [ ] Gan `Guest.UserID` khi submit application.
-- [ ] Chuan hoa duplicate rule theo `UserID + RecruitmentID`.
-- [ ] Phase 2 tao `Application` thay cho tao ho so ung tuyen moi trong `Guest`.
-- [ ] Tao notification khi nop ho so thanh cong.
-- [ ] Sua cac chu bi loi encoding trong JSP neu con.
+- [x] Guest chưa đăng nhập được yêu cầu đăng nhập và quay lại đúng job sau login.
+- [x] Guest chưa có profile thấy form hồ sơ ứng tuyển.
+- [x] Guest có profile đã xác nhận email không phải nhập lại thông tin.
+- [x] Lưu profile yêu cầu xác nhận email bằng mã session.
+- [x] Không tạo bảng OTP/email verification.
+- [x] Xác nhận ứng tuyển tạo `Application` liên kết `CandidateProfile`.
+- [x] Ứng tuyển thành công hiển thị trang thành công.
+- [x] Nếu đã ứng tuyển công việc đó, hiển thị `Bạn đã ứng tuyển công việc này.`.

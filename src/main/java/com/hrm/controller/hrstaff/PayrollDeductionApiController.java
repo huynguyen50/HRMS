@@ -29,14 +29,14 @@ public class PayrollDeductionApiController extends HttpServlet {
                 response,
                 PermissionUtil.ROLE_HR_STAFF,
                 "VIEW_PAYROLLS",
-                "This endpoint is restricted to HR Staff.",
-                "You do not have permission to view payroll deductions.")) {
+                "API này chỉ dành cho nhân viên nhân sự.",
+                "Bạn không có quyền xem khấu trừ lương.")) {
             return;
         }
 
         String pathInfo = request.getPathInfo();
         if (pathInfo == null || pathInfo.length() <= 1) {
-            sendError(response, HttpServletResponse.SC_BAD_REQUEST, "Deduction ID is required");
+            sendError(response, HttpServletResponse.SC_BAD_REQUEST, "Thiếu mã khấu trừ");
             return;
         }
 
@@ -44,7 +44,7 @@ public class PayrollDeductionApiController extends HttpServlet {
             int deductionId = Integer.parseInt(pathInfo.substring(1));
             Map<String, Object> deduction = employeeDeductionDAO.getById(deductionId);
             if (deduction == null) {
-                sendError(response, HttpServletResponse.SC_NOT_FOUND, "Deduction not found");
+                sendError(response, HttpServletResponse.SC_NOT_FOUND, "Không tìm thấy khấu trừ");
                 return;
             }
 
@@ -52,7 +52,7 @@ public class PayrollDeductionApiController extends HttpServlet {
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write(gson.toJson(deduction));
         } catch (NumberFormatException ex) {
-            sendError(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid deduction ID");
+            sendError(response, HttpServletResponse.SC_BAD_REQUEST, "Mã khấu trừ không hợp lệ");
         }
     }
 

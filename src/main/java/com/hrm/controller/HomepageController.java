@@ -221,11 +221,11 @@ stats.setTotalProjects(rs.getInt("total"));
                 access.setCanAccessEmployee(true);
                 access.setCanAccessGuest(true);
                 access.setAdminUrl("/admin?action=dashboard");
-                access.setHrUrl("/Views/hr/HrHome.jsp");
+                access.setHrUrl("/HrHomeController");
                 access.setDeptUrl("/dept");
                 access.setCanAccessHrStaff(true);
                 access.setHrStaffUrl("/hrstaff");
-                access.setEmployeeUrl("/Views/Employee/EmployeeHome.jsp");
+                access.setEmployeeUrl("/employee");
                 access.setGuestUrl("/guest/dashboard");
                 break;
                 
@@ -237,9 +237,9 @@ stats.setTotalProjects(rs.getInt("total"));
                 access.setCanAccessHrStaff(isHrStaff);
                 access.setCanAccessEmployee(true);
                 access.setCanAccessGuest(true);
-                access.setHrUrl("/Views/hr/HrHome.jsp");
+                access.setHrUrl("/HrHomeController");
                 access.setHrStaffUrl("/hrstaff");
-                access.setEmployeeUrl("/Views/Employee/EmployeeHome.jsp");
+                access.setEmployeeUrl("/employee");
                 access.setGuestUrl("/guest/dashboard");
                 break;
 
@@ -260,7 +260,7 @@ stats.setTotalProjects(rs.getInt("total"));
                 access.setCanAccessDept(false);
                 access.setCanAccessEmployee(true);
                 access.setCanAccessGuest(true);
-                access.setEmployeeUrl("/Views/Employee/EmployeeHome.jsp");
+                access.setEmployeeUrl("/employee");
                 access.setGuestUrl("/guest/dashboard");
                 break;
                 

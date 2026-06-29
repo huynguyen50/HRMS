@@ -15,10 +15,10 @@ public final class RoleRedirectUtil {
 
         return switch (user.getRoleId()) {
             case 1 -> "/admin?action=dashboard";
-            case 2 -> "/Views/hr/HrHome.jsp";
+            case 2 -> "/HrHomeController";
             case 3 -> "/dept?action=dashboard";
             case 4 -> "/hrstaff";
-            case 5 -> "/Views/Employee/EmployeeHome.jsp";
+            case 5 -> "/employee";
             case 6 -> "/guest/dashboard";
             default -> "/homepage";
         };

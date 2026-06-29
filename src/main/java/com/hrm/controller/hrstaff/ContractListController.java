@@ -170,15 +170,15 @@ public class ContractListController extends HttpServlet {
             
             // Handle success/error messages from redirect
             if (request.getParameter("deleteSuccess") != null) {
-                request.setAttribute(SUCCESS_ATTRIBUTE, "Contract deleted successfully!");
+                request.setAttribute(SUCCESS_ATTRIBUTE, "Xóa hợp đồng thành công!");
             }
             if (request.getParameter("deleteError") != null) {
                 String errorCode = request.getParameter("deleteError");
                 if ("2".equals(errorCode)) {
                     request.setAttribute(ERROR_ATTRIBUTE, 
-                        "Only contracts with status 'Draft', 'Rejected', or 'Expired' can be deleted.");
+                        "Chỉ có thể xóa hợp đồng ở trạng thái bản nháp, bị từ chối hoặc hết hạn.");
                 } else {
-                    request.setAttribute(ERROR_ATTRIBUTE, "Unable to delete contract. Please try again.");
+                    request.setAttribute(ERROR_ATTRIBUTE, "Không thể xóa hợp đồng. Vui lòng thử lại.");
                 }
             }
             
@@ -192,7 +192,7 @@ public class ContractListController extends HttpServlet {
                         request.setAttribute("editingContract", contract);
                     }
                 } catch (NumberFormatException e) {
-                    request.setAttribute(ERROR_ATTRIBUTE, "Invalid contract ID.");
+                    request.setAttribute(ERROR_ATTRIBUTE, "Mã hợp đồng không hợp lệ.");
                 }
             }
             
@@ -200,7 +200,7 @@ public class ContractListController extends HttpServlet {
             
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute(ERROR_ATTRIBUTE, "Error loading contract list: " + e.getMessage());
+            request.setAttribute(ERROR_ATTRIBUTE, "Lỗi khi tải danh sách hợp đồng: " + e.getMessage());
             try {
                 request.getRequestDispatcher(CONTRACT_LIST_JSP).forward(request, response);
             } catch (ServletException | IOException ex) {
@@ -226,7 +226,7 @@ public class ContractListController extends HttpServlet {
             updateContract(request, response);
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute(ERROR_ATTRIBUTE, "Error updating contract: " + e.getMessage());
+            request.setAttribute(ERROR_ATTRIBUTE, "Lỗi khi cập nhật hợp đồng: " + e.getMessage());
             doGet(request, response);
         }
     }
@@ -237,7 +237,7 @@ public class ContractListController extends HttpServlet {
         try {
             String contractIdStr = request.getParameter("contractId");
             if (contractIdStr == null || contractIdStr.trim().isEmpty()) {
-                request.setAttribute(ERROR_ATTRIBUTE, "Contract ID cannot be empty.");
+                request.setAttribute(ERROR_ATTRIBUTE, "Mã hợp đồng không được để trống.");
                 doGet(request, response);
                 return;
             }
@@ -248,7 +248,7 @@ public class ContractListController extends HttpServlet {
             // Get existing contract to check status and compare values
             Contract existingContract = contractDAO.getContractById(contractId);
             if (existingContract == null) {
-                request.setAttribute(ERROR_ATTRIBUTE, "Contract not found.");
+                request.setAttribute(ERROR_ATTRIBUTE, "Không tìm thấy hợp đồng.");
                 doGet(request, response);
                 return;
             }
@@ -260,7 +260,7 @@ public class ContractListController extends HttpServlet {
                 !currentStatus.equals(STATUS_PENDING) &&
                 !currentStatus.equals(STATUS_ACTIVE)) {
                 request.setAttribute(ERROR_ATTRIBUTE, 
-                    "Only contracts with status 'Draft', 'Pending_Approval' or 'Active' can be edited.");
+                    "Chỉ có thể chỉnh sửa hợp đồng ở trạng thái bản nháp, chờ phê duyệt hoặc đang hiệu lực.");
                 doGet(request, response);
                 return;
             }
@@ -280,7 +280,7 @@ public class ContractListController extends HttpServlet {
                 baseSalaryStr == null || baseSalaryStr.trim().isEmpty() ||
                 contractType == null || contractType.trim().isEmpty()) {
                 
-                request.setAttribute(ERROR_ATTRIBUTE, "Please fill in all required fields.");
+                request.setAttribute(ERROR_ATTRIBUTE, "Vui lòng nhập đầy đủ các trường bắt buộc.");
                 doGet(request, response);
                 return;
             }
@@ -296,7 +296,7 @@ public class ContractListController extends HttpServlet {
             
             // Validate notes length
             if (note != null && note.trim().length() > 1000) {
-                request.setAttribute(ERROR_ATTRIBUTE, "Notes cannot exceed 1000 characters.");
+                request.setAttribute(ERROR_ATTRIBUTE, "Ghi chú không được vượt quá 1000 ký tự.");
                 doGet(request, response);
                 return;
             }
@@ -371,13 +371,13 @@ public class ContractListController extends HttpServlet {
                             if (currentUser != null) {
                                 SystemLogDAO systemLogDAO = new SystemLogDAO();
                                 NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
-                                String oldValue = "Contract ID: " + contractId + ", Old Salary: " + nf.format(oldSalary) + " VND";
-                                String newValue = "Contract ID: " + contractId + ", New Salary: " + nf.format(baseSalary) + " VND";
+                                String oldValue = "Mã hợp đồng: " + contractId + ", Lương cũ: " + nf.format(oldSalary) + " VNĐ";
+                                String newValue = "Mã hợp đồng: " + contractId + ", Lương mới: " + nf.format(baseSalary) + " VNĐ";
                                 
                                 systemLogDAO.insertSystemLog(
                                     currentUser.getUserId(),
-                                    "Update Salary",
-                                    "Contract",
+                                    "Cập nhật lương",
+                                    "Hợp đồng",
                                     oldValue,
                                     newValue
                                 );
@@ -395,26 +395,26 @@ public class ContractListController extends HttpServlet {
                         String hrManagerEmail = contractDAO.getHrManagerEmail();
                         if (hrManagerEmail != null && !hrManagerEmail.trim().isEmpty()) {
                             NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
-                            String subject = "Contract Requires Approval - Contract ID: " + contractId;
+                            String subject = "Hợp đồng cần phê duyệt - Mã hợp đồng: " + contractId;
                             String salaryChangeInfo = "";
                             if (oldSalary != null) {
                                 salaryChangeInfo = String.format(
-                                    "\nSalary Change:\n" +
-                                    "- Old Salary: %s VND\n" +
-                                    "- New Salary: %s VND\n",
+                                    "\nThay đổi lương:\n" +
+                                    "- Lương cũ: %s VNĐ\n" +
+                                    "- Lương mới: %s VNĐ\n",
                                     nf.format(oldSalary),
                                     nf.format(baseSalary)
                                 );
                             }
                             String content = String.format(
-                                "Contract with ID %d has been modified and requires approval.\n\n" +
-                                "Contract Information:\n" +
+                                "Hợp đồng mã %d đã được chỉnh sửa và cần phê duyệt.\n\n" +
+                                "Thông tin hợp đồng:\n" +
                                 "- ID: %d\n" +
-                                "- Employee ID: %d\n" +
-                                "- Base Salary: %s VND\n" +
+                                "- Mã nhân viên: %d\n" +
+                                "- Lương cơ bản: %s VNĐ\n" +
                                 "%s" +
-                                "- Status: Pending_Approval\n\n" +
-                                "Please log in to the system to approve the contract.",
+                                "- Trạng thái: Chờ phê duyệt\n\n" +
+                                "Vui lòng đăng nhập hệ thống để phê duyệt hợp đồng.",
                                 contractId, contractId, employeeId, nf.format(baseSalary), salaryChangeInfo
                             );
                             EmailSender.sendEmail(hrManagerEmail, subject, content);
@@ -427,22 +427,22 @@ public class ContractListController extends HttpServlet {
                 
                 request.setAttribute(SUCCESS_ATTRIBUTE, 
                     importantFieldChanged ? 
-                        "Contract updated successfully! Contract has been changed to 'Pending_Approval' status and notification has been sent to HR Manager." :
-                        "Contract updated successfully!");
+                        "Cập nhật hợp đồng thành công! Hợp đồng đã chuyển sang trạng thái chờ phê duyệt và đã gửi thông báo cho quản lý nhân sự." :
+                        "Cập nhật hợp đồng thành công!");
                 
                 // Redirect to avoid resubmission
                 response.sendRedirect(request.getContextPath() + "/hrstaff/contracts?success=1");
             } else {
-                request.setAttribute(ERROR_ATTRIBUTE, "Unable to update contract. Please try again.");
+                request.setAttribute(ERROR_ATTRIBUTE, "Không thể cập nhật hợp đồng. Vui lòng thử lại.");
                 doGet(request, response);
             }
             
         } catch (NumberFormatException e) {
-            request.setAttribute(ERROR_ATTRIBUTE, "Invalid data. Please check again.");
+            request.setAttribute(ERROR_ATTRIBUTE, "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.");
             doGet(request, response);
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute(ERROR_ATTRIBUTE, "Error: " + e.getMessage());
+            request.setAttribute(ERROR_ATTRIBUTE, "Lỗi: " + e.getMessage());
             doGet(request, response);
         }
     }
@@ -454,8 +454,8 @@ public class ContractListController extends HttpServlet {
                 response,
                 PermissionUtil.ROLE_HR_STAFF,
                 "VIEW_CONTRACTS",
-                "This page is restricted to HR Staff.",
-                "You do not have permission to manage contracts."
+                "Trang này chỉ dành cho nhân viên nhân sự.",
+                "Bạn không có quyền quản lý hợp đồng."
         );
     }
 
@@ -465,6 +465,6 @@ public class ContractListController extends HttpServlet {
      */
     @Override
     public String getServletInfo() {
-        return "Contract List Controller";
+        return "Danh sách hợp đồng";
     }
 }

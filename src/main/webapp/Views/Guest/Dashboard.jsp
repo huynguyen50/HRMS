@@ -1,5 +1,8 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ page import="com.hrm.model.entity.Recruitment" %>
+<%@ page import="java.time.format.DateTimeFormatter" %>
+<%@ page import="java.util.List" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -15,18 +18,15 @@
 <body>
 <div class="candidate-shell">
     <aside class="candidate-sidebar">
-        <div class="candidate-brand">
+        <a class="candidate-brand" href="${pageContext.request.contextPath}/homepage" aria-label="Về trang chủ BetterHR">
             <strong>Better Jobs</strong>
             <span>Cổng ứng viên BetterHR</span>
-        </div>
+        </a>
 
         <nav class="candidate-nav">
             <a class="active" href="${pageContext.request.contextPath}/guest/dashboard"><i class="fa-solid fa-table-columns"></i> Bảng điều khiển</a>
-            <a href="${pageContext.request.contextPath}/RecruitmentController"><i class="fa-solid fa-briefcase"></i> Việc làm hiện có</a>
             <a href="${pageContext.request.contextPath}/guest/applications"><i class="fa-solid fa-list-check"></i> Đơn ứng tuyển</a>
             <a href="${pageContext.request.contextPath}/guest/profile"><i class="fa-solid fa-user"></i> Hồ sơ của tôi</a>
-            <a href="${pageContext.request.contextPath}/Views/ChangePassword.jsp"><i class="fa-solid fa-shield-halved"></i> Đổi mật khẩu</a>
-            <a href="${pageContext.request.contextPath}/homepage"><i class="fa-solid fa-house"></i> Trang chủ</a>
             <a href="${pageContext.request.contextPath}/logout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a>
         </nav>
 
@@ -87,7 +87,7 @@
                     <span class="candidate-stat-icon gold"><i class="fa-regular fa-calendar"></i></span>
                     <div>
                         <p>Lịch phỏng vấn</p>
-                        <strong>0</strong>
+                        <strong>${upcomingInterviewCount}</strong>
                     </div>
                 </div>
                 <div class="candidate-stat">
@@ -139,10 +139,10 @@
                                             <tr>
                                                 <td><strong>${empty app.jobTitle ? 'Tin tuyển dụng' : app.jobTitle}</strong></td>
                                                 <td class="candidate-muted">${empty app.location ? 'Đang cập nhật' : app.location}</td>
-                                                <td class="candidate-muted">${app.guest.appliedDate}</td>
+                                                <td class="candidate-muted">${app.application.appliedDate}</td>
                                                 <td>
-                                                    <span class="candidate-status ${app.guest.status == 'Rejected' ? 'rejected' : app.guest.status == 'Hired' ? 'hired' : ''}">
-                                                        ${app.guest.statusLabel}
+                                                    <span class="candidate-status ${app.application.statusCssClass}">
+                                                        ${app.application.statusLabel}
                                                     </span>
                                                 </td>
                                                 <td><a class="candidate-link" href="${pageContext.request.contextPath}/guest/applications">Chi tiết</a></td>
@@ -164,30 +164,72 @@
                             <a class="candidate-link" href="${pageContext.request.contextPath}/RecruitmentController">Xem việc làm</a>
                         </div>
 
+                        <%
+                            DateTimeFormatter jobDateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+                            List<Recruitment> recommendedRecruitments =
+                                    (List<Recruitment>) request.getAttribute("recommendedRecruitments");
+                            if (recommendedRecruitments != null && !recommendedRecruitments.isEmpty()) {
+                        %>
                         <div class="candidate-job-grid">
+                            <% for (Recruitment job : recommendedRecruitments) { %>
                             <article class="candidate-job-card">
                                 <div>
-                                    <span class="candidate-job-icon"><i class="fa-solid fa-pen-nib"></i></span>
-                                    <h3>Nhân sự vận hành</h3>
-                                    <p>Tham gia hỗ trợ quy trình tuyển dụng, hồ sơ nhân sự và trải nghiệm ứng viên.</p>
+                                    <span class="candidate-job-icon"><i class="fa-solid fa-briefcase"></i></span>
+                                    <h3><%= job.getTitle() %></h3>
+                                    <div class="candidate-job-meta vertical">
+                                        <span><i class="fa-solid fa-location-dot"></i> <%= job.getLocation() == null || job.getLocation().isBlank() ? "Đang cập nhật" : job.getLocation() %></span>
+                                        <% if (job.getSalary() != null) { %>
+                                        <span><i class="fa-solid fa-money-bill-wave"></i> <%= String.format("%,.0f", job.getSalary()) %> VNĐ</span>
+                                        <% } else { %>
+                                        <span><i class="fa-solid fa-money-bill-wave"></i> Thỏa thuận</span>
+                                        <% } %>
+                                        <span><i class="fa-solid fa-users"></i> Số lượng tuyển: <%= job.getApplicant() %> người</span>
+                                    </div>
+                                    <% if ("Applied".equals(job.getStatus())) { %>
+                                    <span class="candidate-status"><i class="fa-solid fa-circle-info"></i> Đang tuyển</span>
+                                    <% } %>
+                                    <p><%= job.getDescription() == null || job.getDescription().isBlank() ? "Mô tả công việc đang được cập nhật." : job.getDescription() %></p>
+                                    <% if (job.getRequirement() != null && !job.getRequirement().trim().isEmpty()) { %>
+                                    <div class="candidate-job-requirements">
+                                        <strong>Yêu cầu:</strong>
+                                        <ul>
+                                            <%
+                                                String[] requirements = job.getRequirement().split("\\n");
+                                                for (String req : requirements) {
+                                                    if (!req.trim().isEmpty()) {
+                                            %>
+                                            <li><%= req.trim() %></li>
+                                            <%
+                                                    }
+                                                }
+                                            %>
+                                        </ul>
+                                    </div>
+                                    <% } %>
                                 </div>
                                 <div class="candidate-job-footer">
-                                    <strong>Đang tuyển</strong>
-                                    <a class="candidate-btn" href="${pageContext.request.contextPath}/RecruitmentController">Ứng tuyển</a>
+                                    <span class="candidate-job-date">
+                                        <i class="fa-solid fa-calendar"></i>
+                                        <%= job.getPostedDate() != null ? job.getPostedDate().format(jobDateFormatter) : "Đang cập nhật" %>
+                                    </span>
+                                    <% if ("Applied".equals(job.getStatus())) { %>
+                                    <a class="candidate-btn" href="${pageContext.request.contextPath}/RecruitmentController?action=apply&recruitmentId=<%= job.getRecruitmentId() %>">
+                                        <i class="fa-solid fa-paper-plane"></i> Ứng tuyển ngay
+                                    </a>
+                                    <% } else { %>
+                                    <span class="candidate-btn disabled"><i class="fa-solid fa-lock"></i> Đã đóng</span>
+                                    <% } %>
                                 </div>
                             </article>
-                            <article class="candidate-job-card">
-                                <div>
-                                    <span class="candidate-job-icon"><i class="fa-solid fa-code"></i></span>
-                                    <h3>Chuyên viên hệ thống</h3>
-                                    <p>Làm việc cùng đội BetterHR để vận hành dữ liệu, báo cáo và quy trình nội bộ.</p>
-                                </div>
-                                <div class="candidate-job-footer">
-                                    <strong>Đang tuyển</strong>
-                                    <a class="candidate-btn" href="${pageContext.request.contextPath}/RecruitmentController">Ứng tuyển</a>
-                                </div>
-                            </article>
+                            <% } %>
                         </div>
+                        <% } else { %>
+                        <div class="candidate-card">
+                            <div class="candidate-card-body">
+                                <div class="candidate-empty">Hiện chưa có vị trí tuyển dụng phù hợp. Bạn có thể quay lại sau để xem cơ hội mới.</div>
+                            </div>
+                        </div>
+                        <% } %>
                     </section>
                 </div>
 
@@ -240,6 +282,16 @@
                                 <h3>Thông báo</h3>
                             </div>
                             <div class="candidate-side-list">
+                                <c:forEach var="notice" items="${notifications}">
+                                    <div class="candidate-notice">
+                                        <i class="fa-solid fa-envelope candidate-icon-secondary"></i>
+                                        <div>
+                                            <strong>${notice.title}</strong>
+                                            <span>${notice.message}</span>
+                                        </div>
+                                    </div>
+                                </c:forEach>
+                                <c:if test="${empty notifications}">
                                 <div class="candidate-notice">
                                     <i class="fa-solid fa-envelope candidate-icon-secondary"></i>
                                     <div>
@@ -254,6 +306,7 @@
                                         <span>Cập nhật số điện thoại, địa chỉ và ảnh đại diện.</span>
                                     </div>
                                 </div>
+                                </c:if>
                             </div>
                         </div>
                     </section>

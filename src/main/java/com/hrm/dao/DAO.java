@@ -876,8 +876,7 @@ public class DAO {
 
     public int createTask(String title, String description, int assignedBy, String startDate, String dueDate) {
         String sql = "INSERT INTO Task (Title, Description, AssignedBy, StartDate, DueDate, Status) VALUES (?, ?, ?, ?, ?, ?)";
-        int result = 0;
-        try (PreparedStatement ps = con.prepareStatement(sql)) {
+        try (PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, title);
             ps.setString(2, description);
             ps.setInt(3, assignedBy);
@@ -892,11 +891,18 @@ public class DAO {
                 ps.setNull(5, java.sql.Types.DATE);
             }
             ps.setString(6, "In Progress");
-            result = ps.executeUpdate();
+            if (ps.executeUpdate() == 0) {
+                return 0;
+            }
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return result;
+        return 0;
     }
 
     public List<Employee> loadEmpFollowDepartment(int deptID) {

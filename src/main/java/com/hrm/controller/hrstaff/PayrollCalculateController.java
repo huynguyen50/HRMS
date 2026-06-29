@@ -42,8 +42,8 @@ public class PayrollCalculateController extends HttpServlet {
                 response,
                 PermissionUtil.ROLE_HR_STAFF,
                 REQUIRED_PERMISSION,
-                "This section is restricted to HR Staff.",
-                "You do not have permission to calculate payroll.")) {
+                "Khu vực này chỉ dành cho nhân viên nhân sự.",
+                "Bạn không có quyền tính lương.")) {
             return;
         }
         response.setContentType("application/json");
@@ -56,7 +56,7 @@ public class PayrollCalculateController extends HttpServlet {
             if (employeeIdStr == null || month == null) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 PrintWriter out = response.getWriter();
-                out.print("{\"error\":\"Missing required parameters\"}");
+                out.print("{\"error\":\"Thiếu tham số bắt buộc\"}");
                 return;
             }
 

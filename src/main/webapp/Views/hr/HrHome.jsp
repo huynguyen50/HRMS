@@ -2083,80 +2083,8 @@
 
             <!-- Main Content -->
             <main class="hr-main-content">
-                <!-- Sidebar -->
-                <aside class="hr-sidebar">
-                    <div class="hr-sidebar-brand">
-                        <div class="brand-mark">B</div>
-                        <div>
-                            <strong>BetterHR</strong>
-                            <span>Cổng quản trị nhân sự</span>
-                        </div>
-                    </div>
-                    <nav class="hr-nav">
-                        <div class="nav-section">
-                            
-                            <a href="#hr-home" class="nav-item active" data-section="hr-home">
-                                <i class="fas fa-home"></i>
-                                <span>Tổng quan HR</span>
-                            </a>
-                        </div>
-                        
-                        <div class="nav-section">
-                            <h3>Yêu cầu</h3>
-                            <a href="#requests-approval" class="nav-item" data-section="requests-approval">
-                                <i class="fas fa-clipboard-check"></i>
-                                <span>Duyệt đề xuất</span>
-                            </a>
-                        </div>
-                        
-                        <div class="nav-section">
-                            <h3>Lương & hợp đồng</h3>
-                            <a href="${pageContext.request.contextPath}/hr/payroll-approval" class="nav-item">
-                                <i class="fas fa-money-bill-wave"></i>
-                                <span>Duyệt bảng lương</span>
-                            </a>
-                            <a href="${pageContext.request.contextPath}/hr/approve-reject-contracts" class="nav-item">
-                                <i class="fas fa-file-contract"></i>
-                                <span>Duyệt hợp đồng</span>
-                            </a>
-                        </div>
-                        
-                        <div class="nav-section">
-                            <h3>Tuyển dụng</h3>
-                            <a href="${pageContext.request.contextPath}/viewRecruitment" class="nav-item">
-                                <i class="fas fa-bullhorn"></i>
-                                <span>Tin tuyển dụng</span>
-                            </a>
-                            <a href="${pageContext.request.contextPath}/hr/create-employee" class="nav-item">
-                                <i class="fas fa-user-plus"></i>
-                                <span>Tạo nhân viên</span>
-                            </a>
-                            <a href="${pageContext.request.contextPath}/hr/employee-list" class="nav-item">
-                                <i class="fas fa-list"></i>
-                                <span>Danh sách nhân viên</span>
-                            </a>
-                            <a href="#recruitment-system" class="nav-item" data-section="recruitment-system">
-                                <i class="fas fa-clipboard-list"></i>
-                                <span>Quy trình tuyển dụng</span>
-                            </a>
-                        </div>
-                        
-                        <div class="nav-section">
-                            <h3>Báo cáo</h3>
-                            <a href="#reports-analytics" class="nav-item" data-section="reports-analytics">
-                                <i class="fas fa-chart-bar"></i>
-                                <span>Báo cáo & phân tích</span>
-                            </a>
-                        </div>
-                    </nav>
-                    <div class="hr-sidebar-user">
-                        <img src="https://i.pravatar.cc/40" alt="Người dùng HR">
-                        <div>
-                            <strong>Quản lý HR</strong>
-                            <span>BetterHR</span>
-                        </div>
-                    </div>
-                </aside>
+                <c:set var="hrSidebarActive" value="${param.section eq 'requests-approval' ? 'requests' : param.section eq 'reports-analytics' ? 'reports' : 'overview'}" />
+                <%@ include file="_HrManagerSidebar.jspf" %>
 
                 <!-- Content Area -->
                 <div class="hr-content-area">
@@ -2200,9 +2128,9 @@
                                     </a>-->
                                     <a href="${pageContext.request.contextPath}/viewRecruitment" class="access-card">
                                         <span class="access-icon"><i class="fas fa-bullhorn"></i></span>
-                                        <h4>Đăng tin tuyển dụng</h4>
-                                        <p>Tạo, kiểm tra và quản lý các vị trí đang tuyển.</p>
-                                        <strong>Mở đợt tuyển dụng <i class="fas fa-arrow-right"></i></strong>
+                                        <h4>Duyệt tin tuyển dụng</h4>
+                                        <p>Kiểm tra và duyệt các tin tuyển dụng do HR Staff gửi lên.</p>
+                                        <strong>Xem tin chờ duyệt <i class="fas fa-arrow-right"></i></strong>
                                     </a>
                                     
                                  

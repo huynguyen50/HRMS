@@ -1,88 +1,118 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package com.hrm.controller.dept;
 
 import com.hrm.dao.DAO;
+import com.hrm.dao.EmployeeDAO;
 import com.hrm.model.entity.Employee;
-import com.hrm.model.entity.SystemUser;
-import com.hrm.model.entity.Task;
-import java.io.IOException;
-import java.util.List;
+import com.hrm.util.DeptManagerScope;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
-/**
- *
- * @author DELL
- */
 @WebServlet(name = "postTask", urlPatterns = {"/postTask"})
 public class PostTask extends HttpServlet {
+
+    private final EmployeeDAO employeeDAO = new EmployeeDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        HttpSession session = request.getSession();
-        if (session == null || session.getAttribute("systemUser") == null) {
-            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+        DeptManagerScope scope = DeptManagerScope.from(request, employeeDAO);
+        if (scope == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+        if (!scope.hasDepartment()) {
+            response.sendRedirect(request.getContextPath() + "/dept");
             return;
         }
 
-        SystemUser sys = (SystemUser) session.getAttribute("systemUser");
-        Employee emp = DAO.getInstance().getEmp(sys.getEmployeeId());
-
-        // Lấy danh sách nhân viên trong cùng phòng
-        List<Employee> eList = DAO.getInstance().loadEmpFollowDepartment(emp.getDepartmentId());
-
-        request.setAttribute("employeeList", eList);
-        request.getRequestDispatcher("Views/DeptManager/postTask.jsp").forward(request, response);
+        List<Employee> employeeList = DAO.getInstance().loadEmpFollowDepartment(scope.getDepartmentId());
+        request.setAttribute("employeeList", employeeList);
+        request.setAttribute("activePage", "tasks");
+        request.setAttribute("pageTitle", "Tạo công việc");
+        request.setAttribute("pageSubtitle", "Giao công việc cho nhân viên trong phòng ban.");
+        if (scope.getEmployee() != null) {
+            request.setAttribute("userName", scope.getEmployee().getFullName());
+            request.setAttribute("userPosition", scope.getEmployee().getPosition());
+        }
+        request.getRequestDispatcher("/Views/DeptManager/postTask.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        HttpSession session = request.getSession();
-        if (session == null || session.getAttribute("systemUser") == null) {
-            response.sendRedirect(request.getContextPath() + "/Views/Login.jsp");
+        DeptManagerScope scope = DeptManagerScope.from(request, employeeDAO);
+        if (scope == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+        if (!scope.hasDepartment()) {
+            response.sendRedirect(request.getContextPath() + "/dept");
             return;
         }
 
-        SystemUser sys = (SystemUser) session.getAttribute("systemUser");
+        String title = clean(request.getParameter("title"));
+        String description = clean(request.getParameter("description"));
+        String startDate = clean(request.getParameter("startDate"));
+        String dueDate = clean(request.getParameter("dueDate"));
 
-        String title = request.getParameter("title");
-        String description = request.getParameter("description");
-        String startDate = request.getParameter("startDate");
-        String dueDate = request.getParameter("dueDate");
+        String error = validate(title, description, startDate, dueDate);
+        if (error != null) {
+            response.sendRedirect(request.getContextPath() + "/postTask?error=" + URLEncoder.encode(error, StandardCharsets.UTF_8));
+            return;
+        }
 
-        int taskId = DAO.getInstance().createTask(title, description, sys.getEmployeeId(), startDate, dueDate);
+        int taskId = DAO.getInstance().createTask(title, description, scope.getApproverEmployeeId(), startDate, dueDate);
+        if (taskId <= 0) {
+            response.sendRedirect(request.getContextPath() + "/postTask?error=" + URLEncoder.encode("Không thể tạo công việc", StandardCharsets.UTF_8));
+            return;
+        }
 
-        if (taskId > 0) {
-            String[] assignToIds = request.getParameterValues("assignTo");
-            if (assignToIds != null) {
-                for (String empIdStr : assignToIds) {
-                    try {
-                        int empId = Integer.parseInt(empIdStr);
-                        DAO.getInstance().assignTaskToEmployee(taskId, empId);
-                    } catch (NumberFormatException e) {
-                    }
+        String[] assignToIds = request.getParameterValues("assignTo");
+        if (assignToIds != null) {
+            for (String empIdStr : assignToIds) {
+                int empId = parseInt(empIdStr, -1);
+                Employee assignee = DAO.getInstance().getEmp(empId);
+                if (assignee != null && assignee.getDepartmentId() == scope.getDepartmentId()) {
+                    DAO.getInstance().assignTaskToEmployee(taskId, empId);
                 }
             }
-
-            response.sendRedirect(request.getContextPath() + "/taskManager?mess=Task created successfully");
-        } else {
-            response.sendRedirect(request.getContextPath() + "/postTask?error=Failed to create task");
         }
+
+        response.sendRedirect(request.getContextPath() + "/taskManager?mess=" + URLEncoder.encode("Đã tạo công việc thành công", StandardCharsets.UTF_8));
     }
 
-    @Override
-    public String getServletInfo() {
-        return "Post Task Controller";
+    private String validate(String title, String description, String startDate, String dueDate) {
+        if (title == null || title.isBlank() || title.length() > 50) {
+            return "Title is required and must be 50 characters or fewer";
+        }
+        if (description != null && description.length() > 1000) {
+            return "Description must be 1000 characters or fewer";
+        }
+        if (startDate == null || startDate.isBlank() || dueDate == null || dueDate.isBlank()) {
+            return "Start date and due date are required";
+        }
+        if (startDate.compareTo(dueDate) > 0) {
+            return "Start date must be before due date";
+        }
+        return null;
+    }
+
+    private String clean(String value) {
+        return value == null ? null : value.trim();
+    }
+
+    private int parseInt(String value, int fallback) {
+        try {
+            return value == null || value.isBlank() ? fallback : Integer.parseInt(value);
+        } catch (NumberFormatException ex) {
+            return fallback;
+        }
     }
 }

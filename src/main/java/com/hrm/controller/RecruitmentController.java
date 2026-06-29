@@ -1,25 +1,17 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
-
 package com.hrm.controller;
 
-import com.hrm.dao.RecruitmentDAO;
+import com.hrm.dao.ApplicationDAO;
+import com.hrm.dao.CandidateProfileDAO;
 import com.hrm.dao.GuestDAO;
-import com.hrm.model.entity.Recruitment;
+import com.hrm.dao.NotificationDAO;
+import com.hrm.dao.RecruitmentDAO;
+import com.hrm.model.entity.Application;
+import com.hrm.model.entity.CandidateProfile;
 import com.hrm.model.entity.Guest;
+import com.hrm.model.entity.Notification;
+import com.hrm.model.entity.Recruitment;
 import com.hrm.model.entity.SystemUser;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
-import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
@@ -28,249 +20,626 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
-import jakarta.servlet.RequestDispatcher;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.Random;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-/**
- *
- * @author admin
- */
-@WebServlet(name="RecruitmentController", urlPatterns={"/RecruitmentController"})
+@WebServlet(name = "RecruitmentController", urlPatterns = {"/RecruitmentController"})
 @MultipartConfig(
-    fileSizeThreshold = 1024 * 1024 * 2, // 2MB
-    maxFileSize = 1024 * 1024 * 5,       // 5MB
-    maxRequestSize = 1024 * 1024 * 10     // 10MB
+        fileSizeThreshold = 1024 * 1024 * 2,
+        maxFileSize = 1024 * 1024 * 10,
+        maxRequestSize = 1024 * 1024 * 12
 )
 public class RecruitmentController extends HttpServlet {
-   
+
     private static final Logger LOGGER = Logger.getLogger(RecruitmentController.class.getName());
-    private RecruitmentDAO recruitmentDAO = new RecruitmentDAO();
-    private GuestDAO guestDAO = new GuestDAO();
-   
-    /** 
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
+    private static final long serialVersionUID = 1L;
+    private static final int EMAIL_CODE_TTL_MINUTES = 10;
+    private static final String SESSION_PROFILE_DRAFT = "candidateProfileDraft";
+    private static final String SESSION_PROFILE_CODE = "candidateProfileVerifyCode";
+    private static final String SESSION_PROFILE_EXPIRES = "candidateProfileVerifyExpiresAt";
+    private static final String SESSION_PROFILE_RECRUITMENT_ID = "candidateProfileVerifyRecruitmentId";
+    private static final String DUPLICATE_MESSAGE = "Bạn đã ứng tuyển công việc này.";
+
+    private final transient RecruitmentDAO recruitmentDAO = new RecruitmentDAO();
+    private final transient GuestDAO guestDAO = new GuestDAO();
+    private final transient CandidateProfileDAO candidateProfileDAO = new CandidateProfileDAO();
+    private final transient ApplicationDAO applicationDAO = new ApplicationDAO();
+    private final transient NotificationDAO notificationDAO = new NotificationDAO();
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
-        String action = request.getParameter("action");
-        
+            throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        String action = trimToNull(request.getParameter("action"));
+
         if (action == null) {
             action = "list";
         }
-        
+
         switch (action) {
-            case "list":
-                showRecruitmentList(request, response);
-                break;
-            case "apply":
-                showApplyForm(request, response);
-                break;
-            case "submitApplication":
-                submitApplication(request, response);
-                break;
-            case "view":
-                viewRecruitment(request, response);
-                break;
-            default:
-                showRecruitmentList(request, response);
-                break;
+            case "list" -> showRecruitmentList(request, response);
+            case "apply" -> handleApplyEntry(request, response);
+            case "saveCandidateProfile" -> saveCandidateProfileDraft(request, response);
+            case "verifyCandidateProfileEmail" -> verifyCandidateProfileEmail(request, response);
+            case "resendCandidateProfileCode" -> resendCandidateProfileCode(request, response);
+            case "confirmApplication" -> confirmApplication(request, response);
+            case "submitApplication" -> handleApplyEntry(request, response);
+            case "view" -> viewRecruitment(request, response);
+            default -> showRecruitmentList(request, response);
         }
     }
-    
+
     private void showRecruitmentList(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            // Chỉ lấy các tin tuyển dụng có status = 'Applied'
-            // Các trạng thái New, Waiting, Close, Deleted sẽ không được hiển thị
+            setRecruitmentListMessages(request);
             var recruitments = recruitmentDAO.getLatestThree();
             request.setAttribute("recruitments", recruitments);
             RequestDispatcher dispatcher = request.getRequestDispatcher("/Views/Recruitment.jsp");
             dispatcher.forward(request, response);
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Không tải được danh sách tuyển dụng", e);
+            LOGGER.log(Level.SEVERE, "Cannot load recruitments", e);
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
-    
-    private void showApplyForm(HttpServletRequest request, HttpServletResponse response)
+
+    private void handleApplyEntry(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!isLoggedIn(request)) {
+        SystemUser currentUser = getCurrentUser(request);
+        String recruitmentIdStr = trimToNull(request.getParameter("recruitmentId"));
+        if (currentUser == null) {
+            rememberApplyUrl(request, recruitmentIdStr);
             response.sendRedirect(request.getContextPath() + "/login?error=login_required");
             return;
         }
 
+        int recruitmentId = parseRecruitmentId(request, response, recruitmentIdStr);
+        if (recruitmentId <= 0) {
+            return;
+        }
+
+        Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
+        if (!isOpenRecruitment(recruitment)) {
+            redirectRecruitmentError(response, request, "Tin tuyển dụng này không còn nhận hồ sơ.");
+            return;
+        }
+
+        Guest guest = guestDAO.findOrCreateProfileForUser(currentUser);
+        if (guest == null) {
+            redirectRecruitmentError(response, request, "Không thể tạo hồ sơ ứng viên. Vui lòng thử lại.");
+            return;
+        }
+
+        if (hasAlreadyApplied(currentUser, guest, recruitmentId)) {
+            redirectRecruitmentError(response, request, DUPLICATE_MESSAGE);
+            return;
+        }
+
+        CandidateProfile profile = candidateProfileDAO.findByGuestId(guest.getGuestId());
+        if (isReadyProfile(profile)) {
+            forwardApplyConfirm(request, response, recruitment, profile);
+            return;
+        }
+
+        request.setAttribute("recruitment", recruitment);
+        request.setAttribute("candidateProfile", profile);
+        request.setAttribute("currentUser", currentUser);
+        request.getRequestDispatcher("/Views/ApplyForm.jsp").forward(request, response);
+    }
+
+    private void saveCandidateProfileDraft(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        SystemUser currentUser = getCurrentUser(request);
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/login?error=login_required");
+            return;
+        }
+
+        String recruitmentIdStr = trimToNull(request.getParameter("recruitmentId"));
+        int recruitmentId = parseRecruitmentId(request, response, recruitmentIdStr);
+        if (recruitmentId <= 0) {
+            return;
+        }
+
+        Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
+        if (!isOpenRecruitment(recruitment)) {
+            redirectRecruitmentError(response, request, "Tin tuyển dụng này không còn nhận hồ sơ.");
+            return;
+        }
+
+        Guest guest = guestDAO.findOrCreateProfileForUser(currentUser);
+        if (guest == null) {
+            forwardApplyFormError(request, response, recruitment, null, currentUser,
+                    "Không thể tạo hồ sơ ứng viên. Vui lòng thử lại.");
+            return;
+        }
+
+        if (hasAlreadyApplied(currentUser, guest, recruitmentId)) {
+            redirectRecruitmentError(response, request, DUPLICATE_MESSAGE);
+            return;
+        }
+
+        CandidateProfile existingProfile = candidateProfileDAO.findByGuestId(guest.getGuestId());
+        PendingCandidateProfile draft;
+        try {
+            draft = buildPendingProfile(request, guest, existingProfile);
+        } catch (IllegalArgumentException ex) {
+            forwardApplyFormError(request, response, recruitment, existingProfile, currentUser, ex.getMessage());
+            return;
+        }
+
+        if (existingProfile != null
+                && existingProfile.isEmailVerified()
+                && existingProfile.getEmail() != null
+                && existingProfile.getEmail().equalsIgnoreCase(draft.getEmail())) {
+            CandidateProfile savedProfile = draft.toCandidateProfile();
+            savedProfile.setCandidateProfileId(existingProfile.getCandidateProfileId());
+            savedProfile.setEmailVerified(true);
+            savedProfile.setEmailVerifiedAt(existingProfile.getEmailVerifiedAt());
+            int savedId = candidateProfileDAO.save(savedProfile);
+            if (savedId <= 0) {
+                forwardApplyFormError(request, response, recruitment, existingProfile, currentUser,
+                        "Không thể lưu hồ sơ ứng tuyển. Vui lòng thử lại.");
+                return;
+            }
+            syncGuestProfile(guest, savedProfile);
+            response.sendRedirect(request.getContextPath()
+                    + "/RecruitmentController?action=apply&recruitmentId=" + recruitmentId);
+            return;
+        }
+
+        String code = generateVerificationCode();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(EMAIL_CODE_TTL_MINUTES);
+        try {
+            sendCandidateProfileCode(draft.getEmail(), code);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "Cannot send candidate profile verification code", ex);
+            forwardApplyFormError(request, response, recruitment, existingProfile, currentUser,
+                    "Không thể gửi mã xác nhận email. Vui lòng thử lại sau.");
+            return;
+        }
+
+        HttpSession session = request.getSession(true);
+        session.setAttribute(SESSION_PROFILE_DRAFT, draft);
+        session.setAttribute(SESSION_PROFILE_CODE, code);
+        session.setAttribute(SESSION_PROFILE_EXPIRES, expiresAt);
+        session.setAttribute(SESSION_PROFILE_RECRUITMENT_ID, recruitmentId);
+
+        forwardVerifyEmail(request, response, recruitment, draft, null);
+    }
+
+    private void verifyCandidateProfileEmail(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        SystemUser currentUser = getCurrentUser(request);
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/login?error=login_required");
+            return;
+        }
+
+        VerificationState state = getVerificationState(request);
+        if (!state.isComplete()) {
+            redirectRecruitmentError(response, request, "Phiên xác nhận email đã hết hạn. Vui lòng lưu hồ sơ lại.");
+            return;
+        }
+
+        Recruitment recruitment = recruitmentDAO.getById(state.recruitmentId());
+        String inputCode = trimToNull(request.getParameter("verificationCode"));
+        if (inputCode == null || !inputCode.equals(state.code()) || state.expiresAt().isBefore(LocalDateTime.now())) {
+            forwardVerifyEmail(request, response, recruitment, state.draft(),
+                    "Mã xác nhận không hợp lệ hoặc đã hết hạn.");
+            return;
+        }
+
+        CandidateProfile profile = state.draft().toCandidateProfile();
+        profile.setEmailVerified(true);
+        profile.setEmailVerifiedAt(LocalDateTime.now());
+        int savedId = candidateProfileDAO.save(profile);
+        if (savedId <= 0) {
+            forwardVerifyEmail(request, response, recruitment, state.draft(),
+                    "Không thể lưu hồ sơ ứng tuyển. Vui lòng thử lại.");
+            return;
+        }
+        profile.setCandidateProfileId(savedId);
+
+        Guest guest = guestDAO.getById(profile.getGuestId());
+        if (guest != null) {
+            syncGuestProfile(guest, profile);
+        }
+        clearVerificationState(request.getSession(false));
+
+        response.sendRedirect(request.getContextPath()
+                + "/RecruitmentController?action=apply&recruitmentId=" + state.recruitmentId());
+    }
+
+    private void resendCandidateProfileCode(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        VerificationState state = getVerificationState(request);
+        if (!state.hasDraft()) {
+            redirectRecruitmentError(response, request, "Phiên xác nhận email đã hết hạn. Vui lòng lưu hồ sơ lại.");
+            return;
+        }
+
+        String code = generateVerificationCode();
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(EMAIL_CODE_TTL_MINUTES);
+        try {
+            sendCandidateProfileCode(state.draft().getEmail(), code);
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "Cannot resend candidate profile verification code", ex);
+            Recruitment recruitment = recruitmentDAO.getById(state.recruitmentId());
+            forwardVerifyEmail(request, response, recruitment, state.draft(),
+                    "Không thể gửi lại mã xác nhận. Vui lòng thử lại sau.");
+            return;
+        }
+
+        HttpSession session = request.getSession(true);
+        session.setAttribute(SESSION_PROFILE_CODE, code);
+        session.setAttribute(SESSION_PROFILE_EXPIRES, expiresAt);
+
+        Recruitment recruitment = recruitmentDAO.getById(state.recruitmentId());
+        request.setAttribute("success", "Mã xác nhận mới đã được gửi đến email của bạn.");
+        forwardVerifyEmail(request, response, recruitment, state.draft(), null);
+    }
+
+    private void confirmApplication(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        SystemUser currentUser = getCurrentUser(request);
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/login?error=login_required");
+            return;
+        }
+
+        String recruitmentIdStr = trimToNull(request.getParameter("recruitmentId"));
+        int recruitmentId = parseRecruitmentId(request, response, recruitmentIdStr);
+        if (recruitmentId <= 0) {
+            return;
+        }
+
+        Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
+        if (!isOpenRecruitment(recruitment)) {
+            redirectRecruitmentError(response, request, "Tin tuyển dụng này không còn nhận hồ sơ.");
+            return;
+        }
+
+        Guest guest = guestDAO.findOrCreateProfileForUser(currentUser);
+        if (guest == null) {
+            redirectRecruitmentError(response, request, "Không thể tải hồ sơ ứng viên. Vui lòng thử lại.");
+            return;
+        }
+
+        if (hasAlreadyApplied(currentUser, guest, recruitmentId)) {
+            redirectRecruitmentError(response, request, DUPLICATE_MESSAGE);
+            return;
+        }
+
+        CandidateProfile profile = candidateProfileDAO.findByGuestId(guest.getGuestId());
+        if (!isReadyProfile(profile)) {
+            response.sendRedirect(request.getContextPath()
+                    + "/RecruitmentController?action=apply&recruitmentId=" + recruitmentId);
+            return;
+        }
+
+        Application application = new Application();
+        application.setGuestId(guest.getGuestId());
+        application.setRecruitmentId(recruitmentId);
+        application.setCandidateProfileId(profile.getCandidateProfileId());
+        application.setAppliedDate(LocalDateTime.now());
+        application.setStatus("Applied");
+        application.setCurrentStep("Applied");
+        application.setCv(profile.getCvFilePath());
+        application.setNote(trimToNull(request.getParameter("note")));
+        application.setSource("Portal");
+
+        int applicationId = applicationDAO.create(application);
+        if (applicationId <= 0) {
+            forwardApplyConfirmError(request, response, recruitment, profile,
+                    "Không thể gửi hồ sơ. Vui lòng thử lại.");
+            return;
+        }
+
+        Notification notification = new Notification();
+        notification.setUserId(currentUser.getUserId());
+        notification.setApplicationId(applicationId);
+        notification.setTitle("Đã nhận hồ sơ ứng tuyển");
+        notification.setMessage("Hồ sơ của bạn cho vị trí " + recruitment.getTitle() + " đã được BetterHR ghi nhận.");
+        notification.setType("Application");
+        notification.setRead(false);
+        notificationDAO.create(notification);
+
+        response.sendRedirect(request.getContextPath() + "/Views/Success.jsp");
+    }
+
+    private PendingCandidateProfile buildPendingProfile(HttpServletRequest request, Guest guest,
+                                                        CandidateProfile existingProfile)
+            throws IOException, ServletException {
+        String fullName = trimToNull(request.getParameter("fullName"));
+        String phone = trimToNull(request.getParameter("phone"));
+        String email = trimToNull(request.getParameter("email"));
+        String address = trimToNull(request.getParameter("address"));
+        String desiredPosition = trimToNull(request.getParameter("desiredPosition"));
+        String workExperience = trimToNull(request.getParameter("workExperience"));
+        LocalDate dateOfBirth = parseDate(trimToNull(request.getParameter("dateOfBirth")));
+        BigDecimal expectedSalary = parseExpectedSalary(trimToNull(request.getParameter("expectedSalary")));
+
+        if (fullName == null) {
+            throw new IllegalArgumentException("Vui lòng nhập họ và tên.");
+        }
+        if (!isValidEmail(email)) {
+            throw new IllegalArgumentException("Email không đúng định dạng.");
+        }
+        if (!isValidPhone(phone)) {
+            throw new IllegalArgumentException("Số điện thoại phải có 9-11 chữ số.");
+        }
+        if (dateOfBirth != null && dateOfBirth.isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("Ngày sinh không hợp lệ.");
+        }
+
+        String cvFileName = saveCvFile(request, existingProfile != null ? existingProfile.getCvFilePath() : null);
+        if (cvFileName == null || cvFileName.isBlank()) {
+            throw new IllegalArgumentException("Vui lòng upload CV định dạng PDF, DOC hoặc DOCX, tối đa 10MB.");
+        }
+
+        PendingCandidateProfile draft = new PendingCandidateProfile();
+        draft.setGuestId(guest.getGuestId());
+        draft.setFullName(fullName);
+        draft.setPhone(phone);
+        draft.setEmail(email);
+        draft.setDateOfBirth(dateOfBirth);
+        draft.setAddress(address);
+        draft.setDesiredPosition(desiredPosition);
+        draft.setExpectedSalary(expectedSalary);
+        draft.setWorkExperience(workExperience);
+        draft.setCvFilePath(cvFileName);
+        return draft;
+    }
+
+    private String saveCvFile(HttpServletRequest request, String fallbackFileName)
+            throws IOException, ServletException {
+        Part cvFilePart = request.getPart("cvFile");
+        if (cvFilePart == null || cvFilePart.getSize() <= 0) {
+            return fallbackFileName;
+        }
+
+        if (cvFilePart.getSize() > 10L * 1024 * 1024) {
+            return null;
+        }
+
+        String originalFileName = getFileName(cvFilePart);
+        if (originalFileName == null || originalFileName.isBlank()) {
+            return null;
+        }
+
+        String fileExtension = getFileExtension(originalFileName).toLowerCase();
+        if (!fileExtension.matches("\\.(pdf|doc|docx)")) {
+            return null;
+        }
+
+        String uploadRelativePath = "/Upload/cvs";
+        String uploadPath = getServletContext().getRealPath(uploadRelativePath);
+        Path uploadDir = uploadPath != null
+                ? Paths.get(uploadPath)
+                : Paths.get(System.getProperty("user.home"), "hrms", "Upload", "cvs");
+
+        if (!Files.exists(uploadDir)) {
+            Files.createDirectories(uploadDir);
+        }
+
+        String uniqueFileName = UUID.randomUUID() + fileExtension;
+        Path filePath = uploadDir.resolve(uniqueFileName);
+        try (InputStream fileContent = cvFilePart.getInputStream()) {
+            Files.copy(fileContent, filePath, StandardCopyOption.REPLACE_EXISTING);
+        }
+        return uniqueFileName;
+    }
+
+    private void forwardApplyFormError(HttpServletRequest request, HttpServletResponse response,
+                                       Recruitment recruitment, CandidateProfile profile,
+                                       SystemUser currentUser, String message)
+            throws ServletException, IOException {
+        request.setAttribute("error", message);
+        request.setAttribute("recruitment", recruitment);
+        request.setAttribute("candidateProfile", profile);
+        request.setAttribute("currentUser", currentUser);
+        request.getRequestDispatcher("/Views/ApplyForm.jsp").forward(request, response);
+    }
+
+    private void forwardApplyConfirm(HttpServletRequest request, HttpServletResponse response,
+                                     Recruitment recruitment, CandidateProfile profile)
+            throws ServletException, IOException {
+        request.setAttribute("recruitment", recruitment);
+        request.setAttribute("candidateProfile", profile);
+        request.getRequestDispatcher("/Views/ApplyConfirm.jsp").forward(request, response);
+    }
+
+    private void forwardApplyConfirmError(HttpServletRequest request, HttpServletResponse response,
+                                          Recruitment recruitment, CandidateProfile profile,
+                                          String message)
+            throws ServletException, IOException {
+        request.setAttribute("error", message);
+        forwardApplyConfirm(request, response, recruitment, profile);
+    }
+
+    private void forwardVerifyEmail(HttpServletRequest request, HttpServletResponse response,
+                                    Recruitment recruitment, PendingCandidateProfile draft,
+                                    String error)
+            throws ServletException, IOException {
+        if (error != null) {
+            request.setAttribute("error", error);
+        }
+        request.setAttribute("recruitment", recruitment);
+        request.setAttribute("profileDraft", draft);
+        request.setAttribute("ttlMinutes", EMAIL_CODE_TTL_MINUTES);
+        request.getRequestDispatcher("/Views/ApplyVerifyEmail.jsp").forward(request, response);
+    }
+
+    private void viewRecruitment(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         try {
             String recruitmentIdStr = request.getParameter("recruitmentId");
             if (recruitmentIdStr != null) {
                 int recruitmentId = Integer.parseInt(recruitmentIdStr);
                 Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
-                
-                // Check Status - only allow apply if status is Applied
-                if (recruitment != null) {
-                    String status = recruitment.getStatus();
-                    if (status == null || !status.equals("Applied")) {
-                        request.setAttribute("error", "Tin tuyển dụng này không còn nhận hồ sơ.");
-                        showRecruitmentList(request, response);
-                        return;
-                    }
-                    request.setAttribute("recruitment", recruitment);
-                } else {
-                    request.setAttribute("error", "Không tìm thấy tin tuyển dụng!");
-                    showRecruitmentList(request, response);
-                    return;
-                }
+                request.setAttribute("recruitment", recruitment);
+
+                RequestDispatcher dispatcher = request.getRequestDispatcher("/Views/RecruitmentDetail.jsp");
+                dispatcher.forward(request, response);
+            } else {
+                showRecruitmentList(request, response);
             }
-            
-            RequestDispatcher dispatcher = request.getRequestDispatcher("/Views/ApplyForm.jsp");
-            dispatcher.forward(request, response);
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Không mở được form ứng tuyển", e);
+            LOGGER.log(Level.SEVERE, "Cannot view recruitment detail", e);
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
-    
-    private void submitApplication(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        if (!isLoggedIn(request)) {
-            response.sendRedirect(request.getContextPath() + "/login?error=login_required");
-            return;
+
+    private int parseRecruitmentId(HttpServletRequest request, HttpServletResponse response,
+                                   String recruitmentIdStr)
+            throws IOException {
+        if (recruitmentIdStr == null) {
+            redirectRecruitmentError(response, request, "Tin tuyển dụng không hợp lệ.");
+            return 0;
         }
-
         try {
-            String fullName = request.getParameter("fullName");
-            String email = request.getParameter("email");
-            String phone = request.getParameter("phone");
-            String recruitmentIdStr = request.getParameter("recruitmentId");
-
-            if (fullName != null && email != null && phone != null && recruitmentIdStr != null) {
-                int recruitmentId = Integer.parseInt(recruitmentIdStr);
-                
-                // Check if phone number already exists
-                if (guestDAO.isPhoneExists(phone)) {
-                    request.setAttribute("error", "Số điện thoại này đã được dùng để ứng tuyển.");
-                    // Keep recruitment information when forwarding back
-                    Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
-                    if (recruitment != null) {
-                        request.setAttribute("recruitment", recruitment);
-                    }
-                    showApplyForm(request, response);
-                    return;
-                }
-                
-                // EMAIL DUPLICATE CHECK REMOVED - Allow multiple applications with same email
-                
-                String cvFileName = null;
-                Part cvFilePart = request.getPart("cvFile");
-                // Lấy đường dẫn thực tế của webapp từ servlet context
-                String uploadRelativePath = "/Upload/cvs";
-                String uploadPath = getServletContext().getRealPath(uploadRelativePath);
-                Path uploadDir = null;
-                if (uploadPath != null) {
-                    uploadDir = Paths.get(uploadPath);
-                } else {
-                    // Fallback khi chạy ở môi trường không hỗ trợ getRealPath (ví dụ: chạy jar)
-                    uploadDir = Paths.get(System.getProperty("user.home"), "hrms", "Upload", "cvs");
-                }
-
-                if (cvFilePart != null && cvFilePart.getSize() > 0) {
-                    String originalFileName = getFileName(cvFilePart);
-                    if (originalFileName != null && !originalFileName.isEmpty()) {
-                        String fileExtension = getFileExtension(originalFileName);
-                        String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
-
-                        // Phần này giữ nguyên
-                        if (!Files.exists(uploadDir)) {
-                            Files.createDirectories(uploadDir);
-                        }
-
-                        Path filePath = uploadDir.resolve(uniqueFileName);
-                        try (InputStream fileContent = cvFilePart.getInputStream()) {
-                            Files.copy(fileContent, filePath, StandardCopyOption.REPLACE_EXISTING);
-                            cvFileName = uniqueFileName; // Lưu tên file unique
-                        } catch (IOException e) {
-                            LOGGER.log(Level.WARNING, "Không lưu được file CV", e);
-                        }
-                    }
-                }
-
-                if (cvFileName == null) {
-                    request.setAttribute("error", "Vui lòng chọn file CV hợp lệ.");
-                    // Giữ lại thông tin recruitment khi forward lại
-                    Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
-                    if (recruitment != null) {
-                        request.setAttribute("recruitment", recruitment);
-                    }
-                    showApplyForm(request, response);
-                    return;
-                }
-                
-                Guest guest = new Guest();
-                SystemUser currentUser = getCurrentUser(request);
-                if (currentUser != null) {
-                    guest.setUserId(currentUser.getUserId());
-                }
-                guest.setFullName(fullName);
-                guest.setEmail(email);
-                guest.setPhone(phone);
-                guest.setCv(cvFileName); // Lưu tên file thay vì nội dung text
-                guest.setStatus("Processing"); // Status phải là Processing, Hired, hoặc Rejected
-                guest.setRecruitmentId(recruitmentId);
-                guest.setAppliedDate(LocalDateTime.now());
-                
-                boolean insertResult = guestDAO.insert(guest);
-                
-                if (insertResult) {
-                    response.sendRedirect(request.getContextPath() + "/Views/Success.jsp");
-                } else {
-                    request.setAttribute("error", "Không thể gửi hồ sơ. Vui lòng thử lại.");
-                    // Giữ lại thông tin recruitment khi forward lại
-                    Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
-                    if (recruitment != null) {
-                        request.setAttribute("recruitment", recruitment);
-                    }
-                    showApplyForm(request, response);
-                }
-            } else {
-                request.setAttribute("error", "Vui lòng nhập đầy đủ thông tin bắt buộc.");
-                // Keep recruitment information if recruitmentId exists
-                if (recruitmentIdStr != null) {
-                    try {
-                        int recruitmentId = Integer.parseInt(recruitmentIdStr);
-                        Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
-                        if (recruitment != null) {
-                            request.setAttribute("recruitment", recruitment);
-                        }
-                    } catch (NumberFormatException e) {
-                        // Ignore
-                    }
-                }
-                showApplyForm(request, response);
-            }
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Không gửi được hồ sơ ứng tuyển", e);
-            request.setAttribute("error", "Có lỗi xảy ra khi gửi hồ sơ. Vui lòng thử lại.");
-            // Keep recruitment information if recruitmentId exists
-            String recruitmentIdStr = request.getParameter("recruitmentId");
-            if (recruitmentIdStr != null) {
-                try {
-                    int recruitmentId = Integer.parseInt(recruitmentIdStr);
-                    Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
-                    if (recruitment != null) {
-                        request.setAttribute("recruitment", recruitment);
-                    }
-                } catch (NumberFormatException ex) {
-                    // Ignore
-                }
-            }
-            showApplyForm(request, response);
+            return Integer.parseInt(recruitmentIdStr);
+        } catch (NumberFormatException ex) {
+            redirectRecruitmentError(response, request, "Tin tuyển dụng không hợp lệ.");
+            return 0;
         }
     }
 
-    private boolean isLoggedIn(HttpServletRequest request) {
-        return getCurrentUser(request) != null;
+    private boolean hasAlreadyApplied(SystemUser currentUser, Guest guest, int recruitmentId) {
+        String email = firstNonBlank(currentUser.getEmail(), guest.getEmail());
+        return applicationDAO.existsByUserOrEmailAndRecruitment(currentUser.getUserId(), email, recruitmentId);
+    }
+
+    private void syncGuestProfile(Guest guest, CandidateProfile profile) {
+        guest.setFullName(profile.getFullName());
+        guest.setEmail(profile.getEmail());
+        guest.setPhone(profile.getPhone());
+        guest.setDateOfBirth(profile.getDateOfBirth());
+        guest.setAddress(profile.getAddress());
+        guest.setStatus(firstNonBlank(guest.getStatus(), "Processing"));
+        guestDAO.saveProfile(guest);
+    }
+
+    private VerificationState getVerificationState(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return VerificationState.empty();
+        }
+        Object draft = session.getAttribute(SESSION_PROFILE_DRAFT);
+        Object code = session.getAttribute(SESSION_PROFILE_CODE);
+        Object expires = session.getAttribute(SESSION_PROFILE_EXPIRES);
+        Object recruitmentId = session.getAttribute(SESSION_PROFILE_RECRUITMENT_ID);
+        return new VerificationState(
+                draft instanceof PendingCandidateProfile ? (PendingCandidateProfile) draft : null,
+                code instanceof String ? (String) code : null,
+                expires instanceof LocalDateTime ? (LocalDateTime) expires : null,
+                recruitmentId instanceof Integer ? (Integer) recruitmentId : 0
+        );
+    }
+
+    private void clearVerificationState(HttpSession session) {
+        if (session == null) {
+            return;
+        }
+        session.removeAttribute(SESSION_PROFILE_DRAFT);
+        session.removeAttribute(SESSION_PROFILE_CODE);
+        session.removeAttribute(SESSION_PROFILE_EXPIRES);
+        session.removeAttribute(SESSION_PROFILE_RECRUITMENT_ID);
+    }
+
+    private void rememberApplyUrl(HttpServletRequest request, String recruitmentIdStr) {
+        if (recruitmentIdStr == null) {
+            return;
+        }
+        String target = request.getContextPath()
+                + "/RecruitmentController?action=apply&recruitmentId=" + recruitmentIdStr;
+        request.getSession(true).setAttribute("redirectAfterLogin", target);
+    }
+
+    private void redirectRecruitmentError(HttpServletResponse response, HttpServletRequest request, String message)
+            throws IOException {
+        response.sendRedirect(request.getContextPath() + "/RecruitmentController?error="
+                + java.net.URLEncoder.encode(message, java.nio.charset.StandardCharsets.UTF_8));
+    }
+
+    private void setRecruitmentListMessages(HttpServletRequest request) {
+        String error = trimToNull(request.getParameter("error"));
+        String success = trimToNull(request.getParameter("success"));
+        if (error != null) {
+            request.setAttribute("error", error);
+        }
+        if ("applied".equals(success)) {
+            request.setAttribute("success", "Ứng tuyển thành công.");
+        }
+    }
+
+    private void sendCandidateProfileCode(String email, String code) throws Exception {
+        String subject = "Mã xác nhận hồ sơ ứng tuyển BetterHR";
+        String content = "Mã xác nhận hồ sơ ứng tuyển của bạn là " + code
+                + ". Mã này hết hạn sau " + EMAIL_CODE_TTL_MINUTES + " phút.";
+        EmailSender.sendEmail(email, subject, content);
+    }
+
+    private String generateVerificationCode() {
+        return String.format("%06d", new Random().nextInt(1_000_000));
+    }
+
+    private boolean isOpenRecruitment(Recruitment recruitment) {
+        return recruitment != null && "Applied".equals(recruitment.getStatus());
+    }
+
+    private boolean isReadyProfile(CandidateProfile profile) {
+        return profile != null
+                && profile.isEmailVerified()
+                && profile.getCvFilePath() != null
+                && !profile.getCvFilePath().isBlank();
+    }
+
+    private boolean isValidEmail(String email) {
+        return email != null && email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    }
+
+    private boolean isValidPhone(String phone) {
+        return phone != null && phone.matches("^\\d{9,11}$");
+    }
+
+    private LocalDate parseDate(String value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(value);
+        } catch (DateTimeParseException ex) {
+            throw new IllegalArgumentException("Ngày sinh không hợp lệ.");
+        }
+    }
+
+    private BigDecimal parseExpectedSalary(String value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            BigDecimal salary = new BigDecimal(value);
+            if (salary.compareTo(BigDecimal.ZERO) < 0) {
+                throw new IllegalArgumentException("Mức lương mong muốn không hợp lệ.");
+            }
+            return salary;
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("Mức lương mong muốn không hợp lệ.");
+        }
     }
 
     private SystemUser getCurrentUser(HttpServletRequest request) {
@@ -278,7 +647,7 @@ public class RecruitmentController extends HttpServlet {
         Object user = session != null ? session.getAttribute("systemUser") : null;
         return user instanceof SystemUser ? (SystemUser) user : null;
     }
-    
+
     private String getFileName(Part part) {
         String contentDisposition = part.getHeader("content-disposition");
         if (contentDisposition != null) {
@@ -291,68 +660,170 @@ public class RecruitmentController extends HttpServlet {
         }
         return null;
     }
-    
+
     private String getFileExtension(String fileName) {
         if (fileName != null && fileName.contains(".")) {
             return fileName.substring(fileName.lastIndexOf("."));
         }
         return "";
     }
-    
-    private void viewRecruitment(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        try {
-            String recruitmentIdStr = request.getParameter("recruitmentId");
-            if (recruitmentIdStr != null) {
-                int recruitmentId = Integer.parseInt(recruitmentIdStr);
-                Recruitment recruitment = recruitmentDAO.getById(recruitmentId);
-                request.setAttribute("recruitment", recruitment);
-                
-                RequestDispatcher dispatcher = request.getRequestDispatcher("/Views/RecruitmentDetail.jsp");
-                dispatcher.forward(request, response);
-            } else {
-                showRecruitmentList(request, response);
-            }
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Không xem được chi tiết tuyển dụng", e);
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
-    } 
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /** 
-* Handles the HTTP <code>GET</code> method.
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return "";
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
-processRequest(request, response);
-    } 
-
-    /** 
-     * Handles the HTTP <code>POST</code> method.
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
+            throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /** 
-     * Returns a short description of the servlet.
-     * @return a String containing servlet description
-     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
     @Override
     public String getServletInfo() {
         return "Recruitment Controller";
-    }// </editor-fold>
+    }
 
+    public static class PendingCandidateProfile implements Serializable {
+        private static final long serialVersionUID = 1L;
+
+        private int guestId;
+        private String fullName;
+        private String phone;
+        private String email;
+        private LocalDate dateOfBirth;
+        private String address;
+        private String desiredPosition;
+        private BigDecimal expectedSalary;
+        private String workExperience;
+        private String cvFilePath;
+
+        public CandidateProfile toCandidateProfile() {
+            CandidateProfile profile = new CandidateProfile();
+            profile.setGuestId(guestId);
+            profile.setFullName(fullName);
+            profile.setPhone(phone);
+            profile.setEmail(email);
+            profile.setDateOfBirth(dateOfBirth);
+            profile.setAddress(address);
+            profile.setDesiredPosition(desiredPosition);
+            profile.setExpectedSalary(expectedSalary);
+            profile.setWorkExperience(workExperience);
+            profile.setCvFilePath(cvFilePath);
+            return profile;
+        }
+
+        public int getGuestId() {
+            return guestId;
+        }
+
+        public void setGuestId(int guestId) {
+            this.guestId = guestId;
+        }
+
+        public String getFullName() {
+            return fullName;
+        }
+
+        public void setFullName(String fullName) {
+            this.fullName = fullName;
+        }
+
+        public String getPhone() {
+            return phone;
+        }
+
+        public void setPhone(String phone) {
+            this.phone = phone;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public LocalDate getDateOfBirth() {
+            return dateOfBirth;
+        }
+
+        public void setDateOfBirth(LocalDate dateOfBirth) {
+            this.dateOfBirth = dateOfBirth;
+        }
+
+        public String getAddress() {
+            return address;
+        }
+
+        public void setAddress(String address) {
+            this.address = address;
+        }
+
+        public String getDesiredPosition() {
+            return desiredPosition;
+        }
+
+        public void setDesiredPosition(String desiredPosition) {
+            this.desiredPosition = desiredPosition;
+        }
+
+        public BigDecimal getExpectedSalary() {
+            return expectedSalary;
+        }
+
+        public void setExpectedSalary(BigDecimal expectedSalary) {
+            this.expectedSalary = expectedSalary;
+        }
+
+        public String getWorkExperience() {
+            return workExperience;
+        }
+
+        public void setWorkExperience(String workExperience) {
+            this.workExperience = workExperience;
+        }
+
+        public String getCvFilePath() {
+            return cvFilePath;
+        }
+
+        public void setCvFilePath(String cvFilePath) {
+            this.cvFilePath = cvFilePath;
+        }
+    }
+
+    private record VerificationState(PendingCandidateProfile draft, String code,
+                                     LocalDateTime expiresAt, int recruitmentId) {
+        static VerificationState empty() {
+            return new VerificationState(null, null, null, 0);
+        }
+
+        boolean hasDraft() {
+            return draft != null && recruitmentId > 0;
+        }
+
+        boolean isComplete() {
+            return draft != null && code != null && expiresAt != null && recruitmentId > 0;
+        }
+    }
 }

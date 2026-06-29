@@ -1,6 +1,7 @@
 package com.hrm.dao;
 
 import com.hrm.model.entity.Guest;
+import com.hrm.model.entity.SystemUser;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -66,6 +67,35 @@ public class GuestDAO {
         return null;
     }
 
+    public Guest findByEmail(String email) {
+        return getByEmail(email);
+    }
+
+    public Guest findByUserId(int userId) {
+        String sql = """
+            SELECT *
+            FROM Guest
+            WHERE UserID = ?
+            ORDER BY CASE WHEN RecruitmentID IS NULL THEN 0 ELSE 1 END,
+                     COALESCE(UpdatedDate, AppliedDate) DESC,
+                     GuestID DESC
+            LIMIT 1
+        """;
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapGuest(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public Guest findProfileByUserOrEmail(int userId, String email) {
         String sql = """
             SELECT *
@@ -88,6 +118,36 @@ public class GuestDAO {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+        return null;
+    }
+
+    public Guest findOrCreateProfileForUser(SystemUser user) {
+        if (user == null) {
+            return null;
+        }
+
+        Guest profile = findProfileByUserOrEmail(user.getUserId(), user.getEmail());
+        if (profile != null) {
+            if (profile.getUserId() == null) {
+                profile.setUserId(user.getUserId());
+                if (profile.getEmail() == null || profile.getEmail().isBlank()) {
+                    profile.setEmail(user.getEmail());
+                }
+                updateProfile(profile);
+                profile = getById(profile.getGuestId());
+            }
+            return profile;
+        }
+
+        Guest newProfile = new Guest();
+        newProfile.setUserId(user.getUserId());
+        newProfile.setFullName(firstNonBlank(user.getUsername(), user.getEmail(), "Ứng viên BetterHR"));
+        newProfile.setEmail(user.getEmail());
+        newProfile.setAvatar(user.getAvatarUrl());
+        newProfile.setStatus("Processing");
+        if (insertProfile(newProfile)) {
+            return findByUserId(user.getUserId());
         }
         return null;
     }
@@ -516,6 +576,15 @@ public class GuestDAO {
         } else {
             ps.setDate(index, Date.valueOf(value));
         }
+    }
+
+    private String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return "";
     }
 
     public static class GuestApplication {

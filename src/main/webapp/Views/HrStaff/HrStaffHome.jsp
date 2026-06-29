@@ -1,5 +1,16 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page import="java.util.*" %>
+<%!
+    private String homeContractTypeLabel(Object typeObj) {
+        String type = typeObj != null ? String.valueOf(typeObj) : "";
+        if ("Full-time".equals(type)) return "Toàn thời gian";
+        if ("Part-time".equals(type)) return "Bán thời gian";
+        if ("Probation".equals(type)) return "Thử việc";
+        if ("Intern".equals(type)) return "Thực tập";
+        if ("Contract".equals(type)) return "Theo hợp đồng";
+        return type.isEmpty() ? "Không có" : type;
+    }
+%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -10,6 +21,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-theme.css?v=hr-staff-shell-20260627-1">
     <style>
         :root {
             --bh-primary: #00482f;
@@ -954,86 +966,18 @@
         }
     </style>
 </head>
-<body>
+<%
+    request.setAttribute("hrStaffSidebarActive", "overview");
+    request.setAttribute("hrStaffPageTitle", "Nhân viên nhân sự");
+    request.setAttribute("hrStaffSearchPlaceholder", "Tìm kiếm công việc...");
+    request.setAttribute("hrStaffProfileSubtitle", "Quản trị hồ sơ");
+%>
+<body class="hr-staff-page-shell">
     <div class="staff-shell">
-        <aside class="staff-sidebar">
-            <a class="brand" href="<%=request.getContextPath()%>/homepage">
-                <div class="brand-mark">B</div>
-                <div>
-                    <strong>BetterHR</strong>
-                    <span>Cổng nhân sự nội bộ</span>
-                </div>
-            </a>
-
-            <nav class="sidebar-section" aria-label="Điều hướng nhân viên nhân sự">
-                <div class="section-title">Bảng điều khiển</div>
-                <a class="nav-link active" href="<%=request.getContextPath()%>/hrstaff">
-                    <i class="fa-solid fa-table-cells-large"></i>
-                    <span>Tổng quan</span>
-                </a>
-                <a class="nav-link" href="#contracts">
-                    <i class="fa-solid fa-file-signature"></i>
-                    <span>Hợp đồng sắp hết hạn</span>
-                </a>
-                <a class="nav-link" href="<%=request.getContextPath()%>/hrstaff/payroll">
-                    <i class="fa-solid fa-money-check-dollar"></i>
-                    <span>Lương & phụ cấp</span>
-                </a>
-
-                <div class="section-title">Hồ sơ & tuyển dụng</div>
-                <a class="nav-link" href="<%=request.getContextPath()%>/hrstaff/contracts/create">
-                    <i class="fa-solid fa-file-circle-plus"></i>
-                    <span>Tạo hợp đồng</span>
-                </a>
-                <a class="nav-link" href="<%=request.getContextPath()%>/hrstaff/contracts">
-                    <i class="fa-solid fa-folder-open"></i>
-                    <span>Danh sách hợp đồng</span>
-                </a>
-                <a class="nav-link" href="${pageContext.request.contextPath}/postRecruitments">
-                    <i class="fa-solid fa-bullhorn"></i>
-                    <span>Tin tuyển dụng</span>
-                </a>
-                <a class="nav-link" href="${pageContext.request.contextPath}/candidates">
-                    <i class="fa-solid fa-users-viewfinder"></i>
-                    <span>Ứng viên</span>
-                </a>
-            </nav>
-
-            <div class="sidebar-footer">
-                <strong>Bộ phận nhân sự</strong>
-                <span>Theo dõi hồ sơ, hợp đồng và tuyển dụng hằng ngày.</span>
-                <button class="help-button" type="button">Liên hệ HR</button>
-            </div>
-        </aside>
+        <%@ include file="_HrStaffSidebar.jspf" %>
 
         <main class="staff-main">
-            <header class="topbar">
-                <div class="topbar-title">
-                    <div class="topbar-icon"><i class="fa-solid fa-briefcase"></i></div>
-                    <h1>Nhân viên nhân sự</h1>
-                </div>
-                <div class="topbar-actions">
-                    <label class="search-box">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="search" placeholder="Tìm kiếm công việc..." aria-label="Tìm kiếm công việc">
-                    </label>
-                    <button class="icon-button" type="button" aria-label="Thông báo">
-                        <i class="fa-solid fa-bell"></i>
-                        <span class="notification-dot">5</span>
-                    </button>
-                    <div class="avatar-chip" aria-label="Tài khoản hiện tại">
-                        <div class="avatar">HR</div>
-                        <div>
-                            <strong>Nhân viên nhân sự</strong>
-                            <span>Quản trị hồ sơ</span>
-                        </div>
-                    </div>
-                    <a class="home-button" href="<%=request.getContextPath()%>/homepage">
-                        <i class="fa-solid fa-house"></i>
-                        <span>Trang chủ</span>
-                    </a>
-                </div>
-            </header>
+            <%@ include file="_HrStaffTopbar.jspf" %>
 
             <section class="page-content">
                 <section class="hero">
@@ -1172,7 +1116,7 @@
                                                             <strong><%= row.get("employeeName") %></strong>
                                                         </div>
                                                     </td>
-                                                    <td><%= row.get("contractType") %></td>
+                                                    <td><%= homeContractTypeLabel(row.get("contractType")) %></td>
                                                     <td><%= row.get("startDate") %></td>
                                                     <td><%= row.get("endDate") %></td>
                                                     <td><span class="status-badge"><i class="fa-solid fa-clock"></i>Cần theo dõi</span></td>
@@ -1202,8 +1146,8 @@
                                     <article class="job-item">
                                         <div class="job-icon"><i class="fa-solid fa-pen-nib"></i></div>
                                         <div>
-                                            <strong>Lead UX Designer</strong>
-                                            <span>Phòng Design Ops cần hồ sơ phù hợp cho vòng phỏng vấn tiếp theo.</span>
+                                            <strong>Trưởng nhóm thiết kế UX</strong>
+                                            <span>Phòng vận hành thiết kế cần hồ sơ phù hợp cho vòng phỏng vấn tiếp theo.</span>
                                             <div class="job-meta">
                                                 <span class="tag">Toàn thời gian</span>
                                                 <span class="tag">Ưu tiên cao</span>
@@ -1213,11 +1157,11 @@
                                     <article class="job-item">
                                         <div class="job-icon"><i class="fa-solid fa-code"></i></div>
                                         <div>
-                                            <strong>Senior Java Developer</strong>
-                                            <span>Đội Engineering đang cần bổ sung ứng viên có kinh nghiệm backend.</span>
+                                            <strong>Lập trình viên Java cao cấp</strong>
+                                            <span>Đội kỹ thuật đang cần bổ sung ứng viên có kinh nghiệm hệ thống.</span>
                                             <div class="job-meta">
                                                 <span class="tag">Java</span>
-                                                <span class="tag">Backend</span>
+                                                <span class="tag">Hệ thống</span>
                                             </div>
                                         </div>
                                     </article>

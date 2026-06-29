@@ -121,6 +121,13 @@ public class DetailRecruitment extends HttpServlet {
 
     private boolean ensureAccess(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        return PermissionUtil.ensurePermission(request, response, REQUIRED_PERMISSION, DENIED_MESSAGE);
+        return PermissionUtil.ensureRolePermission(
+                request,
+                response,
+                PermissionUtil.ROLE_HR_STAFF,
+                REQUIRED_PERMISSION,
+                "This section is restricted to HR Staff.",
+                DENIED_MESSAGE
+        );
     }
 }

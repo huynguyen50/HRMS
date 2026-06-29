@@ -9,11 +9,21 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page import="java.util.*, java.math.BigDecimal, com.hrm.model.entity.Employee" %>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%!
+    private String payrollStatusLabel(String status) {
+        if ("Draft".equals(status)) return "Bản nháp";
+        if ("Pending".equals(status)) return "Chờ phê duyệt";
+        if ("Approved".equals(status)) return "Đã duyệt";
+        if ("Rejected".equals(status)) return "Bị từ chối";
+        if ("Paid".equals(status)) return "Đã thanh toán";
+        return status != null ? status : "Không có";
+    }
+%>
 <!DOCTYPE html>
 <html lang="vi">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>Payroll Management - HR Staff</title>
+        <title>Quản lý lương - Nhân viên nhân sự</title>
         <link rel="stylesheet" href="<%=request.getContextPath()%>/css/style.css"/>
         <link rel="stylesheet" href="<%=request.getContextPath()%>/Admin/css/pagination.css"/>
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -627,20 +637,32 @@
                 background-color: #f8f9fa;
             }
         </style>
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-theme.css?v=hr-staff-shell-20260627-1">
     </head>
-    <body>
-        <!-- Top Navigation Bar -->
+    <body class="hr-staff-page-shell">
+        <%
+            request.setAttribute("hrStaffSidebarActive", "payroll");
+            request.setAttribute("hrStaffPageTitle", "Lương & phụ cấp");
+            request.setAttribute("hrStaffSearchPlaceholder", "Tìm kiếm nhân viên, bảng lương...");
+            request.setAttribute("hrStaffProfileSubtitle", "Quản trị bảng lương");
+        %>
+        <div class="staff-shell">
+            <%@ include file="_HrStaffSidebar.jspf" %>
+            <main class="staff-main">
+                <%@ include file="_HrStaffTopbar.jspf" %>
+                <section class="staff-content">
+        <!-- Thanh điều hướng nhanh -->
         <div class="topbar">
             <div class="brand">
                 <div class="logo">HR</div>
-                <div>HR Dashboard</div>
+                <div>Bảng lương nhân sự</div>
             </div>
             <div class="top-actions">
                 <div class="search">
                     <span>🔍</span>
-                    <input type="text" placeholder="Search employees, payroll..."/>
+                    <input type="text" placeholder="Tìm nhân viên, bảng lương..."/>
                 </div>
-                <a class="btn secondary" href="<%=request.getContextPath()%>/homepage">Homepage</a>
+                <a class="btn secondary" href="<%=request.getContextPath()%>/homepage">Trang chủ</a>
             </div>
         </div>
 
@@ -648,32 +670,32 @@
             <!-- Sidebar -->
             <aside class="sidebar">
                 <div class="side-group">
-                    <div class="side-title">Main</div>
-                    <a class="side-link" href="<%=request.getContextPath()%>/hrstaff">🏠 HR Home</a>
+                    <div class="side-title">Chính</div>
+                    <a class="side-link" href="<%=request.getContextPath()%>/hrstaff">🏠 Trang nhân sự</a>
                 </div>
                 <div class="side-group">
-                    <div class="side-title">Requests & Approvals</div>
-                    <a class="side-link neutral" href="#">✅ Requests & Recommendations</a>
+                    <div class="side-title">Yêu cầu & phê duyệt</div>
+                    <a class="side-link neutral" href="#">✅ Yêu cầu & đề xuất</a>
                 </div>
                 <div class="side-group">
-                    <div class="side-title">Salary & Contracts</div>
-                    <a class="side-link active" href="<%=request.getContextPath()%>/hrstaff/payroll">💰 Payroll</a>
-                    <a class="side-link neutral" href="<%=request.getContextPath()%>/hrstaff/contracts/create">📝 Create Contract</a>
-                    <a class="side-link neutral" href="<%=request.getContextPath()%>/hrstaff/contracts">📄 Contracts List</a>
+                    <div class="side-title">Lương & hợp đồng</div>
+                    <a class="side-link active" href="<%=request.getContextPath()%>/hrstaff/payroll">💰 Lương & phụ cấp</a>
+                    <a class="side-link neutral" href="<%=request.getContextPath()%>/hrstaff/contracts/create">📝 Tạo hợp đồng</a>
+                    <a class="side-link neutral" href="<%=request.getContextPath()%>/hrstaff/contracts">📄 Danh sách hợp đồng</a>
                 </div>
                 <div class="side-group">
-                    <div class="side-title">Recruitment</div>
-                    <a class="side-link neutral" href="${pageContext.request.contextPath}/postRecruitments">📢 Post Recruitment</a>
-                    <a class="side-link neutral" href="${pageContext.request.contextPath}/candidates">👀 View Candidates</a>
-                    <a class="side-link neutral" href="#">➕ Create Employee</a>
+                    <div class="side-title">Tuyển dụng</div>
+                    <a class="side-link neutral" href="${pageContext.request.contextPath}/postRecruitments">📢 Tin tuyển dụng</a>
+                    <a class="side-link neutral" href="${pageContext.request.contextPath}/candidates">👀 Ứng viên</a>
+                    <a class="side-link neutral" href="#">➕ Tạo nhân viên</a>
                 </div>
             </aside>
 
             <!-- Content Area -->
             <main class="content">
                 <section class="hero">
-                    <h2>Payroll Management</h2>
-                    <div class="muted">Manage allowances, deductions, and payroll calculations</div>
+                    <h2>Quản lý lương</h2>
+                    <div class="muted">Quản lý phụ cấp, khấu trừ và tính lương nhân viên</div>
                 </section>
 
                 <%-- Display success/error messages from session --%>
@@ -684,7 +706,7 @@
                         request.getSession().removeAttribute("success");
                 %>
                 <div style="background:#d4edda; border:1px solid #c3e6cb; border-radius:6px; padding:12px; margin-bottom:20px; color:#155724;">
-                    <strong>✓ Success:</strong> <%= successMessage %>
+                    <strong>✓ Thành công:</strong> <%= successMessage %>
                 </div>
                 <%
                     }
@@ -692,7 +714,7 @@
                         request.getSession().removeAttribute("error");
                 %>
                 <div style="background:#f8d7da; border:1px solid #f5c6cb; border-radius:6px; padding:12px; margin-bottom:20px; color:#721c24;">
-                    <strong>✗ Error:</strong> <%= errorMessage %>
+                    <strong>✗ Lỗi:</strong> <%= errorMessage %>
                 </div>
                 <%
                     }
@@ -711,33 +733,33 @@
                             <c:param name="allowancePageSize" value="${allowancePageSize != null ? allowancePageSize : 10}"/>
                         </c:url>
                         <a href="${allowanceUrl}" 
-                           class="tab-btn <%= "allowance".equals(currentTab) ? "active" : "" %>">💰 Allowances</a>
+                           class="tab-btn <%= "allowance".equals(currentTab) ? "active" : "" %>">💰 Phụ cấp</a>
                         <c:url var="deductionUrl" value="/hrstaff/payroll">
                             <c:param name="tab" value="deduction"/>
                             <c:param name="deductionPage" value="1"/>
                             <c:param name="deductionPageSize" value="${deductionPageSize != null ? deductionPageSize : 10}"/>
                         </c:url>
                         <a href="${deductionUrl}" 
-                           class="tab-btn <%= "deduction".equals(currentTab) ? "active" : "" %>">➖ Deductions</a>
+                           class="tab-btn <%= "deduction".equals(currentTab) ? "active" : "" %>">➖ Khấu trừ</a>
                         <a href="<%=request.getContextPath()%>/hrstaff/payroll?tab=attendance" 
-                           class="tab-btn <%= "attendance".equals(currentTab) ? "active" : "" %>">📅 Attendance</a>
+                           class="tab-btn <%= "attendance".equals(currentTab) ? "active" : "" %>">📅 Chấm công</a>
                         <a href="<%=request.getContextPath()%>/hrstaff/payroll?tab=payroll" 
-                           class="tab-btn <%= "payroll".equals(currentTab) ? "active" : "" %>">📊 Payroll</a>
+                           class="tab-btn <%= "payroll".equals(currentTab) ? "active" : "" %>">📊 Bảng lương</a>
                     </div>
 
                     <!-- Allowance Tab -->
                     <div id="allowance" class="tab-content <%= "allowance".equals(currentTab) ? "active" : "" %>">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                            <h3 style="margin:0;">Employee Allowances</h3>
-                            <button class="btn" onclick="openAllowanceModal()">+ Add Allowance</button>
+                            <h3 style="margin:0;">Phụ cấp nhân viên</h3>
+                            <button class="btn" onclick="openAllowanceModal()">+ Thêm phụ cấp</button>
                         </div>
 
                         <!-- Filter -->
                         <div class="form-row" style="margin-bottom:20px;">
                             <div class="form-group">
-                                <label>Employee</label>
+                                <label>Nhân viên</label>
                                 <select id="allowanceEmployeeFilter" onchange="filterAllowances()">
-                                    <option value="">All Employees</option>
+                                    <option value="">Tất cả nhân viên</option>
                                     <%
                                         List<Employee> employees = (List<Employee>) request.getAttribute("employees");
                                         String employeeFilter = (String) request.getAttribute("employeeFilter");
@@ -753,7 +775,7 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Month</label>
+                                <label>Tháng</label>
                                 <input type="month" id="allowanceMonthFilter" onchange="filterAllowances()" value="<%= request.getAttribute("allowanceMonth") != null ? request.getAttribute("allowanceMonth") : "" %>"/>
                             </div>
                         </div>
@@ -762,11 +784,11 @@
                         <table id="allowanceTable">
                             <thead>
                                 <tr>
-                                    <th>Employee</th>
-                                    <th>Allowance Type</th>
-                                    <th>Amount</th>
-                                    <th>Month</th>
-                                    <th>Actions</th>
+                                    <th>Nhân viên</th>
+                                    <th>Loại phụ cấp</th>
+                                    <th>Số tiền</th>
+                                    <th>Tháng</th>
+                                    <th>Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody id="allowanceTableBody">
@@ -775,7 +797,7 @@
                                     if (allowances == null || allowances.isEmpty()) {
                                 %>
                                 <tr>
-                                    <td colspan="5" class="empty">No allowances found. Click "Add Allowance" to add one.</td>
+                                    <td colspan="5" class="empty">Chưa có phụ cấp. Nhấn "Thêm phụ cấp" để tạo mới.</td>
                                 </tr>
                                 <%
                                     } else {
@@ -789,10 +811,10 @@
                                     <td>
                                         <div class="action-btns">
                                             <button class="btn btn-small" onclick="editAllowance(<%= allowance.get("id") %>)" title="Chỉnh sửa phụ cấp">
-                                                <i class="fas fa-edit"></i> Edit
+                                                <i class="fas fa-edit"></i> Sửa
                                             </button>
                                             <button class="btn btn-small btn-danger" onclick="deleteAllowance(<%= allowance.get("id") %>)" title="Xóa phụ cấp">
-                                                <i class="fas fa-trash"></i> Delete
+                                                <i class="fas fa-trash"></i> Xóa
                                             </button>
                                         </div>
                                     </td>
@@ -819,10 +841,10 @@
                                     <c:if test="${end > total}">
                                         <c:set var="end" value="${total}" />
                                     </c:if>
-                                    <span>Showing ${start} - ${end} of ${total}</span>
+                                    <span>Hiển thị ${start} - ${end} trong tổng số ${total}</span>
                                     
                                     <div class="page-size-selector" style="margin-left: 20px; display: inline-block;">
-                                        <label for="allowancePageSizeSelect" style="margin-right: 8px;">Items per page:</label>
+                                        <label for="allowancePageSizeSelect" style="margin-right: 8px;">Số dòng mỗi trang:</label>
                                         <select id="allowancePageSizeSelect" onchange="changeAllowancePageSize(this.value)" style="padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px;">
                                             <option value="5" <c:if test="${pageSize == 5}">selected</c:if>>5</option>
                                             <option value="10" <c:if test="${pageSize == 10}">selected</c:if>>10</option>
@@ -847,10 +869,10 @@
                                             <c:url var="prevUrl" value="${baseUrl}">
                                                 <c:param name="allowancePage" value="${page - 1}" />
                                             </c:url>
-                                            <a href="${prevUrl}" class="btn-pagination">← Prev</a>
+                                            <a href="${prevUrl}" class="btn-pagination">← Trước</a>
                                         </c:when>
                                         <c:otherwise>
-                                            <span class="disabled">← Prev</span>
+                                            <span class="disabled">← Trước</span>
                                         </c:otherwise>
                                     </c:choose>
 
@@ -899,10 +921,10 @@
                                             <c:url var="nextUrl" value="${baseUrl}">
                                                 <c:param name="allowancePage" value="${page + 1}" />
                                             </c:url>
-                                            <a href="${nextUrl}" class="btn-pagination">Next →</a>
+                                            <a href="${nextUrl}" class="btn-pagination">Sau →</a>
                                         </c:when>
                                         <c:otherwise>
-                                            <span class="disabled">Next →</span>
+                                            <span class="disabled">Sau →</span>
                                         </c:otherwise>
                                     </c:choose>
                                 </div>
@@ -913,16 +935,16 @@
                     <!-- Deduction Tab -->
                     <div id="deduction" class="tab-content <%= "deduction".equals(currentTab) ? "active" : "" %>">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                            <h3 style="margin:0;">Employee Deductions</h3>
-                            <button class="btn" onclick="openDeductionModal()">+ Add Deduction</button>
+                            <h3 style="margin:0;">Khấu trừ nhân viên</h3>
+                            <button class="btn" onclick="openDeductionModal()">+ Thêm khấu trừ</button>
                         </div>
 
                         <!-- Filter -->
                         <div class="form-row" style="margin-bottom:20px;">
                             <div class="form-group">
-                                <label>Employee</label>
+                                <label>Nhân viên</label>
                                 <select id="deductionEmployeeFilter" onchange="filterDeductions()">
-                                    <option value="">All Employees</option>
+                                    <option value="">Tất cả nhân viên</option>
                                     <%
                                         if (employees != null) {
                                             for (Employee emp : employees) {
@@ -936,7 +958,7 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Month</label>
+                                <label>Tháng</label>
                                 <input type="month" id="deductionMonthFilter" onchange="filterDeductions()" value="<%= request.getAttribute("deductionMonth") != null ? request.getAttribute("deductionMonth") : "" %>"/>
                             </div>
                         </div>
@@ -945,11 +967,11 @@
                         <table id="deductionTable">
                             <thead>
                                 <tr>
-                                    <th>Employee</th>
-                                    <th>Deduction Type</th>
-                                    <th>Amount</th>
-                                    <th>Month</th>
-                                    <th>Actions</th>
+                                    <th>Nhân viên</th>
+                                    <th>Loại khấu trừ</th>
+                                    <th>Số tiền</th>
+                                    <th>Tháng</th>
+                                    <th>Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody id="deductionTableBody">
@@ -958,7 +980,7 @@
                                     if (deductions == null || deductions.isEmpty()) {
                                 %>
                                 <tr>
-                                    <td colspan="5" class="empty">No deductions found. Click "Add Deduction" to add one.</td>
+                                    <td colspan="5" class="empty">Chưa có khoản khấu trừ. Nhấn "Thêm khấu trừ" để tạo mới.</td>
                                 </tr>
                                 <%
                                     } else {
@@ -971,8 +993,8 @@
                                     <td><%= deduction.get("month") %></td>
                                     <td>
                                         <div class="action-btns">
-                                            <button class="btn btn-small" onclick="editDeduction(<%= deduction.get("id") %>)">Edit</button>
-                                            <button class="btn btn-small btn-danger" onclick="deleteDeduction(<%= deduction.get("id") %>)">Delete</button>
+                                            <button class="btn btn-small" onclick="editDeduction(<%= deduction.get("id") %>)">Sửa</button>
+                                            <button class="btn btn-small btn-danger" onclick="deleteDeduction(<%= deduction.get("id") %>)">Xóa</button>
                                         </div>
                                     </td>
                                 </tr>
@@ -998,10 +1020,10 @@
                                     <c:if test="${end > total}">
                                         <c:set var="end" value="${total}" />
                                     </c:if>
-                                    <span>Showing ${start} - ${end} of ${total}</span>
+                                    <span>Hiển thị ${start} - ${end} trong tổng số ${total}</span>
                                     
                                     <div class="page-size-selector" style="margin-left: 20px; display: inline-block;">
-                                        <label for="deductionPageSizeSelect" style="margin-right: 8px;">Items per page:</label>
+                                        <label for="deductionPageSizeSelect" style="margin-right: 8px;">Số dòng mỗi trang:</label>
                                         <select id="deductionPageSizeSelect" onchange="changeDeductionPageSize(this.value)" style="padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px;">
                                             <option value="5" <c:if test="${pageSize == 5}">selected</c:if>>5</option>
                                             <option value="10" <c:if test="${pageSize == 10}">selected</c:if>>10</option>
@@ -1026,10 +1048,10 @@
                                             <c:url var="prevUrl" value="${baseUrl}">
                                                 <c:param name="deductionPage" value="${page - 1}" />
                                             </c:url>
-                                            <a href="${prevUrl}" class="btn-pagination">← Prev</a>
+                                            <a href="${prevUrl}" class="btn-pagination">← Trước</a>
                                         </c:when>
                                         <c:otherwise>
-                                            <span class="disabled">← Prev</span>
+                                            <span class="disabled">← Trước</span>
                                         </c:otherwise>
                                     </c:choose>
 
@@ -1078,10 +1100,10 @@
                                             <c:url var="nextUrl" value="${baseUrl}">
                                                 <c:param name="deductionPage" value="${page + 1}" />
                                             </c:url>
-                                            <a href="${nextUrl}" class="btn-pagination">Next →</a>
+                                            <a href="${nextUrl}" class="btn-pagination">Sau →</a>
                                         </c:when>
                                         <c:otherwise>
-                                            <span class="disabled">Next →</span>
+                                            <span class="disabled">Sau →</span>
                                         </c:otherwise>
                                     </c:choose>
                                 </div>
@@ -1092,16 +1114,16 @@
                     <!-- Attendance Tab -->
                     <div id="attendance" class="tab-content <%= "attendance".equals(currentTab) ? "active" : "" %>">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                            <h3 style="margin:0;">Attendance Statistics</h3>
-                            <div class="muted">View attendance data for payroll calculation</div>
+                            <h3 style="margin:0;">Thống kê chấm công</h3>
+                            <div class="muted">Xem dữ liệu chấm công dùng để tính lương</div>
                         </div>
 
                         <!-- Filter -->
                         <div class="form-row" style="margin-bottom:20px;">
                             <div class="form-group">
-                                <label>Employee</label>
+                                <label>Nhân viên</label>
                                 <select id="attendanceEmployeeFilter" onchange="filterAttendance()">
-                                    <option value="">Select Employee</option>
+                                    <option value="">Chọn nhân viên</option>
                                     <%
                                         String attendanceEmployeeFilter = request.getParameter("employeeFilter");
                                         if (employees != null) {
@@ -1116,7 +1138,7 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Month</label>
+                                <label>Tháng</label>
                                 <input type="month" id="attendanceMonthFilter" onchange="filterAttendance()" value="<%= request.getAttribute("attendanceMonth") != null ? request.getAttribute("attendanceMonth") : "" %>"/>
                             </div>
                         </div>
@@ -1125,41 +1147,40 @@
                         <div id="attendanceStats">
                             <div class="summary-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom:20px;">
                                 <div class="summary-card">
-                                    <h4>Actual Work Days</h4>
-                                    <div class="value" id="statWorkDays">0 days</div>
-                                    <div class="muted" style="margin-top:4px;" id="statPaidLeaveInfo">0 paid leave days</div>
+                                    <h4>Ngày công thực tế</h4>
+                                    <div class="value" id="statWorkDays">0 ngày</div>
+                                    <div class="muted" style="margin-top:4px;" id="statPaidLeaveInfo">0 ngày nghỉ có lương</div>
                                 </div>
                                 <div class="summary-card" style="border-left-color:var(--error);">
-                                    <h4>Unpaid Leave</h4>
-                                    <div class="value" id="statUnpaidLeave" style="color:var(--error);">0 days</div>
+                                    <h4>Nghỉ không lương</h4>
+                                    <div class="value" id="statUnpaidLeave" style="color:var(--error);">0 ngày</div>
                                     <div class="muted" style="margin-top:4px;" id="statUnpaidLeaveAmount">0 VNĐ</div>
                                 </div>
                                 <div class="summary-card" style="border-left-color:var(--warning);">
-                                    <h4>Late Arrivals</h4>
-                                    <div class="value" id="statLateCount" style="color:var(--warning);">0 times</div>
+                                    <h4>Đi muộn</h4>
+                                    <div class="value" id="statLateCount" style="color:var(--warning);">0 lần</div>
                                     <div class="muted" style="margin-top:4px;" id="statLatePenalty">0 VNĐ</div>
                                 </div>
                             </div>
                             <div class="summary-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom:20px;">
                                 <div class="summary-card" style="border-left-color:var(--warning);">
-                                    <h4>Early Leave</h4>
-                                    <div class="value" id="statEarlyLeave">0 times</div>
+                                    <h4>Về sớm</h4>
+                                    <div class="value" id="statEarlyLeave">0 lần</div>
                                 </div>
                                 <div class="summary-card" style="border-left-color:var(--success);">
-                                    <h4>Overtime Hours</h4>
-                                    <div class="value" id="statOvertimeHours" style="color:var(--success);">0.0 hours</div>
+                                    <h4>Giờ tăng ca</h4>
+                                    <div class="value" id="statOvertimeHours" style="color:var(--success);">0.0 giờ</div>
                                     <div class="muted" style="margin-top:4px;" id="statOvertimeAmount">0 VNĐ</div>
                                 </div>
                             </div>
                             <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; padding:16px; margin-top:20px;">
-                                <h4 style="margin:0 0 12px 0; color:#0369a1;">💡 Quick Actions</h4>
+                                <h4 style="margin:0 0 12px 0; color:#0369a1;">💡 Thao tác nhanh</h4>
                                 <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                                    <button class="btn btn-small" onclick="applyAttendanceDeductions()">Apply Deductions from Attendance</button>
-                                    <button class="btn btn-small secondary" onclick="applyAttendanceAllowances()">Apply Allowances from Attendance</button>
+                                    <button class="btn btn-small" onclick="applyAttendanceDeductions()">Tạo khấu trừ từ chấm công</button>
+                                    <button class="btn btn-small secondary" onclick="applyAttendanceAllowances()">Tạo phụ cấp từ chấm công</button>
                                 </div>
                                 <div class="muted" style="margin-top:8px; font-size:12px;">
-                                    This will automatically create deduction entries for unpaid leave and late penalties, 
-                                    and allowance entries for overtime work.
+                                    Hệ thống sẽ tự tạo khoản khấu trừ cho nghỉ không lương/đi muộn và phụ cấp cho giờ tăng ca.
                                 </div>
                             </div>
                         </div>
@@ -1168,27 +1189,27 @@
                     <!-- Payroll Tab -->
                     <div id="payroll" class="tab-content <%= "payroll".equals(currentTab) ? "active" : "" %>">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                            <h3 style="margin:0;">Payroll Calculation</h3>
+                            <h3 style="margin:0;">Tính lương</h3>
                             <div style="display:flex; gap:8px;">
-                                <button class="btn btn-small" onclick="generatePayrollForAll()" style="background:var(--warning);" title="Generate payroll for all active employees using stored procedure">
-                                    ⚡ Generate All (SP)
+                                <button class="btn btn-small" onclick="generatePayrollForAll()" style="background:var(--warning);" title="Tạo bảng lương cho tất cả nhân viên đang hoạt động bằng thủ tục lưu trữ">
+                                    ⚡ Tạo tất cả
                                 </button>
-                                <button class="btn" onclick="openPayrollModal()">+ Create Payroll</button>
+                                <button class="btn" onclick="openPayrollModal()">+ Tạo bảng lương</button>
                             </div>
                         </div>
                         
                         <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; padding:16px; margin-bottom:20px;">
-                            <h4 style="margin:0 0 8px 0; color:#0369a1;">💡 Payroll Calculation Method</h4>
+                            <h4 style="margin:0 0 8px 0; color:#0369a1;">💡 Cách tính lương</h4>
                             <div style="font-size:13px; color:var(--muted);">
-                                <strong>Automatic Calculation:</strong> System automatically calculates payroll using stored procedure <code>sp_GeneratePayrollImproved</code>:
+                                <strong>Tính tự động:</strong> Hệ thống tính lương bằng thủ tục <code>sp_GeneratePayrollImproved</code>:
                                 <ul style="margin:8px 0 0 20px; padding:0;">
-                                    <li><strong>Actual Working Days:</strong> Calculated from Attendance records (WorkingHours / 8)</li>
-                                    <li><strong>Paid Leave Days:</strong> Calculated from approved leave requests (Annual, Sick, Maternity)</li>
-                                    <li><strong>Actual Base Salary:</strong> (ActualWorkingDays + PaidLeaveDays) × (BaseSalary / 26)</li>
-                                    <li><strong>Overtime Salary:</strong> OvertimeHours × (BaseSalary / 208) × 1.5</li>
-                                    <li><strong>Insurance:</strong> BHXH (8%), BHYT (1.5%), BHTN (1%) from BaseSalary</li>
-                                    <li><strong>Tax (TNCN):</strong> Calculated from TaxableIncome after relief (11,000,000 + 4,400,000 × dependents)</li>
-                                    <li><strong>Net Salary:</strong> ActualBaseSalary + OTSalary + Allowance - TotalDeduction</li>
+                                    <li><strong>Ngày công thực tế:</strong> Tính từ dữ liệu chấm công (WorkingHours / 8)</li>
+                                    <li><strong>Ngày nghỉ có lương:</strong> Tính từ đơn nghỉ đã duyệt (phép năm, ốm, thai sản)</li>
+                                    <li><strong>Lương cơ bản thực nhận:</strong> (Ngày công thực tế + ngày nghỉ có lương) × (lương cơ bản / 26)</li>
+                                    <li><strong>Lương tăng ca:</strong> Giờ tăng ca × (lương cơ bản / 208) × 1.5</li>
+                                    <li><strong>Bảo hiểm:</strong> BHXH (8%), BHYT (1.5%), BHTN (1%) từ lương cơ bản</li>
+                                    <li><strong>Thuế TNCN:</strong> Tính từ thu nhập chịu thuế sau giảm trừ</li>
+                                    <li><strong>Lương thực nhận:</strong> Lương cơ bản thực nhận + lương tăng ca + phụ cấp - tổng khấu trừ</li>
                                 </ul>
                             </div>
                         </div>
@@ -1196,9 +1217,9 @@
                         <!-- Filter -->
                         <div class="form-row" style="margin-bottom:20px;">
                             <div class="form-group">
-                                <label>Employee</label>
+                                <label>Nhân viên</label>
                                 <select id="payrollEmployeeFilter" onchange="filterPayrolls()">
-                                    <option value="">All Employees</option>
+                                    <option value="">Tất cả nhân viên</option>
                                     <%
                                         if (employees != null) {
                                             for (Employee emp : employees) {
@@ -1212,16 +1233,16 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Status</label>
+                                <label>Trạng thái</label>
                                 <select id="payrollStatusFilter" onchange="filterPayrolls()">
-                                    <option value="">All Status</option>
+                                    <option value="">Tất cả trạng thái</option>
                                     <%
                                         String statusFilter = (String) request.getAttribute("statusFilter");
                                         String[] statuses = {"Draft", "Pending", "Approved", "Rejected", "Paid"};
                                         for (String status : statuses) {
                                             String selected = (statusFilter != null && statusFilter.equals(status)) ? "selected" : "";
                                     %>
-                                    <option value="<%= status %>" <%= selected %>><%= status %></option>
+                                    <option value="<%= status %>" <%= selected %>><%= payrollStatusLabel(status) %></option>
                                     <%
                                         }
                                     %>
@@ -1231,15 +1252,15 @@
 
                         <!-- Batch Actions Bar -->
                         <div id="batchActionsBar">
-                            <span id="selectedCount" style="font-weight:600; color:#0369a1;">0 selected</span>
+                            <span id="selectedCount" style="font-weight:600; color:#0369a1;">0 đã chọn</span>
                             <button type="button" class="btn btn-small secondary" onclick="submitSelectedPayrolls()" id="batchSubmitBtn" style="display:none;">
-                                <i class="fas fa-paper-plane"></i> Submit Selected
+                                <i class="fas fa-paper-plane"></i> Gửi duyệt mục đã chọn
                             </button>
                             <button type="button" class="btn btn-small btn-danger" onclick="deleteSelectedPayrolls()" id="batchDeleteBtn" style="display:none;">
-                                <i class="fas fa-trash"></i> Delete Selected
+                                <i class="fas fa-trash"></i> Xóa mục đã chọn
                             </button>
                             <button type="button" class="btn btn-small" onclick="clearSelection()" style="background:#6b7280; color:white;">
-                                <i class="fas fa-times"></i> Clear Selection
+                                <i class="fas fa-times"></i> Bỏ chọn
                             </button>
                         </div>
 
@@ -1254,65 +1275,65 @@
                                         if (sortOrder == null) sortOrder = "DESC";
                                     %>
                                     <th style="width:40px; text-align:center;">
-                                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" title="Select All">
+                                        <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" title="Chọn tất cả">
                                     </th>
                                     <th style="cursor:pointer;" onclick="sortPayrollTable('FullName')">
-                                        Employee<%
+                                        Nhân viên<%
                                             if ("FullName".equals(sortBy)) {
                                                 out.print(sortOrder.equals("ASC") ? " ▲" : " ▼");
                                             }
                                         %>
                                     </th>
                                     <th style="cursor:pointer;" onclick="sortPayrollTable('PayPeriod')">
-                                        Pay Period<%
+                                        Kỳ lương<%
                                             if ("PayPeriod".equals(sortBy)) {
                                                 out.print(sortOrder.equals("ASC") ? " ▲" : " ▼");
                                             }
                                         %>
                                     </th>
                                     <th style="cursor:pointer;" onclick="sortPayrollTable('BaseSalary')">
-                                        Actual Base Salary<%
+                                        Lương cơ bản thực nhận<%
                                             if ("BaseSalary".equals(sortBy)) {
                                                 out.print(sortOrder.equals("ASC") ? " ▲" : " ▼");
                                             }
                                         %>
                                     </th>
                                     <th style="cursor:pointer;" onclick="sortPayrollTable('Bonus')">
-                                        OT Salary<%
+                                        Lương tăng ca<%
                                             if ("Bonus".equals(sortBy)) {
                                                 out.print(sortOrder.equals("ASC") ? " ▲" : " ▼");
                                             }
                                         %>
                                     </th>
                                     <th style="cursor:pointer;" onclick="sortPayrollTable('Allowance')">
-                                        Allowance<%
+                                        Phụ cấp<%
                                             if ("Allowance".equals(sortBy)) {
                                                 out.print(sortOrder.equals("ASC") ? " ▲" : " ▼");
                                             }
                                         %>
                                     </th>
                                     <th style="cursor:pointer;" onclick="sortPayrollTable('Deduction')">
-                                        Deduction<%
+                                        Khấu trừ<%
                                             if ("Deduction".equals(sortBy)) {
                                                 out.print(sortOrder.equals("ASC") ? " ▲" : " ▼");
                                             }
                                         %>
                                     </th>
                                     <th style="cursor:pointer;" onclick="sortPayrollTable('NetSalary')">
-                                        Net Salary<%
+                                        Lương thực nhận<%
                                             if ("NetSalary".equals(sortBy)) {
                                                 out.print(sortOrder.equals("ASC") ? " ▲" : " ▼");
                                             }
                                         %>
                                     </th>
                                     <th style="cursor:pointer;" onclick="sortPayrollTable('Status')">
-                                        Status<%
+                                        Trạng thái<%
                                             if ("Status".equals(sortBy)) {
                                                 out.print(sortOrder.equals("ASC") ? " ▲" : " ▼");
                                             }
                                         %>
                                     </th>
-                                    <th>Actions</th>
+                                    <th>Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody id="payrollTableBody">
@@ -1321,7 +1342,7 @@
                                     if (payrolls == null || payrolls.isEmpty()) {
                                 %>
                                 <tr>
-                                    <td colspan="10" class="empty">No payroll found. Click "Create Payroll" to create one.</td>
+                                    <td colspan="10" class="empty">Chưa có bảng lương. Nhấn "Tạo bảng lương" để tạo mới.</td>
                                 </tr>
                                 <%
                                     } else {
@@ -1350,32 +1371,32 @@
                                     <td><%= String.format("%,d VNĐ", ((java.math.BigDecimal) payroll.get("deduction")).intValue()) %></td>
                                     <td><strong><%= String.format("%,d VNĐ", ((java.math.BigDecimal) payroll.get("netSalary")).intValue()) %></strong></td>
                                     <td>
-                                        <span class="status-badge status-<%= status %>"><%= status %></span>
+                                        <span class="status-badge status-<%= status %>"><%= payrollStatusLabel(status) %></span>
                                     </td>
                                     <td>
                                         <div class="action-btns">
                                             <%
                                                 if ("Draft".equals(status)) {
                                             %>
-                                            <button class="btn btn-small" onclick="editPayroll(<%= payroll.get("payrollId") %>)">Edit</button>
-                                            <button class="btn btn-small secondary" onclick="submitPayroll(<%= payroll.get("payrollId") %>)">Submit</button>
-                                            <button class="btn btn-small btn-danger" onclick="deletePayroll(<%= payroll.get("payrollId") %>)">Delete</button>
+                                            <button class="btn btn-small" onclick="editPayroll(<%= payroll.get("payrollId") %>)">Sửa</button>
+                                            <button class="btn btn-small secondary" onclick="submitPayroll(<%= payroll.get("payrollId") %>)">Gửi duyệt</button>
+                                            <button class="btn btn-small btn-danger" onclick="deletePayroll(<%= payroll.get("payrollId") %>)">Xóa</button>
                                             <%
                                                 } else if ("Rejected".equals(status)) {
                                             %>
-                                            <button class="btn btn-small" onclick="editPayroll(<%= payroll.get("payrollId") %>)" title="Edit rejected payroll">
-                                                <i class="fas fa-edit"></i> Edit
+                                            <button class="btn btn-small" onclick="editPayroll(<%= payroll.get("payrollId") %>)" title="Sửa bảng lương bị từ chối">
+                                                <i class="fas fa-edit"></i> Sửa
                                             </button>
-                                            <button class="btn btn-small btn-success" onclick="resubmitPayroll(<%= payroll.get("payrollId") %>)" title="Resubmit after correction">
-                                                <i class="fas fa-paper-plane"></i> Resubmit
+                                            <button class="btn btn-small btn-success" onclick="resubmitPayroll(<%= payroll.get("payrollId") %>)" title="Gửi lại sau khi chỉnh sửa">
+                                                <i class="fas fa-paper-plane"></i> Gửi lại
                                             </button>
-                                            <button class="btn btn-small" onclick="viewPayrollDetails(<%= payroll.get("payrollId") %>)" title="View details and rejection note">
-                                                <i class="fas fa-eye"></i> View
+                                            <button class="btn btn-small" onclick="viewPayrollDetails(<%= payroll.get("payrollId") %>)" title="Xem chi tiết và ghi chú từ chối">
+                                                <i class="fas fa-eye"></i> Xem
                                             </button>
                                             <%
                                                 } else {
                                             %>
-                                            <button class="btn btn-small" onclick="viewPayrollDetails(<%= payroll.get("payrollId") %>)">View Details</button>
+                                            <button class="btn btn-small" onclick="viewPayrollDetails(<%= payroll.get("payrollId") %>)">Xem chi tiết</button>
                                             <%
                                                 }
                                             %>
@@ -1404,10 +1425,10 @@
                                     <c:if test="${end > total}">
                                         <c:set var="end" value="${total}" />
                                     </c:if>
-                                    <span>Showing ${start} - ${end} of ${total}</span>
+                                    <span>Hiển thị ${start} - ${end} trong tổng số ${total}</span>
                                     
                                     <div class="page-size-selector" style="margin-left: 20px; display: inline-block;">
-                                        <label for="pageSizeSelect" style="margin-right: 8px;">Items per page:</label>
+                                        <label for="pageSizeSelect" style="margin-right: 8px;">Số dòng mỗi trang:</label>
                                         <select id="pageSizeSelect" onchange="changePayrollPageSize(this.value)" style="padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px;">
                                             <option value="5" <c:if test="${pageSize == 5}">selected</c:if>>5</option>
                                             <option value="10" <c:if test="${pageSize == 10}">selected</c:if>>10</option>
@@ -1434,10 +1455,10 @@
                                             <c:url var="prevUrl" value="${baseUrl}">
                                                 <c:param name="page" value="${page - 1}" />
                                             </c:url>
-                                            <a href="${prevUrl}" class="btn-pagination">← Prev</a>
+                                            <a href="${prevUrl}" class="btn-pagination">← Trước</a>
                                         </c:when>
                                         <c:otherwise>
-                                            <span class="disabled">← Prev</span>
+                                            <span class="disabled">← Trước</span>
                                         </c:otherwise>
                                     </c:choose>
 
@@ -1486,10 +1507,10 @@
                                             <c:url var="nextUrl" value="${baseUrl}">
                                                 <c:param name="page" value="${page + 1}" />
                                             </c:url>
-                                            <a href="${nextUrl}" class="btn-pagination">Next →</a>
+                                            <a href="${nextUrl}" class="btn-pagination">Sau →</a>
                                         </c:when>
                                         <c:otherwise>
-                                            <span class="disabled">Next →</span>
+                                            <span class="disabled">Sau →</span>
                                         </c:otherwise>
                                     </c:choose>
                                 </div>
@@ -1499,20 +1520,23 @@
                 </div>
             </main>
         </div>
+                </section>
+            </main>
+        </div>
 
-        <!-- Allowance Modal -->
+        <!-- Modal phụ cấp -->
         <div id="allowanceModal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3 id="allowanceModalTitle">Add Allowance</h3>
+                    <h3 id="allowanceModalTitle">Thêm phụ cấp</h3>
                     <button class="close-btn" onclick="closeAllowanceModal()">&times;</button>
                 </div>
                 <form id="allowanceForm" method="POST" action="<%=request.getContextPath()%>/hrstaff/payroll/allowance">
                     <input type="hidden" id="allowanceId" name="allowanceId"/>
                     <div class="form-group">
-                        <label>Employee <span class="required">*</span></label>
+                        <label>Nhân viên <span class="required">*</span></label>
                         <select id="allowanceEmployee" name="employeeId" required>
-                            <option value="">Select Employee</option>
+                            <option value="">Chọn nhân viên</option>
                             <%
                                 if (employees != null) {
                                     for (Employee emp : employees) {
@@ -1525,9 +1549,9 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Allowance Type <span class="required">*</span></label>
+                        <label>Loại phụ cấp <span class="required">*</span></label>
                         <select id="allowanceType" name="allowanceTypeId" required>
-                            <option value="">Select Allowance Type</option>
+                            <option value="">Chọn loại phụ cấp</option>
                             <%
                                 List<Map<String, Object>> allowanceTypes = (List<Map<String, Object>>) request.getAttribute("allowanceTypes");
                                 if (allowanceTypes != null) {
@@ -1542,35 +1566,35 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Amount (VNĐ) <span class="required">*</span></label>
+                            <label>Số tiền (VNĐ) <span class="required">*</span></label>
                             <input type="number" id="allowanceAmount" name="amount" min="0" step="1000" required/>
                         </div>
                         <div class="form-group">
-                            <label>Month <span class="required">*</span></label>
+                            <label>Tháng <span class="required">*</span></label>
                             <input type="month" id="allowanceMonth" name="month" required/>
                         </div>
                     </div>
                     <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:20px;">
-                        <button type="button" class="btn btn-small" onclick="closeAllowanceModal()">Cancel</button>
-                        <button type="submit" class="btn btn-small">Save</button>
+                        <button type="button" class="btn btn-small" onclick="closeAllowanceModal()">Hủy</button>
+                        <button type="submit" class="btn btn-small">Lưu</button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- Deduction Modal -->
+        <!-- Modal khấu trừ -->
         <div id="deductionModal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3 id="deductionModalTitle">Add Deduction</h3>
+                    <h3 id="deductionModalTitle">Thêm khấu trừ</h3>
                     <button class="close-btn" onclick="closeDeductionModal()">&times;</button>
                 </div>
                 <form id="deductionForm" method="POST" action="<%=request.getContextPath()%>/hrstaff/payroll/deduction">
                     <input type="hidden" id="deductionId" name="deductionId"/>
                     <div class="form-group">
-                        <label>Employee <span class="required">*</span></label>
+                        <label>Nhân viên <span class="required">*</span></label>
                         <select id="deductionEmployee" name="employeeId" required>
-                            <option value="">Select Employee</option>
+                            <option value="">Chọn nhân viên</option>
                             <%
                                 if (employees != null) {
                                     for (Employee emp : employees) {
@@ -1583,9 +1607,9 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Deduction Type <span class="required">*</span></label>
+                        <label>Loại khấu trừ <span class="required">*</span></label>
                         <select id="deductionType" name="deductionTypeId" required>
-                            <option value="">Select Deduction Type</option>
+                            <option value="">Chọn loại khấu trừ</option>
                             <%
                                 List<Map<String, Object>> deductionTypes = (List<Map<String, Object>>) request.getAttribute("deductionTypes");
                                 if (deductionTypes != null) {
@@ -1600,49 +1624,49 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Amount (VNĐ) <span class="required">*</span></label>
+                            <label>Số tiền (VNĐ) <span class="required">*</span></label>
                             <input type="number" id="deductionAmount" name="amount" min="0" step="1000" required/>
                         </div>
                         <div class="form-group">
-                            <label>Month <span class="required">*</span></label>
+                            <label>Tháng <span class="required">*</span></label>
                             <input type="month" id="deductionMonth" name="month" required/>
                         </div>
                     </div>
                     <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:20px;">
-                        <button type="button" class="btn btn-small" onclick="closeDeductionModal()">Cancel</button>
-                        <button type="submit" class="btn btn-small">Save</button>
+                        <button type="button" class="btn btn-small" onclick="closeDeductionModal()">Hủy</button>
+                        <button type="submit" class="btn btn-small">Lưu</button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- Payroll Details Modal -->
+        <!-- Modal chi tiết bảng lương -->
         <div id="payrollDetailsModal" class="modal">
             <div class="modal-content" style="max-width:900px;">
                 <div class="modal-header">
-                    <h3>Payroll Details</h3>
+                    <h3>Chi tiết bảng lương</h3>
                     <button class="close-btn" onclick="closePayrollDetailsModal()">&times;</button>
                 </div>
                 <div id="payrollDetailsContent">
-                    <!-- Content will be loaded dynamically -->
+                    <!-- Nội dung được tải động -->
                 </div>
             </div>
         </div>
 
-        <!-- Payroll Modal -->
+        <!-- Modal bảng lương -->
         <div id="payrollModal" class="modal">
             <div class="modal-content" style="max-width:800px;">
                 <div class="modal-header">
-                    <h3>Create/Edit Payroll</h3>
+                    <h3>Tạo/Sửa bảng lương</h3>
                     <button class="close-btn" onclick="closePayrollModal()">&times;</button>
                 </div>
                 <form id="payrollForm" method="POST" action="<%=request.getContextPath()%>/hrstaff/payroll">
                     <input type="hidden" id="payrollId" name="payrollId"/>
                     <div class="form-row">
                         <div class="form-group">
-                            <label>Employee <span class="required">*</span></label>
+                            <label>Nhân viên <span class="required">*</span></label>
                             <select id="payrollEmployee" name="employeeId" required onchange="loadEmployeePayrollData()">
-                                <option value="">Select Employee</option>
+                                <option value="">Chọn nhân viên</option>
                                 <%
                                     if (employees != null) {
                                         for (Employee emp : employees) {
@@ -1655,7 +1679,7 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Pay Period (Month) <span class="required">*</span></label>
+                            <label>Kỳ lương (tháng) <span class="required">*</span></label>
                             <input type="month" id="payrollPeriod" name="payPeriod" required onchange="loadEmployeePayrollData()"/>
                         </div>
                     </div>
@@ -1663,27 +1687,27 @@
                     <!-- Attendance Info Section -->
                     <div id="attendanceInfoSection" style="display:none; background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; padding:16px; margin-bottom:20px;">
                         <div style="margin-bottom:12px;">
-                            <h4 style="margin:0; color:#0369a1;">📅 Attendance Summary</h4>
-                            <div class="muted" style="font-size:12px; margin-top:4px;">Attendance data is automatically calculated and applied to payroll</div>
+                            <h4 style="margin:0; color:#0369a1;">📅 Tóm tắt chấm công</h4>
+                            <div class="muted" style="font-size:12px; margin-top:4px;">Dữ liệu chấm công được tự động tính và áp dụng vào bảng lương</div>
                         </div>
                         <div class="summary-grid" style="grid-template-columns: repeat(4, 1fr); gap:12px; margin:0;">
                             <div style="background:white; padding:12px; border-radius:6px;">
-                                <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Actual Work Days</div>
-                                <div style="font-weight:600; font-size:16px;" id="attWorkDays">0 days</div>
-                                <div style="font-size:10px; color:var(--muted); margin-top:2px;" id="attPaidLeaveInfo">0 paid leave days</div>
+                                <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Ngày công thực tế</div>
+                                <div style="font-weight:600; font-size:16px;" id="attWorkDays">0 ngày</div>
+                                <div style="font-size:10px; color:var(--muted); margin-top:2px;" id="attPaidLeaveInfo">0 ngày nghỉ có lương</div>
                             </div>
                             <div style="background:white; padding:12px; border-radius:6px; border-left:3px solid var(--error);">
-                                <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Unpaid Leave</div>
-                                <div style="font-weight:600; font-size:16px; color:var(--error);" id="attUnpaidLeave">0 days</div>
+                                <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Nghỉ không lương</div>
+                                <div style="font-weight:600; font-size:16px; color:var(--error);" id="attUnpaidLeave">0 ngày</div>
                                 <div style="font-size:11px; color:var(--muted);" id="attUnpaidLeaveAmt">0 VNĐ</div>
                             </div>
                             <div style="background:white; padding:12px; border-radius:6px; border-left:3px solid var(--warning);">
-                                <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Late Arrivals</div>
-                                <div style="font-weight:600; font-size:16px; color:var(--warning);" id="attLateCount">0 times</div>
+                                <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Đi muộn</div>
+                                <div style="font-weight:600; font-size:16px; color:var(--warning);" id="attLateCount">0 lần</div>
                                 <div style="font-size:11px; color:var(--muted);" id="attLatePenalty">0 VNĐ</div>
                             </div>
                             <div style="background:white; padding:12px; border-radius:6px; border-left:3px solid var(--success);">
-                                <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Overtime</div>
+                                <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Tăng ca</div>
                                 <div style="font-weight:600; font-size:16px; color:var(--success);" id="attOvertimeHours">0.0h</div>
                                 <div style="font-size:11px; color:var(--muted);" id="attOvertimeAmt">0 VNĐ</div>
                             </div>
@@ -1693,22 +1717,22 @@
                     <!-- Insurance & Tax Info Section -->
                     <div id="insuranceTaxSection" style="display:none; background:#fef3c7; border:1px solid #fcd34d; border-radius:8px; padding:16px; margin-bottom:20px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                            <h4 style="margin:0; color:#92400e;">💰 Insurance & Tax Calculation</h4>
+                            <h4 style="margin:0; color:#92400e;">💰 Tính bảo hiểm & thuế</h4>
                         </div>
                         <div id="insuranceWarning" style="display:none; background:#fee2e2; border:1px solid #fca5a5; border-radius:6px; padding:12px; margin-bottom:12px; color:#991b1b; font-size:13px;">
-                            <strong>⚠️ Lưu ý:</strong> Nhân viên này chưa có <strong>Base Salary</strong> (chưa có Contract hoặc Contract chưa có lương cơ bản). 
-                            Vui lòng tạo/ cập nhật Contract trước khi tính bảo hiểm và thuế.
+                            <strong>⚠️ Lưu ý:</strong> Nhân viên này chưa có <strong>lương cơ bản</strong> (chưa có hợp đồng hoặc hợp đồng chưa có lương cơ bản). 
+                            Vui lòng tạo/cập nhật hợp đồng trước khi tính bảo hiểm và thuế.
                             <br/><br/>
                             <strong>Hướng dẫn:</strong>
                             <ul style="margin:8px 0 0 20px; padding:0;">
-                                <li>Kiểm tra xem nhân viên có Contract chưa</li>
-                                <li>Đảm bảo Contract có BaseSalary > 0</li>
-                                <li>Đảm bảo Contract có StartDate <= ngày cuối tháng tính lương</li>
-                                <li>Đảm bảo Contract có EndDate >= ngày đầu tháng tính lương (hoặc EndDate IS NULL)</li>
+                                <li>Kiểm tra xem nhân viên đã có hợp đồng chưa</li>
+                                <li>Đảm bảo hợp đồng có lương cơ bản > 0</li>
+                                <li>Đảm bảo ngày bắt đầu hợp đồng <= ngày cuối tháng tính lương</li>
+                                <li>Đảm bảo ngày kết thúc hợp đồng >= ngày đầu tháng tính lương hoặc để trống</li>
                             </ul>
                         </div>
                         <div id="baseSalaryWarning" style="display:none; background:#fef3c7; border:1px solid #fcd34d; border-radius:6px; padding:12px; margin-bottom:12px; color:#92400e; font-size:13px;">
-                            <strong>ℹ️ Thông tin:</strong> Base Salary từ Contract: <strong id="displayBaseSalary">0 VNĐ</strong>
+                            <strong>ℹ️ Thông tin:</strong> Lương cơ bản từ hợp đồng: <strong id="displayBaseSalary">0 VNĐ</strong>
                         </div>
                         <div class="summary-grid" style="grid-template-columns: repeat(4, 1fr); gap:12px; margin:0;">
                             <div style="background:white; padding:12px; border-radius:6px; border-left:3px solid #3b82f6;">
@@ -1724,21 +1748,21 @@
                                 <div style="font-weight:600; font-size:16px; color:#8b5cf6;" id="insBHTN">0 VNĐ</div>
                             </div>
                             <div style="background:white; padding:12px; border-radius:6px; border-left:3px solid var(--error);">
-                                <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Tax (TNCN)</div>
+                                <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Thuế TNCN</div>
                                 <div style="font-weight:600; font-size:16px; color:var(--error);" id="insTax">0 VNĐ</div>
                             </div>
                         </div>
                         <div style="margin-top:12px; padding-top:12px; border-top:1px solid #fcd34d; display:flex; justify-content:space-between; font-size:12px;">
                             <div>
-                                <span style="color:var(--muted);">Taxable Income:</span>
+                                <span style="color:var(--muted);">Thu nhập chịu thuế:</span>
                                 <strong id="insTaxableIncome">0 VNĐ</strong>
                             </div>
                             <div>
-                                <span style="color:var(--muted);">Dependents:</span>
+                                <span style="color:var(--muted);">Người phụ thuộc:</span>
                                 <strong id="insDependents">0</strong>
                             </div>
                             <div>
-                                <span style="color:var(--muted);">Total Insurance:</span>
+                                <span style="color:var(--muted);">Tổng bảo hiểm:</span>
                                 <strong id="insTotal">0 VNĐ</strong>
                             </div>
                         </div>
@@ -1747,60 +1771,60 @@
                     <!-- Summary Cards -->
                     <div class="summary-grid" id="payrollSummary" style="display:none; grid-template-columns: repeat(5, 1fr);">
                         <div class="summary-card">
-                            <h4>Base Salary</h4>
+                            <h4>Lương cơ bản</h4>
                             <div class="value" id="summaryBaseSalary" style="font-size:18px;">0 VNĐ</div>
-                            <div class="muted" style="margin-top:4px; font-size:11px;">Contract base</div>
+                            <div class="muted" style="margin-top:4px; font-size:11px;">Theo hợp đồng</div>
                         </div>
                         <div class="summary-card">
-                            <h4>Actual Base Salary</h4>
+                            <h4>Lương cơ bản thực nhận</h4>
                             <div class="value" id="summaryActualBaseSalary" style="font-size:18px;">0 VNĐ</div>
-                            <div class="muted" style="margin-top:4px; font-size:11px;" id="summaryActualBaseSalaryDesc">Based on attendance</div>
+                            <div class="muted" style="margin-top:4px; font-size:11px;" id="summaryActualBaseSalaryDesc">Theo chấm công</div>
                         </div>
                         <div class="summary-card">
-                            <h4>OT Salary</h4>
+                            <h4>Lương tăng ca</h4>
                             <div class="value" id="summaryOTSalary" style="font-size:18px; color:var(--success);">0 VNĐ</div>
-                            <div class="muted" style="margin-top:4px; font-size:11px;" id="summaryOTHours">0 hours</div>
+                            <div class="muted" style="margin-top:4px; font-size:11px;" id="summaryOTHours">0 giờ</div>
                         </div>
                         <div class="summary-card">
-                            <h4>Total Allowance</h4>
+                            <h4>Tổng phụ cấp</h4>
                             <div class="value" id="summaryAllowance" style="font-size:18px;">0 VNĐ</div>
                         </div>
                         <div class="summary-card">
-                            <h4>Total Deduction</h4>
+                            <h4>Tổng khấu trừ</h4>
                             <div class="value" id="summaryDeduction" style="font-size:18px; color:var(--error);">0 VNĐ</div>
-                            <div class="muted" style="margin-top:4px; font-size:11px;" id="deductionBreakdown">Insurance & tax</div>
+                            <div class="muted" style="margin-top:4px; font-size:11px;" id="deductionBreakdown">Bảo hiểm & thuế</div>
                         </div>
                     </div>
                     
                     <div class="summary-card" id="summaryNetSalaryCard" style="display:none; margin-top:16px; border-left:4px solid var(--success);">
-                        <h4>Net Salary</h4>
+                        <h4>Lương thực nhận</h4>
                         <div class="value" id="summaryNetSalary" style="color:var(--success); font-size:28px;">0 VNĐ</div>
-                        <div class="muted" style="margin-top:4px; font-size:12px;">Actual Base Salary + OT Salary + Allowance - Total Deduction</div>
+                        <div class="muted" style="margin-top:4px; font-size:12px;">Lương cơ bản thực nhận + lương tăng ca + phụ cấp - tổng khấu trừ</div>
                     </div>
 
                     <!-- Manual Edit Section -->
                     <div id="manualEditSection" style="display:none; background:#fff3cd; border:1px solid #ffc107; border-radius:8px; padding:16px; margin-top:20px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                            <h4 style="margin:0; color:#856404;">✏️ Manual Override</h4>
+                            <h4 style="margin:0; color:#856404;">✏️ Điều chỉnh thủ công</h4>
                             <button type="button" class="btn btn-small" onclick="toggleManualEdit()" id="toggleEditBtn" style="font-size:12px; padding:6px 12px;">
-                                <i class="fas fa-edit"></i> Edit Values
+                                <i class="fas fa-edit"></i> Sửa giá trị
                             </button>
                         </div>
                         <div id="manualEditWarning" style="display:none; background:#fff3cd; border:1px solid #ffc107; border-radius:6px; padding:12px; margin-bottom:12px; color:#856404; font-size:13px;">
-                            <strong>⚠️ Warning:</strong> You are manually editing calculated values. Please ensure the Net Salary formula is correct:<br/>
-                            <strong>Net Salary = Actual Base Salary + OT Salary + Allowance - Total Deduction</strong>
+                            <strong>⚠️ Cảnh báo:</strong> Bạn đang chỉnh sửa giá trị đã tính tự động. Hãy đảm bảo công thức lương thực nhận chính xác:<br/>
+                            <strong>Lương thực nhận = Lương cơ bản thực nhận + lương tăng ca + phụ cấp - tổng khấu trừ</strong>
                         </div>
                         
                         <div class="form-row" style="margin-bottom:12px;">
                             <div class="form-group" style="flex:1;">
-                                <label>Actual Base Salary</label>
+                                <label>Lương cơ bản thực nhận</label>
                                 <input type="number" id="payrollActualBaseSalary" name="actualBaseSalary" step="0.01" min="0" 
                                     readonly style="background:#f5f5f5; cursor:not-allowed;" 
                                     onchange="validateNetSalary()" onblur="validateNetSalary()"/>
                                 <small id="actualBaseSalaryWarning" style="display:none; color:var(--error); font-size:11px;"></small>
                             </div>
                             <div class="form-group" style="flex:1;">
-                                <label>OT Salary</label>
+                                <label>Lương tăng ca</label>
                                 <input type="number" id="payrollOTSalary" name="otSalary" step="0.01" min="0" 
                                     readonly style="background:#f5f5f5; cursor:not-allowed;" 
                                     onchange="validateNetSalary()" onblur="validateNetSalary()"/>
@@ -1810,14 +1834,14 @@
                         
                         <div class="form-row" style="margin-bottom:12px;">
                             <div class="form-group" style="flex:1;">
-                                <label>Total Allowance</label>
+                                <label>Tổng phụ cấp</label>
                                 <input type="number" id="payrollAllowance" name="allowance" step="0.01" min="0" 
                                     readonly style="background:#f5f5f5; cursor:not-allowed;" 
                                     onchange="validateNetSalary()" onblur="validateNetSalary()"/>
                                 <small id="allowanceWarning" style="display:none; color:var(--error); font-size:11px;"></small>
                             </div>
                             <div class="form-group" style="flex:1;">
-                                <label>Total Deduction</label>
+                                <label>Tổng khấu trừ</label>
                                 <input type="number" id="payrollDeduction" name="deduction" step="0.01" min="0" 
                                     readonly style="background:#f5f5f5; cursor:not-allowed;" 
                                     onchange="validateNetSalary()" onblur="validateNetSalary()"/>
@@ -1827,37 +1851,37 @@
                         
                         <div class="form-row" style="margin-bottom:12px;">
                             <div class="form-group" style="flex:1;">
-                                <label>Net Salary <span style="color:var(--error);">*</span> <span style="color:var(--muted); font-size:11px; font-weight:normal;">(Auto-calculated)</span></label>
+                                <label>Lương thực nhận <span style="color:var(--error);">*</span> <span style="color:var(--muted); font-size:11px; font-weight:normal;">(Tự động tính)</span></label>
                                 <input type="number" id="payrollNetSalary" name="netSalary" step="0.01" min="0" required
                                     readonly style="background:#f5f5f5; cursor:not-allowed; font-weight:bold; color:#059669;" 
                                     onchange="updateNetSalaryAuto()" onblur="updateNetSalaryAuto()"/>
                                 <small id="netSalaryWarning" style="display:none; color:var(--error); font-size:11px; font-weight:bold;"></small>
                                 <small id="netSalaryFormula" style="display:block; color:var(--muted); font-size:11px; margin-top:4px;">
-                                    Formula: Actual Base Salary + OT Salary + Allowance - Total Deduction (Auto-calculated, cannot be edited directly)
+                                    Công thức: Lương cơ bản thực nhận + lương tăng ca + phụ cấp - tổng khấu trừ (tự động tính, không sửa trực tiếp)
                                 </small>
                             </div>
                         </div>
                         
                         <div style="display:flex; gap:8px; margin-top:12px;">
                             <button type="button" class="btn btn-small" onclick="recalculatePayroll()" style="background:#0369a1; color:white;">
-                                <i class="fas fa-calculator"></i> Recalculate from Source Data
+                                <i class="fas fa-calculator"></i> Tính lại từ dữ liệu gốc
                             </button>
                             <button type="button" class="btn btn-small" onclick="compareWithCalculated()" style="background:#059669; color:white;">
-                                <i class="fas fa-balance-scale"></i> Compare with Auto-Calculated
+                                <i class="fas fa-balance-scale"></i> So sánh với số tự động
                             </button>
                         </div>
                     </div>
                     
                     <!-- Comparison Section (hidden by default) -->
                     <div id="comparisonSection" style="display:none; background:#e0f2fe; border:1px solid #0ea5e9; border-radius:8px; padding:16px; margin-top:12px;">
-                        <h4 style="margin:0 0 12px 0; color:#0c4a6e;">📊 Comparison: Manual vs Auto-Calculated</h4>
+                        <h4 style="margin:0 0 12px 0; color:#0c4a6e;">📊 So sánh: thủ công và tự động</h4>
                         <table style="width:100%; border-collapse:collapse; font-size:13px;">
                             <thead>
                                 <tr style="background:#bae6fd; border-bottom:2px solid #0ea5e9;">
-                                    <th style="padding:8px; text-align:left;">Field</th>
-                                    <th style="padding:8px; text-align:right;">Auto-Calculated</th>
-                                    <th style="padding:8px; text-align:right;">Manual Value</th>
-                                    <th style="padding:8px; text-align:right;">Difference</th>
+                                    <th style="padding:8px; text-align:left;">Trường</th>
+                                    <th style="padding:8px; text-align:right;">Tự động tính</th>
+                                    <th style="padding:8px; text-align:right;">Giá trị thủ công</th>
+                                    <th style="padding:8px; text-align:right;">Chênh lệch</th>
                                 </tr>
                             </thead>
                             <tbody id="comparisonTableBody">
@@ -1866,10 +1890,10 @@
                         </table>
                         <div style="margin-top:12px; display:flex; gap:8px;">
                             <button type="button" class="btn btn-small" onclick="useCalculatedValues()" style="background:#059669; color:white;">
-                                <i class="fas fa-check"></i> Use Auto-Calculated Values
+                                <i class="fas fa-check"></i> Dùng giá trị tự động
                             </button>
                             <button type="button" class="btn btn-small" onclick="hideComparison()" style="background:#6b7280; color:white;">
-                                Close Comparison
+                                Đóng so sánh
                             </button>
                         </div>
                     </div>
@@ -1882,22 +1906,38 @@
                     <input type="hidden" id="calculatedNetSalary"/>
 
                     <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:20px;">
-                        <button type="button" class="btn btn-small" onclick="closePayrollModal()">Cancel</button>
-                        <button type="submit" class="btn btn-small" name="action" value="save" onclick="return validatePayrollForm()">Save Draft</button>
-                        <button type="submit" class="btn btn-small secondary" name="action" value="submit" onclick="return validatePayrollForm()">Submit for Approval</button>
+                        <button type="button" class="btn btn-small" onclick="closePayrollModal()">Hủy</button>
+                        <button type="submit" class="btn btn-small" name="action" value="save" onclick="return validatePayrollForm()">Lưu bản nháp</button>
+                        <button type="submit" class="btn btn-small secondary" name="action" value="submit" onclick="return validatePayrollForm()">Gửi phê duyệt</button>
                     </div>
                 </form>
             </div>
         </div>
 
         <script>
+            function getPayrollStatusLabel(status) {
+                switch (status) {
+                    case 'Draft':
+                        return 'Bản nháp';
+                    case 'Pending':
+                        return 'Chờ phê duyệt';
+                    case 'Approved':
+                        return 'Đã duyệt';
+                    case 'Rejected':
+                        return 'Bị từ chối';
+                    case 'Paid':
+                        return 'Đã thanh toán';
+                    default:
+                        return status || 'Không có';
+                }
+            }
 
             function openAllowanceModal(resetForm = true) {
                 const modal = document.getElementById('allowanceModal');
                 if (modal) {
                     modal.classList.add('active');
                     if (resetForm) {
-                        document.getElementById('allowanceModalTitle').textContent = 'Add Allowance';
+                        document.getElementById('allowanceModalTitle').textContent = 'Thêm phụ cấp';
                         document.getElementById('allowanceForm').reset();
                         document.getElementById('allowanceId').value = '';
                     }
@@ -1916,7 +1956,7 @@
                 if (modal) {
                     modal.classList.add('active');
                     if (resetForm) {
-                        document.getElementById('deductionModalTitle').textContent = 'Add Deduction';
+                        document.getElementById('deductionModalTitle').textContent = 'Thêm khấu trừ';
                         document.getElementById('deductionForm').reset();
                         document.getElementById('deductionId').value = '';
                     }
@@ -1968,13 +2008,13 @@
                 fetch('<%=request.getContextPath()%>/api/allowance/' + id)
                         .then(r => {
                             if (!r.ok) {
-                                throw new Error('Failed to load allowance data: ' + r.status);
+                                throw new Error('Không tải được dữ liệu phụ cấp: ' + r.status);
                             }
                             return r.json();
                         })
                         .then(data => {
                             if (!data || !data.id) {
-                                throw new Error('Invalid allowance data received');
+                                throw new Error('Dữ liệu phụ cấp không hợp lệ');
                             }
                             // Set form values with the fetched data
                             document.getElementById('allowanceId').value = data.id || '';
@@ -1982,7 +2022,7 @@
                             document.getElementById('allowanceType').value = data.allowanceTypeId || '';
                             document.getElementById('allowanceAmount').value = data.amount || '';
                             document.getElementById('allowanceMonth').value = data.month || '';
-                            document.getElementById('allowanceModalTitle').textContent = 'Edit Allowance';
+                            document.getElementById('allowanceModalTitle').textContent = 'Sửa phụ cấp';
                             // Open modal without resetting form
                             openAllowanceModal(false);
                         })
@@ -2000,13 +2040,13 @@
                 fetch('<%=request.getContextPath()%>/api/deduction/' + id)
                         .then(r => {
                             if (!r.ok) {
-                                throw new Error('Failed to load deduction data: ' + r.status);
+                                throw new Error('Không tải được dữ liệu khấu trừ: ' + r.status);
                             }
                             return r.json();
                         })
                         .then(data => {
                             if (!data || !data.id) {
-                                throw new Error('Invalid deduction data received');
+                                throw new Error('Dữ liệu khấu trừ không hợp lệ');
                             }
                             // Set form values with the fetched data
                             document.getElementById('deductionId').value = data.id || '';
@@ -2014,7 +2054,7 @@
                             document.getElementById('deductionType').value = data.deductionTypeId || '';
                             document.getElementById('deductionAmount').value = data.amount || '';
                             document.getElementById('deductionMonth').value = data.month || '';
-                            document.getElementById('deductionModalTitle').textContent = 'Edit Deduction';
+                            document.getElementById('deductionModalTitle').textContent = 'Sửa khấu trừ';
                             // Open modal without resetting form
                             openDeductionModal(false);
                         })
@@ -2034,7 +2074,7 @@
                 fetch('<%=request.getContextPath()%>/api/payroll?payrollId=' + id)
                     .then(response => {
                         if (!response.ok) {
-                            throw new Error('Network error: ' + response.status);
+                            throw new Error('Lỗi kết nối: ' + response.status);
                         }
                         return response.json();
                     })
@@ -2088,24 +2128,24 @@
                     })
                     .catch(err => {
                         console.error('Error loading payroll:', err);
-                        alert('Error loading payroll data: ' + err.message);
+                            alert('Lỗi khi tải dữ liệu bảng lương: ' + err.message);
                     });
             }
 
             function deleteAllowance(id) {
-                if (confirm('Are you sure you want to delete this allowance?')) {
+                if (confirm('Bạn có chắc muốn xóa phụ cấp này không?')) {
                     window.location.href = '<%=request.getContextPath()%>/hrstaff/payroll/allowance/delete?allowanceId=' + id;
                 }
             }
 
             function deleteDeduction(id) {
-                if (confirm('Are you sure you want to delete this deduction?')) {
+                if (confirm('Bạn có chắc muốn xóa khoản khấu trừ này không?')) {
                     window.location.href = '<%=request.getContextPath()%>/hrstaff/payroll/deduction/delete?deductionId=' + id;
                 }
             }
 
             function deletePayroll(id) {
-                if (confirm('Are you sure you want to delete this payroll?')) {
+                if (confirm('Bạn có chắc muốn xóa bảng lương này không?')) {
                     const urlParams = new URLSearchParams(window.location.search);
                     let url = '<%=request.getContextPath()%>/hrstaff/payroll/delete?payrollId=' + id;
                     if (urlParams.get('page')) url += '&page=' + urlParams.get('page');
@@ -2119,7 +2159,7 @@
             }
 
             function submitPayroll(id) {
-                if (confirm('Are you sure you want to submit this payroll for approval?')) {
+                if (confirm('Bạn có chắc muốn gửi bảng lương này để phê duyệt không?')) {
                     const urlParams = new URLSearchParams(window.location.search);
                     let url = '<%=request.getContextPath()%>/hrstaff/payroll/submit?payrollId=' + id;
                     // Preserve pagination parameters
@@ -2134,7 +2174,7 @@
             }
 
             function resubmitPayroll(id) {
-                if (confirm('Are you sure you want to resubmit this rejected payroll for approval? Make sure you have reviewed and addressed the rejection note.')) {
+                if (confirm('Bạn có chắc muốn gửi lại bảng lương bị từ chối này để phê duyệt không? Hãy đảm bảo đã xem và xử lý lý do từ chối.')) {
                     const urlParams = new URLSearchParams(window.location.search);
                     let url = '<%=request.getContextPath()%>/hrstaff/payroll/submit?payrollId=' + id;
                     // Preserve pagination parameters
@@ -2168,7 +2208,7 @@
 
                 if (selectedCount > 0) {
                     batchBar.style.display = 'flex';
-                    selectedCountEl.textContent = selectedCount + ' selected';
+                    selectedCountEl.textContent = selectedCount + ' đã chọn';
                     
                     // Check which actions are available based on selected payrolls
                     let hasDraft = false;
@@ -2211,12 +2251,12 @@
             function submitSelectedPayrolls() {
                 const selectedIds = getSelectedPayrollIds();
                 if (selectedIds.length === 0) {
-                    alert('Vui lòng chọn ít nhất một payroll để submit.');
+                    alert('Vui lòng chọn ít nhất một bảng lương để gửi duyệt.');
                     return;
                 }
                 
                 const count = selectedIds.length;
-                if (confirm('Bạn có chắc chắn muốn submit ' + count + ' payroll đã chọn để duyệt không?')) {
+                if (confirm('Bạn có chắc chắn muốn gửi duyệt ' + count + ' bảng lương đã chọn không?')) {
                     const urlParams = new URLSearchParams(window.location.search);
                     let url = '<%=request.getContextPath()%>/hrstaff/payroll/batch-submit?payrollIds=' + selectedIds.join(',');
                     
@@ -2235,7 +2275,7 @@
             function deleteSelectedPayrolls() {
                 const selectedIds = getSelectedPayrollIds();
                 if (selectedIds.length === 0) {
-                    alert('Vui lòng chọn ít nhất một payroll để xóa.');
+                    alert('Vui lòng chọn ít nhất một bảng lương để xóa.');
                     return;
                 }
                 
@@ -2273,13 +2313,13 @@
                 const content = document.getElementById('payrollDetailsContent');
                 
                 // Show loading state
-                content.innerHTML = '<div style="text-align:center; padding:40px;"><div class="muted">Loading payroll details...</div></div>';
+                content.innerHTML = '<div style="text-align:center; padding:40px;"><div class="muted">Đang tải chi tiết bảng lương...</div></div>';
                 modal.classList.add('active');
                 
                 fetch('<%=request.getContextPath()%>/api/payroll?payrollId=' + id)
                     .then(response => {
                         if (!response.ok) {
-                            throw new Error('Network error: ' + response.status);
+                            throw new Error('Lỗi kết nối: ' + response.status);
                         }
                         return response.json();
                     })
@@ -2290,7 +2330,7 @@
                     .catch(err => {
                         console.error('Error loading payroll details:', err);
                         content.innerHTML = '<div style="background:#fee2e2; border:1px solid #fca5a5; border-radius:6px; padding:16px; color:#991b1b;">' +
-                            '<strong>Error:</strong> ' + err.message + '</div>';
+                            '<strong>Lỗi:</strong> ' + err.message + '</div>';
                     });
             }
             
@@ -2302,39 +2342,39 @@
                 
                 // Basic Info Section
                 html += '<div class="card" style="padding:16px;">';
-                html += '<h4 style="margin:0 0 16px 0; color:var(--primary);">📋 Basic Information</h4>';
+                html += '<h4 style="margin:0 0 16px 0; color:var(--primary);">📋 Thông tin cơ bản</h4>';
                 html += '<div class="form-row">';
-                html += '<div class="form-group"><label>Employee</label><div style="padding:8px 0; font-weight:600;">' + (data.employeeName || 'N/A') + '</div></div>';
-                html += '<div class="form-group"><label>Pay Period</label><div style="padding:8px 0; font-weight:600;">' + (data.payPeriod || 'N/A') + '</div></div>';
+                html += '<div class="form-group"><label>Nhân viên</label><div style="padding:8px 0; font-weight:600;">' + (data.employeeName || 'Không có') + '</div></div>';
+                html += '<div class="form-group"><label>Kỳ lương</label><div style="padding:8px 0; font-weight:600;">' + (data.payPeriod || 'Không có') + '</div></div>';
                 html += '</div>';
                 html += '<div class="form-row">';
-                html += '<div class="form-group"><label>Status</label><div style="padding:8px 0;"><span class="status-badge status-' + (data.status || 'Draft') + '">' + (data.status || 'Draft') + '</span></div></div>';
+                html += '<div class="form-group"><label>Trạng thái</label><div style="padding:8px 0;"><span class="status-badge status-' + (data.status || 'Draft') + '">' + getPayrollStatusLabel(data.status || 'Draft') + '</span></div></div>';
                 if (data.approvedDate) {
-                    html += '<div class="form-group"><label>Approved Date</label><div style="padding:8px 0;">' + data.approvedDate + '</div></div>';
+                    html += '<div class="form-group"><label>Ngày duyệt</label><div style="padding:8px 0;">' + data.approvedDate + '</div></div>';
                 }
                 html += '</div>';
                 html += '</div>';
                 
                 // Salary Breakdown Section
                 html += '<div class="card" style="padding:16px;">';
-                html += '<h4 style="margin:0 0 16px 0; color:var(--primary);">💰 Salary Breakdown</h4>';
+                html += '<h4 style="margin:0 0 16px 0; color:var(--primary);">💰 Chi tiết lương</h4>';
                 html += '<div class="summary-grid" style="grid-template-columns: repeat(3, 1fr); gap:12px; margin:0;">';
                 html += '<div style="background:#f0f9ff; padding:12px; border-radius:6px; border-left:3px solid #3b82f6;">';
-                html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Base Salary</div>';
+                html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Lương cơ bản</div>';
                 html += '<div style="font-weight:600; font-size:16px;">' + formatCurrency(parseFloat(data.baseSalary) || 0) + '</div>';
                 if (audit.actualBaseSalary) {
-                    html += '<div style="font-size:10px; color:var(--muted); margin-top:2px;">(Actual: ' + formatCurrency(parseFloat(audit.actualBaseSalary)) + ')</div>';
+                    html += '<div style="font-size:10px; color:var(--muted); margin-top:2px;">(Thực nhận: ' + formatCurrency(parseFloat(audit.actualBaseSalary)) + ')</div>';
                 }
                 html += '</div>';
                 html += '<div style="background:#f0fdf4; padding:12px; border-radius:6px; border-left:3px solid var(--success);">';
-                html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">OT Salary</div>';
+                html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Lương tăng ca</div>';
                 html += '<div style="font-weight:600; font-size:16px; color:var(--success);">' + formatCurrency(parseFloat(data.bonus) || 0) + '</div>';
                 if (audit.overtimeHours) {
-                    html += '<div style="font-size:10px; color:var(--muted); margin-top:2px;">(' + parseFloat(audit.overtimeHours).toFixed(1) + ' hours)</div>';
+                    html += '<div style="font-size:10px; color:var(--muted); margin-top:2px;">(' + parseFloat(audit.overtimeHours).toFixed(1) + ' giờ)</div>';
                 }
                 html += '</div>';
                 html += '<div style="background:#fef3c7; padding:12px; border-radius:6px; border-left:3px solid var(--warning);">';
-                html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Allowance</div>';
+                html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Phụ cấp</div>';
                 html += '<div style="font-weight:600; font-size:16px;">' + formatCurrency(parseFloat(data.allowance) || 0) + '</div>';
                 html += '</div>';
                 html += '</div>';
@@ -2343,30 +2383,30 @@
                 // Attendance Details (if available)
                 if (audit.actualWorkingDays !== undefined || audit.paidLeaveDays !== undefined) {
                     html += '<div class="card" style="padding:16px;">';
-                    html += '<h4 style="margin:0 0 16px 0; color:var(--primary);">📅 Attendance Details</h4>';
+                    html += '<h4 style="margin:0 0 16px 0; color:var(--primary);">📅 Chi tiết chấm công</h4>';
                     html += '<div class="summary-grid" style="grid-template-columns: repeat(4, 1fr); gap:12px; margin:0;">';
                     if (audit.actualWorkingDays !== undefined) {
                         html += '<div style="background:#f0f9ff; padding:12px; border-radius:6px;">';
-                        html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Actual Work Days</div>';
-                        html += '<div style="font-weight:600; font-size:16px;">' + parseFloat(audit.actualWorkingDays).toFixed(1) + ' days</div>';
+                        html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Ngày công thực tế</div>';
+                        html += '<div style="font-weight:600; font-size:16px;">' + parseFloat(audit.actualWorkingDays).toFixed(1) + ' ngày</div>';
                         html += '</div>';
                     }
                     if (audit.paidLeaveDays !== undefined) {
                         html += '<div style="background:#f0fdf4; padding:12px; border-radius:6px;">';
-                        html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Paid Leave Days</div>';
-                        html += '<div style="font-weight:600; font-size:16px; color:var(--success);">' + parseFloat(audit.paidLeaveDays).toFixed(1) + ' days</div>';
+                        html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Ngày nghỉ có lương</div>';
+                        html += '<div style="font-weight:600; font-size:16px; color:var(--success);">' + parseFloat(audit.paidLeaveDays).toFixed(1) + ' ngày</div>';
                         html += '</div>';
                     }
                     if (audit.unpaidLeaveDays !== undefined) {
                         html += '<div style="background:#fee2e2; padding:12px; border-radius:6px;">';
-                        html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Unpaid Leave Days</div>';
-                        html += '<div style="font-weight:600; font-size:16px; color:var(--error);">' + parseFloat(audit.unpaidLeaveDays).toFixed(1) + ' days</div>';
+                        html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Ngày nghỉ không lương</div>';
+                        html += '<div style="font-weight:600; font-size:16px; color:var(--error);">' + parseFloat(audit.unpaidLeaveDays).toFixed(1) + ' ngày</div>';
                         html += '</div>';
                     }
                     if (audit.overtimeHours !== undefined) {
                         html += '<div style="background:#f0fdf4; padding:12px; border-radius:6px;">';
-                        html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Overtime Hours</div>';
-                        html += '<div style="font-weight:600; font-size:16px; color:var(--success);">' + parseFloat(audit.overtimeHours).toFixed(1) + ' hours</div>';
+                        html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Giờ tăng ca</div>';
+                        html += '<div style="font-weight:600; font-size:16px; color:var(--success);">' + parseFloat(audit.overtimeHours).toFixed(1) + ' giờ</div>';
                         html += '</div>';
                     }
                     html += '</div>';
@@ -2376,7 +2416,7 @@
                 // Insurance & Tax Details (if available)
                 if (audit.bhxh !== undefined || audit.personalTax !== undefined) {
                     html += '<div class="card" style="padding:16px;">';
-                    html += '<h4 style="margin:0 0 16px 0; color:var(--primary);">💳 Insurance & Tax</h4>';
+                    html += '<h4 style="margin:0 0 16px 0; color:var(--primary);">💳 Bảo hiểm & thuế</h4>';
                     html += '<div class="summary-grid" style="grid-template-columns: repeat(4, 1fr); gap:12px; margin:0;">';
                     if (audit.bhxh !== undefined) {
                         html += '<div style="background:#f0f9ff; padding:12px; border-radius:6px; border-left:3px solid #3b82f6;">';
@@ -2398,14 +2438,14 @@
                     }
                     if (audit.personalTax !== undefined) {
                         html += '<div style="background:#fee2e2; padding:12px; border-radius:6px; border-left:3px solid var(--error);">';
-                        html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Tax (TNCN)</div>';
+                        html += '<div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Thuế TNCN</div>';
                         html += '<div style="font-weight:600; font-size:16px; color:var(--error);">' + formatCurrency(parseFloat(audit.personalTax) || 0) + '</div>';
                         html += '</div>';
                     }
                     html += '</div>';
                     if (audit.taxableIncome !== undefined) {
                         html += '<div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-size:12px;">';
-                        html += '<span style="color:var(--muted);">Taxable Income:</span> ';
+                        html += '<span style="color:var(--muted);">Thu nhập chịu thuế:</span> ';
                         html += '<strong>' + formatCurrency(parseFloat(audit.taxableIncome) || 0) + '</strong>';
                         html += '</div>';
                     }
@@ -2414,20 +2454,20 @@
                 
                 // Deductions Section
                 html += '<div class="card" style="padding:16px;">';
-                html += '<h4 style="margin:0 0 16px 0; color:var(--primary);">➖ Deductions</h4>';
+                html += '<h4 style="margin:0 0 16px 0; color:var(--primary);">➖ Khấu trừ</h4>';
                 html += '<div style="display:flex; flex-direction:column; gap:8px;">';
                 html += '<div style="display:flex; justify-content:space-between; padding:8px; background:#f9fafb; border-radius:6px;">';
-                html += '<span>Total Deduction:</span>';
+                html += '<span>Tổng khấu trừ:</span>';
                 html += '<strong style="color:var(--error);">' + formatCurrency(parseFloat(data.deduction) || 0) + '</strong>';
                 html += '</div>';
                 if (audit.totalDeduction !== undefined) {
                     html += '<div style="font-size:12px; color:var(--muted); padding-left:8px;">';
-                    html += 'Includes: Insurance (' + formatCurrency((parseFloat(audit.bhxh) || 0) + (parseFloat(audit.bhyt) || 0) + (parseFloat(audit.bhtn) || 0)) + ')';
+                    html += 'Bao gồm: Bảo hiểm (' + formatCurrency((parseFloat(audit.bhxh) || 0) + (parseFloat(audit.bhyt) || 0) + (parseFloat(audit.bhtn) || 0)) + ')';
                     if (audit.personalTax) {
-                        html += ' + Tax (' + formatCurrency(parseFloat(audit.personalTax)) + ')';
+                        html += ' + Thuế (' + formatCurrency(parseFloat(audit.personalTax)) + ')';
                     }
                     if (audit.otherDeduction) {
-                        html += ' + Other (' + formatCurrency(parseFloat(audit.otherDeduction)) + ')';
+                        html += ' + Khác (' + formatCurrency(parseFloat(audit.otherDeduction)) + ')';
                     }
                     html += ')';
                     html += '</div>';
@@ -2438,11 +2478,11 @@
                 // Net Salary
                 html += '<div class="card" style="padding:16px; border-left:4px solid var(--success);">';
                 html += '<div style="display:flex; justify-content:space-between; align-items:center;">';
-                html += '<h4 style="margin:0; color:var(--success);">💵 Net Salary</h4>';
+                html += '<h4 style="margin:0; color:var(--success);">💵 Lương thực nhận</h4>';
                 html += '<div style="font-size:28px; font-weight:700; color:var(--success);">' + formatCurrency(parseFloat(data.netSalary) || 0) + '</div>';
                 html += '</div>';
                 html += '<div style="margin-top:8px; font-size:12px; color:var(--muted);">';
-                html += 'Base Salary + OT Salary + Allowance - Total Deduction';
+                html += 'Lương cơ bản + lương tăng ca + phụ cấp - tổng khấu trừ';
                 html += '</div>';
                 html += '</div>';
                 
@@ -2454,12 +2494,12 @@
                     
                     html += '<div class="card" style="padding:16px;' + (isRejected && hasRejectionNote ? ' border-left:4px solid var(--error); background:#fef2f2;' : '') + '">';
                     html += '<h4 style="margin:0 0 8px 0; color:' + (isRejected && hasRejectionNote ? 'var(--error)' : 'var(--primary)') + ';">';
-                    html += isRejected && hasRejectionNote ? '⚠️ Rejection Note' : '📝 Notes';
+                    html += isRejected && hasRejectionNote ? '⚠️ Ghi chú từ chối' : '📝 Ghi chú';
                     html += '</h4>';
                     html += '<div style="color:' + (isRejected && hasRejectionNote ? 'var(--text-color)' : 'var(--muted)') + '; white-space: pre-wrap; line-height: 1.6;">' + audit.notes.replace(/\n/g, '<br>') + '</div>';
                     if (isRejected && hasRejectionNote) {
                         html += '<div style="margin-top:12px; padding:8px; background:#fee2e2; border-radius:4px; font-size:12px; color:#991b1b;">';
-                        html += '<strong>Please review and correct the payroll based on the rejection reason above.</strong>';
+                        html += '<strong>Vui lòng xem lại và chỉnh sửa bảng lương theo lý do từ chối ở trên.</strong>';
                         html += '</div>';
                     }
                     html += '</div>';
@@ -2479,10 +2519,10 @@
             
             // Generate payroll for all employees using stored procedure
             function generatePayrollForAll() {
-                const month = prompt('Enter pay period (YYYY-MM):', new Date().toISOString().slice(0, 7));
+                const month = prompt('Nhập kỳ lương (YYYY-MM):', new Date().toISOString().slice(0, 7));
                 if (!month) return;
                 
-                if (confirm(`Generate payroll for ALL active employees for period ${month}?\n\nThis will use stored procedure sp_GeneratePayrollImproved to automatically calculate:\n- Actual working days and paid leave days\n- Actual base salary\n- Overtime salary\n- Insurance (BHXH, BHYT, BHTN)\n- Personal income tax (TNCN)\n- Net salary\n\nThis will create/update PayrollAudit and Payroll records for all active employees.`)) {
+                if (confirm(`Tạo bảng lương cho TẤT CẢ nhân viên đang hoạt động trong kỳ ${month}?\n\nHệ thống sẽ dùng thủ tục sp_GeneratePayrollImproved để tự tính:\n- Ngày công thực tế và ngày nghỉ có lương\n- Lương cơ bản thực nhận\n- Lương tăng ca\n- Bảo hiểm (BHXH, BHYT, BHTN)\n- Thuế thu nhập cá nhân (TNCN)\n- Lương thực nhận\n\nThao tác này sẽ tạo/cập nhật bảng kiểm toán lương và bảng lương cho tất cả nhân viên đang hoạt động.`)) {
                     window.location.href = '<%=request.getContextPath()%>/hrstaff/payroll/generate-all?period=' + month;
                 }
             }
@@ -2679,14 +2719,14 @@
                 const statOvertimeHours = document.getElementById('statOvertimeHours');
                 const statOvertimeAmount = document.getElementById('statOvertimeAmount');
                 
-                if (statWorkDays) statWorkDays.textContent = '0 days';
-                if (statPaidLeaveInfo) statPaidLeaveInfo.textContent = '0 paid leave days';
-                if (statUnpaidLeave) statUnpaidLeave.textContent = '0 days';
+                if (statWorkDays) statWorkDays.textContent = '0 ngày';
+                if (statPaidLeaveInfo) statPaidLeaveInfo.textContent = '0 ngày nghỉ có lương';
+                if (statUnpaidLeave) statUnpaidLeave.textContent = '0 ngày';
                 if (statUnpaidLeaveAmount) statUnpaidLeaveAmount.textContent = '0 VNĐ';
-                if (statLateCount) statLateCount.textContent = '0 times';
+                if (statLateCount) statLateCount.textContent = '0 lần';
                 if (statLatePenalty) statLatePenalty.textContent = '0 VNĐ';
-                if (statEarlyLeave) statEarlyLeave.textContent = '0 times';
-                if (statOvertimeHours) statOvertimeHours.textContent = '0.0 hours';
+                if (statEarlyLeave) statEarlyLeave.textContent = '0 lần';
+                if (statOvertimeHours) statOvertimeHours.textContent = '0.0 giờ';
                 if (statOvertimeAmount) statOvertimeAmount.textContent = '0 VNĐ';
             }
 
@@ -2737,7 +2777,7 @@
                         .then(response => {
                             console.log('Response status:', response.status);
                             if (!response.ok)
-                                throw new Error('Network error: ' + response.status);
+                                throw new Error('Lỗi kết nối: ' + response.status);
                             return response.text();
                         })
                         .then(text => {
@@ -2763,14 +2803,14 @@
                                     const paidLeaveDays = parseFloat(att.paidLeaveDays) || 0;
                                     const unpaidLeaveDays = parseFloat(att.unpaidLeaveDays) || 0;
                                     
-                                    if (statWorkDays) statWorkDays.textContent = actualWorkingDays.toFixed(1) + ' days';
-                                    if (statPaidLeaveInfo) statPaidLeaveInfo.textContent = paidLeaveDays.toFixed(1) + ' paid leave days';
-                                    if (statUnpaidLeave) statUnpaidLeave.textContent = unpaidLeaveDays.toFixed(1) + ' days';
+                                    if (statWorkDays) statWorkDays.textContent = actualWorkingDays.toFixed(1) + ' ngày';
+                                    if (statPaidLeaveInfo) statPaidLeaveInfo.textContent = paidLeaveDays.toFixed(1) + ' ngày nghỉ có lương';
+                                    if (statUnpaidLeave) statUnpaidLeave.textContent = unpaidLeaveDays.toFixed(1) + ' ngày';
                                     if (statUnpaidLeaveAmount) statUnpaidLeaveAmount.textContent = formatCurrency(parseFloat(att.calculatedUnpaidLeaveAmount) || 0);
-                                    if (statLateCount) statLateCount.textContent = (att.lateCount || 0) + ' times';
+                                    if (statLateCount) statLateCount.textContent = (att.lateCount || 0) + ' lần';
                                     if (statLatePenalty) statLatePenalty.textContent = formatCurrency(parseFloat(att.calculatedLatePenalty) || 0);
-                                    if (statEarlyLeave) statEarlyLeave.textContent = (att.earlyLeaveCount || 0) + ' times';
-                                    if (statOvertimeHours) statOvertimeHours.textContent = parseFloat(att.totalOvertimeHours || 0).toFixed(1) + ' hours';
+                                    if (statEarlyLeave) statEarlyLeave.textContent = (att.earlyLeaveCount || 0) + ' lần';
+                                    if (statOvertimeHours) statOvertimeHours.textContent = parseFloat(att.totalOvertimeHours || 0).toFixed(1) + ' giờ';
                                     if (statOvertimeAmount) statOvertimeAmount.textContent = formatCurrency(parseFloat(att.calculatedOvertimeAmount) || 0);
 
                                     console.log('Attendance stats displayed');
@@ -2782,21 +2822,21 @@
                             } catch (e) {
                                 console.error('Error parsing attendance data:', e);
                                 console.error('Response text:', text);
-                                alert('Error loading attendance data. Check console for details.');
+                                alert('Lỗi khi tải dữ liệu chấm công. Vui lòng kiểm tra nhật ký trình duyệt để biết chi tiết.');
                             }
                         })
                         .catch(err => {
                             console.error('Fetch error:', err);
-                            alert('Error loading attendance data: ' + err.message);
+                            alert('Lỗi khi tải dữ liệu chấm công: ' + err.message);
                         });
             }
 
             function applyAttendanceDeductions() {
-                alert('Feature: Auto-create deductions from attendance');
+                alert('Tính năng: Tự tạo khoản khấu trừ từ dữ liệu chấm công');
             }
 
             function applyAttendanceAllowances() {
-                alert('Feature: Auto-create allowances from attendance');
+                alert('Tính năng: Tự tạo phụ cấp từ dữ liệu chấm công');
             }
 
 
@@ -2815,7 +2855,7 @@
                 fetch(url)
                         .then(response => {
                             if (!response.ok)
-                                throw new Error('Network error: ' + response.status);
+                                throw new Error('Lỗi kết nối: ' + response.status);
                             return response.text();
                         })
                         .then(text => {
@@ -2876,13 +2916,13 @@
                                     // Check if baseSalary is 0 and show warning
                                     if (baseSalary === 0) {
                                         console.warn('PayrollCalculateController: BaseSalary is 0. Cannot calculate payroll properly.');
-                                        alert('⚠️ Cảnh báo: Nhân viên này chưa có Base Salary từ Contract.\n\n' +
+                                        alert('⚠️ Cảnh báo: Nhân viên này chưa có lương cơ bản từ hợp đồng.\n\n' +
                                             'Vui lòng kiểm tra:\n' +
-                                            '1. Nhân viên có Contract chưa?\n' +
-                                            '2. Contract có BaseSalary > 0 chưa?\n' +
-                                            '3. Contract có hiệu lực trong tháng tính lương chưa?\n' +
-                                            '(StartDate <= ngày cuối tháng VÀ EndDate >= ngày đầu tháng hoặc EndDate IS NULL)\n\n' +
-                                            'Không thể tính lương chính xác nếu không có BaseSalary.');
+                                            '1. Nhân viên đã có hợp đồng chưa?\n' +
+                                            '2. Hợp đồng đã có lương cơ bản > 0 chưa?\n' +
+                                            '3. Hợp đồng có hiệu lực trong tháng tính lương chưa?\n' +
+                                            '(Ngày bắt đầu <= ngày cuối tháng VÀ ngày kết thúc >= ngày đầu tháng hoặc để trống)\n\n' +
+                                            'Không thể tính lương chính xác nếu không có lương cơ bản.');
                                     }
                                     
                                     // Update Insurance & Tax info if available
@@ -2919,12 +2959,12 @@
                             } catch (e) {
                                 console.error('Error parsing payroll data:', e);
                                 console.error('Response text:', text);
-                                alert('Error parsing payroll data. Check console for details.');
+                                alert('Lỗi khi đọc dữ liệu bảng lương. Vui lòng kiểm tra nhật ký trình duyệt để biết chi tiết.');
                             }
                         })
                         .catch(err => {
                             console.error('Fetch error:', err);
-                            alert('Error loading payroll data. Please try again.');
+                            alert('Lỗi khi tải dữ liệu bảng lương. Vui lòng thử lại.');
                         });
             }
             
@@ -3087,7 +3127,7 @@
                             paidLeaveNum = 0;
                         }
                         
-                        const workDaysText = workDaysNum.toFixed(1) + ' days';
+                        const workDaysText = workDaysNum.toFixed(1) + ' ngày';
                         const paidLeaveText = paidLeaveNum > 0 ? ' (' + paidLeaveNum.toFixed(1) + ' paid leave)' : '';
                         workDaysEl.textContent = workDaysText + paidLeaveText;
                         console.log('Updated workDaysEl:', workDaysEl.textContent, 'actualWorkingDays:', workDaysNum, 'paidLeaveDays:', paidLeaveNum);
@@ -3111,7 +3151,7 @@
                             console.error('Error parsing paidLeaveDays for display:', e);
                             paidLeaveNum = 0;
                         }
-                        paidLeaveInfoEl.textContent = paidLeaveNum.toFixed(1) + ' paid leave days';
+                        paidLeaveInfoEl.textContent = paidLeaveNum.toFixed(1) + ' ngày nghỉ có lương';
                         console.log('Updated paidLeaveInfoEl:', paidLeaveInfoEl.textContent, 'paidLeaveDays:', paidLeaveNum);
                     } else {
                         console.warn('paidLeaveInfoEl not found');
@@ -3119,19 +3159,19 @@
                 } catch (e) {
                     console.error('Error updating paidLeaveInfoEl:', e);
                 }
-                if (unpaidLeaveEl) unpaidLeaveEl.textContent = `${unpaidLeaveDays.toFixed(1)} days`;
+                if (unpaidLeaveEl) unpaidLeaveEl.textContent = `${unpaidLeaveDays.toFixed(1)} ngày`;
                 if (unpaidLeaveAmtEl) unpaidLeaveAmtEl.textContent = formatCurrency(unpaidLeaveAmount);
-                if (lateCountEl) lateCountEl.textContent = `${lateCount} times`;
+                if (lateCountEl) lateCountEl.textContent = `${lateCount} lần`;
                 if (latePenaltyEl) latePenaltyEl.textContent = formatCurrency(latePenalty);
-                if (earlyLeaveEl) earlyLeaveEl.textContent = `${earlyLeaveCount} times`;
+                if (earlyLeaveEl) earlyLeaveEl.textContent = `${earlyLeaveCount} lần`;
                 if (overtimeHoursEl) overtimeHoursEl.textContent = `${totalOvertimeHours.toFixed(1)}h`;
                 if (overtimeAmtEl) overtimeAmtEl.textContent = formatCurrency(overtimeAmount);
-                if (otHoursEl) otHoursEl.textContent = `${totalOvertimeHours.toFixed(1)} hours`;
+                if (otHoursEl) otHoursEl.textContent = `${totalOvertimeHours.toFixed(1)} giờ`;
                 
                 // Update actual base salary description
                 const actualBaseSalaryDescEl = document.getElementById('summaryActualBaseSalaryDesc');
                 if (actualBaseSalaryDescEl) {
-                    actualBaseSalaryDescEl.textContent = `${actualWorkingDays.toFixed(1)} work + ${paidLeaveDays.toFixed(1)} paid leave days`;
+                    actualBaseSalaryDescEl.textContent = `${actualWorkingDays.toFixed(1)} công + ${paidLeaveDays.toFixed(1)} ngày nghỉ có lương`;
                 }
                 
                 // Show attendance section if there's any data
@@ -3204,7 +3244,7 @@
                     } else if (window.currentAttendanceData && window.currentAttendanceData.totalOvertimeHours !== undefined) {
                         otHours = parseFloat(window.currentAttendanceData.totalOvertimeHours) || 0;
                     }
-                    otHoursEl.textContent = otHours.toFixed(1) + ' hours';
+                    otHoursEl.textContent = otHours.toFixed(1) + ' giờ';
                 }
                 
                 if (deductionEl) {
@@ -3355,7 +3395,7 @@
                             // Add event listeners for auto-calculation
                             input.addEventListener('input', updateNetSalaryAuto);
                             input.addEventListener('change', updateNetSalaryAuto);
-                            if (btn) btn.innerHTML = '<i class="fas fa-lock"></i> Lock Values';
+                            if (btn) btn.innerHTML = '<i class="fas fa-lock"></i> Khóa giá trị';
                             document.getElementById('manualEditWarning').style.display = 'block';
                         } else {
                             input.setAttribute('readonly', 'readonly');
@@ -3364,7 +3404,7 @@
                             // Remove event listeners
                             input.removeEventListener('input', updateNetSalaryAuto);
                             input.removeEventListener('change', updateNetSalaryAuto);
-                            if (btn) btn.innerHTML = '<i class="fas fa-edit"></i> Edit Values';
+                            if (btn) btn.innerHTML = '<i class="fas fa-edit"></i> Sửa giá trị';
                             document.getElementById('manualEditWarning').style.display = 'none';
                         }
                     }
@@ -3431,11 +3471,11 @@
                 const month = document.getElementById('payrollPeriod').value;
                 
                 if (!employeeId || !month) {
-                    alert('Please select Employee and Pay Period first.');
+                    alert('Vui lòng chọn nhân viên và kỳ lương trước.');
                     return;
                 }
                 
-                if (confirm('Recalculate all values from source data? This will overwrite any manual changes.')) {
+                if (confirm('Tính lại toàn bộ giá trị từ dữ liệu gốc? Thao tác này sẽ ghi đè các thay đổi thủ công.')) {
                     loadEmployeePayrollData();
                     if (isEditing) {
                         toggleManualEdit(); // Lock fields after recalculate
@@ -3460,11 +3500,11 @@
                 if (!tbody) return;
                 
                 const fields = [
-                    { name: 'Actual Base Salary', manual: actualBaseSalary, calculated: calcActualBase },
-                    { name: 'OT Salary', manual: otSalary, calculated: calcOT },
-                    { name: 'Total Allowance', manual: allowance, calculated: calcAllowance },
-                    { name: 'Total Deduction', manual: deduction, calculated: calcDeduction },
-                    { name: 'Net Salary', manual: netSalary, calculated: calcNet }
+                    { name: 'Lương cơ bản thực nhận', manual: actualBaseSalary, calculated: calcActualBase },
+                    { name: 'Lương tăng ca', manual: otSalary, calculated: calcOT },
+                    { name: 'Tổng phụ cấp', manual: allowance, calculated: calcAllowance },
+                    { name: 'Tổng khấu trừ', manual: deduction, calculated: calcDeduction },
+                    { name: 'Lương thực nhận', manual: netSalary, calculated: calcNet }
                 ];
                 
                 tbody.innerHTML = '';
@@ -3544,7 +3584,7 @@
                 const payPeriod = document.getElementById('payrollPeriod').value;
                 
                 if (!employeeId || !payPeriod) {
-                    alert('⚠️ Please select Employee and Pay Period.');
+                    alert('⚠️ Vui lòng chọn nhân viên và kỳ lương.');
                     return false;
                 }
                 

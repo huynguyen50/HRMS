@@ -29,14 +29,14 @@ public class PayrollAllowanceApiController extends HttpServlet {
                 response,
                 PermissionUtil.ROLE_HR_STAFF,
                 "VIEW_PAYROLLS",
-                "This endpoint is restricted to HR Staff.",
-                "You do not have permission to view payroll allowances.")) {
+                "API này chỉ dành cho nhân viên nhân sự.",
+                "Bạn không có quyền xem phụ cấp lương.")) {
             return;
         }
 
         String pathInfo = request.getPathInfo();
         if (pathInfo == null || pathInfo.length() <= 1) {
-            sendError(response, HttpServletResponse.SC_BAD_REQUEST, "Allowance ID is required");
+            sendError(response, HttpServletResponse.SC_BAD_REQUEST, "Thiếu mã phụ cấp");
             return;
         }
 
@@ -44,7 +44,7 @@ public class PayrollAllowanceApiController extends HttpServlet {
             int allowanceId = Integer.parseInt(pathInfo.substring(1));
             Map<String, Object> allowance = employeeAllowanceDAO.getById(allowanceId);
             if (allowance == null) {
-                sendError(response, HttpServletResponse.SC_NOT_FOUND, "Allowance not found");
+                sendError(response, HttpServletResponse.SC_NOT_FOUND, "Không tìm thấy phụ cấp");
                 return;
             }
 
@@ -52,7 +52,7 @@ public class PayrollAllowanceApiController extends HttpServlet {
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write(gson.toJson(allowance));
         } catch (NumberFormatException ex) {
-            sendError(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid allowance ID");
+            sendError(response, HttpServletResponse.SC_BAD_REQUEST, "Mã phụ cấp không hợp lệ");
         }
     }
 

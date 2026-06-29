@@ -57,7 +57,7 @@ public class CreateContractController extends HttpServlet {
             
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute(ERROR_ATTRIBUTE, "Error loading create contract page: " + e.getMessage());
+            request.setAttribute(ERROR_ATTRIBUTE, "Lỗi khi tải trang tạo hợp đồng: " + e.getMessage());
             try {
                 request.getRequestDispatcher(CREATE_CONTRACT_JSP).forward(request, response);
             } catch (ServletException | IOException ex) {
@@ -83,7 +83,7 @@ public class CreateContractController extends HttpServlet {
             createContract(request, response);
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute(ERROR_ATTRIBUTE, "Error creating contract: " + e.getMessage());
+            request.setAttribute(ERROR_ATTRIBUTE, "Lỗi khi tạo hợp đồng: " + e.getMessage());
             doGet(request, response);
         }
     }
@@ -108,7 +108,7 @@ public class CreateContractController extends HttpServlet {
                 baseSalaryStr == null || baseSalaryStr.trim().isEmpty() ||
                 contractType == null || contractType.trim().isEmpty()) {
                 
-                request.setAttribute(ERROR_ATTRIBUTE, "Please fill in all required fields.");
+                request.setAttribute(ERROR_ATTRIBUTE, "Vui lòng nhập đầy đủ các trường bắt buộc.");
                 doGet(request, response);
                 return;
             }
@@ -134,7 +134,7 @@ public class CreateContractController extends HttpServlet {
             
             // Validate notes length
             if (note != null && note.trim().length() > 1000) {
-                request.setAttribute(ERROR_ATTRIBUTE, "Notes cannot exceed 1000 characters.");
+                request.setAttribute(ERROR_ATTRIBUTE, "Ghi chú không được vượt quá 1000 ký tự.");
                 doGet(request, response);
                 return;
             }
@@ -171,17 +171,17 @@ public class CreateContractController extends HttpServlet {
             
             if (success) {
                 String successMessage = hasActiveContract 
-                    ? "Contract created successfully! The previous contract has been marked as 'Expired' and the new contract is pending approval." 
-                    : "Contract created successfully!";
+                    ? "Tạo hợp đồng thành công! Hợp đồng trước đó đã được đánh dấu hết hạn và hợp đồng mới đang chờ phê duyệt." 
+                    : "Tạo hợp đồng thành công!";
                 request.setAttribute(SUCCESS_ATTRIBUTE, successMessage);
                 response.sendRedirect(request.getContextPath() + "/hrstaff/contracts");
             } else {
-                request.setAttribute(ERROR_ATTRIBUTE, "Unable to create contract. Please try again.");
+                request.setAttribute(ERROR_ATTRIBUTE, "Không thể tạo hợp đồng. Vui lòng thử lại.");
                 doGet(request, response);
             }
             
         } catch (NumberFormatException e) {
-            request.setAttribute(ERROR_ATTRIBUTE, "Invalid data. Please check again.");
+            request.setAttribute(ERROR_ATTRIBUTE, "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.");
             try {
                 doGet(request, response);
             } catch (ServletException | IOException ex) {
@@ -189,7 +189,7 @@ public class CreateContractController extends HttpServlet {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute(ERROR_ATTRIBUTE, "Error: " + e.getMessage());
+            request.setAttribute(ERROR_ATTRIBUTE, "Lỗi: " + e.getMessage());
             try {
                 doGet(request, response);
             } catch (ServletException | IOException ex) {
@@ -205,13 +205,13 @@ public class CreateContractController extends HttpServlet {
                 response,
                 PermissionUtil.ROLE_HR_STAFF,
                 "VIEW_CONTRACTS",
-                "This page is restricted to HR Staff.",
-                "You do not have permission to create contracts."
+                "Trang này chỉ dành cho nhân viên nhân sự.",
+                "Bạn không có quyền tạo hợp đồng."
         );
     }
 
     @Override
     public String getServletInfo() {
-        return "Create Contract Controller";
+        return "Tạo hợp đồng";
     }
 }

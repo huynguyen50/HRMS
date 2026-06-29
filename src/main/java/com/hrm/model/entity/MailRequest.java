@@ -14,6 +14,7 @@ public class MailRequest implements Serializable {
     private int requestId;
     private Integer employeeId;
     private String requestType;
+    private String leaveType;
     private LocalDate startDate;
     private LocalDate endDate;
     private String reason;
@@ -57,6 +58,14 @@ public class MailRequest implements Serializable {
 
     public void setRequestType(String requestType) {
         this.requestType = requestType;
+    }
+
+    public String getLeaveType() {
+        return leaveType;
+    }
+
+    public void setLeaveType(String leaveType) {
+        this.leaveType = leaveType;
     }
 
     public LocalDate getStartDate() {

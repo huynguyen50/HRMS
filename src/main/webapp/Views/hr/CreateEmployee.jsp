@@ -8,6 +8,7 @@
 <%@page import="com.hrm.model.entity.Guest" %>
 <%@page import="com.hrm.model.entity.Department" %>
 <%@page import="java.util.List" %>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -418,11 +419,11 @@
             }
         </style>
         <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-theme.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-theme.css?v=hr-manager-shell-20260627-4">
     </head>
     <body>
         <!-- HR Dashboard Container -->
-        <div class="hr-dashboard-container">
+        <div class="hr-dashboard-container hr-manager-page-shell">
             <!-- Header -->
             <header class="hr-header">
                 <div class="header-content">
@@ -454,33 +455,8 @@
 
             <!-- Main Content -->
             <div class="hr-main-content">
-                <!-- Sidebar -->
-                <nav class="hr-sidebar">
-                    <div class="nav-section">
-                        <h3>NAVIGATION</h3>
-                        <a href="${pageContext.request.contextPath}/HrHomeController" class="nav-item">
-                            <i class="fas fa-home"></i>
-                            <span>HR Home</span>
-                        </a>
-                       
-                        <a href="${pageContext.request.contextPath}/hr/create-employee" class="nav-item active">
-                            <i class="fas fa-user-plus"></i>
-                            <span>Tạo nhân viên</span>
-                        </a>
-                        <a href="${pageContext.request.contextPath}/hr/employee-list" class="nav-item">
-                            <i class="fas fa-users"></i>
-                            <span>Danh sách nhân viên</span>
-                        </a>
-                        <a href="${pageContext.request.contextPath}/postRecruitment" class="nav-item">
-                            <i class="fas fa-briefcase"></i>
-                            <span>Post Recruitment</span>
-                        </a>
-                        <a href="${pageContext.request.contextPath}/candidates" class="nav-item">
-                            <i class="fas fa-user-tie"></i>
-                            <span>View Candidates</span>
-                        </a>
-                    </div>
-                </nav>
+                <c:set var="hrSidebarActive" value="create-employee" />
+                <%@ include file="_HrManagerSidebar.jspf" %>
 
                 <!-- Content Area -->
                 <main class="hr-content-area">

@@ -89,6 +89,9 @@ public class LoginController extends HttpServlet {
             user = DAO.getInstance().getAccountByUsernameOrEmail(login.toLowerCase());
 
             HttpSession oldSession = request.getSession(false);
+            String redirectAfterLogin = oldSession != null
+                    ? (String) oldSession.getAttribute("redirectAfterLogin")
+                    : null;
             if (oldSession != null) {
                 oldSession.invalidate();
             }
@@ -102,7 +105,11 @@ public class LoginController extends HttpServlet {
             userCookie.setMaxAge(remember != null ? 24 * 60 * 60 : 0);
             response.addCookie(userCookie);
 
-            response.sendRedirect(request.getContextPath() + "/homepage");
+            if (redirectAfterLogin != null && redirectAfterLogin.startsWith(request.getContextPath() + "/")) {
+                response.sendRedirect(redirectAfterLogin);
+            } else {
+                response.sendRedirect(request.getContextPath() + "/homepage");
+            }
             return;
         }
 

@@ -1,69 +1,101 @@
-# Database Spec: Guest Phase 2 Workflow
-Status: Approved
-Actor: Guest Candidate, HR, HR Staff, Admin
-Priority: High
-Related Files: `src/data/data.sql`, `src/data/migrations/2026-06-22_guest_phase2_workflow.sql`
+# Đặc tả Cơ sở dữ liệu: Guest Application Flow
+Trạng thái: Đã triển khai luồng CandidateProfile
+Tác nhân: Guest Candidate, HR, HR Staff, Admin
+Độ ưu tiên: Cao
+Tập tin liên quan: `src/data/data.sql`, `src/data/migrations/2026-06-22_guest_phase2_workflow.sql`, `src/data/migrations/2026-06-28_candidate_profile_apply_flow.sql`
 
-## Pham vi hien tai
-Phase 2 database la nen tang cho workflow Guest moi.
+## Mục tiêu
+Tách dữ liệu hồ sơ ứng viên dùng lại khỏi dữ liệu từng lần ứng tuyển.
 
-Da co:
-- Schema trong `src/data/data.sql`.
-- Migration `src/data/migrations/2026-06-22_guest_phase2_workflow.sql`.
-- Seed data `src/data/migrations/2026-06-22_guest_phase2_seed.sql`.
+Thiết kế hiện tại:
+- `Guest` giữ vai trò tài khoản/ứng viên để tương thích hệ thống cũ.
+- `CandidateProfile` lưu hồ sơ ứng tuyển dùng lại một lần.
+- `Application` lưu từng lần ứng tuyển vào một tin tuyển dụng.
+- `Interview`, `Offer`, `Notification` tiếp tục phục vụ các bước xử lý sau khi đã có application.
 
-Java model/DAO/controller/JSP se duoc implement theo `feature-guest-phase2-implementation.spec.md`.
+## CandidateProfile
+Lưu hồ sơ ứng viên dùng lại cho nhiều lần ứng tuyển.
 
-## Muc tieu
-Tach quy trinh ung tuyen ra khoi bang `Guest`.
+Các cột chính:
+- `CandidateProfileID`
+- `GuestID`
+- `FullName`
+- `Phone`
+- `Email`
+- `DateOfBirth`
+- `Address`
+- `DesiredPosition`
+- `ExpectedSalary`
+- `WorkExperience`
+- `CVFilePath`
+- `EmailVerified`
+- `EmailVerifiedAt`
+- `CreatedDate`
+- `UpdatedDate`
 
-Trong Phase 1, bang `Guest` dang dong 2 vai tro:
-- Thong tin ung vien.
-- Ho so ung tuyen vao mot tin tuyen dung.
+Ràng buộc:
+- `GuestID` tham chiếu `Guest.GuestID`.
+- `GuestID` là duy nhất để mỗi Guest chỉ có một hồ sơ ứng tuyển dùng lại.
+- Không tạo bảng OTP/email verification riêng cho luồng này.
 
-Trong Phase 2:
-- `Guest` giu vai tro profile ung vien.
-- `Application` luu moi lan ung tuyen.
-- `Interview` luu lich/vong phong van.
-- `Offer` luu thu moi nhan viec.
-- `Notification` luu thong bao chung cho moi actor theo `SystemUser.UserID`.
+## Email verification
+Mã xác nhận email được lưu trong `HttpSession`, không lưu database.
 
-## Bang moi
+Session keys của luồng ứng tuyển:
+- `candidateProfileDraft`
+- `candidateProfileVerifyCode`
+- `candidateProfileVerifyExpiresAt`
+- `candidateProfileVerifyRecruitmentId`
 
-### Application
-Luu moi lan ung vien nop ho so vao mot tin tuyen dung.
+Session keys của trang Guest Profile:
+- `guestCandidateProfileDraft`
+- `guestCandidateProfileVerifyCode`
+- `guestCandidateProfileVerifyExpiresAt`
 
-Cot chinh:
+Mã xác nhận hết hạn sau 10 phút. Chỉ khi mã hợp lệ mới insert/update `CandidateProfile`.
+
+## Application
+Lưu mỗi lần Guest ứng tuyển vào một tin tuyển dụng cụ thể.
+
+Các cột chính:
 - `ApplicationID`
 - `GuestID`
 - `RecruitmentID`
+- `CandidateProfileID`
 - `AppliedDate`
 - `Status`
 - `CurrentStep`
 - `CV`
 - `CoverLetter`
 - `Source`
+- `Note`
 - `CreatedDate`
 - `UpdatedDate`
 
-Rang buoc:
-- `GuestID` tham chieu `Guest.GuestID`.
-- `RecruitmentID` tham chieu `Recruitment.RecruitmentID`.
-- Unique `GuestID + RecruitmentID` de chan mot ung vien nop trung cung mot job.
+Ràng buộc:
+- `GuestID` tham chiếu `Guest.GuestID`.
+- `RecruitmentID` tham chiếu `Recruitment.RecruitmentID`.
+- `CandidateProfileID` tham chiếu `CandidateProfile.CandidateProfileID`.
+- Unique `GuestID + RecruitmentID` để chặn ứng tuyển trùng.
 
-Trang thai:
-- `Applied`
-- `Screening`
-- `Interview`
-- `Offered`
-- `Rejected`
-- `Withdrawn`
-- `Hired`
+Quy tắc dữ liệu:
+- Thông tin cá nhân không lặp lại trong `Application`.
+- `Application.CV` giữ đường dẫn CV tại thời điểm ứng tuyển để tương thích màn HR/ViewCV.
+- Nguồn hồ sơ đầy đủ lấy từ `CandidateProfile`.
+- Khi Guest cập nhật `CandidateProfile`, các lần ứng tuyển tiếp theo dùng dữ liệu mới nhất.
 
-### Interview
-Luu lich phong van theo tung application.
+## Recruitment
+Luồng này không yêu cầu thêm mới các bảng/cột:
+- Department.
+- Benefit.
+- Deadline.
 
-Cot chinh:
+Trang ứng tuyển chỉ hiển thị dữ liệu tuyển dụng đang có sẵn từ bảng/model `Recruitment`.
+
+## Interview
+Lưu lịch phỏng vấn theo từng `Application`.
+
+Các cột chính:
 - `InterviewID`
 - `ApplicationID`
 - `RoundNo`
@@ -77,22 +109,10 @@ Cot chinh:
 - `CreatedDate`
 - `UpdatedDate`
 
-Trang thai:
-- `Scheduled`
-- `Completed`
-- `Cancelled`
-- `NoShow`
-- `Rescheduled`
+## Offer
+Lưu thông tin thư mời nhận việc cho application đã đạt yêu cầu.
 
-Ket qua:
-- `Pending`
-- `Passed`
-- `Failed`
-
-### Offer
-Luu thu moi nhan viec cho application da qua phong van.
-
-Cot chinh:
+Các cột chính:
 - `OfferID`
 - `ApplicationID`
 - `Position`
@@ -106,21 +126,10 @@ Cot chinh:
 - `CreatedDate`
 - `UpdatedDate`
 
-Trang thai:
-- `Draft`
-- `Sent`
-- `Accepted`
-- `Rejected`
-- `Expired`
-- `Cancelled`
+## Notification
+Lưu thông báo dùng chung theo tài khoản `SystemUser.UserID`.
 
-Rang buoc:
-- Phase 2 gioi han 1 offer hien hanh cho 1 application bang unique `ApplicationID`.
-
-### Notification
-Luu thong bao chung cho account dang nhap. Bang nay khong thuoc rieng Guest.
-
-Cot chinh:
+Các cột chính:
 - `NotificationID`
 - `UserID`
 - `ApplicationID`
@@ -131,45 +140,18 @@ Cot chinh:
 - `CreatedDate`
 - `ReadDate`
 
-Loai thong bao:
-- `Application`
-- `Interview`
-- `Offer`
-- `System`
-
-Quy tac dung chung:
-- `UserID` bat buoc, tham chieu `SystemUser.UserID`.
-- `ApplicationID` optional, chi dung khi thong bao lien quan den application.
-- Cac actor khac co the dung cung bang `Notification` neu su kien gan duoc voi `SystemUser.UserID`.
-- Chi tiet module thong bao xem `../_Common/notification.spec.md`.
-
-## Backfill du lieu Phase 1
-Migration Phase 2 co buoc backfill:
-
-1. Lay cac record `Guest` co `RecruitmentID IS NOT NULL`.
-2. Tao record `Application` tu:
-   - `Guest.GuestID`
-   - `Guest.RecruitmentID`
-   - `Guest.AppliedDate`
-   - `Guest.CV`
-   - `Guest.Status`
-3. Map status:
-   - `Processing` -> `Applied`
-   - `Hired` -> `Hired`
-   - `Rejected` -> `Rejected`
-4. Khong xoa `Guest.RecruitmentID` trong buoc nay.
-
-## Migration rule
-- Chi tao bang moi.
-- Khong drop bang/cu cot.
-- Khong doi enum `Guest.Status`.
-- Khong doi code dang chay.
-- Co the chay lai migration ma khong tao trung application da backfill.
+## Backfill và tương thích dữ liệu cũ
+- Không drop bảng/cột cũ.
+- Không drop `Guest.RecruitmentID`.
+- Dữ liệu cũ có thể được đọc fallback khi application/profile mới chưa đầy đủ.
+- HR ViewCV ưu tiên CV từ `Application.CV`, fallback sang `CandidateProfile.CVFilePath`, sau đó tới dữ liệu Guest cũ nếu cần.
 
 ## Acceptance Criteria
-- [ ] `data.sql` co schema cho `Application`, `Interview`, `Offer`, `Notification`.
-- [ ] Migration Phase 2 tao du 4 bang moi.
-- [ ] Migration Phase 2 backfill du lieu tu `Guest` sang `Application`.
-- [ ] Khong xoa hoac thay doi bang `Guest` trong Phase 2 preparation.
-- [ ] Seed Phase 2 co du lieu mau cho `Application`, `Interview`, `Offer`, `Notification`.
-- [ ] Java/JSP Phase 2 se dung cac bang moi theo spec implementation rieng.
+- [x] Có bảng `CandidateProfile`.
+- [x] Có migration tạo/cập nhật `CandidateProfile`.
+- [x] `Application` có `CandidateProfileID`.
+- [x] `Application` có `Note`.
+- [x] `Application` có unique `GuestID + RecruitmentID`.
+- [x] Không cần bảng OTP/email verification mới.
+- [x] Không thêm department/benefit/deadline cho luồng này.
+- [x] HR vẫn xem được CV từ application tạo bởi luồng mới.

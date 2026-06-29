@@ -8,6 +8,14 @@ import jakarta.mail.internet.*;
 public class EmailSender {
 
     public static void sendEmail(String to, String subject, String content) throws MessagingException {
+        send(to, subject, content, false);
+    }
+
+    public static void sendHtmlEmail(String to, String subject, String htmlContent) throws MessagingException {
+        send(to, subject, htmlContent, true);
+    }
+
+    private static void send(String to, String subject, String content, boolean html) throws MessagingException {
         Properties config = loadMailConfig();
         final String host = getConfig(config, "MAIL_HOST", "mail.smtp.host", "smtp.gmail.com");
         final String port = getConfig(config, "MAIL_PORT", "mail.smtp.port", "587");
@@ -40,8 +48,47 @@ public class EmailSender {
         }
         msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to, false));
         msg.setSubject(subject, "UTF-8");
-        msg.setText(content, "UTF-8");
+        if (html) {
+            msg.setContent(createAlternativeContent(content));
+        } else {
+            msg.setText(content, "UTF-8");
+        }
         Transport.send(msg);
+    }
+
+    private static Multipart createAlternativeContent(String htmlContent) throws MessagingException {
+        MimeMultipart multipart = new MimeMultipart("alternative");
+
+        MimeBodyPart textPart = new MimeBodyPart();
+        textPart.setText(toPlainText(htmlContent), "UTF-8");
+        multipart.addBodyPart(textPart);
+
+        MimeBodyPart htmlPart = new MimeBodyPart();
+        htmlPart.setContent(htmlContent, "text/html; charset=UTF-8");
+        multipart.addBodyPart(htmlPart);
+
+        return multipart;
+    }
+
+    private static String toPlainText(String htmlContent) {
+        if (htmlContent == null) {
+            return "";
+        }
+        return htmlContent
+                .replaceAll("(?is)<style[^>]*>.*?</style>", " ")
+                .replaceAll("(?is)<script[^>]*>.*?</script>", " ")
+                .replaceAll("(?i)<br\\s*/?>", "\n")
+                .replaceAll("(?i)</p>", "\n\n")
+                .replaceAll("(?i)</div>", "\n")
+                .replaceAll("<[^>]+>", " ")
+                .replace("&nbsp;", " ")
+                .replace("&amp;", "&")
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("&quot;", "\"")
+                .replaceAll("[ \\t\\x0B\\f\\r]+", " ")
+                .replaceAll("\\n\\s+\\n", "\n\n")
+                .trim();
     }
 
     private static Properties loadMailConfig() {

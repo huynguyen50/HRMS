@@ -10,7 +10,7 @@
 <html lang="vi">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>Create Contract - HR Staff</title>
+        <title>Tạo hợp đồng - Nhân viên nhân sự</title>
         <link rel="stylesheet" href="<%=request.getContextPath()%>/css/style.css"/>
         <style>
             :root {
@@ -223,23 +223,36 @@
                 background: #4b5563;
             }
         </style>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-theme.css?v=hr-staff-shell-20260627-1">
     </head>
-    <body>
-        <!-- Top Navigation Bar -->
+    <body class="hr-staff-page-shell">
+        <%
+            request.setAttribute("hrStaffSidebarActive", "create-contract");
+            request.setAttribute("hrStaffPageTitle", "Tạo hợp đồng");
+            request.setAttribute("hrStaffSearchPlaceholder", "Tìm kiếm nhân viên, hợp đồng...");
+            request.setAttribute("hrStaffProfileSubtitle", "Quản trị hợp đồng");
+        %>
+        <div class="staff-shell">
+            <%@ include file="_HrStaffSidebar.jspf" %>
+            <main class="staff-main">
+                <%@ include file="_HrStaffTopbar.jspf" %>
+                <section class="staff-content">
+        <!-- Thanh điều hướng nhanh -->
         <div class="topbar">
             <div class="brand">
                 <div class="logo">HR</div>
-                <div>Create Contract</div>
+                <div>Tạo hợp đồng</div>
             </div>
             <div class="top-actions">
-                <a class="btn secondary" href="<%=request.getContextPath()%>/hrstaff">← Back</a>
+                <a class="btn secondary" href="<%=request.getContextPath()%>/hrstaff">← Quay lại</a>
             </div>
         </div>
 
         <div class="container">
             <div class="card">
                 <div class="card-header">
-                    <h2>📝 Create New Contract</h2>
+                    <h2>📝 Tạo hợp đồng mới</h2>
                
                 </div>
 
@@ -257,13 +270,13 @@
 
                 <!-- Form -->
                 <form method="POST" action="<%=request.getContextPath()%>/hrstaff/contracts/create">
-                    <!-- Employee Selection -->
+                    <!-- Chọn nhân viên -->
                     <div class="form-group">
                         <label for="employeeId">
-                            Employee <span class="required">*</span>
+                            Nhân viên <span class="required">*</span>
                         </label>
                         <select id="employeeId" name="employeeId" required>
-                            <option value="">-- Select Employee --</option>
+                            <option value="">-- Chọn nhân viên --</option>
                             <%
                                 List<Employee> employees = (List<Employee>) request.getAttribute("employees");
                                 if (employees != null) {
@@ -281,49 +294,49 @@
                                 }
                             %>
                         </select>
-                        <div class="help-text">Select an employee to create a contract</div>
+                        <div class="help-text">Chọn nhân viên cần tạo hợp đồng</div>
                     </div>
 
-                    <!-- Contract Type -->
+                    <!-- Loại hợp đồng -->
                     <div class="form-group">
                         <label for="contractType">
-                            Contract Type <span class="required">*</span>
+                            Loại hợp đồng <span class="required">*</span>
                         </label>
                         <select id="contractType" name="contractType" required>
-                            <option value="">-- Select Contract Type --</option>
-                            <option value="Full-time">Full-time</option>
-                            <option value="Part-time">Part-time</option>
-                            <option value="Probation">Probation</option>
-                            <option value="Intern">Intern</option>
-                            <option value="Contract">Contract</option>
+                            <option value="">-- Chọn loại hợp đồng --</option>
+                            <option value="Full-time">Toàn thời gian</option>
+                            <option value="Part-time">Bán thời gian</option>
+                            <option value="Probation">Thử việc</option>
+                            <option value="Intern">Thực tập</option>
+                            <option value="Contract">Theo hợp đồng</option>
                         </select>
-                        <div class="help-text">Type of employment contract</div>
+                        <div class="help-text">Loại hợp đồng lao động áp dụng</div>
                     </div>
 
-                    <!-- Date Range -->
+                    <!-- Thời hạn hợp đồng -->
                     <div class="form-row">
                         <div class="form-group">
                             <label for="startDate">
-                                Start Date <span class="required">*</span>
+                                Ngày bắt đầu <span class="required">*</span>
                             </label>
                             <input type="date" id="startDate" name="startDate" required/>
-                            <div class="help-text">Contract effective start date</div>
+                            <div class="help-text">Ngày hợp đồng bắt đầu có hiệu lực</div>
                         </div>
 
                         <div class="form-group">
                             <label for="endDate">
-                                End Date
+                                Ngày kết thúc
                             </label>
                             <input type="date" id="endDate" name="endDate"/>
-                            <div class="help-text">Leave blank if contract has no expiration date</div>
+                            <div class="help-text">Để trống nếu hợp đồng chưa có ngày hết hạn</div>
                         </div>
                     </div>
 
-                    <!-- Salary Information -->
+                    <!-- Thông tin lương -->
                     <div class="form-row">
                         <div class="form-group">
                             <label for="baseSalary">
-                                Base Salary <span class="required">*</span>
+                                Lương cơ bản <span class="required">*</span>
                             </label>
                             <input 
                                 type="number" 
@@ -332,14 +345,14 @@
                                 min="0" 
                                 step="1000" 
                                 required
-                                placeholder="Example: 15000000"
+                                placeholder="Ví dụ: 15000000"
                             />
-                            <div class="help-text">Base salary (VND)</div>
+                            <div class="help-text">Lương cơ bản (VNĐ)</div>
                         </div>
 
                         <div class="form-group">
                             <label for="allowance">
-                                Allowance
+                                Phụ cấp
                             </label>
                             <input 
                                 type="number" 
@@ -347,58 +360,62 @@
                                 name="allowance" 
                                 min="0" 
                                 step="1000"
-                                placeholder="Example: 2000000"
+                                placeholder="Ví dụ: 2000000"
                             />
-                            <div class="help-text">Allowance (VND), default: 0</div>
+                            <div class="help-text">Phụ cấp (VNĐ), mặc định là 0</div>
                         </div>
                     </div>
 
-                    <!-- Status -->
+                    <!-- Trạng thái -->
                     <div class="form-group">
                         <label for="status">
-                            Status <span class="required">*</span>
+                            Trạng thái <span class="required">*</span>
                         </label>
                         <select id="status" name="status" required>
-                            <option value="Draft">Draft</option>
-                            <option value="Pending_Approval">Pending Approval</option>
+                            <option value="Draft">Bản nháp</option>
+                            <option value="Pending_Approval">Chờ phê duyệt</option>
                         </select>
-                        <div class="help-text">Contract status after creation</div>
+                        <div class="help-text">Trạng thái hợp đồng sau khi tạo</div>
                     </div>
 
-                    <!-- Note -->
+                    <!-- Ghi chú -->
                     <div class="form-group">
                         <label for="note">
-                            Notes
+                            Ghi chú
                         </label>
                         <textarea 
                             id="note" 
                             name="note" 
                             rows="4"
                             maxlength="1000"
-                            placeholder="Enter contract notes (if any)..."
+                            placeholder="Nhập ghi chú hợp đồng nếu có..."
                         ></textarea>
-                        <div class="help-text">Additional contract notes (optional)</div>
+                        <div class="help-text">Ghi chú bổ sung cho hợp đồng (không bắt buộc)</div>
                     </div>
 
-                    <!-- Form Actions -->
+                    <!-- Nút thao tác -->
                     <div class="form-actions">
                         <a href="<%=request.getContextPath()%>/hrstaff" class="btn btn-cancel">
-                            Cancel
+                            Hủy
                         </a>
                         <button type="submit" class="btn secondary">
-                            ✓ Create Contract
+                            ✓ Tạo hợp đồng
                         </button>
                     </div>
                 </form>
             </div>
         </div>
 
+                </section>
+            </main>
+        </div>
+
         <script>
-            // Set minimum date to today for start date
+            // Giới hạn ngày bắt đầu từ hôm nay
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('startDate').setAttribute('min', today);
             
-            // Validate end date is after start date
+            // Kiểm tra ngày kết thúc phải sau ngày bắt đầu
             const startDateInput = document.getElementById('startDate');
             const endDateInput = document.getElementById('endDate');
             
@@ -410,7 +427,7 @@
             
             endDateInput.addEventListener('change', function() {
                 if (startDateInput.value && this.value && this.value < startDateInput.value) {
-                    alert('End date must be after start date!');
+                    alert('Ngày kết thúc phải sau ngày bắt đầu!');
                     this.value = '';
                 }
             });

@@ -6,11 +6,32 @@
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page import="java.util.*, java.sql.Date, com.hrm.model.entity.Contract, com.hrm.model.entity.Employee" %>
+<%!
+    private String contractStatusLabel(String status) {
+        if ("Draft".equals(status)) return "Bản nháp";
+        if ("Pending_Approval".equals(status)) return "Chờ phê duyệt";
+        if ("Active".equals(status)) return "Đang hiệu lực";
+        if ("Rejected".equals(status)) return "Bị từ chối";
+        if ("Expired".equals(status)) return "Hết hạn";
+        if ("All".equals(status)) return "Tất cả";
+        return status != null ? status : "Không có";
+    }
+
+    private String contractTypeLabel(String type) {
+        if ("Full-time".equals(type)) return "Toàn thời gian";
+        if ("Part-time".equals(type)) return "Bán thời gian";
+        if ("Probation".equals(type)) return "Thử việc";
+        if ("Intern".equals(type)) return "Thực tập";
+        if ("Contract".equals(type)) return "Theo hợp đồng";
+        if ("All".equals(type)) return "Tất cả";
+        return type != null ? type : "Không có";
+    }
+%>
 <!DOCTYPE html>
 <html lang="vi">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>Contract List - HR Staff</title>
+        <title>Danh sách hợp đồng - Nhân viên nhân sự</title>
         <link rel="stylesheet" href="<%=request.getContextPath()%>/css/style.css"/>
         <style>
             :root {
@@ -489,25 +510,38 @@
                 }
             }
         </style>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-theme.css?v=hr-staff-shell-20260627-1">
     </head>
-    <body>
-        <!-- Top Navigation Bar -->
+    <body class="hr-staff-page-shell">
+        <%
+            request.setAttribute("hrStaffSidebarActive", "contracts");
+            request.setAttribute("hrStaffPageTitle", "Danh sách hợp đồng");
+            request.setAttribute("hrStaffSearchPlaceholder", "Tìm kiếm hợp đồng, nhân viên...");
+            request.setAttribute("hrStaffProfileSubtitle", "Quản trị hợp đồng");
+        %>
+        <div class="staff-shell">
+            <%@ include file="_HrStaffSidebar.jspf" %>
+            <main class="staff-main">
+                <%@ include file="_HrStaffTopbar.jspf" %>
+                <section class="staff-content">
+        <!-- Thanh điều hướng nhanh -->
         <div class="topbar">
             <div class="brand">
                 <div class="logo">HR</div>
-                <div>Contract List</div>
+                <div>Danh sách hợp đồng</div>
             </div>
             <div class="top-actions">
-                <a class="btn secondary" href="<%=request.getContextPath()%>/hrstaff/contracts/create">+ Create New</a>
-                <a class="btn" href="<%=request.getContextPath()%>/hrstaff">← Back</a>
+                <a class="btn secondary" href="<%=request.getContextPath()%>/hrstaff/contracts/create">+ Tạo mới</a>
+                <a class="btn" href="<%=request.getContextPath()%>/hrstaff">← Quay lại</a>
             </div>
         </div>
 
         <div class="container">
-            <!-- Success/Error Messages -->
+            <!-- Thông báo -->
             <% if (request.getParameter("success") != null) { %>
             <div class="alert success" id="successAlert">
-                Contract updated successfully!
+                Cập nhật hợp đồng thành công!
             </div>
             <% } %>
             <% if (request.getAttribute("error") != null) { %>
@@ -522,51 +556,51 @@
             <% } %>
             <% if (request.getParameter("deleteSuccess") != null) { %>
             <div class="alert success" id="deleteSuccessAlert">
-                Contract deleted successfully!
+                Xóa hợp đồng thành công!
             </div>
             <% } %>
 
-            <!-- Filters Card -->
+            <!-- Bộ lọc -->
             <div class="card">
                 <form method="GET" action="<%=request.getContextPath()%>/hrstaff/contracts">
                     <div class="filters">
                         <div class="filter-group">
-                            <label>Search</label>
+                            <label>Tìm kiếm</label>
                             <input 
                                 type="text" 
                                 name="keyword" 
-                                placeholder="Employee name..."
+                                placeholder="Tên nhân viên..."
                                 value="<%= request.getAttribute("keyword") != null ? request.getAttribute("keyword") : "" %>"
                             />
                         </div>
                         <div class="filter-group">
-                            <label>Status</label>
+                            <label>Trạng thái</label>
                             <select name="status">
-                                <option value="All" <%= (request.getAttribute("statusFilter") == null || request.getAttribute("statusFilter").equals("All")) ? "selected" : "" %>>All</option>
-                                <option value="Draft" <%= "Draft".equals(request.getAttribute("statusFilter")) ? "selected" : "" %>>Draft</option>
-                                <option value="Pending_Approval" <%= "Pending_Approval".equals(request.getAttribute("statusFilter")) ? "selected" : "" %>>Pending Approval</option>
+                                <option value="All" <%= (request.getAttribute("statusFilter") == null || request.getAttribute("statusFilter").equals("All")) ? "selected" : "" %>>Tất cả</option>
+                                <option value="Draft" <%= "Draft".equals(request.getAttribute("statusFilter")) ? "selected" : "" %>>Bản nháp</option>
+                                <option value="Pending_Approval" <%= "Pending_Approval".equals(request.getAttribute("statusFilter")) ? "selected" : "" %>>Chờ phê duyệt</option>
                              
-                                <option value="Active" <%= "Active".equals(request.getAttribute("statusFilter")) ? "selected" : "" %>>Active</option>
-                                <option value="Rejected" <%= "Rejected".equals(request.getAttribute("statusFilter")) ? "selected" : "" %>>Rejected</option>
-                                <option value="Expired" <%= "Expired".equals(request.getAttribute("statusFilter")) ? "selected" : "" %>>Expired</option>
+                                <option value="Active" <%= "Active".equals(request.getAttribute("statusFilter")) ? "selected" : "" %>>Đang hiệu lực</option>
+                                <option value="Rejected" <%= "Rejected".equals(request.getAttribute("statusFilter")) ? "selected" : "" %>>Bị từ chối</option>
+                                <option value="Expired" <%= "Expired".equals(request.getAttribute("statusFilter")) ? "selected" : "" %>>Hết hạn</option>
                             </select>
                         </div>
                         <div class="filter-group">
-                            <label>Contract Type</label>
+                            <label>Loại hợp đồng</label>
                             <select name="contractType">
-                                <option value="All" <%= (request.getAttribute("contractTypeFilter") == null || request.getAttribute("contractTypeFilter").equals("All")) ? "selected" : "" %>>All</option>
-                                <option value="Full-time" <%= "Full-time".equals(request.getAttribute("contractTypeFilter")) ? "selected" : "" %>>Full-time</option>
-                                <option value="Part-time" <%= "Part-time".equals(request.getAttribute("contractTypeFilter")) ? "selected" : "" %>>Part-time</option>
-                                <option value="Probation" <%= "Probation".equals(request.getAttribute("contractTypeFilter")) ? "selected" : "" %>>Probation</option>
-                                <option value="Intern" <%= "Intern".equals(request.getAttribute("contractTypeFilter")) ? "selected" : "" %>>Intern</option>
+                                <option value="All" <%= (request.getAttribute("contractTypeFilter") == null || request.getAttribute("contractTypeFilter").equals("All")) ? "selected" : "" %>>Tất cả</option>
+                                <option value="Full-time" <%= "Full-time".equals(request.getAttribute("contractTypeFilter")) ? "selected" : "" %>>Toàn thời gian</option>
+                                <option value="Part-time" <%= "Part-time".equals(request.getAttribute("contractTypeFilter")) ? "selected" : "" %>>Bán thời gian</option>
+                                <option value="Probation" <%= "Probation".equals(request.getAttribute("contractTypeFilter")) ? "selected" : "" %>>Thử việc</option>
+                                <option value="Intern" <%= "Intern".equals(request.getAttribute("contractTypeFilter")) ? "selected" : "" %>>Thực tập</option>
                           
                             </select>
                         </div>
                         <div class="filter-group" style="justify-content: flex-end;">
-                            <label style="opacity: 0;">Actions</label>
+                            <label style="opacity: 0;">Thao tác</label>
                             <div style="display: flex; gap: 8px;">
-                                <button type="submit" class="btn btn-small">🔍 Search</button>
-                                <a href="<%=request.getContextPath()%>/hrstaff/contracts" class="btn btn-small btn-cancel">Clear</a>
+                                <button type="submit" class="btn btn-small">🔍 Tìm kiếm</button>
+                                <a href="<%=request.getContextPath()%>/hrstaff/contracts" class="btn btn-small btn-cancel">Xóa lọc</a>
                             </div>
                         </div>
                     </div>
@@ -576,10 +610,10 @@
                 </form>
             </div>
 
-            <!-- Contracts Table Card -->
+            <!-- Bảng hợp đồng -->
             <div class="card">
                 <div class="card-header">
-                    <h2>📄 Contract List</h2>
+                    <h2>📄 Danh sách hợp đồng</h2>
                 </div>
 
                 <div class="table-container">
@@ -589,9 +623,9 @@
                     %>
                     <div class="empty-state">
                         <div class="empty-state-icon">📋</div>
-                        <h3>No Contracts</h3>
-                        <p>No contracts found in the system or no matching results.</p>
-                        <a href="<%=request.getContextPath()%>/hrstaff/contracts/create" class="btn secondary" style="margin-top: 16px;">Create New Contract</a>
+                        <h3>Chưa có hợp đồng</h3>
+                        <p>Không tìm thấy hợp đồng trong hệ thống hoặc không có kết quả phù hợp.</p>
+                        <a href="<%=request.getContextPath()%>/hrstaff/contracts/create" class="btn secondary" style="margin-top: 16px;">Tạo hợp đồng mới</a>
                     </div>
                     <%
                         } else {
@@ -612,15 +646,15 @@
                                     }
                                 %>
                                 <th class="sortable <%= sortClass %>" onclick="toggleSort()">ID</th>
-                                <th>Employee</th>
-                                <th>Contract Type</th>
-                                <th>Start Date</th>
-                                <th>End Date</th>
-                                <th>Base Salary</th>
-                                <th>Allowance</th>
-                                <th>Notes</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th>Nhân viên</th>
+                                <th>Loại hợp đồng</th>
+                                <th>Ngày bắt đầu</th>
+                                <th>Ngày kết thúc</th>
+                                <th>Lương cơ bản</th>
+                                <th>Phụ cấp</th>
+                                <th>Ghi chú</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -647,18 +681,18 @@
                             %>
                             <tr>
                                 <td><strong>#<%= contractId %></strong></td>
-                                <td><%= employeeName != null ? employeeName : "N/A" %></td>
-                                <td><%= contractType != null ? contractType : "N/A" %></td>
-                                <td><%= startDate != null ? startDate.toString() : "N/A" %></td>
-                                <td><%= endDate != null ? endDate.toString() : "Not specified" %></td>
-                                <td><%= baseSalary != null ? String.format("%,d VNĐ", baseSalary.intValue()) : "N/A" %></td>
+                                <td><%= employeeName != null ? employeeName : "Không có" %></td>
+                                <td><%= contractTypeLabel(contractType) %></td>
+                                <td><%= startDate != null ? startDate.toString() : "Không có" %></td>
+                                <td><%= endDate != null ? endDate.toString() : "Chưa xác định" %></td>
+                                <td><%= baseSalary != null ? String.format("%,d VNĐ", baseSalary.intValue()) : "Không có" %></td>
                                 <td><%= allowance != null ? String.format("%,d VNĐ", allowance.intValue()) : "0 VNĐ" %></td>
-                                <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<%= note != null && !note.trim().isEmpty() ? note : "No notes" %>">
+                                <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<%= note != null && !note.trim().isEmpty() ? note : "Không có ghi chú" %>">
                                     <%= note != null && !note.trim().isEmpty() ? (note.length() > 30 ? note.substring(0, 30) + "..." : note) : "<span style='color: var(--muted);'>-</span>" %>
                                 </td>
                                 <td>
                                     <span class="status-badge status-<%= status %>">
-                                        <%= status %>
+                                        <%= contractStatusLabel(status) %>
                                     </span>
                                 </td>
                                 <td>
@@ -668,17 +702,17 @@
                                             class="btn btn-edit btn-small" 
                                             onclick="openEditModal(<%= contractId %>)"
                                         >
-                                            ✏️ Edit
+                                            ✏️ Sửa
                                         </button>
                                         <% } else { %>
-                                        <span style="color: var(--muted); font-size: 12px;">Cannot edit</span>
+                                        <span style="color: var(--muted); font-size: 12px;">Không thể sửa</span>
                                         <% } %>
                                         <% if (canDelete) { %>
                                         <button 
                                             class="btn btn-delete btn-small" 
-                                            onclick="confirmDelete(<%= contractId %>, '<%= employeeName != null ? employeeName : "N/A" %>')"
+                                            onclick="confirmDelete(<%= contractId %>, '<%= employeeName != null ? employeeName : "Không có" %>')"
                                         >
-                                            🗑️ Delete
+                                            🗑️ Xóa
                                         </button>
                                         <% } %>
                                     </div>
@@ -712,7 +746,7 @@
                 %>
                 <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                     <div style="color: var(--muted); font-size: 14px;">
-                        Showing <%= (currentPage - 1) * 5 + 1 %> - <%= Math.min(currentPage * 5, totalContracts) %> of <%= totalContracts %> contracts
+                        Hiển thị <%= (currentPage - 1) * 5 + 1 %> - <%= Math.min(currentPage * 5, totalContracts) %> trong tổng số <%= totalContracts %> hợp đồng
                     </div>
                     <div style="display: flex; gap: 8px; align-items: center;">
                         <%-- Previous button --%>
@@ -733,9 +767,9 @@
                                     prevUrl += "&sortBy=" + java.net.URLEncoder.encode(sortByParam, "UTF-8");
                                 }
                             %>
-                            <a href="<%= prevUrl %>" class="btn btn-small">← Previous</a>
+                            <a href="<%= prevUrl %>" class="btn btn-small">← Trước</a>
                         <% } else { %>
-                            <span class="btn btn-small" style="opacity: 0.5; cursor: not-allowed; background: #e5e7eb; color: #9ca3af;">← Previous</span>
+                            <span class="btn btn-small" style="opacity: 0.5; cursor: not-allowed; background: #e5e7eb; color: #9ca3af;">← Trước</span>
                         <% } %>
                         
                         <%-- Page numbers --%>
@@ -821,9 +855,9 @@
                                     nextUrl += "&sortBy=" + java.net.URLEncoder.encode(sortByParam, "UTF-8");
                                 }
                             %>
-                            <a href="<%= nextUrl %>" class="btn btn-small">Next →</a>
+                            <a href="<%= nextUrl %>" class="btn btn-small">Sau →</a>
                         <% } else { %>
-                            <span class="btn btn-small" style="opacity: 0.5; cursor: not-allowed; background: #e5e7eb; color: #9ca3af;">Next →</span>
+                            <span class="btn btn-small" style="opacity: 0.5; cursor: not-allowed; background: #e5e7eb; color: #9ca3af;">Sau →</span>
                         <% } %>
                     </div>
                 </div>
@@ -831,11 +865,11 @@
             </div>
         </div>
 
-        <!-- Edit Modal -->
+        <!-- Modal chỉnh sửa -->
         <div id="editModal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3>✏️ Edit Contract</h3>
+                    <h3>✏️ Chỉnh sửa hợp đồng</h3>
                     <button class="close-btn" onclick="closeEditModal()">&times;</button>
                 </div>
 
@@ -860,38 +894,38 @@
                     
                     <div class="form-group">
                         <label for="employeeDisplay">
-                            Employee <span class="required">*</span>
+                            Nhân viên <span class="required">*</span>
                         </label>
                         <input 
                             type="text" 
                             id="employeeDisplay" 
-                            value="<%= currentEmployee != null ? currentEmployee.getFullName() + " (ID: " + currentEmployee.getEmployeeId() + (currentEmployee.getDepartmentName() != null ? " - " + currentEmployee.getDepartmentName() : "") + ")" : "Employee ID: " + editingContract.getEmployeeId() %>"
+                            value="<%= currentEmployee != null ? currentEmployee.getFullName() + " (ID: " + currentEmployee.getEmployeeId() + (currentEmployee.getDepartmentName() != null ? " - " + currentEmployee.getDepartmentName() : "") + ")" : "ID nhân viên: " + editingContract.getEmployeeId() %>"
                             readonly
                             style="background-color: #f3f4f6; cursor: not-allowed;"
                         />
                         <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">
-                            ⚠️ Cannot change employee when editing contract
+                            ⚠️ Không thể đổi nhân viên khi chỉnh sửa hợp đồng
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="contractType">
-                            Contract Type <span class="required">*</span>
+                            Loại hợp đồng <span class="required">*</span>
                         </label>
                         <select id="contractType" name="contractType" required>
-                            <option value="">-- Select Contract Type --</option>
-                            <option value="Full-time" <%= "Full-time".equals(editingContract.getContractType()) ? "selected" : "" %>>Full-time</option>
-                            <option value="Part-time" <%= "Part-time".equals(editingContract.getContractType()) ? "selected" : "" %>>Part-time</option>
-                            <option value="Probation" <%= "Probation".equals(editingContract.getContractType()) ? "selected" : "" %>>Probation</option>
-                            <option value="Intern" <%= "Intern".equals(editingContract.getContractType()) ? "selected" : "" %>>Intern</option>
-                            <option value="Contract" <%= "Contract".equals(editingContract.getContractType()) ? "selected" : "" %>>Contract</option>
+                            <option value="">-- Chọn loại hợp đồng --</option>
+                            <option value="Full-time" <%= "Full-time".equals(editingContract.getContractType()) ? "selected" : "" %>>Toàn thời gian</option>
+                            <option value="Part-time" <%= "Part-time".equals(editingContract.getContractType()) ? "selected" : "" %>>Bán thời gian</option>
+                            <option value="Probation" <%= "Probation".equals(editingContract.getContractType()) ? "selected" : "" %>>Thử việc</option>
+                            <option value="Intern" <%= "Intern".equals(editingContract.getContractType()) ? "selected" : "" %>>Thực tập</option>
+                            <option value="Contract" <%= "Contract".equals(editingContract.getContractType()) ? "selected" : "" %>>Theo hợp đồng</option>
                         </select>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label for="startDate">
-                                Start Date <span class="required">*</span>
+                                Ngày bắt đầu <span class="required">*</span>
                             </label>
                             <input 
                                 type="date" 
@@ -903,7 +937,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="endDate">End Date</label>
+                            <label for="endDate">Ngày kết thúc</label>
                             <input 
                                 type="date" 
                                 id="endDate" 
@@ -916,7 +950,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="baseSalary">
-                                Base Salary <span class="required">*</span>
+                                Lương cơ bản <span class="required">*</span>
                             </label>
                             <input 
                                 type="number" 
@@ -928,12 +962,12 @@
                                 required
                             />
                             <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">
-                                ⚠️ Changing base salary will automatically change contract status to "Pending_Approval"
+                                ⚠️ Khi đổi lương cơ bản, trạng thái hợp đồng sẽ tự chuyển sang "Chờ phê duyệt"
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label for="allowance">Allowance</label>
+                            <label for="allowance">Phụ cấp</label>
                             <input 
                                 type="number" 
                                 id="allowance" 
@@ -946,25 +980,25 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="note">Notes</label>
+                        <label for="note">Ghi chú</label>
                         <textarea 
                             id="note" 
                             name="note" 
                             rows="4"
                             maxlength="1000"
-                            placeholder="Enter contract notes (if any)..."
+                            placeholder="Nhập ghi chú hợp đồng nếu có..."
                         ><%= editingContract.getNote() != null ? editingContract.getNote() : "" %></textarea>
                         <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">
-                            Additional contract notes (optional)
+                            Ghi chú bổ sung cho hợp đồng (không bắt buộc)
                         </div>
                     </div>
 
                     <div class="form-actions">
                         <button type="button" class="btn btn-cancel" onclick="closeEditModal()">
-                            Cancel
+                            Hủy
                         </button>
                         <button type="submit" class="btn secondary">
-                            ✓ Save Changes
+                            ✓ Lưu thay đổi
                         </button>
                     </div>
                 </form>
@@ -974,11 +1008,15 @@
             </div>
         </div>
 
+                </section>
+            </main>
+        </div>
+
         <script>
             <%
                 if (editingContract != null) {
             %>
-            // Open modal if editing
+            // Mở modal khi đang chỉnh sửa
             document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('editModal').classList.add('active');
             });
@@ -996,7 +1034,7 @@
             }
 
             function confirmDelete(contractId, employeeName) {
-                if (confirm('Are you sure you want to delete this contract?\n\nContract ID: ' + contractId + '\nEmployee: ' + employeeName + '\n\nThis action cannot be undone!')) {
+                if (confirm('Bạn có chắc muốn xóa hợp đồng này không?\n\nMã hợp đồng: ' + contractId + '\nNhân viên: ' + employeeName + '\n\nHành động này không thể hoàn tác!')) {
                     window.location.href = '<%=request.getContextPath()%>/hrstaff/contracts?deleteId=' + contractId;
                 }
             }
@@ -1051,7 +1089,7 @@
                 
                 endDateInput.addEventListener('change', function() {
                     if (startDateInput.value && this.value && this.value < startDateInput.value) {
-                        alert('End date must be after start date!');
+                        alert('Ngày kết thúc phải sau ngày bắt đầu!');
                         this.value = '';
                     }
                 });

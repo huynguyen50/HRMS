@@ -6,7 +6,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>HR Staff - Candidate List</title>
+        <title>Danh sách ứng viên - Nhân viên nhân sự</title>
         <link rel="stylesheet" href="<%=request.getContextPath()%>/css/style.css"/>
         <style>
             :root {
@@ -430,35 +430,48 @@
                 }
             }
         </style>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-theme.css?v=hr-staff-shell-20260627-1">
     </head>
-    <body>
+    <body class="hr-staff-page-shell">
+        <%
+            request.setAttribute("hrStaffSidebarActive", "candidates");
+            request.setAttribute("hrStaffPageTitle", "Ứng viên");
+            request.setAttribute("hrStaffSearchPlaceholder", "Tìm kiếm ứng viên...");
+            request.setAttribute("hrStaffProfileSubtitle", "Quản trị hồ sơ ứng viên");
+        %>
+        <div class="staff-shell">
+            <%@ include file="_HrStaffSidebar.jspf" %>
+            <main class="staff-main">
+                <%@ include file="_HrStaffTopbar.jspf" %>
+                <section class="staff-content">
         <div class="topbar">
             <div class="brand">
                 <div class="logo">HR</div>
-                <div>Candidate Management</div>
+                <div>Quản lý ứng viên</div>
             </div>
             <div class="top-actions">
-                <a class="btn" href="<%=request.getContextPath()%>/hrstaff">🏠 HR Staff Home</a>
-                <a class="btn" href="<%=request.getContextPath()%>/homepage">🌐 Homepage</a>
+                <a class="btn" href="<%=request.getContextPath()%>/hrstaff">🏠 Trang nhân sự</a>
+                <a class="btn" href="<%=request.getContextPath()%>/homepage">🌐 Trang chủ</a>
             </div>
         </div>
 
         <div class="layout">
             <aside class="sidebar">
                 <div class="nav-group">
-                    <div class="nav-title">Main</div>
-                    <a class="side-link" href="<%=request.getContextPath()%>/hrstaff">🏠 HR Staff Home</a>
+                    <div class="nav-title">Chính</div>
+                    <a class="side-link" href="<%=request.getContextPath()%>/hrstaff">🏠 Trang nhân sự</a>
                 </div>
                 <div class="nav-group">
-                    <div class="nav-title">Salary & Contracts</div>
-                    <a class="side-link" href="<%=request.getContextPath()%>/hrstaff/payroll">💰 Payroll</a>
-                    <a class="side-link" href="<%=request.getContextPath()%>/hrstaff/contracts/create">📝 Create Contract</a>
-                    <a class="side-link" href="<%=request.getContextPath()%>/hrstaff/contracts">📄 Contracts List</a>
+                    <div class="nav-title">Lương & hợp đồng</div>
+                    <a class="side-link" href="<%=request.getContextPath()%>/hrstaff/payroll">💰 Lương & phụ cấp</a>
+                    <a class="side-link" href="<%=request.getContextPath()%>/hrstaff/contracts/create">📝 Tạo hợp đồng</a>
+                    <a class="side-link" href="<%=request.getContextPath()%>/hrstaff/contracts">📄 Danh sách hợp đồng</a>
                 </div>
                 <div class="nav-group">
-                    <div class="nav-title">Recruitment</div>
-                    <a class="side-link" href="${pageContext.request.contextPath}/postRecruitments">📢 Post Recruitment</a>
-                    <a class="side-link active" href="${pageContext.request.contextPath}/candidates">👀 View Candidates</a>
+                    <div class="nav-title">Tuyển dụng</div>
+                    <a class="side-link" href="${pageContext.request.contextPath}/postRecruitments">📢 Tin tuyển dụng</a>
+                    <a class="side-link active" href="${pageContext.request.contextPath}/candidates">👀 Ứng viên</a>
                     
                 </div>
             </aside>
@@ -467,8 +480,8 @@
                 <section class="card">
                     <div class="page-header">
                         <div>
-                            <h1 class="page-title">Candidate List</h1>
-                            <p class="muted">Track and manage the applicants who submitted recruitment forms</p>
+                            <h1 class="page-title">Danh sách ứng viên</h1>
+                            <p class="muted">Theo dõi và quản lý các ứng viên đã nộp hồ sơ tuyển dụng</p>
                         </div>
                     </div>
                 </section>
@@ -477,29 +490,29 @@
                     <form action="${pageContext.request.contextPath}/candidates" method="GET">
                         <div class="filters">
                             <div class="filter-field" style="grid-column: span 4;">
-                                <label for="searchByName">Search by Name</label>
-                                <input type="text" id="searchByName" name="searchByName" placeholder="Enter candidate name..." value="${fn:escapeXml(param.searchByName)}">
+                                <label for="searchByName">Tìm theo tên</label>
+                                <input type="text" id="searchByName" name="searchByName" placeholder="Nhập tên ứng viên..." value="${fn:escapeXml(param.searchByName)}">
                             </div>
                             <div class="filter-field" style="grid-column: span 3;">
-                                <label for="filterStatus">Status</label>
+                                <label for="filterStatus">Trạng thái</label>
                                 <select id="filterStatus" name="filterStatus">
-                                    <option value="">All</option>
-                                    <option value="processing" <c:if test="${param.filterStatus eq 'processing'}">selected</c:if>>Processing</option>
-                                    <option value="hired" <c:if test="${param.filterStatus eq 'hired'}">selected</c:if>>Hired</option>
-                                    <option value="rejected" <c:if test="${param.filterStatus eq 'rejected'}">selected</c:if>>Rejected</option>
+                                    <option value="">Tất cả</option>
+                                    <option value="processing" <c:if test="${param.filterStatus eq 'processing'}">selected</c:if>>Đang xử lý</option>
+                                    <option value="hired" <c:if test="${param.filterStatus eq 'hired'}">selected</c:if>>Đã tuyển</option>
+                                    <option value="rejected" <c:if test="${param.filterStatus eq 'rejected'}">selected</c:if>>Từ chối</option>
                                 </select>
                             </div>
                             <div class="filter-field" style="grid-column: span 2;">
-                                <label for="startDate">Start Date</label>
+                                <label for="startDate">Từ ngày</label>
                                 <input type="date" id="startDate" name="startDate" value="${param.startDate}">
                             </div>
                             <div class="filter-field" style="grid-column: span 2;">
-                                <label for="endDate">End Date</label>
+                                <label for="endDate">Đến ngày</label>
                                 <input type="date" id="endDate" name="endDate" value="${param.endDate}">
                             </div>
                             <div class="filter-field actions">
-                                <button type="submit" class="btn btn-primary">🔍 Apply Filter</button>
-                                <a href="${pageContext.request.contextPath}/candidates" class="btn btn-secondary">✖ Clear</a>
+                                <button type="submit" class="btn btn-primary">🔍 Lọc</button>
+                                <a href="${pageContext.request.contextPath}/candidates" class="btn btn-secondary">✖ Xóa lọc</a>
                             </div>
                         </div>
                     </form>
@@ -507,15 +520,15 @@
 
                 <section class="card table-card">
                     <div class="table-header">
-                        <h2 style="margin:0;">Candidate List</h2>
-                        <span class="muted">Showing ${guest != null ? fn:length(guest) : 0} candidates on this page</span>
+                        <h2 style="margin:0;">Danh sách ứng viên</h2>
+                        <span class="muted">Hiển thị ${guest != null ? fn:length(guest) : 0} ứng viên trên trang này</span>
                     </div>
                     <div class="table-wrapper">
                         <c:choose>
                             <c:when test="${empty guest}">
                                 <div class="empty-state">
                                     <div style="font-size:42px;">🗃️</div>
-                                    <p>No candidates match the current filters.</p>
+                                    <p>Không có ứng viên phù hợp với bộ lọc hiện tại.</p>
                                 </div>
                             </c:when>
                             <c:otherwise>
@@ -523,13 +536,13 @@
                                     <thead>
                                         <tr>
                                             <th>ID</th>
-                                            <th>Full Name</th>
+                                            <th>Họ và tên</th>
                                             <th>Email</th>
-                                            <th>Phone</th>
+                                            <th>Số điện thoại</th>
                                             <th>CV</th>
-                                            <th>Applied at</th>
-                                            <th>Status</th>
-                                            <th>Recruitment</th>
+                                            <th>Ngày ứng tuyển</th>
+                                            <th>Trạng thái</th>
+                                            <th>Tin tuyển dụng</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -539,11 +552,18 @@
                                                 <td>${g.fullName}</td>
                                                 <td>${g.email}</td>
                                                 <td>${g.phone}</td>
-                                                <td><a href="${pageContext.request.contextPath}/viewCV?guestId=${g.guestId}" style="color:var(--accent);font-weight:600;text-decoration:none;">View</a></td>
+                                                <td><a href="${pageContext.request.contextPath}/viewCV?guestId=${g.guestId}" style="color:var(--accent);font-weight:600;text-decoration:none;">Xem</a></td>
                                                 <td>${g.appliedDate}</td>
                                                 <td>
                                                     <c:set var="statusKey" value="${fn:toLowerCase(g.status)}"/>
-                                                    <span class="status status-${statusKey != null ? statusKey : 'default'}">${g.status}</span>
+                                                    <span class="status status-${statusKey != null ? statusKey : 'default'}">
+                                                        <c:choose>
+                                                            <c:when test="${statusKey eq 'processing'}">Đang xử lý</c:when>
+                                                            <c:when test="${statusKey eq 'hired'}">Đã tuyển</c:when>
+                                                            <c:when test="${statusKey eq 'rejected'}">Từ chối</c:when>
+                                                            <c:otherwise>${g.status}</c:otherwise>
+                                                        </c:choose>
+                                                    </span>
                                                 </td>
                                                 <td>${g.recruitmentId}</td>
                                             </tr>
@@ -590,6 +610,9 @@
                             </c:choose>
                         </div>
                     </c:if>
+                </section>
+            </main>
+        </div>
                 </section>
             </main>
         </div>

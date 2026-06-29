@@ -1,59 +1,41 @@
-# Feature: Guest xem ho so da nop
-Status: Draft
-Actor: Guest Candidate
-Priority: High
-Related Code: `GuestPortalController`, `ApplicationDAO`, `InterviewDAO`, `OfferDAO`, `RecruitmentDAO`
+# Tính năng: Guest xem danh sách hồ sơ đã ứng tuyển
+Trạng thái: Cập nhật theo schema Application/CandidateProfile
+Tác nhân: Guest Candidate
+Độ ưu tiên: Cao
+Mã nguồn liên quan: `GuestPortalController`, `ApplicationDAO`, `CandidateProfileDAO`, `RecruitmentDAO`, `InterviewDAO`, `OfferDAO`
 
-## Route muc tieu
+## Route mục tiêu
 - `GET /guest/applications`
 
-## Phase 1 Data Source
-Dung bang `Guest` hien co:
-- `Guest.UserID` neu da co.
-- Fallback tam thoi bang `Guest.Email = SystemUser.Email` neu du lieu cu chua co `UserID`.
-- Join voi `Recruitment` qua `Guest.RecruitmentID`.
+## Nguồn dữ liệu chính
+Danh sách hồ sơ đã ứng tuyển lấy từ `Application`:
+- `Application.GuestID -> Guest.GuestID`.
+- `Application.RecruitmentID -> Recruitment.RecruitmentID`.
+- `Application.CandidateProfileID -> CandidateProfile.CandidateProfileID`.
+- Lọc theo tài khoản đang đăng nhập: `Guest.UserID = session.systemUser.UserID`.
 
-## Truong hien thi
-- Vi tri ung tuyen.
-- Dia diem.
-- Muc luong.
-- Ngay nop.
-- Trang thai.
-- CV da nop.
+Không dùng `Guest.Status` hoặc `Guest.RecruitmentID` làm nguồn chính cho hồ sơ mới. Chỉ dùng fallback cho dữ liệu cũ nếu cần.
 
-## Mapping status Phase 1
-- `Processing` -> Dang xu ly
-- `Hired` -> Da duyet
-- `Rejected` -> Tu choi
+## Trường hiển thị
+- Tên công việc.
+- Địa điểm.
+- Mức lương.
+- Ngày ứng tuyển.
+- Trạng thái application.
+- CV đã nộp, ưu tiên `Application.CV`, fallback `CandidateProfile.CVFilePath`.
 
-## Timeline Phase 1
-Do code Phase 1 chua dung bang `Application`, timeline chi hien 3 buoc:
-1. Da nop ho so
-2. Dang xu ly
-3. Ket qua
-
-## Timeline Phase 2
-Khi chay migration va code sang bang `Application`, timeline day du:
-1. Applied
-2. Screening
-3. Interview
-4. Offer
-5. Hired
-
-## Phase 2 Data Source
-Dung bang `Application` lam nguon chinh:
-- Join `Application.GuestID -> Guest.GuestID`.
-- Join `Application.RecruitmentID -> Recruitment.RecruitmentID`.
-- Loc theo `Guest.UserID = session.systemUser.UserID`.
-- Lay interview theo `Interview.ApplicationID`.
-- Lay offer theo `Offer.ApplicationID`.
-
-Khong dung `Guest.Status` lam trang thai ho so chinh trong Phase 2.
+## Tiến trình hồ sơ
+- `Applied` -> Đã nộp hồ sơ.
+- `Screening` -> Đang sàng lọc.
+- `Interview` -> Phỏng vấn.
+- `Offered` -> Thư mời nhận việc.
+- `Hired` -> Nhận việc thành công.
+- `Rejected` -> Từ chối.
+- `Withdrawn` -> Đã rút hồ sơ.
 
 ## Acceptance Criteria
-- [ ] Guest da login xem duoc danh sach ho so da nop.
-- [ ] Guest khong xem duoc ho so cua nguoi khac.
-- [ ] Ho so moi nop hien dung job va ngay nop.
-- [ ] Trang thai hien tieng Viet.
-- [ ] Trang rong hien empty state than thien.
-- [ ] Phase 2 hien timeline tu `Application.CurrentStep`, `Interview`, `Offer`.
+- [ ] Guest đã đăng nhập xem được danh sách application của mình.
+- [ ] Guest không xem được application của người khác.
+- [ ] Danh sách lấy dữ liệu chính từ `Application`.
+- [ ] Thông tin ứng viên/CV join từ `CandidateProfile` khi cần.
+- [ ] Empty state thân thiện khi chưa ứng tuyển job nào.

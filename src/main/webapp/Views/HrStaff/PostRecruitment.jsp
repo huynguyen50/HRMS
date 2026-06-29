@@ -6,7 +6,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Post Recruitment</title>
+        <title>Tin tuyển dụng - BetterHR</title>
         <link rel="stylesheet" href="<%=request.getContextPath()%>/css/style.css"/>
         <style>
             :root {
@@ -417,46 +417,33 @@
                 }
             }
         </style>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-theme.css?v=hr-staff-shell-20260627-1">
     </head>
-    <body>
-        <div class="topbar">
-            <div class="brand">
-                <div class="logo">HR</div>
-                <div>Recruitment Management</div>
-            </div>
-            <div class="top-actions">
-                <a class="btn secondary" href="<%=request.getContextPath()%>/hrstaff">🏠 HR Staff Home</a>
-                <a class="btn success" href="${pageContext.request.contextPath}/detailRecruitmentCreate">➕ Create New</a>
-            </div>
-        </div>
-
+    <body class="hr-staff-page-shell">
+        <%
+            request.setAttribute("hrStaffSidebarActive", "recruitment");
+            request.setAttribute("hrStaffPageTitle", "Tin tuyển dụng");
+            request.setAttribute("hrStaffSearchPlaceholder", "Tìm kiếm tin tuyển dụng...");
+            request.setAttribute("hrStaffProfileSubtitle", "Quản trị tuyển dụng");
+        %>
+        <div class="staff-shell">
+            <%@ include file="_HrStaffSidebar.jspf" %>
+            <main class="staff-main">
+                <%@ include file="_HrStaffTopbar.jspf" %>
+                <section class="staff-content">
         <div class="layout">
-            <aside class="sidebar">
-                <div class="nav-group">
-                    <div class="nav-title">Main</div>
-                    <a class="side-link" href="<%=request.getContextPath()%>/hrstaff">🏠 HR Staff Home</a>
-                </div>
-                <div class="nav-group">
-                    <div class="nav-title">Salary & Contracts</div>
-                    <a class="side-link" href="<%=request.getContextPath()%>/hrstaff/payroll">💰 Payroll</a>
-                    <a class="side-link" href="<%=request.getContextPath()%>/hrstaff/contracts/create">📝 Create Contract</a>
-                    <a class="side-link" href="<%=request.getContextPath()%>/hrstaff/contracts">📄 Contracts List</a>
-                </div>
-                <div class="nav-group">
-                    <div class="nav-title">Recruitment</div>
-                    <a class="side-link active" href="${pageContext.request.contextPath}/postRecruitments">📢 Post Recruitment</a>
-                    <a class="side-link" href="${pageContext.request.contextPath}/candidates">👀 View Candidates</a>
-                  
-                </div>
-            </aside>
-
             <main class="content">
                 <section class="card">
                     <div class="page-header">
                         <div>
-                            <h1 class="page-title">Recruitment Management</h1>
-                            <p class="muted">Create, submit for approval and track the status of recruitment posts</p>
+                            <h1 class="page-title hr-staff-recruitment-page-title">Danh sách tin tuyển dụng</h1>
+                            <p class="muted">Tạo, gửi duyệt và theo dõi trạng thái các tin tuyển dụng.</p>
                         </div>
+                        <a class="btn success hr-staff-create-recruitment-action" href="${pageContext.request.contextPath}/detailRecruitmentCreate">
+                            <i class="fa-solid fa-plus"></i>
+                            Tạo tin tuyển dụng
+                        </a>
                     </div>
                     <c:if test="${not empty mess}">
                         <div class="message success">${mess}</div>
@@ -464,46 +451,12 @@
                 </section>
 
                 <section class="card">
-                    <form action="${pageContext.request.contextPath}/postRecruitments" method="GET">
-                        <div class="filters">
-                            <div class="filter-field" style="grid-column: span 4;">
-                                <label for="searchByTitle">Search by Title</label>
-                                <input type="text" id="searchByTitle" name="searchByTitle" placeholder="Enter title..." value="${fn:escapeXml(param.searchByTitle)}">
-                            </div>
-                            <div class="filter-field" style="grid-column: span 3;">
-                                <label for="filterStatus">Status</label>
-                                <select id="filterStatus" name="filterStatus">
-                                    <option value="">All</option>
-                                    <option value="New" <c:if test="${param.filterStatus eq 'New'}">selected</c:if>>New</option>
-                                    <option value="Waiting" <c:if test="${param.filterStatus eq 'Waiting'}">selected</c:if>>Waiting</option>
-                                    <option value="Rejected" <c:if test="${param.filterStatus eq 'Rejected'}">selected</c:if>>Rejected</option>
-                                    <option value="Applied" <c:if test="${param.filterStatus eq 'Applied'}">selected</c:if>>Applied</option>
-                                    <option value="Deleted" <c:if test="${param.filterStatus eq 'Deleted'}">selected</c:if>>Deleted</option>
-                                </select>
-                            </div>
-                            <div class="filter-field" style="grid-column: span 2;">
-                                <label for="startDate">Start Date</label>
-                                <input type="date" id="startDate" name="startDate" value="${param.startDate}">
-                            </div>
-                            <div class="filter-field" style="grid-column: span 2;">
-                                <label for="endDate">End Date</label>
-                                <input type="date" id="endDate" name="endDate" value="${param.endDate}">
-                            </div>
-                            <div class="filter-field filter-actions">
-                                <button type="submit" class="btn primary">🔍 Apply Filter</button>
-                                <a href="${pageContext.request.contextPath}/postRecruitments" class="btn secondary">✖ Clear</a>
-                            </div>
-                        </div>
-                    </form>
-                </section>
-
-                <section class="card">
                     <c:choose>
                         <c:when test="${empty recruitment}">
                             <div class="empty-state">
                                 <div style="font-size:48px;">📭</div>
-                                <p>No recruitment posts match the current filters.</p>
-                                <a class="btn success" href="${pageContext.request.contextPath}/detailRecruitmentCreate">Create New Post</a>
+                                <p>Chưa có tin tuyển dụng nào.</p>
+                                <a class="btn success" href="${pageContext.request.contextPath}/detailRecruitmentCreate">Tạo tin tuyển dụng</a>
                             </div>
                         </c:when>
                         <c:otherwise>
@@ -513,20 +466,27 @@
                                         <div>
                                             <h3 style="margin:0 0 10px 0;">${rec.title}</h3>
                                             <div class="metrics">
-                                                <span>🗓️ Posted on: <strong>${rec.postedDate}</strong></span>
-                                                <span>👥 Applicants: <strong>${rec.applicant}</strong></span>
+                                                <span>🗓️ Ngày đăng: <strong>${rec.postedDate}</strong></span>
+                                                <span>👥 Số lượng tuyển: <strong>${rec.applicant}</strong></span>
                                                 <span>
                                                     <span class="status-pill status-${rec.status}">
-                                                        ${rec.status}
+                                                        <c:choose>
+                                                            <c:when test="${rec.status eq 'New'}">Mới</c:when>
+                                                            <c:when test="${rec.status eq 'Waiting'}">Chờ duyệt</c:when>
+                                                            <c:when test="${rec.status eq 'Rejected'}">Bị từ chối</c:when>
+                                                            <c:when test="${rec.status eq 'Applied'}">Đang tuyển</c:when>
+                                                            <c:when test="${rec.status eq 'Deleted'}">Đã xóa</c:when>
+                                                            <c:otherwise>${rec.status}</c:otherwise>
+                                                        </c:choose>
                                                     </span>
                                                 </span>
                                             </div>
                                         </div>
                                         <div class="card-actions">
-                                            <a class="btn secondary" href="${pageContext.request.contextPath}/detailRecruitment?id=${rec.recruitmentId}">👁️ View</a>
+                                            <a class="btn secondary" href="${pageContext.request.contextPath}/detailRecruitment?id=${rec.recruitmentId}">👁️ Xem</a>
                                             <c:if test="${rec.status ne 'Deleted' and rec.status ne 'Waiting' and rec.status ne 'Applied'}">
-                                                <a class="btn success" href="${pageContext.request.contextPath}/postRecruitments?action=send&id=${rec.recruitmentId}" onclick="return confirm('Are you sure you want to send this recruitment post?');">📨 Send</a>
-                                                <a class="btn danger" href="${pageContext.request.contextPath}/postRecruitments?action=delete&id=${rec.recruitmentId}" onclick="return confirm('Are you sure you want to delete this recruitment post?');">🗑️ Delete</a>
+                                                <a class="btn success" href="${pageContext.request.contextPath}/postRecruitments?action=send&id=${rec.recruitmentId}" onclick="return confirm('Bạn có chắc muốn gửi tin tuyển dụng này để duyệt không?');">📨 Gửi duyệt</a>
+                                                <a class="btn danger" href="${pageContext.request.contextPath}/postRecruitments?action=delete&id=${rec.recruitmentId}" onclick="return confirm('Bạn có chắc muốn xóa tin tuyển dụng này không?');">🗑️ Xóa</a>
                                             </c:if>
                                         </div>
                                     </div>
@@ -539,7 +499,7 @@
                         <div class="pagination">
                             <c:choose>
                                 <c:when test="${currentPage > 1}">
-                                    <a class="page-item" href="${pageContext.request.contextPath}/postRecruitments?page=${currentPage - 1}&searchByTitle=${param.searchByTitle}&filterStatus=${param.filterStatus}&startDate=${param.startDate}&endDate=${param.endDate}">«</a>
+                                    <a class="page-item" href="${pageContext.request.contextPath}/postRecruitments?page=${currentPage - 1}">«</a>
                                 </c:when>
                                 <c:otherwise>
                                     <span class="page-item disabled">«</span>
@@ -552,14 +512,14 @@
                                         <span class="page-item active">${i}</span>
                                     </c:when>
                                     <c:otherwise>
-                                        <a class="page-item" href="${pageContext.request.contextPath}/postRecruitments?page=${i}&searchByTitle=${param.searchByTitle}&filterStatus=${param.filterStatus}&startDate=${param.startDate}&endDate=${param.endDate}">${i}</a>
+                                        <a class="page-item" href="${pageContext.request.contextPath}/postRecruitments?page=${i}">${i}</a>
                                     </c:otherwise>
                                 </c:choose>
                             </c:forEach>
 
                             <c:choose>
                                 <c:when test="${currentPage < totalPages}">
-                                    <a class="page-item" href="${pageContext.request.contextPath}/postRecruitments?page=${currentPage + 1}&searchByTitle=${param.searchByTitle}&filterStatus=${param.filterStatus}&startDate=${param.startDate}&endDate=${param.endDate}">»</a>
+                                    <a class="page-item" href="${pageContext.request.contextPath}/postRecruitments?page=${currentPage + 1}">»</a>
                                 </c:when>
                                 <c:otherwise>
                                     <span class="page-item disabled">»</span>
@@ -567,6 +527,9 @@
                             </c:choose>
                         </div>
                     </c:if>
+                </section>
+            </main>
+        </div>
                 </section>
             </main>
         </div>

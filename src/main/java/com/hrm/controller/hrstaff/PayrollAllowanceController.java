@@ -37,7 +37,7 @@ public class PayrollAllowanceController extends HttpServlet {
 
             // Validate required fields
             if (employeeIdStr == null || allowanceTypeIdStr == null || amountStr == null || month == null) {
-                request.setAttribute("error", "Missing required fields");
+                request.setAttribute("error", "Thiếu thông tin bắt buộc.");
                 response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=allowance");
                 return;
             }
@@ -51,12 +51,12 @@ public class PayrollAllowanceController extends HttpServlet {
             if (payrollStatus != null && isPayrollStatusBlocked(payrollStatus)) {
                 String statusDisplay = getStatusDisplayName(payrollStatus);
                 String errorMessage = String.format(
-                    "⚠️ Không thể tạo/sửa allowance!\n\n" +
+                    "⚠️ Không thể tạo/sửa phụ cấp!\n\n" +
                     "Bảng lương của nhân viên này cho tháng %s đã ở trạng thái '%s'.\n\n" +
-                    "Để thêm allowance:\n" +
-                    "1. Nếu payroll đang Pending: Yêu cầu HR Manager reject payroll\n" +
-                    "2. Nếu payroll đã Approved: Tạo payroll mới cho tháng tiếp theo hoặc tạo adjustment payroll\n" +
-                    "3. Nếu payroll đã Paid: Liên hệ quản lý để xử lý",
+                    "Để thêm phụ cấp:\n" +
+                    "1. Nếu bảng lương đang chờ duyệt: yêu cầu quản lý nhân sự từ chối bảng lương\n" +
+                    "2. Nếu bảng lương đã duyệt: tạo bảng lương mới cho tháng tiếp theo hoặc bảng điều chỉnh\n" +
+                    "3. Nếu bảng lương đã thanh toán: liên hệ quản lý để xử lý",
                     month, statusDisplay
                 );
                 request.getSession().setAttribute("error", errorMessage);
@@ -75,16 +75,16 @@ public class PayrollAllowanceController extends HttpServlet {
             }
 
             if (success) {
-                request.getSession().setAttribute("success", "Allowance saved successfully!");
+                request.getSession().setAttribute("success", "Lưu phụ cấp thành công!");
             } else {
-                request.getSession().setAttribute("error", "Failed to save allowance.");
+                request.getSession().setAttribute("error", "Không thể lưu phụ cấp.");
             }
 
             response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=allowance");
             
         } catch (Exception e) {
             e.printStackTrace();
-            request.getSession().setAttribute("error", "Error processing allowance: " + e.getMessage());
+            request.getSession().setAttribute("error", "Lỗi khi xử lý phụ cấp: " + e.getMessage());
             response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=allowance");
         }
     }
@@ -109,7 +109,7 @@ public class PayrollAllowanceController extends HttpServlet {
         try {
             String allowanceIdStr = request.getParameter("allowanceId");
             if (allowanceIdStr == null) {
-                request.getSession().setAttribute("error", "Missing allowance ID");
+                request.getSession().setAttribute("error", "Thiếu mã phụ cấp.");
                 response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=allowance");
                 return;
             }
@@ -128,12 +128,12 @@ public class PayrollAllowanceController extends HttpServlet {
                     if (payrollStatus != null && isPayrollStatusBlocked(payrollStatus)) {
                         String statusDisplay = getStatusDisplayName(payrollStatus);
                         String errorMessage = String.format(
-                            "⚠️ Không thể xóa allowance!\n\n" +
+                            "⚠️ Không thể xóa phụ cấp!\n\n" +
                             "Bảng lương của nhân viên này cho tháng %s đã ở trạng thái '%s'.\n\n" +
-                            "Để xóa allowance:\n" +
-                            "1. Nếu payroll đang Pending: Yêu cầu HR Manager reject payroll\n" +
-                            "2. Nếu payroll đã Approved: Tạo payroll mới cho tháng tiếp theo hoặc tạo adjustment payroll\n" +
-                            "3. Nếu payroll đã Paid: Liên hệ quản lý để xử lý",
+                            "Để xóa phụ cấp:\n" +
+                            "1. Nếu bảng lương đang chờ duyệt: yêu cầu quản lý nhân sự từ chối bảng lương\n" +
+                            "2. Nếu bảng lương đã duyệt: tạo bảng lương mới cho tháng tiếp theo hoặc bảng điều chỉnh\n" +
+                            "3. Nếu bảng lương đã thanh toán: liên hệ quản lý để xử lý",
                             month, statusDisplay
                         );
                         request.getSession().setAttribute("error", errorMessage);
@@ -146,15 +146,15 @@ public class PayrollAllowanceController extends HttpServlet {
             boolean success = employeeAllowanceDAO.delete(allowanceId);
             
             if (success) {
-                request.getSession().setAttribute("success", "Allowance deleted successfully!");
+                request.getSession().setAttribute("success", "Xóa phụ cấp thành công!");
             } else {
-                request.getSession().setAttribute("error", "Failed to delete allowance.");
+                request.getSession().setAttribute("error", "Không thể xóa phụ cấp.");
             }
             
             response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=allowance");
         } catch (Exception e) {
             e.printStackTrace();
-            request.getSession().setAttribute("error", "Error deleting allowance: " + e.getMessage());
+            request.getSession().setAttribute("error", "Lỗi khi xóa phụ cấp: " + e.getMessage());
             response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=allowance");
         }
     }
@@ -175,7 +175,7 @@ public class PayrollAllowanceController extends HttpServlet {
      * Get display name for payroll status
      */
     private String getStatusDisplayName(String status) {
-        if (status == null) return "N/A";
+        if (status == null) return "Không có";
         switch (status) {
             case "Draft": return "Nháp";
             case "Pending": return "Đang chờ duyệt";
@@ -193,8 +193,8 @@ public class PayrollAllowanceController extends HttpServlet {
                 response,
                 PermissionUtil.ROLE_HR_STAFF,
                 "VIEW_PAYROLLS",
-                "This page is restricted to HR Staff.",
-                "You do not have permission to manage payroll allowances."
+                "Trang này chỉ dành cho nhân viên nhân sự.",
+                "Bạn không có quyền quản lý phụ cấp lương."
         );
     }
 }

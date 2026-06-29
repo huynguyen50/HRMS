@@ -134,6 +134,42 @@ public class PayrollDAO {
         }
         return list;
     }
+
+    public Map<String, Object> getLatestByEmployee(int employeeId) {
+        String sql = """
+            SELECT p.*, e.FullName
+            FROM Payroll p
+            JOIN Employee e ON p.EmployeeID = e.EmployeeID
+            WHERE p.EmployeeID = ?
+            ORDER BY p.PayPeriod DESC, p.PayrollID DESC
+            LIMIT 1
+        """;
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, employeeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("payrollId", rs.getInt("PayrollID"));
+                    item.put("employeeId", rs.getInt("EmployeeID"));
+                    item.put("employeeName", rs.getString("FullName"));
+                    item.put("payPeriod", rs.getString("PayPeriod"));
+                    item.put("baseSalary", rs.getBigDecimal("BaseSalary"));
+                    item.put("allowance", rs.getBigDecimal("Allowance"));
+                    item.put("bonus", rs.getBigDecimal("Bonus"));
+                    item.put("deduction", rs.getBigDecimal("Deduction"));
+                    item.put("netSalary", rs.getBigDecimal("NetSalary"));
+                    item.put("status", rs.getString("Status"));
+                    item.put("approvedBy", rs.getObject("ApprovedBy"));
+                    item.put("approvedDate", rs.getDate("ApprovedDate"));
+                    return item;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return new HashMap<>();
+    }
     
     /**
      * Get total count of payrolls with filters (for pagination)

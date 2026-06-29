@@ -139,12 +139,19 @@ public class GoogleAuthController extends HttpServlet {
             }
 
             HttpSession oldSession = request.getSession(false);
+            String redirectAfterLogin = oldSession != null
+                    ? (String) oldSession.getAttribute("redirectAfterLogin")
+                    : null;
             if (oldSession != null) {
                 oldSession.invalidate();
             }
             HttpSession newSession = request.getSession(true);
             newSession.setAttribute("systemUser", user);
-            response.sendRedirect(request.getContextPath() + "/homepage");
+            if (redirectAfterLogin != null && redirectAfterLogin.startsWith(request.getContextPath() + "/")) {
+                response.sendRedirect(redirectAfterLogin);
+            } else {
+                response.sendRedirect(request.getContextPath() + "/homepage");
+            }
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Google login failed", ex);
             response.sendRedirect(request.getContextPath() + "/login?error=google");

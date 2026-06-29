@@ -37,7 +37,7 @@ public class PayrollDeductionController extends HttpServlet {
 
             // Validate required fields
             if (employeeIdStr == null || deductionTypeIdStr == null || amountStr == null || month == null) {
-                request.setAttribute("error", "Missing required fields");
+                request.setAttribute("error", "Thiếu thông tin bắt buộc.");
                 response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=deduction");
                 return;
             }
@@ -51,12 +51,12 @@ public class PayrollDeductionController extends HttpServlet {
             if (payrollStatus != null && isPayrollStatusBlocked(payrollStatus)) {
                 String statusDisplay = getStatusDisplayName(payrollStatus);
                 String errorMessage = String.format(
-                    "⚠️ Không thể tạo/sửa deduction!\n\n" +
+                    "Không thể tạo/sửa khấu trừ!\n\n" +
                     "Bảng lương của nhân viên này cho tháng %s đã ở trạng thái '%s'.\n\n" +
-                    "Để thêm deduction:\n" +
-                    "1. Nếu payroll đang Pending: Yêu cầu HR Manager reject payroll\n" +
-                    "2. Nếu payroll đã Approved: Tạo payroll mới cho tháng tiếp theo hoặc tạo adjustment payroll\n" +
-                    "3. Nếu payroll đã Paid: Liên hệ quản lý để xử lý",
+                    "Để thêm khấu trừ:\n" +
+                    "1. Nếu bảng lương đang chờ duyệt: yêu cầu quản lý nhân sự từ chối bảng lương\n" +
+                    "2. Nếu bảng lương đã duyệt: tạo bảng lương mới cho tháng tiếp theo hoặc bảng điều chỉnh\n" +
+                    "3. Nếu bảng lương đã thanh toán: liên hệ quản lý để xử lý",
                     month, statusDisplay
                 );
                 request.getSession().setAttribute("error", errorMessage);
@@ -75,16 +75,16 @@ public class PayrollDeductionController extends HttpServlet {
             }
 
             if (success) {
-                request.getSession().setAttribute("success", "Deduction saved successfully!");
+                request.getSession().setAttribute("success", "Lưu khấu trừ thành công!");
             } else {
-                request.getSession().setAttribute("error", "Failed to save deduction.");
+                request.getSession().setAttribute("error", "Không thể lưu khấu trừ.");
             }
 
             response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=deduction");
             
         } catch (Exception e) {
             e.printStackTrace();
-            request.getSession().setAttribute("error", "Error processing deduction: " + e.getMessage());
+            request.getSession().setAttribute("error", "Lỗi khi xử lý khấu trừ: " + e.getMessage());
             response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=deduction");
         }
     }
@@ -109,7 +109,7 @@ public class PayrollDeductionController extends HttpServlet {
         try {
             String deductionIdStr = request.getParameter("deductionId");
             if (deductionIdStr == null) {
-                request.getSession().setAttribute("error", "Missing deduction ID");
+                request.getSession().setAttribute("error", "Thiếu mã khấu trừ.");
                 response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=deduction");
                 return;
             }
@@ -128,12 +128,12 @@ public class PayrollDeductionController extends HttpServlet {
                     if (payrollStatus != null && isPayrollStatusBlocked(payrollStatus)) {
                         String statusDisplay = getStatusDisplayName(payrollStatus);
                         String errorMessage = String.format(
-                            "⚠️ Không thể xóa deduction!\n\n" +
+                            "Không thể xóa khấu trừ!\n\n" +
                             "Bảng lương của nhân viên này cho tháng %s đã ở trạng thái '%s'.\n\n" +
-                            "Để xóa deduction:\n" +
-                            "1. Nếu payroll đang Pending: Yêu cầu HR Manager reject payroll\n" +
-                            "2. Nếu payroll đã Approved: Tạo payroll mới cho tháng tiếp theo hoặc tạo adjustment payroll\n" +
-                            "3. Nếu payroll đã Paid: Liên hệ quản lý để xử lý",
+                            "Để xóa khấu trừ:\n" +
+                            "1. Nếu bảng lương đang chờ duyệt: yêu cầu quản lý nhân sự từ chối bảng lương\n" +
+                            "2. Nếu bảng lương đã duyệt: tạo bảng lương mới cho tháng tiếp theo hoặc bảng điều chỉnh\n" +
+                            "3. Nếu bảng lương đã thanh toán: liên hệ quản lý để xử lý",
                             month, statusDisplay
                         );
                         request.getSession().setAttribute("error", errorMessage);
@@ -146,15 +146,15 @@ public class PayrollDeductionController extends HttpServlet {
             boolean success = employeeDeductionDAO.delete(deductionId);
             
             if (success) {
-                request.getSession().setAttribute("success", "Deduction deleted successfully!");
+                request.getSession().setAttribute("success", "Xóa khấu trừ thành công!");
             } else {
-                request.getSession().setAttribute("error", "Failed to delete deduction.");
+                request.getSession().setAttribute("error", "Không thể xóa khấu trừ.");
             }
             
             response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=deduction");
         } catch (Exception e) {
             e.printStackTrace();
-            request.getSession().setAttribute("error", "Error deleting deduction: " + e.getMessage());
+            request.getSession().setAttribute("error", "Lỗi khi xóa khấu trừ: " + e.getMessage());
             response.sendRedirect(request.getContextPath() + "/hrstaff/payroll?tab=deduction");
         }
     }
@@ -175,7 +175,7 @@ public class PayrollDeductionController extends HttpServlet {
      * Get display name for payroll status
      */
     private String getStatusDisplayName(String status) {
-        if (status == null) return "N/A";
+        if (status == null) return "Không có";
         switch (status) {
             case "Draft": return "Nháp";
             case "Pending": return "Đang chờ duyệt";
@@ -193,8 +193,8 @@ public class PayrollDeductionController extends HttpServlet {
                 response,
                 PermissionUtil.ROLE_HR_STAFF,
                 "VIEW_PAYROLLS",
-                "This page is restricted to HR Staff.",
-                "You do not have permission to manage payroll deductions."
+                "Trang này chỉ dành cho nhân viên nhân sự.",
+                "Bạn không có quyền quản lý khấu trừ lương."
         );
     }
 }

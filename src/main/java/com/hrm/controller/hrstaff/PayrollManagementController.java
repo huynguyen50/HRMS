@@ -28,7 +28,7 @@ import com.hrm.util.PermissionUtil;
 public class PayrollManagementController extends HttpServlet {
 
     private static final String REQUIRED_PERMISSION = "VIEW_PAYROLLS";
-    private static final String DEFAULT_DENIED_MESSAGE = "You do not have permission to manage payroll.";
+    private static final String DEFAULT_DENIED_MESSAGE = "Bạn không có quyền quản lý bảng lương.";
 
     private final EmployeeDAO employeeDAO = new EmployeeDAO();
     private final AllowanceTypeDAO allowanceTypeDAO = new AllowanceTypeDAO();
@@ -63,7 +63,7 @@ public class PayrollManagementController extends HttpServlet {
 
                 // Validate required fields
                 if (employeeIdStr == null || payPeriod == null) {
-                    request.setAttribute("error", "Missing required fields");
+                    request.setAttribute("error", "Thiếu thông tin bắt buộc.");
                     doGet(request, response);
                     return;
                 }
@@ -99,7 +99,7 @@ public class PayrollManagementController extends HttpServlet {
                     int payrollId = Integer.parseInt(payrollIdStr);
                     Payroll existing = payrollDAO.getById(payrollId);
                     if (existing == null) {
-                        request.setAttribute("error", "Payroll not found.");
+                        request.setAttribute("error", "Không tìm thấy bảng lương.");
                         doGet(request, response);
                         return;
                     }
@@ -108,7 +108,7 @@ public class PayrollManagementController extends HttpServlet {
                 } else {
                     // Check if payroll already exists for this employee and period
                     if (payrollDAO.exists(employeeId, payPeriod)) {
-                        request.setAttribute("error", "Payroll already exists for this employee and period.");
+                        request.setAttribute("error", "Bảng lương của nhân viên trong kỳ này đã tồn tại.");
                         doGet(request, response);
                         return;
                     }
@@ -146,20 +146,20 @@ public class PayrollManagementController extends HttpServlet {
                         
                         if (statusUpdated) {
                             if ("Rejected".equals(previousStatus)) {
-                                request.setAttribute("success", "Payroll resubmitted for approval successfully!");
+                                request.setAttribute("success", "Gửi lại bảng lương để phê duyệt thành công!");
                             } else {
-                                request.setAttribute("success", "Payroll submitted for approval successfully!");
+                                request.setAttribute("success", "Gửi bảng lương để phê duyệt thành công!");
                             }
                         } else {
-                            request.setAttribute("error", "Payroll updated but failed to change status to Pending.");
+                            request.setAttribute("error", "Đã cập nhật bảng lương nhưng không thể chuyển trạng thái sang chờ phê duyệt.");
                         }
                     } else {
-                        request.setAttribute("error", "Failed to submit payroll. Payroll ID not found.");
+                        request.setAttribute("error", "Không thể gửi duyệt bảng lương. Không tìm thấy mã bảng lương.");
                     }
                 } else if (success) {
-                    request.setAttribute("success", "Payroll saved successfully!");
+                    request.setAttribute("success", "Lưu bảng lương thành công!");
                 } else {
-                    request.setAttribute("error", "Failed to save payroll. Make sure the payroll is in Draft or Rejected status.");
+                    request.setAttribute("error", "Không thể lưu bảng lương. Hãy đảm bảo bảng lương đang ở trạng thái bản nháp hoặc bị từ chối.");
                 }
             }
 
@@ -168,7 +168,7 @@ public class PayrollManagementController extends HttpServlet {
             
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "Error processing payroll: " + e.getMessage());
+            request.setAttribute("error", "Lỗi khi xử lý bảng lương: " + e.getMessage());
             doGet(request, response);
         }
     }
@@ -421,7 +421,7 @@ public class PayrollManagementController extends HttpServlet {
             
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "Error loading payroll data: " + e.getMessage());
+            request.setAttribute("error", "Lỗi khi tải dữ liệu bảng lương: " + e.getMessage());
             request.getRequestDispatcher("/Views/HrStaff/PayrollManagement.jsp").forward(request, response);
         }
     }
@@ -464,13 +464,13 @@ public class PayrollManagementController extends HttpServlet {
     
     private void handleDelete(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!ensureHtmlAccess(request, response, "You do not have permission to delete payroll records.")) {
+        if (!ensureHtmlAccess(request, response, "Bạn không có quyền xóa bảng lương.")) {
             return;
         }
         try {
             String payrollIdStr = request.getParameter("payrollId");
             if (payrollIdStr == null) {
-                request.getSession().setAttribute("error", "Missing payroll ID");
+                request.getSession().setAttribute("error", "Thiếu mã bảng lương.");
                 response.sendRedirect(buildPayrollRedirectUrl(request));
                 return;
             }
@@ -479,28 +479,28 @@ public class PayrollManagementController extends HttpServlet {
             boolean success = payrollDAO.delete(payrollId);
             
             if (success) {
-                request.getSession().setAttribute("success", "Payroll deleted successfully!");
+                request.getSession().setAttribute("success", "Xóa bảng lương thành công!");
             } else {
-                request.getSession().setAttribute("error", "Failed to delete payroll. Only Draft payrolls can be deleted.");
+                request.getSession().setAttribute("error", "Không thể xóa bảng lương. Chỉ bảng lương bản nháp mới được xóa.");
             }
             
             response.sendRedirect(buildPayrollRedirectUrl(request));
         } catch (Exception e) {
             e.printStackTrace();
-            request.getSession().setAttribute("error", "Error deleting payroll: " + e.getMessage());
+            request.getSession().setAttribute("error", "Lỗi khi xóa bảng lương: " + e.getMessage());
             response.sendRedirect(buildPayrollRedirectUrl(request));
         }
     }
     
     private void handleSubmit(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!ensureHtmlAccess(request, response, "You do not have permission to submit payroll for approval.")) {
+        if (!ensureHtmlAccess(request, response, "Bạn không có quyền gửi bảng lương để phê duyệt.")) {
             return;
         }
         try {
             String payrollIdStr = request.getParameter("payrollId");
             if (payrollIdStr == null) {
-                request.getSession().setAttribute("error", "Missing payroll ID");
+                request.getSession().setAttribute("error", "Thiếu mã bảng lương.");
                 response.sendRedirect(buildPayrollRedirectUrl(request));
                 return;
             }
@@ -509,14 +509,14 @@ public class PayrollManagementController extends HttpServlet {
             Payroll payroll = payrollDAO.getById(payrollId);
             
             if (payroll == null) {
-                request.getSession().setAttribute("error", "Payroll not found.");
+                request.getSession().setAttribute("error", "Không tìm thấy bảng lương.");
                 response.sendRedirect(buildPayrollRedirectUrl(request));
                 return;
             }
             
             // Allow submitting Draft or Rejected payrolls
             if (payroll.getStatus() == null || (!"Draft".equals(payroll.getStatus()) && !"Rejected".equals(payroll.getStatus()))) {
-                request.getSession().setAttribute("error", "Only Draft or Rejected payrolls can be submitted.");
+                request.getSession().setAttribute("error", "Chỉ bảng lương bản nháp hoặc bị từ chối mới được gửi duyệt.");
                 response.sendRedirect(buildPayrollRedirectUrl(request));
                 return;
             }
@@ -525,17 +525,17 @@ public class PayrollManagementController extends HttpServlet {
             
             if (success) {
                 String message = "Rejected".equals(payroll.getStatus()) 
-                    ? "Payroll resubmitted for approval successfully!" 
-                    : "Payroll submitted for approval successfully!";
+                    ? "Gửi lại bảng lương để phê duyệt thành công!" 
+                    : "Gửi bảng lương để phê duyệt thành công!";
                 request.getSession().setAttribute("success", message);
             } else {
-                request.getSession().setAttribute("error", "Failed to submit payroll.");
+                request.getSession().setAttribute("error", "Không thể gửi duyệt bảng lương.");
             }
             
             response.sendRedirect(buildPayrollRedirectUrl(request));
         } catch (Exception e) {
             e.printStackTrace();
-            request.getSession().setAttribute("error", "Error submitting payroll: " + e.getMessage());
+            request.getSession().setAttribute("error", "Lỗi khi gửi duyệt bảng lương: " + e.getMessage());
             response.sendRedirect(buildPayrollRedirectUrl(request));
         }
     }
@@ -545,13 +545,13 @@ public class PayrollManagementController extends HttpServlet {
      */
     private void handleBatchSubmit(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!ensureHtmlAccess(request, response, "You do not have permission to submit payrolls for approval.")) {
+        if (!ensureHtmlAccess(request, response, "Bạn không có quyền gửi các bảng lương để phê duyệt.")) {
             return;
         }
         try {
             String payrollIdsStr = request.getParameter("payrollIds");
             if (payrollIdsStr == null || payrollIdsStr.trim().isEmpty()) {
-                request.getSession().setAttribute("error", "No payroll IDs provided");
+                request.getSession().setAttribute("error", "Chưa chọn mã bảng lương.");
                 response.sendRedirect(buildPayrollRedirectUrl(request));
                 return;
             }
@@ -567,7 +567,7 @@ public class PayrollManagementController extends HttpServlet {
             }
             
             if (payrollIds.isEmpty()) {
-                request.getSession().setAttribute("error", "No valid payroll IDs provided");
+                request.getSession().setAttribute("error", "Không có mã bảng lương hợp lệ.");
                 response.sendRedirect(buildPayrollRedirectUrl(request));
                 return;
             }
@@ -600,13 +600,13 @@ public class PayrollManagementController extends HttpServlet {
             // Build result message
             StringBuilder message = new StringBuilder();
             if (successCount > 0) {
-                message.append(successCount).append(" payroll(s) submitted successfully. ");
+                message.append(successCount).append(" bảng lương đã gửi duyệt thành công. ");
             }
             if (failCount > 0) {
-                message.append(failCount).append(" payroll(s) failed to submit. ");
+                message.append(failCount).append(" bảng lương không thể gửi duyệt. ");
             }
             if (skippedCount > 0) {
-                message.append(skippedCount).append(" payroll(s) skipped (not in Draft/Rejected status). ");
+                message.append(skippedCount).append(" bảng lương bị bỏ qua vì không ở trạng thái bản nháp hoặc bị từ chối. ");
             }
             
             if (successCount > 0) {
@@ -618,7 +618,7 @@ public class PayrollManagementController extends HttpServlet {
             response.sendRedirect(buildPayrollRedirectUrl(request));
         } catch (Exception e) {
             e.printStackTrace();
-            request.getSession().setAttribute("error", "Error batch submitting payrolls: " + e.getMessage());
+            request.getSession().setAttribute("error", "Lỗi khi gửi duyệt nhiều bảng lương: " + e.getMessage());
             response.sendRedirect(buildPayrollRedirectUrl(request));
         }
     }
@@ -628,13 +628,13 @@ public class PayrollManagementController extends HttpServlet {
      */
     private void handleBatchDelete(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!ensureHtmlAccess(request, response, "You do not have permission to delete payroll records.")) {
+        if (!ensureHtmlAccess(request, response, "Bạn không có quyền xóa bảng lương.")) {
             return;
         }
         try {
             String payrollIdsStr = request.getParameter("payrollIds");
             if (payrollIdsStr == null || payrollIdsStr.trim().isEmpty()) {
-                request.getSession().setAttribute("error", "No payroll IDs provided");
+                request.getSession().setAttribute("error", "Chưa chọn mã bảng lương.");
                 response.sendRedirect(buildPayrollRedirectUrl(request));
                 return;
             }
@@ -650,7 +650,7 @@ public class PayrollManagementController extends HttpServlet {
             }
             
             if (payrollIds.isEmpty()) {
-                request.getSession().setAttribute("error", "No valid payroll IDs provided");
+                request.getSession().setAttribute("error", "Không có mã bảng lương hợp lệ.");
                 response.sendRedirect(buildPayrollRedirectUrl(request));
                 return;
             }
@@ -683,13 +683,13 @@ public class PayrollManagementController extends HttpServlet {
             // Build result message
             StringBuilder message = new StringBuilder();
             if (successCount > 0) {
-                message.append(successCount).append(" payroll(s) deleted successfully. ");
+                message.append(successCount).append(" bảng lương đã xóa thành công. ");
             }
             if (failCount > 0) {
-                message.append(failCount).append(" payroll(s) failed to delete. ");
+                message.append(failCount).append(" bảng lương không thể xóa. ");
             }
             if (skippedCount > 0) {
-                message.append(skippedCount).append(" payroll(s) skipped (not in Draft status). ");
+                message.append(skippedCount).append(" bảng lương bị bỏ qua vì không ở trạng thái bản nháp. ");
             }
             
             if (successCount > 0) {
@@ -701,7 +701,7 @@ public class PayrollManagementController extends HttpServlet {
             response.sendRedirect(buildPayrollRedirectUrl(request));
         } catch (Exception e) {
             e.printStackTrace();
-            request.getSession().setAttribute("error", "Error batch deleting payrolls: " + e.getMessage());
+            request.getSession().setAttribute("error", "Lỗi khi xóa nhiều bảng lương: " + e.getMessage());
             response.sendRedirect(buildPayrollRedirectUrl(request));
         }
     }
@@ -711,13 +711,13 @@ public class PayrollManagementController extends HttpServlet {
      */
     private void handleGenerateAll(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!ensureHtmlAccess(request, response, "You do not have permission to generate payroll for all employees.")) {
+        if (!ensureHtmlAccess(request, response, "Bạn không có quyền tạo bảng lương cho tất cả nhân viên.")) {
             return;
         }
         try {
             String period = request.getParameter("period");
             if (period == null || period.trim().isEmpty()) {
-                request.getSession().setAttribute("error", "Missing pay period parameter");
+                request.getSession().setAttribute("error", "Thiếu kỳ lương.");
                 response.sendRedirect(buildPayrollRedirectUrl(request));
                 return;
             }
@@ -727,23 +727,23 @@ public class PayrollManagementController extends HttpServlet {
             
             if (success) {
                 request.getSession().setAttribute("success", 
-                    "Payroll generated successfully for all active employees for period " + period + " using stored procedure sp_GeneratePayrollImproved!\n" +
-                    "The system has automatically calculated:\n" +
-                    "- Actual working days and paid leave days\n" +
-                    "- Actual base salary based on attendance\n" +
-                    "- Overtime salary\n" +
-                    "- Insurance (BHXH, BHYT, BHTN)\n" +
-                    "- Personal income tax (TNCN)\n" +
-                    "- Net salary\n" +
-                    "All payroll records have been created/updated in PayrollAudit and Payroll tables.");
+                    "Tạo bảng lương thành công cho tất cả nhân viên đang hoạt động trong kỳ " + period + " bằng thủ tục sp_GeneratePayrollImproved!\n" +
+                    "Hệ thống đã tự động tính:\n" +
+                    "- Ngày công thực tế và ngày nghỉ có lương\n" +
+                    "- Lương cơ bản thực nhận theo chấm công\n" +
+                    "- Lương tăng ca\n" +
+                    "- Bảo hiểm (BHXH, BHYT, BHTN)\n" +
+                    "- Thuế thu nhập cá nhân (TNCN)\n" +
+                    "- Lương thực nhận\n" +
+                    "Tất cả bảng lương đã được tạo/cập nhật trong bảng kiểm toán lương và bảng lương.");
             } else {
-                request.getSession().setAttribute("error", "Failed to generate payroll using stored procedure. Please check the logs for details.");
+                request.getSession().setAttribute("error", "Không thể tạo bảng lương bằng thủ tục lưu trữ. Vui lòng kiểm tra nhật ký để biết thêm chi tiết.");
             }
             
             response.sendRedirect(buildPayrollRedirectUrl(request));
         } catch (Exception e) {
             e.printStackTrace();
-            request.getSession().setAttribute("error", "Error generating payroll: " + e.getMessage());
+            request.getSession().setAttribute("error", "Lỗi khi tạo bảng lương: " + e.getMessage());
             response.sendRedirect(buildPayrollRedirectUrl(request));
         }
     }
@@ -753,7 +753,7 @@ public class PayrollManagementController extends HttpServlet {
      */
     private void handleGetPayrollDetails(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (!ensureJsonAccess(request, response, "You do not have permission to view payroll details.")) {
+        if (!ensureJsonAccess(request, response, "Bạn không có quyền xem chi tiết bảng lương.")) {
             return;
         }
         response.setContentType("application/json");
@@ -764,7 +764,7 @@ public class PayrollManagementController extends HttpServlet {
             if (payrollIdStr == null || payrollIdStr.trim().isEmpty()) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 PrintWriter out = response.getWriter();
-                out.print("{\"error\":\"Missing payroll ID\"}");
+                out.print("{\"error\":\"Thiếu mã bảng lương\"}");
                 return;
             }
             
@@ -774,7 +774,7 @@ public class PayrollManagementController extends HttpServlet {
             if (details == null) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 PrintWriter out = response.getWriter();
-                out.print("{\"error\":\"Payroll not found\"}");
+                out.print("{\"error\":\"Không tìm thấy bảng lương\"}");
                 return;
             }
             
@@ -789,12 +789,12 @@ public class PayrollManagementController extends HttpServlet {
         } catch (NumberFormatException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             PrintWriter out = response.getWriter();
-            out.print("{\"error\":\"Invalid payroll ID\"}");
+            out.print("{\"error\":\"Mã bảng lương không hợp lệ\"}");
         } catch (Exception e) {
             e.printStackTrace();
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             PrintWriter out = response.getWriter();
-            out.print("{\"error\":\"Error retrieving payroll details: " + e.getMessage() + "\"}");
+            out.print("{\"error\":\"Lỗi khi lấy chi tiết bảng lương: " + e.getMessage() + "\"}");
         }
     }
     
@@ -830,7 +830,7 @@ public class PayrollManagementController extends HttpServlet {
                 response,
                 PermissionUtil.ROLE_HR_STAFF,
                 REQUIRED_PERMISSION,
-                "This section is restricted to HR Staff.",
+                "Khu vực này chỉ dành cho nhân viên nhân sự.",
                 permissionMessage);
     }
 
@@ -842,7 +842,7 @@ public class PayrollManagementController extends HttpServlet {
                 response,
                 PermissionUtil.ROLE_HR_STAFF,
                 REQUIRED_PERMISSION,
-                "This section is restricted to HR Staff.",
+                "Khu vực này chỉ dành cho nhân viên nhân sự.",
                 permissionMessage);
     }
 }

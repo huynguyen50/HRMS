@@ -854,10 +854,10 @@
             }
         </style>
         <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="<%=request.getContextPath()%>/css/hr-theme.css">
+        <link rel="stylesheet" href="<%=request.getContextPath()%>/css/hr-theme.css?v=hr-manager-shell-20260627-4">
     </head>
     <body>
-        <div class="hr-dashboard-container">
+        <div class="hr-dashboard-container hr-manager-page-shell">
             <!-- Header -->
             <header class="hr-header">
                 <div class="header-content">
@@ -889,72 +889,11 @@
 
             <!-- Main Content -->
             <main class="hr-main-content">
-                <!-- Sidebar -->
-                <aside class="hr-sidebar">
-                    <nav class="hr-nav">
-                        <div class="nav-section">
-                            <a href="${pageContext.request.contextPath}/Views/hr/HrHome.jsp" class="nav-item">
-                                <i class="fas fa-home"></i>
-                                <span>HR Home</span>
-                            </a>
-                        </div>
-                        
-                        <div class="nav-section">
-                            <h3>Requests & Approvals</h3>
-                            <a href="${pageContext.request.contextPath}/Views/hr/HrHome.jsp#requests-approval" class="nav-item">
-                                <i class="fas fa-clipboard-check"></i>
-                                <span>Requests & Recommendations</span>
-                            </a>
-                        </div>
-                        
-                        <div class="nav-section">
-                            <h3>Salary & Contracts</h3>
-                            <a href="${pageContext.request.contextPath}/hr/payroll-approval" class="nav-item active">
-                                <i class="fas fa-money-bill-wave"></i>
-                                <span>Duyệt bảng lương</span>
-                            </a>
-                            <a href="${pageContext.request.contextPath}/hr/approve-reject-contracts" class="nav-item">
-                                <i class="fas fa-file-contract"></i>
-                                <span>Duyệt hợp đồng</span>
-                            </a>
-                        </div>
-                        
-                        <div class="nav-section">
-                            <h3>Recruitment</h3>
-                            <a href="${pageContext.request.contextPath}/viewRecruitment" class="nav-item">
-                                <i class="fas fa-bullhorn"></i>
-                                <span>Tin tuyển dụng</span>
-                            </a>
-                            <a href="${pageContext.request.contextPath}/candidates" class="nav-item">
-                                <i class="fas fa-users"></i>
-                                <span>View Candidates</span>
-                            </a>
-                            <a href="${pageContext.request.contextPath}/hr/create-employee" class="nav-item">
-                                <i class="fas fa-user-plus"></i>
-                                <span>Tạo nhân viên</span>
-                            </a>
-                            <a href="${pageContext.request.contextPath}/hr/employee-list" class="nav-item">
-                                <i class="fas fa-list"></i>
-                                <span>Danh sách nhân viên</span>
-                            </a>
-                            <a href="${pageContext.request.contextPath}/Views/hr/HrHome.jsp#recruitment-system" class="nav-item">
-                                <i class="fas fa-clipboard-list"></i>
-                                <span>Recruitment System</span>
-                            </a>
-                        </div>
-                        
-                        <div class="nav-section">
-                            <h3>Reports</h3>
-                            <a href="${pageContext.request.contextPath}/Views/hr/HrHome.jsp#reports-analytics" class="nav-item">
-                                <i class="fas fa-chart-bar"></i>
-                                <span>Reports & Analytics</span>
-                            </a>
-                        </div>
-                    </nav>
-                </aside>
+                <c:set var="hrSidebarActive" value="payroll" />
+                <%@ include file="_HrManagerSidebar.jspf" %>
 
                 <!-- Content Area -->
-                <div class="hr-content-area">
+                <div class="hr-content-area" id="payrollApprovalContent">
                     <!-- Page Title -->
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h1 class="h2">Duyệt bảng lương</h1>
@@ -972,7 +911,7 @@
                         </div>
                     </c:if>
 
-                    <div class="card" style="border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <div class="card payroll-approval-card" style="border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
                         <!-- Status Tabs -->
                         <div class="status-tabs">
                             <c:url var="pendingUrl" value="/hr/payroll-approval">

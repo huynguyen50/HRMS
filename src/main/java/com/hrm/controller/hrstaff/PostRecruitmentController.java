@@ -25,8 +25,8 @@ import java.util.List;
 public class PostRecruitmentController extends HttpServlet {
 
     private static final String REQUIRED_PERMISSION = "VIEW_RECRUITMENT";
-    private static final String REQUIRED_ROLE_MESSAGE = "This section is restricted to HR Staff.";
-    private static final String PERMISSION_DENIED_MESSAGE = "You do not have permission to manage recruitment posts.";
+    private static final String REQUIRED_ROLE_MESSAGE = "Khu vực này chỉ dành cho nhân viên nhân sự.";
+    private static final String PERMISSION_DENIED_MESSAGE = "Bạn không có quyền quản lý tin tuyển dụng.";
     private static final String LOGIN_PATH = "/login";
 
     @Override
@@ -42,7 +42,7 @@ public class PostRecruitmentController extends HttpServlet {
                 int recruitmentId = Integer.parseInt(idStr);
 
                 DAO.getInstance().updateRecruitmentStatus(recruitmentId, "Waiting");
-                request.setAttribute("mess", "Send successfully!");
+                request.setAttribute("mess", "Gửi duyệt thành công!");
             } catch (Exception e) {
                 e.printStackTrace();
                 response.sendRedirect(request.getContextPath() + "/postRecruitments");
@@ -54,7 +54,7 @@ public class PostRecruitmentController extends HttpServlet {
                 int recruitmentId = Integer.parseInt(idStr);
 
                 DAO.getInstance().updateRecruitmentStatus(recruitmentId, "Deleted");
-                request.setAttribute("mess", "Delete successfully!");
+                request.setAttribute("mess", "Xóa tin tuyển dụng thành công!");
             } catch (Exception e) {
                 e.printStackTrace();
                 response.sendRedirect(request.getContextPath() + "/postRecruitments");
@@ -116,7 +116,7 @@ public class PostRecruitmentController extends HttpServlet {
 
     @Override
     public String getServletInfo() {
-        return "Short description";
+        return "Danh sách tin tuyển dụng";
     }
 
     private boolean ensureAccess(HttpServletRequest request, HttpServletResponse response)

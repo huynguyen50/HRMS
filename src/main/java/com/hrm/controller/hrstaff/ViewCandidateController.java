@@ -28,8 +28,8 @@ import java.util.List;
 public class ViewCandidateController extends HttpServlet {
 
     private static final String REQUIRED_PERMISSION = "VIEW_RECRUITMENT";
-    private static final String REQUIRED_ROLE_MESSAGE = "This section is restricted to HR Staff.";
-    private static final String PERMISSION_DENIED_MESSAGE = "You do not have permission to view candidate information.";
+    private static final String REQUIRED_ROLE_MESSAGE = "Khu vực này chỉ dành cho nhân viên nhân sự.";
+    private static final String PERMISSION_DENIED_MESSAGE = "Bạn không có quyền xem thông tin ứng viên.";
     private static final String LOGIN_PATH = "/login";
     private static final String PARAM_SEARCH_BY_NAME = "searchByName";
     private static final String PARAM_FILTER_STATUS = "filterStatus";
@@ -129,7 +129,7 @@ public class ViewCandidateController extends HttpServlet {
 
     @Override
     public String getServletInfo() {
-        return "Short description";
+        return "Danh sách ứng viên";
     }
 
     private boolean ensureAccess(HttpServletRequest request, HttpServletResponse response)

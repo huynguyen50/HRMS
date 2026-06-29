@@ -10,23 +10,21 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-    <link href="${pageContext.request.contextPath}/css/guest.css" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/css/guest.css?v=guest-profile-merge" rel="stylesheet">
 </head>
 <body>
 <div class="candidate-shell">
     <aside class="candidate-sidebar">
-        <div class="candidate-brand">
+        <a class="candidate-brand" href="${pageContext.request.contextPath}/homepage" aria-label="Về trang chủ BetterHR">
             <strong>Better Jobs</strong>
             <span>Cổng ứng viên BetterHR</span>
-        </div>
+        </a>
 
         <nav class="candidate-nav">
             <a href="${pageContext.request.contextPath}/guest/dashboard"><i class="fa-solid fa-table-columns"></i> Bảng điều khiển</a>
-            <a href="${pageContext.request.contextPath}/RecruitmentController"><i class="fa-solid fa-briefcase"></i> Việc làm hiện có</a>
             <a href="${pageContext.request.contextPath}/guest/applications"><i class="fa-solid fa-list-check"></i> Đơn ứng tuyển</a>
             <a class="active" href="${pageContext.request.contextPath}/guest/profile"><i class="fa-solid fa-user"></i> Hồ sơ của tôi</a>
-            <a href="${pageContext.request.contextPath}/Views/ChangePassword.jsp"><i class="fa-solid fa-shield-halved"></i> Đổi mật khẩu</a>
-            <a href="${pageContext.request.contextPath}/homepage"><i class="fa-solid fa-house"></i> Trang chủ</a>
+            <a href="#candidate-profile"><i class="fa-solid fa-id-card"></i> Hồ sơ ứng tuyển</a>
             <a href="${pageContext.request.contextPath}/logout"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a>
         </nav>
 
@@ -73,6 +71,7 @@
             </section>
 
             <div class="candidate-grid">
+                <div class="candidate-left">
                 <section class="candidate-card">
                     <div class="candidate-card-header">
                         <div>
@@ -88,7 +87,32 @@
                             <div class="candidate-alert error">${error}</div>
                         </c:if>
 
-                        <form class="candidate-form" action="${pageContext.request.contextPath}/guest/profile" method="post">
+                        <div class="candidate-profile-compose">
+                            <label class="candidate-avatar-edit candidate-avatar-edit-large" for="avatarFile" title="Chọn ảnh đại diện">
+                                <span class="candidate-avatar">
+                                    <c:choose>
+                                        <c:when test="${not empty guestProfile.avatar}">
+                                            <img id="avatarPreviewImage" src="${guestProfile.avatar}" alt="Ảnh đại diện">
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span id="avatarPreviewFallback">B</span>
+                                            <img id="avatarPreviewImage" src="" alt="Ảnh đại diện mới" style="display:none;">
+                                        </c:otherwise>
+                                    </c:choose>
+                                    <span class="candidate-avatar-edit-icon"><i class="fa-solid fa-camera"></i></span>
+                                </span>
+                            </label>
+                            <input class="candidate-avatar-input" id="avatarFile" name="avatarFile" type="file"
+                                   accept="image/png,image/jpeg,image/webp,image/gif" form="basicProfileForm">
+                            <div class="candidate-profile-compose-text">
+                                <span class="candidate-avatar-hint">Bấm vào ảnh để thay đổi</span>
+                                <h3>${guestProfile.fullName}</h3>
+                                <p>${currentUser.email}</p>
+                                <span class="candidate-status candidate-profile-badge">Tài khoản ứng viên</span>
+                            </div>
+                        </div>
+
+                        <form id="basicProfileForm" class="candidate-form" action="${pageContext.request.contextPath}/guest/profile" method="post" enctype="multipart/form-data">
                             <div class="candidate-form-grid">
                                 <div class="candidate-field">
                                     <label for="fullName">Họ và tên</label>
@@ -115,10 +139,6 @@
                                     <label for="dateOfBirth">Ngày sinh</label>
                                     <input class="candidate-input" id="dateOfBirth" name="dateOfBirth" type="date" value="${guestProfile.dateOfBirth}">
                                 </div>
-                                <div class="candidate-field">
-                                    <label for="avatar">Liên kết ảnh đại diện</label>
-                                    <input class="candidate-input" id="avatar" name="avatar" value="${guestProfile.avatar}" placeholder="https://...">
-                                </div>
                             </div>
 
                             <div class="candidate-field">
@@ -134,30 +154,86 @@
                     </div>
                 </section>
 
-                <aside class="candidate-right">
-                    <section class="candidate-card">
-                        <div class="candidate-card-body candidate-profile-card">
-                            <div class="candidate-avatar">
-                                <c:choose>
-                                    <c:when test="${not empty guestProfile.avatar}">
-                                        <img src="${guestProfile.avatar}" alt="Ảnh đại diện">
-                                    </c:when>
-                                    <c:otherwise>B</c:otherwise>
-                                </c:choose>
-                            </div>
-                            <h2>${guestProfile.fullName}</h2>
-                            <p>${currentUser.email}</p>
-                            <span class="candidate-status candidate-profile-badge">Tài khoản ứng viên</span>
-
-                            <div class="candidate-profile-meta">
-                                <p><strong>Điện thoại</strong><span>${empty guestProfile.phone ? 'Chưa cập nhật' : guestProfile.phone}</span></p>
-                                <p><strong>Giới tính</strong><span>${empty guestProfile.gender ? 'Chưa cập nhật' : guestProfile.gender}</span></p>
-                                <p><strong>Ngày sinh</strong><span>${empty guestProfile.dateOfBirth ? 'Chưa cập nhật' : guestProfile.dateOfBirth}</span></p>
-                                <p><strong>Địa chỉ</strong><span>${empty guestProfile.address ? 'Chưa cập nhật' : guestProfile.address}</span></p>
-                            </div>
+                <section class="candidate-card" id="candidate-profile">
+                    <div class="candidate-card-header">
+                        <div>
+                            <h2>Hồ sơ ứng tuyển</h2>
+                            <p>Thông tin này sẽ được dùng tự động cho các lần ứng tuyển tiếp theo.</p>
                         </div>
-                    </section>
+                    </div>
+                    <div class="candidate-card-body">
+                        <form class="candidate-form" action="${pageContext.request.contextPath}/guest/profile" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="action" value="saveCandidateProfile">
+                            <div class="candidate-form-grid">
+                                <div class="candidate-field">
+                                    <label for="candidateFullName">Họ và tên</label>
+                                    <input class="candidate-input" id="candidateFullName" name="candidateFullName" required
+                                           value="${not empty candidateProfile.fullName ? candidateProfile.fullName : guestProfile.fullName}">
+                                </div>
+                                <div class="candidate-field">
+                                    <label for="candidateEmail">Email nhận xác nhận</label>
+                                    <input class="candidate-input" id="candidateEmail" name="candidateEmail" type="email" required
+                                           value="${not empty candidateProfile.email ? candidateProfile.email : currentUser.email}">
+                                </div>
+                                <div class="candidate-field">
+                                    <label for="candidatePhone">Số điện thoại</label>
+                                    <input class="candidate-input" id="candidatePhone" name="candidatePhone" required
+                                           value="${not empty candidateProfile.phone ? candidateProfile.phone : guestProfile.phone}">
+                                </div>
+                                <div class="candidate-field">
+                                    <label for="candidateDateOfBirth">Ngày sinh</label>
+                                    <input class="candidate-input" id="candidateDateOfBirth" name="candidateDateOfBirth" type="date"
+                                           value="${not empty candidateProfile.dateOfBirth ? candidateProfile.dateOfBirth : guestProfile.dateOfBirth}">
+                                </div>
+                                <div class="candidate-field">
+                                    <label for="candidateAddress">Địa chỉ/Nơi ở hiện tại</label>
+                                    <input class="candidate-input" id="candidateAddress" name="candidateAddress"
+                                           value="${not empty candidateProfile.address ? candidateProfile.address : guestProfile.address}">
+                                </div>
+                                <div class="candidate-field">
+                                    <label for="desiredPosition">Vị trí mong muốn</label>
+                                    <input class="candidate-input" id="desiredPosition" name="desiredPosition"
+                                           value="${candidateProfile.desiredPosition}">
+                                </div>
+                                <div class="candidate-field">
+                                    <label for="expectedSalary">Mức lương mong muốn</label>
+                                    <input class="candidate-input" id="expectedSalary" name="expectedSalary" type="number" min="0" step="100000"
+                                           value="${candidateProfile.expectedSalary}">
+                                </div>
+                                <div class="candidate-field">
+                                    <label for="candidateCvFile">CV</label>
+                                    <input class="candidate-input" id="candidateCvFile" name="candidateCvFile" type="file" accept=".pdf,.doc,.docx" ${empty candidateProfile.cvFilePath ? 'required' : ''}>
+                                    <c:if test="${not empty candidateProfile.cvFilePath}">
+                                        <span class="candidate-file-note">CV hiện tại: ${candidateProfile.cvFilePath}</span>
+                                    </c:if>
+                                </div>
+                            </div>
 
+                            <div class="candidate-field">
+                                <label for="workExperience">Kinh nghiệm làm việc</label>
+                                <textarea class="candidate-textarea" id="workExperience" name="workExperience"
+                                          placeholder="Công ty đã từng làm, thời gian làm việc, mô tả công việc, kỹ năng nổi bật...">${candidateProfile.workExperience}</textarea>
+                            </div>
+
+                            <c:choose>
+                                <c:when test="${candidateProfile.emailVerified}">
+                                    <div class="candidate-alert">Email hồ sơ ứng tuyển đã được xác nhận.</div>
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="candidate-alert error">Email hồ sơ ứng tuyển chưa được xác nhận. Khi lưu, hệ thống sẽ gửi mã xác nhận đến email bạn nhập.</div>
+                                </c:otherwise>
+                            </c:choose>
+
+                            <div class="candidate-actions">
+                                <button class="candidate-btn" type="submit"><i class="fa-solid fa-floppy-disk"></i> Lưu hồ sơ ứng tuyển</button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                </div>
+
+                <aside class="candidate-right">
                     <section class="candidate-card">
                         <div class="candidate-card-body">
                             <h3 class="candidate-profile-section-title">Tiến độ hồ sơ</h3>
@@ -175,5 +251,25 @@
         </section>
     </main>
 </div>
+<script>
+    const avatarInput = document.getElementById('avatarFile');
+    const avatarPreviewImage = document.getElementById('avatarPreviewImage');
+    const avatarPreviewFallback = document.getElementById('avatarPreviewFallback');
+
+    if (avatarInput && avatarPreviewImage) {
+        avatarInput.addEventListener('change', function () {
+            const file = this.files && this.files[0];
+            if (!file) {
+                return;
+            }
+            const previewUrl = URL.createObjectURL(file);
+            avatarPreviewImage.src = previewUrl;
+            avatarPreviewImage.style.display = 'block';
+            if (avatarPreviewFallback) {
+                avatarPreviewFallback.style.display = 'none';
+            }
+        });
+    }
+</script>
 </body>
 </html>

@@ -476,6 +476,43 @@ public class EmployeeDAO {
         return 0;
     }
 
+    public List<Employee> getByDepartmentId(int departmentId) {
+        List<Employee> list = new ArrayList<>();
+        String sql = """
+            SELECT e.*, d.DeptName
+            FROM Employee e
+            LEFT JOIN Department d ON e.DepartmentID = d.DepartmentID
+            WHERE e.DepartmentID = ?
+            ORDER BY e.FullName
+        """;
+
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, departmentId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Employee e = new Employee();
+                    e.setEmployeeId(rs.getInt("EmployeeID"));
+                    e.setFullName(rs.getString("FullName"));
+                    e.setGender(rs.getString("Gender"));
+                    e.setDob(rs.getDate("DOB") != null ? rs.getDate("DOB").toLocalDate() : null);
+                    e.setAddress(rs.getString("Address"));
+                    e.setPhone(rs.getString("Phone"));
+                    e.setEmail(rs.getString("Email"));
+                    e.setDepartmentId(rs.getInt("DepartmentID"));
+                    e.setDepartmentName(rs.getString("DeptName"));
+                    e.setPosition(rs.getString("Position"));
+                    e.setEmploymentPeriod(rs.getString("EmploymentPeriod"));
+                    e.setStatus(rs.getString("Status"));
+                    list.add(e);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public List<Employee> searchEmployees(String keyword) {
         List<Employee> list = new ArrayList<>();
         String sql = """

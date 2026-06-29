@@ -430,10 +430,10 @@
             }
         </style>
         <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-theme.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/css/hr-theme.css?v=hr-manager-shell-20260627-4">
     </head>
     <body>
-        <div class="hr-dashboard-container">
+        <div class="hr-dashboard-container hr-manager-page-shell">
             <!-- Header -->
             <header class="hr-header">
                 <div class="header-content">
@@ -455,7 +455,7 @@
                             <span>Quản lý HR</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
-                        <a href="${pageContext.request.contextPath}/Views/hr/HrHome.jsp" class="btn-homepage" title="Quay lại HR Home">
+                        <a href="${pageContext.request.contextPath}/HrHomeController" class="btn-homepage" title="Quay lại HR Home">
                             <i class="fas fa-home"></i>
                             <span>HR Home</span>
                         </a>
@@ -465,46 +465,8 @@
 
             <!-- Main Content -->
             <main class="hr-main-content">
-                <!-- Sidebar -->
-                <aside class="hr-sidebar">
-                    <nav class="hr-nav">
-                        <div class="nav-section">
-                            <h3>Điều hướng</h3>
-                            <a href="${pageContext.request.contextPath}/Views/hr/HrHome.jsp" class="nav-item">
-                                <i class="fas fa-home"></i>
-                                <span>HR Home</span>
-                            </a>
-                            <a href="${pageContext.request.contextPath}/HrHomeController" class="nav-item">
-                                <i class="fas fa-user-edit"></i>
-                                <span>Quản lý hồ sơ</span>
-                            </a>
-                            <a href="${pageContext.request.contextPath}/hr/employee-list" class="nav-item">
-                                <i class="fas fa-users"></i>
-                                <span>Danh sách nhân viên</span>
-                            </a>
-                        </div>
-
-                        <div class="nav-section">
-                            <h3>Recruitment</h3>
-                            <a href="${pageContext.request.contextPath}/postRecruitments" class="nav-item">
-                                <i class="fas fa-bullhorn"></i>
-                                <span>Post Recruitment</span>
-                            </a>
-                            <a href="${pageContext.request.contextPath}/viewRecruitment" class="nav-item active">
-                                <i class="fas fa-eye"></i>
-                                <span>Tin tuyển dụng</span>
-                            </a>
-                            <a href="${pageContext.request.contextPath}/candidates" class="nav-item">
-                                <i class="fas fa-user-plus"></i>
-                                <span>View Candidates</span>
-                            </a>
-                            <a href="${pageContext.request.contextPath}/hr/create-employee" class="nav-item">
-                                <i class="fas fa-user-plus"></i>
-                                <span>Tạo nhân viên</span>
-                            </a>
-                        </div>
-                    </nav>
-                </aside>
+                <c:set var="hrSidebarActive" value="recruitment" />
+                <%@ include file="_HrManagerSidebar.jspf" %>
 
                 <!-- Content Area -->
                 <div class="hr-content-area">
